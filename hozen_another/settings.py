@@ -11,7 +11,12 @@ SECRET_KEY=env('SECRET_KEY')
 
 DEBUG=env.bool('DEBUG')
 
-ALLOWED_HOSTS = [os.environ['WEBSITE_SITE_NAME'] + '.azurewebsites.net', 'https://kosuapptry.azurewebsites.net', 'localhost', '127.0.0.1'] if 'WEBSITE_SITE_NAME' in os.environ else []
+ALLOWED_HOSTS = [
+    'hozen-kosu-another-c6e2gyeraydpdnhq.japaneast-01.azurewebsites.net',
+    'kosuapptry.azurewebsites.net',
+    'localhost',
+    '127.0.0.1'
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
