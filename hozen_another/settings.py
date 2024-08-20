@@ -110,7 +110,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-CSRF_TRUSTED_ORIGINS = ['https://kosu-hozen.azurewebsites.net', 'https://kosuapptry.azurewebsites.net']
+CSRF_TRUSTED_ORIGINS = ['https://hozen-kosu-another-c6e2gyeraydpdnhq.japaneast-01.azurewebsites.net']
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
