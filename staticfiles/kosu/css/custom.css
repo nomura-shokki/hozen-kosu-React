@@ -1,0 +1,57 @@
+.number-input-group {
+    display: flex;
+    align-items: center;
+  }
+  
+  .custom-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    border: none;
+    background-color: #00aeff;  /* ボタンの背景色を設定 */
+    color: white;  /* テキストの色を設定 */
+    font-size: 1.2em;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;  /* 丸いボタンにする */
+    margin: 0 5px;  /* ボタン間のスペースを設定 */
+  }
+  
+  .custom-button:hover {
+    background-color: #009eb3;  /* ホバー時の背景色を設定 */
+  }
+  
+  .form-control {
+    margin: 0 10px; /* ボタンとの間にスペースを設ける */
+    width: 100px; /* 任意の幅 */
+    text-align: left; /* テキストを左詰めにする */
+  }
+  
+  .form-control.custom-border {
+    border-color: #000000; /* 外形線の色を設定 */
+    text-align: left; /* さらにカスタムボーダーでも左詰めにする場合 */
+  }
+  
+  .custom-checkbox .form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.5rem;
+}
+
+.form-check-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.custom-checkbox .form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 1px solid black;
+    margin-right: 0.5rem;
+}
+
+
+

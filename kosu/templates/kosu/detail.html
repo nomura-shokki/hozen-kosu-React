@@ -1,0 +1,106 @@
+{% load static %}
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+  <script src="{% static 'kosu/js/jquery-clock-timepicker.min.js' %}"></script>
+  <style>
+    input.big {
+      transform: scale(1.5);
+    }
+  </style>
+</head>
+<body class="container">
+  <h1 class="display-6 text-primary">{{day}}の{{title}}</h1>
+  <p class="h6">
+    <a href="{% url 'kosu_list' 1 %}">履歴へ</a>　　　
+    <a href="{% url 'input' %}">工数入力へ</a>
+  </p>
+  {% for message in messages %}
+  <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
+    <p  class="text-danger">
+      {{ message }}
+    </p>
+  </div>
+  {% endfor %}
+  <form action="{% url 'detail' id %}" method="post">
+  {% csrf_token %}
+  {% if has_next_record == True %}
+    <input type="submit" value="◀次のデータ" name="after" class="btn btn-blue7 mt-2">　
+  {% endif %}
+  {% if has_before_record == True %}
+    <input type="submit" value="前のデータ▶" name="before" class="btn btn-blue7 mt-2">
+  {% endif %}
+  <p>　</p>
+  <div class="table-responsive">
+    <table class="table no-wrap">
+      <tr>
+        <p class="h4">履歴を削除する時間を指定</p>
+      </tr>
+      <tr>
+        <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time" name="start_time" data-precision="5">
+        ～
+        <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time" name="end_time" data-precision="5">　
+        翌日
+        <input type="checkbox" id="tomorrow_check" name="tomorrow_check" class="big">　　
+        <input type="submit" value="工数削除" name="kosu_delete" class="btn btn-blue7 mt-2" onclick="return confirmDelete();">
+      </tr>
+      <tr>
+        <h1 class="display-4 text-primary">　</h1>
+      </tr>
+      <tr>
+        <th class="text-center">項目削除</th>
+        <th class="text-center">作業時間</th>
+        <th class="text-center">工数区分</th>
+        <th class="text-center">作業詳細</th>
+        <th class="text-center">作業時間編集</th>
+      </tr>
+      {% for i in time_display_list %}
+      <tr>
+        <td class="text-center">
+          <input type="submit" value="{{forloop.counter}}" name="item_delete" class="btn btn-blue7 mt-2" onclick="return confirmDelete();">
+        </td>
+        {% for k in i %}
+        <td class="text-center">
+          {{k}}
+        </td>
+        {% endfor %}
+        <td class="text-center">
+          <input class="your-time-field form-control custom-border" style="width : 80px;" type="text" id="start_time{{forloop.counter}}" name="start_time{{forloop.counter}}" data-precision="5" value={{default_start_time}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width : 80px;" type="text" id="end_time{{forloop.counter}}" name="end_time{{forloop.counter}}" data-precision="5" value={{default_end_time}}>
+          <input type="submit" value="変更{{forloop.counter}}" name="item_edit" onclick="return confirm_edit();" class="btn btn-blue7 mt-2">
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  </form>
+
+  <script>
+    $(document).ready(function() {
+        $('.your-time-field').clockTimePicker({
+            duration: true,
+            durationNegative: true,
+			alwaysSelectHoursFirst: true,
+            precision: 5,
+            i18n: {
+                cancelButton: 'キャンセル'
+            },
+            onAdjust: function(newVal, oldVal) {}
+        });
+    });
+  </script>
+  <script>
+    function confirmDelete() {return confirm('この操作は元に戻せません。本当に削除しますか？');}
+    function confirm_edit() {return confirm('作業時間を変更します');}
+  </script>
+</body>
+</html>
