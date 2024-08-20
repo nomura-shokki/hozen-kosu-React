@@ -11,7 +11,16 @@ SECRET_KEY=env('SECRET_KEY')
 
 DEBUG=env.bool('DEBUG')
 
-ALLOWED_HOSTS = [os.environ['WEBSITE_SITE_NAME'] + '.azurewebsites.net', 'localhost', '127.0.0.1'] if 'WEBSITE_SITE_NAME' in os.environ else []
+if 'WEBSITE_SITE_NAME' in os.environ:
+    site_name = os.environ['WEBSITE_SITE_NAME']
+else:
+    site_name = 'hozen-kosu-another-c6e2gyeraydpdnhq.japaneast-01'  # 必要に応じて適切なデフォルト名を設定
+
+ALLOWED_HOSTS = [
+    f'{site_name}.azurewebsites.net',
+    'localhost',
+    '127.0.0.1',
+    ]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
