@@ -11,15 +11,10 @@ SECRET_KEY=env('SECRET_KEY')
 
 DEBUG=env.bool('DEBUG')
 
-if 'WEBSITE_SITE_NAME' in os.environ:
-    site_name = os.environ['WEBSITE_SITE_NAME']
-else:
-    site_name = 'hozen-kosu-another-c6e2gyeraydpdnhq.japaneast-01'  # 必要に応じて適切なデフォルト名を設定
-
 ALLOWED_HOSTS = [
-    f'{site_name}.azurewebsites.net',
+    'hozen-kosu-another-c6e2gyeraydpdnhq.japaneast-01.azurewebsites.net',
     'localhost',
-    '127.0.0.1',
+    '127.0.0.1'
     ]
 
 INSTALLED_APPS = [
