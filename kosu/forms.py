@@ -1,5 +1,4 @@
 from django import forms
-from bootstrap_datepicker_plus.widgets import DatePickerInput
 from.models import member
 from.models import kosu_division
 from.models import administrator_data
@@ -695,8 +694,6 @@ class all_kosuForm(forms.Form):
   breaktime_over3 = forms.CharField(label = '残業休憩時間3', required = False, widget = forms.TextInput(attrs = {'class' : 'form-control custom-border', 'style' : 'width : 200px;'}))
   judgement = forms.BooleanField(label = '整合性', required = False, widget = forms.CheckboxInput(attrs = {'class' : 'form-check-input'}))
   break_change = forms.BooleanField(label = '休憩変更チェック', required = False, widget = forms.CheckboxInput(attrs = {'class' : 'form-check-input'}))
-
-
 
 
 

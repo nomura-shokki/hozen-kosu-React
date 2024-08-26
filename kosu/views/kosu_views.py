@@ -4618,14 +4618,59 @@ def detail(request, num):
 
       def_time.append(def_library[work_list[t]])
       detail_time.append(detail_list[t])
+  
+  # 工数データに工数定義区分Verがある場合の処理
+  if obj_get.def_ver2 not in [None, '']:
+    # 現在使用している工数区分のオブジェクトを取得
+    kosu_obj = kosu_division.objects.get(kosu_name = obj_get.def_ver2)
+
+    # 工数区分登録カウンターリセット
+    n = 0
+
+    # 工数区分登録数カウント
+    for kosu_num in range(1, 50):
+      if eval('kosu_obj.kosu_title_{}'.format(kosu_num)) not in [None, '']:
+        n = kosu_num
+
+    # 工数区分処理用記号リスト用意
+    str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
+                'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
+                  'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
+                      'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
+
+    # リストの長さを工数区分の登録数に応じて調整
+    del str_list[n:]
+
 
   # HTML表示用リスト作成
   time_display_list = []
   for k in range(len(time_list_start)):
+    # 一時置きリスト定義
     for_list = []
-    for_list.append(str(time_list_start[k]) + '～' + str(time_list_end[k]))
-    for_list.append(def_time[k])
-    for_list.append(detail_time[k])
+
+    # 工数区分定義の選択リスト作成
+    choices_list = ''
+    # 工数区分定義リストに項目追加
+    if def_time[k] == '':
+      choices_list += '<option value="{}" selected>{}</option>'.format('#', '-')
+    else:
+      choices_list += '<option value="{}">{}</option>'.format('#', '-')
+
+    for i, m in enumerate(str_list):
+      if def_time[k] == eval('kosu_obj.kosu_title_{}'.format(i + 1)):
+        choices_list += '<option value="{}" selected>{}</option>'.format(m, eval('kosu_obj.kosu_title_{}'.format(i + 1)))
+      else:
+        choices_list += '<option value="{}">{}</option>'.format(m, eval('kosu_obj.kosu_title_{}'.format(i + 1)))
+
+    if def_time[k] == '休憩':
+      choices_list += '<option value="{}" selected>{}</option>'.format('$', '休憩')
+    else:
+      choices_list += '<option value="{}">{}</option>'.format('$', '休憩')
+
+
+    for_list.append('<input class="your-time-field form-control custom-border controlled-input" style="width : 70px;" type="text" name="start_time{}" data-precision="5" value={}>'.format(k + 1, str(time_list_start[k])) + '～' + '<input class="your-time-field form-control custom-border controlled-input" style="width : 70px;" type="text" name="end_time{}" data-precision="5" value={}>'.format(k + 1, str(time_list_end[k])))
+    for_list.append('<select name="def_time{}" class="form-control custom-border mx-auto controlled-input" style="width : 210px;">'.format(k + 1) + choices_list + '</select>')
+    for_list.append('<input class="form-control custom-border mx-auto controlled-input" style="width : 210px;" type="text" name="detail_time{}" value="{}">'.format(k + 1, detail_time[k]))
     time_display_list.append(for_list)
 
   # 次の問い合わせデータ取得
@@ -5077,6 +5122,20 @@ def detail(request, num):
       # このページをリダイレクト
       return redirect(to = '/detail/{}'.format(num))
 
+    # 作業詳細に'$'が含まれている場合の処理
+    if '$' in request.POST.get('detail_time{}'.format(edit_id)):
+      # エラーメッセージ出力
+      messages.error(request, '作業詳細に『$』は使用できません。工数編集できませんでした。ERROR093')
+      # このページをリダイレクト
+      return redirect(to = '/detail/{}'.format(num))
+
+    # 作業詳細に文字数が100文字以上の場合の処理
+    if len(request.POST.get('detail_time{}'.format(edit_id))) >= 100:
+      # エラーメッセージ出力
+      messages.error(request, '作業詳細は100文字以内で入力して下さい。工数編集できませんでした。ERROR094')
+      # このページをリダイレクト
+      return redirect(to = '/detail/{}'.format(num))
+  
   
     # 作業開始時間の区切りのインデックス取得
     start_time_index = start_time.index(':')
@@ -5113,13 +5172,7 @@ def detail(request, num):
     # 変更前の作業時間が日を跨いでいない時の処理
     if kosu_list[edit_id - 1] < kosu_list[edit_id]:
       # 指定された時間の作業内容と作業詳細を消すループ
-      for i in range(kosu_list[edit_id - 1], kosu_list[edit_id]):
-        # 最初のループの処理
-        if i == kosu_list[edit_id - 1]:
-          # 作業内容と作業詳細記憶
-          work_memory = work_list[i]
-          detail_memory = detail_list[i]
-        
+      for i in range(kosu_list[edit_id - 1], kosu_list[edit_id]):        
         # 作業内容、作業詳細削除
         work_list[i] = '#'
         detail_list[i] = ''
@@ -5129,12 +5182,6 @@ def detail(request, num):
     else:
       # 指定された時間の作業内容と作業詳細を消す
       for i in range(kosu_list[edit_id - 1] , 288):
-        # 最初のループの処理
-        if i == kosu_list[edit_id - 1]:
-          # 作業内容と作業詳細記憶
-          work_memory = work_list[i]
-          detail_memory = detail_list[i]
-
         # 作業内容、作業詳細削除
         work_list[i] = '#'
         detail_list[i] = ''
@@ -5161,8 +5208,8 @@ def detail(request, num):
         # 変更後の作業時間に工数データが入力されていない場合の処理
         else:
           # 作業内容、作業詳細書き込み
-          work_list[k] = work_memory
-          detail_list[i] = detail_memory
+          work_list[k] = request.POST.get('def_time{}'.format(edit_id))
+          detail_list[k] = request.POST.get('detail_time{}'.format(edit_id))
           
     # 変更後の作業時間が日を跨いでいる時の処理
     else:
@@ -5179,8 +5226,8 @@ def detail(request, num):
         # 変更後の作業時間に工数データが入力されていない場合の処理
         else:
           # 作業内容、作業詳細書き込み
-          work_list[k] = work_memory
-          detail_list[i] = detail_memory
+          work_list[k] = request.POST.get('def_time{}'.format(edit_id))
+          detail_list[k] = request.POST.get('detail_time{}'.format(edit_id))
 
       # 変更後の作業時間に工数データが入力されていないかチェック
       for k in range(end_time_ind):
@@ -5195,8 +5242,8 @@ def detail(request, num):
         # 変更後の作業時間に工数データが入力されていない場合の処理
         else:
           # 作業内容、作業詳細書き込み
-          work_list[k] = work_memory
-          detail_list[i] = detail_memory
+          work_list[k] = request.POST.get('def_time{}'.format(edit_id))
+          detail_list[k] = request.POST.get('detail_time{}'.format(edit_id))
 
 
     # 工数合計取得

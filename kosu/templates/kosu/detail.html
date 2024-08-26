@@ -40,67 +40,103 @@
   {% endif %}
   <p>　</p>
   <div class="table-responsive">
+    <table class="table no-wrap table-borderless">
+      <tr>
+        <td>
+          <p class="h4">履歴を削除する時間を指定</p>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time" name="start_time" data-precision="5">
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time" name="end_time" data-precision="5">　
+          翌日
+          <input type="checkbox" id="tomorrow_check" name="tomorrow_check" class="big">　　
+          <input type="submit" value="工数削除" name="kosu_delete" class="btn btn-blue7 mt-2" onclick="return confirmDelete();">
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <h1 class="display-4 text-primary">　</h1>
+        </td>
+      </tr>
+    </table>
     <table class="table no-wrap">
       <tr>
-        <p class="h4">履歴を削除する時間を指定</p>
-      </tr>
-      <tr>
-        <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time" name="start_time" data-precision="5">
-        ～
-        <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time" name="end_time" data-precision="5">　
-        翌日
-        <input type="checkbox" id="tomorrow_check" name="tomorrow_check" class="big">　　
-        <input type="submit" value="工数削除" name="kosu_delete" class="btn btn-blue7 mt-2" onclick="return confirmDelete();">
-      </tr>
-      <tr>
-        <h1 class="display-4 text-primary">　</h1>
-      </tr>
-      <tr>
+        <th class="text-center">操作可</th>
         <th class="text-center">項目削除</th>
         <th class="text-center">作業時間</th>
         <th class="text-center">工数区分</th>
         <th class="text-center">作業詳細</th>
-        <th class="text-center">作業時間編集</th>
+        <th class="text-center">編集</th>
       </tr>
-      {% for i in time_display_list %}
-      <tr>
+    {% for i in time_display_list %}
+      <tr class="form-group">
         <td class="text-center">
-          <input type="submit" value="{{forloop.counter}}" name="item_delete" class="btn btn-blue7 mt-2" onclick="return confirmDelete();">
+          <input type="checkbox" class="controlled-checkbox big">
+        </td>
+        <td class="text-center">
+          <input type="submit" value="{{forloop.counter}}" name="item_delete" class="btn btn-blue7 mt-2 controlled-input" onclick="return confirmDelete();" disabled>
         </td>
         {% for k in i %}
         <td class="text-center">
-          {{k}}
+          {{k|safe}}
         </td>
         {% endfor %}
         <td class="text-center">
-          <input class="your-time-field form-control custom-border" style="width : 80px;" type="text" id="start_time{{forloop.counter}}" name="start_time{{forloop.counter}}" data-precision="5" value={{default_start_time}}>
-          ～
-          <input class="your-time-field form-control custom-border" style="width : 80px;" type="text" id="end_time{{forloop.counter}}" name="end_time{{forloop.counter}}" data-precision="5" value={{default_end_time}}>
-          <input type="submit" value="変更{{forloop.counter}}" name="item_edit" onclick="return confirm_edit();" class="btn btn-blue7 mt-2">
+          <input type="submit" value="編集{{forloop.counter}}" name="item_edit" onclick="return confirm_edit();" class="btn btn-blue7 mt-2 controlled-input">
         </td>
       </tr>
-      {% endfor %}
-    </table>
-  </div>
-  </form>
+    {% endfor %}
+  </table>
+</div>
+</form>
 
-  <script>
-    $(document).ready(function() {
-        $('.your-time-field').clockTimePicker({
-            duration: true,
-            durationNegative: true,
-			alwaysSelectHoursFirst: true,
-            precision: 5,
-            i18n: {
-                cancelButton: 'キャンセル'
-            },
-            onAdjust: function(newVal, oldVal) {}
+<script>
+  $(document).ready(function() {
+      $('.your-time-field').clockTimePicker({
+          duration: true,
+          durationNegative: true,
+          alwaysSelectHoursFirst: true,
+          precision: 5,
+          i18n: {
+              cancelButton: 'キャンセル'
+          },
+          onAdjust: function(newVal, oldVal) {}
+      });
+  });
+</script>
+
+<script>
+  function confirmDelete() {return confirm('この操作は元に戻せません。本当に削除しますか？');}
+  function confirm_edit() {return confirm('作業時間を変更します');}
+</script>
+
+<script>
+    // 全てのチェックボックスを取得
+    const checkboxes = document.querySelectorAll('.controlled-checkbox');
+
+    // 状態を更新する関数
+    function updateFormInputs() {
+        checkboxes.forEach(checkbox => {
+            const formGroup = checkbox.closest('.form-group');
+            if (formGroup) {
+                const inputs = formGroup.querySelectorAll('.controlled-input');
+                inputs.forEach(input => {
+                    input.disabled = !checkbox.checked;
+                });
+            }
         });
+    }
+
+    // 各チェックボックスにイベントリスナーを追加
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateFormInputs);
     });
-  </script>
-  <script>
-    function confirmDelete() {return confirm('この操作は元に戻せません。本当に削除しますか？');}
-    function confirm_edit() {return confirm('作業時間を変更します');}
-  </script>
+
+    // 初期状態の更新
+    updateFormInputs();
+</script>
 </body>
 </html>
