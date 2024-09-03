@@ -664,21 +664,49 @@ def input(request):
     def_work = request.POST['kosu_def_list']
     detail_work = request.POST['work_detail']
 
-    # 2つのフォームで入力のあった直を変数に入れる
-    if request.POST['tyoku'] != '':
-      tyoku = request.POST['tyoku']
-    elif request.POST['tyoku2'] != '':
-      tyoku = request.POST['tyoku2']
-    else:
-      tyoku = ''
+    # 指定日に工数データが既にあるか確認
+    obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
+                                                    work_day2 = work_day)
 
-    # 2つのフォームで入力のあった勤務を変数に入れる
-    if request.POST['work'] != '':
-      work = request.POST['work']
-    elif request.POST['work2'] != '':
-      work = request.POST['work2']
+    # 指定日に工数データがある場合の処理
+    if obj_filter.count() != 0:
+      # 工数データ取得
+      obj_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
+                                                work_day2 = work_day)
+
+      # 直入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
+      if obj_get.tyoku2 != request.POST['tyoku'] and request.POST['tyoku'] not in (None, ''):
+        tyoku = request.POST['tyoku']
+      elif obj_get.tyoku2 != request.POST['tyoku2'] and request.POST['tyoku2'] not in (None, ''):
+        tyoku = request.POST['tyoku2']
+      else:
+        tyoku = obj_get.tyoku2
+
+      # 勤務入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
+      if obj_get.work_time != request.POST['work'] and request.POST['work'] not in (None, ''):
+        work = request.POST['work']
+      elif obj_get.work_time != request.POST['work2'] and request.POST['work2'] not in (None, ''):
+        work = request.POST['work2']
+      else:
+        work = obj_get.work_time
+
+    # 指定日に工数データがない場合の処理
     else:
-      work = ''
+      # 2つのフォームで入力のあった直を変数に入れる
+      if request.POST['tyoku'] not in (None, ''):
+        tyoku = request.POST['tyoku']
+      elif request.POST['tyoku2'] not in (None, '') != '':
+        tyoku = request.POST['tyoku2']
+      else:
+        tyoku = ''
+
+      # 2つのフォームで入力のあった勤務を変数に入れる
+      if request.POST['work'] != '':
+        work = request.POST['work']
+      elif request.POST['work2'] != '':
+        work = request.POST['work2']
+      else:
+        work = ''
 
     # 直初期値設定(エラー保持)
     request.session['error_tyoku'] = tyoku
@@ -691,7 +719,6 @@ def input(request):
     # 残業初期値設定(エラー保持)
     request.session['error_over_work'] = request.POST['over_work']
     
-
 
     # 翌日チェック状態リセット
     check = 0
@@ -719,7 +746,7 @@ def input(request):
       # 休憩変更チェック状態に0を入れる
       break_change = 0
 
-
+  
     # 直、工数区分、勤務、残業のいずれかが空欄の場合の処理
     if def_work == '' or work == '' or tyoku == '' or \
       start_time == '' or end_time == '' or request.POST['over_work'] == '':
@@ -756,10 +783,6 @@ def input(request):
       # このページをリダイレクト
       return redirect(to = '/input')
 
-
-    # 指定日に工数データが既にあるか確認
-    obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None), \
-                                                    work_day2 = work_day)
     
     # 作業開始時間の区切りのインデックス取得
     start_time_index = start_time.index(':')
@@ -788,9 +811,9 @@ def input(request):
       return redirect(to = '/input')
     
 
-    # 入力日が作業内容データに登録がある場合の処理
+    # 指定日に工数データがある場合の処理
     if obj_filter.count() != 0:
-      # 作業内容データからログイン者の従業員番号と就業日が一致したオブジェクトを変数に入れる
+      # 工数データ取得
       obj_get = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None), \
                                                 work_day2 = work_day)
       # 作業内容データを文字列からリストに解凍
@@ -1535,7 +1558,7 @@ def input(request):
                                           'break_change' : 'break_change' in request.POST})
       
 
-    # 入力日が作業内容データに登録がない場合の処理
+    # 指定日に工数データがない場合の処理
     if obj_filter.count() == 0:
       # '#'が288個並んだ作業内容リスト作成
       kosu_def = list(itertools.repeat('#', 288))
