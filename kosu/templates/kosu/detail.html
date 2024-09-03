@@ -43,17 +43,32 @@
     <table class="table no-wrap table-borderless">
       <tr>
         <td>
-          <p class="h4">履歴を削除する時間を指定</p>
+          <p class="h5">日付変更：</p>
         </td>
       </tr>
       <tr>
         <td>
-          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time" name="start_time" data-precision="5">
-          ～
-          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time" name="end_time" data-precision="5">　
-          翌日
-          <input type="checkbox" id="tomorrow_check" name="tomorrow_check" class="big">　　
-          <input type="submit" value="工数削除" name="kosu_delete" class="btn btn-blue7 mt-2" onclick="return confirmDelete();">
+          <div class="number-input-group">
+            <input type="date" class="form-control custom-border" style="width: 210px;" name="kosu_day" id="kosu_day" value={{now_day}}>　　　　　　
+            <input type="submit" value="就業日変更" name="edit_day" class="btn btn-blue7 mt-2" onclick="return confirm_edit_day();">
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <p class="h5">履歴を削除する時間を指定：</p>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <div class="number-input-group">
+            <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time" name="start_time" data-precision="5">
+            ～
+            <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time" name="end_time" data-precision="5">　
+            翌日　
+            <input type="checkbox" id="tomorrow_check" name="tomorrow_check" class="big">　　
+            <input type="submit" value="工数削除" name="kosu_delete" class="btn btn-blue7 mt-2" onclick="return confirmDelete();">
+          </div>
         </td>
       </tr>
       <tr>
@@ -110,7 +125,8 @@
 
 <script>
   function confirmDelete() {return confirm('この操作は元に戻せません。本当に削除しますか？');}
-  function confirm_edit() {return confirm('作業時間を変更します');}
+  function confirm_edit() {return confirm('作業を変更します');}
+  function confirm_edit_day() {return confirm('就業日を変更します');}
 </script>
 
 <script>

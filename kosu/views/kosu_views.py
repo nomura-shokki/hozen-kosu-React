@@ -4710,6 +4710,35 @@ def detail(request, num):
 
 
 
+  # 就業日変更時の処理
+  if "edit_day" in request.POST:
+    # 指定日に工数データがある場合の処理
+    if request.POST['kosu_day'] == '':
+      # エラーメッセージ出力
+      messages.error(request, '変更する日付を指定して下さい。ERROR096')
+      # このページをリダイレクト
+      return redirect(to = '/detail/{}'.format(num))
+    
+    # 指定日に工数データがあるか確認
+    obj_check = Business_Time_graph.objects.filter(work_day2 = request.POST['kosu_day'])
+
+    # 指定日に工数データがある場合の処理
+    if obj_check.count() != 0:
+      # エラーメッセージ出力
+      messages.error(request, '指定された日は既に工数データが存在します。指定日のデータを削除してから再度実行下さい。ERROR095')
+      # このページをリダイレクト
+      return redirect(to = '/detail/{}'.format(num))
+
+
+    # 作業内容データの内容を上書きして更新
+    Business_Time_graph.objects.update_or_create(id = num, \
+                                                 defaults = {'work_day2' : request.POST['kosu_day']})
+
+    # このページ読み直し
+    return redirect(to = '/detail/{}'.format(num))
+
+
+
   # 時間指定工数削除時の処理
   if "kosu_delete" in request.POST:
     # 作業内容と作業詳細を取得しリストに解凍
@@ -5449,6 +5478,7 @@ def detail(request, num):
     'title' : '工数詳細',
     'id' : num,
     'day' : obj_get.work_day2,
+    'now_day' : str(obj_get.work_day2),
     'time_display_list' : time_display_list,
     'has_next_record' : has_next_record,
     'has_before_record' : has_before_record,
