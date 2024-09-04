@@ -105,6 +105,20 @@ class inputdayForm(forms.Form):
 
 
 class teamForm(forms.Form):
+  shop_list = [
+    ('', ''),
+    ('P', 'プレス'),
+    ('R', '成形'),
+    ('W1', '301ボデ'),
+    ('W2', '302ボデ'),
+    ('T1', '301塗装'),
+    ('T2', '302塗装'),
+    ('A1', '301組立'),
+    ('A2', '302組立'),
+    ('その他', 'その他'),
+    ('組長以上', '組長以上')
+    ]
+
   member1 = forms.ChoiceField(label = 'メンバー従業員番号1', widget = forms.Select(attrs ={'class' : 'form-control custom-border', 'style' : 'width : 200px;'}), required = False)
   member2 = forms.ChoiceField(label = 'メンバー従業員番号2', widget = forms.Select(attrs ={'class' : 'form-control custom-border', 'style' : 'width : 200px;'}), required = False)
   member3 = forms.ChoiceField(label = 'メンバー従業員番号3', widget = forms.Select(attrs ={'class' : 'form-control custom-border', 'style' : 'width : 200px;'}), required = False)
@@ -121,6 +135,8 @@ class teamForm(forms.Form):
   member14 = forms.ChoiceField(label = 'メンバー従業員番号14', widget = forms.Select(attrs ={'class' : 'form-control custom-border', 'style' : 'width : 200px;'}), required = False)
   member15 = forms.ChoiceField(label = 'メンバー従業員番号15', widget = forms.Select(attrs ={'class' : 'form-control custom-border', 'style' : 'width : 200px;'}), required = False)
   follow = forms.BooleanField(label = 'フォローON/OFF', required = False, widget = forms.CheckboxInput(attrs = {'class' : 'form-check-input'}))
+  shop = forms.ChoiceField(label = 'ショップ', choices = shop_list, required = False, widget = forms.Select(attrs ={'class' : 'form-control custom-border', 'style' : 'width : 90px;'}))
+  shop2 = forms.ChoiceField(label = 'ショップ', choices = shop_list, required = False, widget = forms.Select(attrs ={'class' : 'form-control custom-border', 'style' : 'width : 90px;'}))
 
 
 
@@ -694,35 +710,5 @@ class all_kosuForm(forms.Form):
   breaktime_over3 = forms.CharField(label = '残業休憩時間3', required = False, widget = forms.TextInput(attrs = {'class' : 'form-control custom-border', 'style' : 'width : 200px;'}))
   judgement = forms.BooleanField(label = '整合性', required = False, widget = forms.CheckboxInput(attrs = {'class' : 'form-check-input'}))
   break_change = forms.BooleanField(label = '休憩変更チェック', required = False, widget = forms.CheckboxInput(attrs = {'class' : 'form-check-input'}))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

@@ -15,9 +15,22 @@
   <form action="{% url 'team' %}" method="post">
   {% csrf_token %}
     <table class="table table-custom">
+      {% if data.shop == '組長以上' %}
+        <tr>
+          <th>
+            ショップ絞り込み
+          </th>
+          <td>
+            <div class="number-input-group">
+              {{form.shop}}{{form.shop2}}
+              <input type="submit" value="絞り込み" class="btn btn-orange7 mt-2" name="shop_choice">
+            </div>
+          </td>
+        </tr>
+      {% endif %}
       <tr>
-        <th>
-          フォローメッセージON/OFF
+        <th class="text-nowrap">
+          フォローメッセージ
         </th>
         <td>
           <div class="form-check form-check-inline custom-checkbox">

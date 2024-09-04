@@ -2053,7 +2053,7 @@ class Page_form(TestCase):
             'member13': '',
             'member14': '',
             'member15': '',
-            'member_delete': '人員登録削除',
+            'team_new': '班員登録',
             }
 
         # URLに対してPOSTリクエスト送信
