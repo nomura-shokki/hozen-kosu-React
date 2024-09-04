@@ -61,6 +61,7 @@
           <th style="text-align:center;">就業日</th>
           <th style="text-align:center;">氏名</th>
           <th style="text-align:center;">直</th>
+          <th style="text-align:center;">勤務</th>
           <th style="text-align:center;">整合性</th>
           <th style="text-align:center;">詳細リンク</th>
           <th style="text-align:center;">削除リンク</th>
@@ -78,6 +79,9 @@
             {% if i.tyoku2 == "2" %}2直{% endif %}
             {% if i.tyoku2 == "3" %}3直{% endif %}
             {% if i.tyoku2 == "4" %}常昼{% endif %}
+          </td>
+          <td style="text-align:center;">
+            {{i.work_time}}
           </td>
           <td style="text-align:center;">
             {% if i.judgement == True %}<b  class="text-primary">OK</b>{% endif %}
