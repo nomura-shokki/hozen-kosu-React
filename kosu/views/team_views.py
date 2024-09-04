@@ -69,7 +69,7 @@ def team(request):
   if data2.count() == 0:
 
     # ログイン者が組長以上の場合の処理
-    if data.shop == '組長以上':
+    if data.shop == '組長以上(P,R,T,その他)' or data.shop == '組長以上(W,A)':
       # 絞り込み1指定あり、絞り込み2指定なしの場合の選択肢を絞り込み1のみで絞り込み
       if request.session.get('shop_choose', None) != None and request.session.get('shop_choose', None) != '' and \
         (request.session.get('shop_choose2', None) == None or request.session.get('shop_choose2', None) == ''):
@@ -166,7 +166,7 @@ def team(request):
     obj = team_member.objects.get(employee_no5 = request.session['login_No'])
 
     # ログイン者が組長以上の場合の処理
-    if data.shop == '組長以上':
+    if data.shop == '組長以上(P,R,T,その他)' or data.shop == '組長以上(W,A)':
       # 絞り込み1指定あり、絞り込み2指定なしの場合の選択肢を絞り込み1のみで絞り込み
       if request.session.get('shop_choose', None) != None and request.session.get('shop_choose', None) != '' and \
         (request.session.get('shop_choose2', None) == None or request.session.get('shop_choose2', None) == ''):
@@ -440,13 +440,14 @@ def team_graph(request):
               graph_end_index = 184
 
           if graph_data.tyoku2 == '2' and (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-                                          member_obj.shop == 'A1' or member_obj.shop == 'A2'):
+                                          member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+                                            member_obj.shop == '組長以上(W,A)'):
             if graph_end_index <= 240:
               graph_end_index = 240
 
           if graph_data.tyoku2 == '2' and (member_obj.shop == 'P' or member_obj.shop == 'R' or \
                                           member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-                                            member_obj.shop == 'その他' or member_obj.shop == '組長以上'):
+                                            member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)'):
             if graph_end_index <= 270:
               graph_end_index = 270
 
@@ -850,9 +851,9 @@ def team_detail(request, num):
     del work_list[288:]
     del detail_list[288:]
 
-  # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他,組長以上)
+  # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
   elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '2':
+        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
     # 作業内容と作業詳細のリストを12時からの表示に変える
     del work_list[:144]
     del detail_list[:144]
@@ -860,17 +861,17 @@ def team_detail(request, num):
     del detail_list[288:]
 
   # 2直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-        and obj_get.tyoku2 == '2':
+  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
+        name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2':
     # 作業内容と作業詳細のリストを9時からの表示に変える
     del work_list[:108]
     del detail_list[:108]
     del work_list[288:]
     del detail_list[288:]
 
-  # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他,組長以上)
+  # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
   elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '3':
+        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
     # 作業内容と作業詳細のリストを20時半からの表示に変える
     del work_list[:246]
     del detail_list[:246]
@@ -878,8 +879,8 @@ def team_detail(request, num):
     del detail_list[288:]
 
   # 3直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-        and obj_get.tyoku2 == '3':
+  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
+        name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3':
     # 作業内容と作業詳細のリストを18時からの表示に変える
     del work_list[:216]
     del detail_list[:216]
@@ -917,22 +918,22 @@ def team_detail(request, num):
         kosu_list.append(i + 54)
 
       elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '2':
+          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 144)
 
-      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-            and obj_get.tyoku2 == '2':
+      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' \
+            or name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 108)
 
       elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '3':
+          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 246)
 
-      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-            and obj_get.tyoku2 == '3':
+      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' \
+            or name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 216)
 
@@ -954,7 +955,7 @@ def team_detail(request, num):
           kosu_list.append(i + 54)
 
       elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '2':
+          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 144)
@@ -962,8 +963,8 @@ def team_detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 144)
 
-      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-            and obj_get.tyoku2 == '2':
+      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
+            name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 180)
@@ -972,7 +973,7 @@ def team_detail(request, num):
           kosu_list.append(i + 108)
 
       elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '3':
+          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 42)
@@ -980,8 +981,8 @@ def team_detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 246)
 
-      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-            and obj_get.tyoku2 == '3':
+      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
+            name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 72)
@@ -1011,7 +1012,7 @@ def team_detail(request, num):
           kosu_list.append(i + 55)
 
       elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '2':
+          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 143)
@@ -1019,8 +1020,8 @@ def team_detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 145)
 
-      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-            and obj_get.tyoku2 == '2':
+      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
+            name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 179)
@@ -1029,7 +1030,7 @@ def team_detail(request, num):
           kosu_list.append(i + 109)
 
       elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '3':
+          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 41)
@@ -1037,8 +1038,8 @@ def team_detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 247)
 
-      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-            and obj_get.tyoku2 == '3':
+      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
+            name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 71)
@@ -3050,9 +3051,9 @@ def class_detail(request, num):
     del work_list[288:]
     del detail_list[288:]
 
-  # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他,組長以上)
+  # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
   elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '2':
+        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
     # 作業内容と作業詳細のリストを12時からの表示に変える
     del work_list[:144]
     del detail_list[:144]
@@ -3060,17 +3061,17 @@ def class_detail(request, num):
     del detail_list[288:]
 
   # 2直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-        and obj_get.tyoku2 == '2':
+  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
+        name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2':
     # 作業内容と作業詳細のリストを9時からの表示に変える
     del work_list[:108]
     del detail_list[:108]
     del work_list[288:]
     del detail_list[288:]
 
-  # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他,組長以上)
+  # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
   elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '3':
+        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
     # 作業内容と作業詳細のリストを20時半からの表示に変える
     del work_list[:246]
     del detail_list[:246]
@@ -3078,8 +3079,8 @@ def class_detail(request, num):
     del detail_list[288:]
 
   # 3直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-        and obj_get.tyoku2 == '3':
+  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
+        name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3':
     # 作業内容と作業詳細のリストを18時からの表示に変える
     del work_list[:216]
     del detail_list[:216]
@@ -3116,22 +3117,22 @@ def class_detail(request, num):
         kosu_list.append(i + 54)
 
       elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '2':
+          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 144)
 
-      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-            and obj_get.tyoku2 == '2':
+      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' \
+            or name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 108)
 
       elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '3':
+          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 246)
 
-      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-            and obj_get.tyoku2 == '3':
+      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
+            name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 216)
 
@@ -3153,7 +3154,7 @@ def class_detail(request, num):
           kosu_list.append(i + 54)
 
       elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '2':
+          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 144)
@@ -3161,8 +3162,8 @@ def class_detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 144)
 
-      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-            and obj_get.tyoku2 == '2':
+      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
+            name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 180)
@@ -3171,7 +3172,7 @@ def class_detail(request, num):
           kosu_list.append(i + 108)
 
       elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '3':
+          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 42)
@@ -3179,8 +3180,8 @@ def class_detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 246)
 
-      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-            and obj_get.tyoku2 == '3':
+      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
+            name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 72)
@@ -3210,7 +3211,7 @@ def class_detail(request, num):
           kosu_list.append(i + 55)
 
       elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '2':
+          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 143)
@@ -3218,8 +3219,8 @@ def class_detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 145)
 
-      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-            and obj_get.tyoku2 == '2':
+      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
+            name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 179)
@@ -3228,7 +3229,7 @@ def class_detail(request, num):
           kosu_list.append(i + 109)
 
       elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上') and obj_get.tyoku2 == '3':
+          name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 41)
@@ -3236,8 +3237,8 @@ def class_detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 247)
 
-      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2') \
-            and obj_get.tyoku2 == '3':
+      elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
+            name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 71)

@@ -13,12 +13,13 @@ class member(models.Model):
         ('A1', 'A1'),
         ('A2', 'A2'),
         ('その他', 'その他'),
-        ('組長以上', '組長以上')
+        ('組長以上(P,R,T,その他)', '組長以上(P,R,T,その他)'),
+        ('組長以上(W,A)', '組長以上(W,A)'),
         ]
     
     employee_no = models.IntegerField('従業員番号')
     name = models.CharField('氏名', max_length = 100)
-    shop = models.CharField('ショップ', choices = shop_list, max_length = 8)
+    shop = models.CharField('ショップ', choices = shop_list, max_length = 15)
     authority = models.BooleanField('権限')
     administrator = models.BooleanField('管理者')
     break_time1 = models.CharField('1直昼休憩時間', max_length = 9)

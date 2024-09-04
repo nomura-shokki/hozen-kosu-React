@@ -146,7 +146,8 @@ def member_new(request):
 
     # 登録ショップが三組三交替Ⅱ甲乙丙番Cの場合の休憩初期値登録
     if request.POST['shop'] == 'W1' or request.POST['shop'] == 'W2' \
-      or request.POST['shop'] == 'A1' or request.POST['shop'] == 'A2':
+      or request.POST['shop'] == 'A1' or request.POST['shop'] == 'A2' \
+         or request.POST['shop'] == '組長以上(W,A)':
       
       # 1直休憩時間初期値定義
       break1_1 = '#11401240'

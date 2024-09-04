@@ -287,16 +287,17 @@ def input(request):
 
           # 入力直が2直の場合の処理でログイン者のショップがボデーか組立の場合の処理
           if obj_get.tyoku2 == '2' and (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-                                          member_obj.shop == 'A1' or member_obj.shop == 'A2'):
+                                          member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+                                            member_obj.shop == '組長以上(W,A)'):
             # 工数が入力され終わりのインデントが240以下である場合の処理(工数入力が20:00以前の場合)
             if graph_end_index <= 240:
               # 工数が入力され終わりのインデントを240にする(20:00の定時まで表示)
               graph_end_index = 240
 
-          # 入力直が2直の場合の処理でログイン者のショップがプレス、成形、塗装、その他、組長以上の場合の処理
+          # 入力直が2直の場合の処理でログイン者のショップがプレス、成形、塗装の場合の処理
           if obj_get.tyoku2 == '2' and (member_obj.shop == 'P' or member_obj.shop == 'R' or \
                                           member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-                                          member_obj.shop == 'その他' or member_obj.shop == '組長以上'):
+                                          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)'):
             # 工数が入力され終わりのインデントが270以下である場合の処理(工数入力が22:30以前の場合)
             if graph_end_index <= 270:
               # 工数が入力され終わりのインデントを270にする(22:30の定時まで表示)
@@ -409,16 +410,17 @@ def input(request):
 
     # 2直がPOSTされてログイン者のショップがボデーか組立の場合の処理
     elif tyoku == '2' and (member_obj.shop == 'W1' or \
-       member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2'):
+       member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)'):
       # 作業終了時のセッションに11を定数として入れ直す
       request.session['end_hour'] = '11'
       # 作業終了分のセッションに10を定数として入れ直す
       request.session['end_min'] = '10'
 
-    # 2直がPOSTされてログイン者のショップがプレス、成形、塗装、その他、組長以上の場合の処理
+    # 2直がPOSTされてログイン者のショップがプレス、成形、塗装の場合の処理
     elif tyoku == '2' and (member_obj.shop == 'P' or \
        member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-       member_obj.shop == 'その他' or member_obj.shop == '組長以上'):
+       member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)'):
       # 作業終了時のセッションに13を定数として入れ直す
       request.session['end_hour'] = '13'
       # 作業終了分のセッションに40を定数として入れ直す
@@ -426,16 +428,17 @@ def input(request):
 
     # 3直がPOSTされてログイン者のショップがボデーか組立の場合の処理
     elif tyoku == '3' and (member_obj.shop == 'W1' or \
-       member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2'):
+       member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)'):
       # 作業終了時のセッションに19を定数として入れ直す
       request.session['end_hour'] = '19'
       # 作業終了分のセッションに50を定数として入れ直す
       request.session['end_min'] = '50'
 
-    # 3直がPOSTされてログイン者のショップがプレス、成形、塗装、その他、組長以上の場合の処理
+    # 3直がPOSTされてログイン者のショップがプレス、成形、塗装、その他の場合の処理
     elif tyoku == '3' and (member_obj.shop == 'P' or \
        member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-       member_obj.shop == 'その他' or member_obj.shop == '組長以上'):
+       member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)'):
       # 作業終了時のセッションに22を定数として入れ直す
       request.session['end_hour'] = '22'
       # 作業終了分のセッションに10を定数として入れ直す
@@ -558,16 +561,17 @@ def input(request):
 
           # 入力直が2直でログイン者のショップがボデーか組立の場合の処理
           if obj_get.tyoku2 == '2' and (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-                                          member_obj.shop == 'A1' or member_obj.shop == 'A2'):
+                                          member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+                                            member_obj.shop == '組長以上(W,A)'):
             # 工数が入力され終わりのインデントが240以下である場合の処理(工数入力が20:00以前の場合)
             if graph_end_index <= 240:
               # 工数が入力され終わりのインデントを240にする(20:00の定時まで表示)
               graph_end_index = 240
 
-          # 入力直が2直でログイン者のショップがプレス、成形、塗装、その他、組長以上の場合の処理
+          # 入力直が2直でログイン者のショップがプレス、成形、塗装の場合の処理
           if obj_get.tyoku2 == '2' and (member_obj.shop == 'P' or member_obj.shop == 'R' or \
                                           member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-                                          member_obj.shop == 'その他' or member_obj.shop == '組長以上'):
+                                          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)'):
             # 工数が入力され終わりのインデントが270以下である場合の処理(工数入力が22:30以前の場合)
             if graph_end_index <= 270:
               # 工数が入力され終わりのインデントを270にする(22:30の定時まで表示)
@@ -1456,7 +1460,8 @@ def input(request):
 
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
       if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+          member_obj.shop == '組長以上(W,A)') and \
           tyoku == '1':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
@@ -1470,7 +1475,8 @@ def input(request):
 
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
       if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+          member_obj.shop == '組長以上(W,A)') and \
           tyoku == '2':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 290:
@@ -1484,7 +1490,8 @@ def input(request):
 
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
       if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+          member_obj.shop == '組長以上(W,A)') and \
           tyoku == '3':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
@@ -1499,7 +1506,7 @@ def input(request):
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
       if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
         member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
           tyoku == '1':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 220:
@@ -1514,7 +1521,7 @@ def input(request):
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
       if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
         member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
           tyoku == '2':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
@@ -1529,7 +1536,7 @@ def input(request):
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
       if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
         member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
           tyoku == '3':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 275:
@@ -2065,7 +2072,8 @@ def input(request):
 
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
       if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+          member_obj.shop == '組長以上(W,A)') and \
           tyoku == '1':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
@@ -2079,7 +2087,8 @@ def input(request):
 
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
       if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+          member_obj.shop == '組長以上(W,A)') and \
           tyoku == '2':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 290:
@@ -2093,7 +2102,8 @@ def input(request):
 
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
       if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+          member_obj.shop == '組長以上(W,A)') and \
           tyoku == '3':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
@@ -2108,7 +2118,7 @@ def input(request):
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
       if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
         member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
           tyoku == '1':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 220:
@@ -2123,7 +2133,7 @@ def input(request):
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
       if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
         member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
           tyoku == '2':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
@@ -2138,7 +2148,7 @@ def input(request):
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
       if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
         member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
           tyoku == '3':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 275:
@@ -2300,7 +2310,8 @@ def input(request):
 
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
       if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+          member_obj.shop == '組長以上(W,A)') and \
           tyoku == '1':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
@@ -2314,7 +2325,8 @@ def input(request):
 
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
       if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+          member_obj.shop == '組長以上(W,A)') and \
           tyoku == '2':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 290:
@@ -2328,7 +2340,8 @@ def input(request):
 
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
       if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+          member_obj.shop == '組長以上(W,A)') and \
           tyoku == '3':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
@@ -2343,7 +2356,7 @@ def input(request):
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
       if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
         member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
           tyoku == '1':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 220:
@@ -2358,7 +2371,7 @@ def input(request):
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
       if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
         member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
           tyoku == '2':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
@@ -2373,7 +2386,7 @@ def input(request):
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
       if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
         member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
           tyoku == '3':
         # 半前年休時、工数合計と残業に整合性がある場合の処理
         if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 275:
@@ -2541,13 +2554,14 @@ def input(request):
               graph_end_index = 184
 
           if obj_get.tyoku2 == '2' and (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-                                          member_obj.shop == 'A1' or member_obj.shop == 'A2'):
+                                          member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+                                            member_obj.shop == '組長以上(W,A)'):
             if graph_end_index <= 240:
               graph_end_index = 240
 
           if obj_get.tyoku2 == '2' and (member_obj.shop == 'P' or member_obj.shop == 'R' or \
                                           member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-                                          member_obj.shop == 'その他' or member_obj.shop == '組長以上'):
+                                          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)'):
             if graph_end_index <= 270:
               graph_end_index = 270
 
@@ -2845,9 +2859,9 @@ def input(request):
       del work_list[288:]
       del detail_list[288:]
 
-    # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他,組長以上)
+    # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
     elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '2':
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
       # 作業内容と作業詳細のリストを12時からの表示に変える
       del work_list[:144]
       del detail_list[:144]
@@ -2855,7 +2869,7 @@ def input(request):
       del detail_list[288:]
 
     # 2直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
           and obj_get.tyoku2 == '2':
       # 作業内容と作業詳細のリストを9時からの表示に変える
       del work_list[:108]
@@ -2863,9 +2877,9 @@ def input(request):
       del work_list[288:]
       del detail_list[288:]
 
-    # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他,組長以上)
+    # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
     elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '3':
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
       # 作業内容と作業詳細のリストを20時半からの表示に変える
       del work_list[:246]
       del detail_list[:246]
@@ -2873,7 +2887,7 @@ def input(request):
       del detail_list[288:]
 
     # 3直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
           and obj_get.tyoku2 == '3':
       # 作業内容と作業詳細のリストを18時からの表示に変える
       del work_list[:216]
@@ -2910,21 +2924,21 @@ def input(request):
           kosu_list.append(i + 54)
 
         elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-            data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '2':
+            data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 144)
 
-        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
               and obj_get.tyoku2 == '2':
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 108)
 
         elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-            data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '3':
+            data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 246)
 
-        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
               and obj_get.tyoku2 == '3':
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 216)
@@ -2948,7 +2962,7 @@ def input(request):
             kosu_list.append(i + 54)
 
         elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-            data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '2':
+            data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
           if i >= 144:
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i - 144)
@@ -2957,7 +2971,7 @@ def input(request):
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 144)
 
-        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
               and obj_get.tyoku2 == '2':
           if i >= 180:
             # 作業時間インデックスに作業時間のインデックス記録
@@ -2968,7 +2982,7 @@ def input(request):
             kosu_list.append(i + 108)
   
         elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-            data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '3':
+            data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
           if i >= 42:
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i - 42)
@@ -2976,7 +2990,7 @@ def input(request):
           else:
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 246)
-        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
               and obj_get.tyoku2 == '3':
           if i >= 72:
             # 作業時間インデックスに作業時間のインデックス記録
@@ -3010,7 +3024,7 @@ def input(request):
             kosu_list.append(i + 55)
 
         elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-            data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '2':
+            data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
           if i >= 144:
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i - 143)
@@ -3019,7 +3033,7 @@ def input(request):
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 145)
 
-        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
               and obj_get.tyoku2 == '2':
           if i >= 180:
             # 作業時間インデックスに作業時間のインデックス記録
@@ -3030,7 +3044,7 @@ def input(request):
             kosu_list.append(i + 109)
 
         elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-            data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '3':
+            data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
           if i >= 42:
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i - 41)
@@ -3039,7 +3053,7 @@ def input(request):
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 247)
 
-        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
               and obj_get.tyoku2 == '3':
           if i >= 72:
             # 作業時間インデックスに作業時間のインデックス記録
@@ -4371,9 +4385,9 @@ def detail(request, num):
     del work_list[288:]
     del detail_list[288:]
 
-  # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他,組長以上)
+  # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
   elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '2':
+        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
     # 作業内容と作業詳細のリストを12時からの表示に変える
     del work_list[:144]
     del detail_list[:144]
@@ -4381,7 +4395,7 @@ def detail(request, num):
     del detail_list[288:]
 
   # 2直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
         and obj_get.tyoku2 == '2':
     # 作業内容と作業詳細のリストを9時からの表示に変える
     del work_list[:108]
@@ -4389,9 +4403,9 @@ def detail(request, num):
     del work_list[288:]
     del detail_list[288:]
 
-  # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他,組長以上)
+  # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
   elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '3':
+        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
     # 作業内容と作業詳細のリストを20時半からの表示に変える
     del work_list[:246]
     del detail_list[:246]
@@ -4399,7 +4413,7 @@ def detail(request, num):
     del detail_list[288:]
 
   # 3直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
         and obj_get.tyoku2 == '3':
     # 作業内容と作業詳細のリストを18時からの表示に変える
     del work_list[:216]
@@ -4438,21 +4452,21 @@ def detail(request, num):
         kosu_list.append(i + 54)
 
       elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '2':
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 144)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '2':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 108)
 
       elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '3':
+          data.shop == 'その他' or data.shop == '(P,R,T,その他)') and obj_get.tyoku2 == '3':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 246)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '3':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 216)
@@ -4475,7 +4489,7 @@ def detail(request, num):
           kosu_list.append(i + 54)
 
       elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '2':
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 144)
@@ -4483,7 +4497,7 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 144)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -4493,7 +4507,7 @@ def detail(request, num):
           kosu_list.append(i + 108)
 
       elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '3':
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 42)
@@ -4501,7 +4515,7 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 246)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -4532,7 +4546,7 @@ def detail(request, num):
           kosu_list.append(i + 55)
 
       elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '2':
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 143)
@@ -4540,7 +4554,7 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 145)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -4550,7 +4564,7 @@ def detail(request, num):
           kosu_list.append(i + 109)
 
       elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '3':
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 41)
@@ -4558,7 +4572,7 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 247)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -4850,7 +4864,8 @@ def detail(request, num):
 
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
     if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and \
         obj_get.tyoku2 == '1':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
@@ -4865,7 +4880,8 @@ def detail(request, num):
 
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
     if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and \
         obj_get.tyoku2 == '2':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 290:
@@ -4880,7 +4896,8 @@ def detail(request, num):
 
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
     if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and \
         obj_get.tyoku2 == '3':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
@@ -4896,7 +4913,7 @@ def detail(request, num):
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
     if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
       member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
         obj_get.tyoku2 == '1':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 220:
@@ -4912,7 +4929,7 @@ def detail(request, num):
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
     if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
       member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
         obj_get.tyoku2 == '2':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
@@ -4928,7 +4945,7 @@ def detail(request, num):
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
     if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
       member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
         obj_get.tyoku2 == '3':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 275:
@@ -5025,7 +5042,8 @@ def detail(request, num):
 
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
     if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and \
         obj_get.tyoku2 == '1':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
@@ -5040,7 +5058,8 @@ def detail(request, num):
 
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
     if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and \
         obj_get.tyoku2 == '2':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 290:
@@ -5055,7 +5074,8 @@ def detail(request, num):
 
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
     if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and \
         obj_get.tyoku2 == '3':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
@@ -5071,7 +5091,7 @@ def detail(request, num):
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
     if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
       member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
         obj_get.tyoku2 == '1':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 220:
@@ -5087,7 +5107,7 @@ def detail(request, num):
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
     if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
       member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
         obj_get.tyoku2 == '2':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
@@ -5103,7 +5123,7 @@ def detail(request, num):
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
     if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
       member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
         obj_get.tyoku2 == '3':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 275:
@@ -5329,7 +5349,8 @@ def detail(request, num):
 
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
     if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and \
         obj_get.tyoku2 == '1':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
@@ -5344,7 +5365,8 @@ def detail(request, num):
 
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
     if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and \
         obj_get.tyoku2 == '2':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 290:
@@ -5359,7 +5381,8 @@ def detail(request, num):
 
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
     if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and \
         obj_get.tyoku2 == '3':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
@@ -5375,7 +5398,7 @@ def detail(request, num):
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
     if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
       member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
         obj_get.tyoku2 == '1':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 220:
@@ -5391,7 +5414,7 @@ def detail(request, num):
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
     if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
       member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
         obj_get.tyoku2 == '2':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
@@ -5407,7 +5430,7 @@ def detail(request, num):
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
     if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
       member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
         obj_get.tyoku2 == '3':
       # 半前年休時、工数合計と残業に整合性がある場合の処理
       if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 275:
@@ -5534,9 +5557,9 @@ def delete(request, num):
     del work_list[288:]
     del detail_list[288:]
 
-  # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他,組長以上)
+  # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
   elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '2':
+        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
     # 作業内容と作業詳細のリストを12時からの表示に変える
     del work_list[:144]
     del detail_list[:144]
@@ -5544,7 +5567,7 @@ def delete(request, num):
     del detail_list[288:]
 
   # 2直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
         and obj_get.tyoku2 == '2':
     # 作業内容と作業詳細のリストを9時からの表示に変える
     del work_list[:108]
@@ -5552,9 +5575,9 @@ def delete(request, num):
     del work_list[288:]
     del detail_list[288:]
 
-  # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他,組長以上)
+  # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
   elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '3':
+        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
     # 作業内容と作業詳細のリストを20時半からの表示に変える
     del work_list[:246]
     del detail_list[:246]
@@ -5562,7 +5585,7 @@ def delete(request, num):
     del detail_list[288:]
 
   # 3直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
         and obj_get.tyoku2 == '3':
     # 作業内容と作業詳細のリストを18時からの表示に変える
     del work_list[:216]
@@ -5605,7 +5628,7 @@ def delete(request, num):
           kosu_list.append(i + 54)
 
       elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '2':
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 144)
@@ -5613,7 +5636,7 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 144)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -5623,7 +5646,7 @@ def delete(request, num):
           kosu_list.append(i + 108)
 
       elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '3':
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 42)
@@ -5631,7 +5654,7 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 246)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -5662,7 +5685,7 @@ def delete(request, num):
           kosu_list.append(i + 54)
 
       elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '2':
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 144)
@@ -5670,7 +5693,7 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 144)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -5680,7 +5703,7 @@ def delete(request, num):
           kosu_list.append(i + 108)
 
       elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '3':
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 42)
@@ -5688,7 +5711,7 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 246)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -5719,7 +5742,7 @@ def delete(request, num):
           kosu_list.append(i + 55)
 
       elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '2':
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 143)
@@ -5727,7 +5750,7 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 145)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -5737,7 +5760,7 @@ def delete(request, num):
           kosu_list.append(i + 109)
 
       elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上') and obj_get.tyoku2 == '3':
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 41)
@@ -5745,7 +5768,7 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 247)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2') \
+      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -7028,7 +7051,8 @@ def schedule(request):
 
           # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
           if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-            member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+            member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+              member_obj.shop == '組長以上(W,A)') and \
              eval('request.POST["tyoku{}"]'.format(i + 1)) == '1':
             # 半前年休時、工数合計と残業に整合性がある場合の処理
             if eval('request.POST["day{}"]'.format(i + 1)) == '半前年休' and \
@@ -7046,7 +7070,8 @@ def schedule(request):
 
           # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
           if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-            member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+            member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+              member_obj.shop == '組長以上(W,A)') and \
               eval('request.POST["tyoku{}"]'.format(i + 1)) == '2':
 
             # 半前年休時、工数合計と残業に整合性がある場合の処理
@@ -7066,7 +7091,8 @@ def schedule(request):
 
           # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
           if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-            member_obj.shop == 'A1' or member_obj.shop == 'A2') and \
+            member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+              member_obj.shop == '組長以上(W,A)') and \
               eval('request.POST["tyoku{}"]'.format(i + 1)) == '3':
 
             # 半前年休時、工数合計と残業に整合性がある場合の処理
@@ -7087,7 +7113,7 @@ def schedule(request):
           # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
           if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
             member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-              member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+              member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
               eval('request.POST["tyoku{}"]'.format(i + 1)) == '1':
 
             # 半前年休時、工数合計と残業に整合性がある場合の処理
@@ -7108,7 +7134,7 @@ def schedule(request):
           # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
           if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
             member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-              member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+              member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
               eval('request.POST["tyoku{}"]'.format(i + 1)) == '2':
 
             # 半前年休時、工数合計と残業に整合性がある場合の処理
@@ -7129,7 +7155,7 @@ def schedule(request):
           # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
           if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
             member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-              member_obj.shop == 'その他' or member_obj.shop == '組長以上') and \
+              member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
               eval('request.POST["tyoku{}"]'.format(i + 1)) == '3':
 
             # 半前年休時、工数合計と残業に整合性がある場合の処理
@@ -7817,7 +7843,7 @@ def all_kosu(request, num):
 
 
     # 取得した工数データを1ページあたりの件数分取得
-    data = Paginator(obj, page_num.menu_row)
+    data = Paginator(obj, 500)
 
 
     # フォーム定義
@@ -7902,7 +7928,7 @@ def all_kosu(request, num):
     # 全工数データを取得
     obj = Business_Time_graph.objects.all().order_by('work_day2', 'employee_no3').reverse()
     # 取得した工数データを1ページあたりの件数分取得
-    data = Paginator(obj, page_num.menu_row)
+    data = Paginator(obj, 500)
 
     # 今日の日時取得
     today = datetime.date.today()

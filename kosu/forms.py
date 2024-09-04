@@ -90,7 +90,8 @@ class member_findForm(forms.Form):
     ('A1', '301組立'),
     ('A2', '302組立'),
     ('その他', 'その他'),
-    ('組長以上', '組長以上')
+    ('組長以上(P,R,T,その他)', '組長以上(P,R,T,その他)'),
+    ('組長以上(W,A)', '組長以上(W,A)'),
     ]
     
   employee_no6 = forms.IntegerField(label = '従業員番号', required = False, widget = forms.NumberInput(attrs = {'class' : 'form-control custom-border', 'min' : 0, 'style' : 'width : 200px;'}))
@@ -116,7 +117,8 @@ class teamForm(forms.Form):
     ('A1', '301組立'),
     ('A2', '302組立'),
     ('その他', 'その他'),
-    ('組長以上', '組長以上')
+    ('組長以上(P,R,T,その他)', '組長以上(P,R,T,その他)'),
+    ('組長以上(W,A)', '組長以上(W,A)'),
     ]
 
   member1 = forms.ChoiceField(label = 'メンバー従業員番号1', widget = forms.Select(attrs ={'class' : 'form-control custom-border', 'style' : 'width : 200px;'}), required = False)
@@ -584,7 +586,8 @@ class all_kosu_findForm(forms.Form):
     ('A1', '301組立'),
     ('A2', '302組立'),
     ('その他', 'その他'),
-    ('組長以上', '組長以上')
+    ('組長以上(P,R,T,その他)', '組長以上(P,R,T,その他)'),
+    ('組長以上(W,A)', '組長以上(W,A)'),
     ]
 
   tyoku_list = [
