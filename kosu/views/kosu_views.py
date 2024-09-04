@@ -3957,7 +3957,7 @@ def today_break_time(request):
 
       # 休憩1開始時間のインデント取得
       break_start1 = int(int(break_time1_start_hour)*12 + int(break_time1_start_min)/5)
-
+  
       # 休憩1終了時間のインデント取得
       break_end1 = int(int(break_time1_end_hour)*12 + int(break_time1_end_min)/5)
 
@@ -4031,6 +4031,7 @@ def today_break_time(request):
         # 休憩4の日またぎ変数に0を入れる
         break_next_day4 = 0
 
+
       # 休憩1が日を超えている場合の処理
       if break_next_day1 == 1:
         # 休憩時間内の工数データと作業詳細を消すループ(休憩時間開始～24時まで)
@@ -4073,7 +4074,7 @@ def today_break_time(request):
           kosu_def[bt1] = '#'
           # 作業詳細リストの要素を空にする
           detail_list[bt1] = ''
-
+ 
 
         # 休憩時間直後の時間に工数入力がある場合の処理
         if kosu_def[break_end1] != '#':
@@ -4083,22 +4084,22 @@ def today_break_time(request):
             kosu_def[bt1] = '$'
 
 
-        # 休憩2が日を超えている場合の処理
-        if break_next_day2 == 1:
-          # 休憩時間内の工数データと作業詳細を消すループ(休憩時間開始～24時まで)
-          for bt2 in range(break_start2, 288):
-            # 作業内容リストの要素を空にする
-            kosu_def[bt2] = '#'
-            # 作業詳細リストの要素を空にする
-            detail_list[bt2] = ''
+      # 休憩2が日を超えている場合の処理
+      if break_next_day2 == 1:
+        # 休憩時間内の工数データと作業詳細を消すループ(休憩時間開始～24時まで)
+        for bt2 in range(break_start2, 288):
+          # 作業内容リストの要素を空にする
+          kosu_def[bt2] = '#'
+          # 作業詳細リストの要素を空にする
+          detail_list[bt2] = ''
 
 
-          # 休憩時間内の工数データと作業詳細を消すループ(0時～休憩時間終了まで)
-          for bt2 in range(break_end2):
-            # 作業内容リストの要素を空にする
-            kosu_def[bt2] = '#'
-            # 作業詳細リストの要素を空にする
-            detail_list[bt2] = ''
+        # 休憩時間内の工数データと作業詳細を消すループ(0時～休憩時間終了まで)
+        for bt2 in range(break_end2):
+          # 作業内容リストの要素を空にする
+          kosu_def[bt2] = '#'
+          # 作業詳細リストの要素を空にする
+          detail_list[bt2] = ''
 
 
         # 休憩時間直後の時間に工数入力がある場合の処理
@@ -4115,14 +4116,14 @@ def today_break_time(request):
             kosu_def[bt2] = '$'
 
 
-        # 休憩2が日を超えていない場合の処理
-        else:
-          # 休憩時間内の工数データと作業詳細を消すループ
-          for bt2 in range(break_start2, break_end2):
-            # 作業内容リストの要素を空にする
-            kosu_def[bt2] = '#'
-            # 作業詳細リストの要素を空にする
-            detail_list[bt2] = ''
+      # 休憩2が日を超えていない場合の処理
+      else:
+        # 休憩時間内の工数データと作業詳細を消すループ
+        for bt2 in range(break_start2, break_end2):
+          # 作業内容リストの要素を空にする
+          kosu_def[bt2] = '#'
+          # 作業詳細リストの要素を空にする
+          detail_list[bt2] = ''
 
 
         # 休憩時間直後の時間に工数入力がある場合の処理
@@ -4133,22 +4134,22 @@ def today_break_time(request):
             kosu_def[bt2] = '$'
 
 
-        # 休憩3が日を超えている場合の処理
-        if break_next_day3 == 1:
-          # 休憩時間内の工数データと作業詳細を消すループ(休憩時間開始～24時まで)
-          for bt3 in range(break_start3, 288):
-            # 作業内容リストの要素を空にする
-            kosu_def[bt3] = '#'
-            # 作業詳細リストの要素を空にする
-            detail_list[bt3] = ''
+      # 休憩3が日を超えている場合の処理
+      if break_next_day3 == 1:
+        # 休憩時間内の工数データと作業詳細を消すループ(休憩時間開始～24時まで)
+        for bt3 in range(break_start3, 288):
+          # 作業内容リストの要素を空にする
+          kosu_def[bt3] = '#'
+          # 作業詳細リストの要素を空にする
+          detail_list[bt3] = ''
 
 
-          # 休憩時間内の工数データと作業詳細を消すループ(0時～休憩時間終了まで)
-          for bt2 in range(break_end3):
-            # 作業内容リストの要素を空にする
-            kosu_def[bt3] = '#'
-            # 作業詳細リストの要素を空にする
-            detail_list[bt3] = ''
+        # 休憩時間内の工数データと作業詳細を消すループ(0時～休憩時間終了まで)
+        for bt2 in range(break_end3):
+          # 作業内容リストの要素を空にする
+          kosu_def[bt3] = '#'
+          # 作業詳細リストの要素を空にする
+          detail_list[bt3] = ''
 
 
         # 休憩時間直後の時間に工数入力がある場合の処理
@@ -4165,14 +4166,14 @@ def today_break_time(request):
             kosu_def[bt3] = '$'
 
 
-        # 休憩3が日を超えていない場合の処理
-        else:
-          # 休憩時間内の工数データと作業詳細を消す
-          for bt3 in range(break_start3, break_end3):
-            # 作業内容リストの要素を空にする
-            kosu_def[bt3] = '#'
-            # 作業詳細リストの要素を空にする
-            detail_list[bt3] = ''
+      # 休憩3が日を超えていない場合の処理
+      else:
+        # 休憩時間内の工数データと作業詳細を消す
+        for bt3 in range(break_start3, break_end3):
+          # 作業内容リストの要素を空にする
+          kosu_def[bt3] = '#'
+          # 作業詳細リストの要素を空にする
+          detail_list[bt3] = ''
 
 
         # 休憩時間直後の時間に工数入力がある場合の処理
@@ -4183,22 +4184,22 @@ def today_break_time(request):
             kosu_def[bt3] = '$'
 
 
-        # 休憩4が日を超えている場合の処理
-        if break_next_day4 == 1:
-          # 休憩時間内の工数データと作業詳細を消すループ(休憩時間開始～24時まで)
-          for bt4 in range(break_start4, 288):
-            # 作業内容リストの要素を空にする
-            kosu_def[bt4] = '#'
-            # 作業詳細リストの要素を空にする
-            detail_list[bt4] = ''
+      # 休憩4が日を超えている場合の処理
+      if break_next_day4 == 1:
+        # 休憩時間内の工数データと作業詳細を消すループ(休憩時間開始～24時まで)
+        for bt4 in range(break_start4, 288):
+          # 作業内容リストの要素を空にする
+          kosu_def[bt4] = '#'
+          # 作業詳細リストの要素を空にする
+          detail_list[bt4] = ''
 
 
-          # 休憩時間内の工数データと作業詳細を消すループ(0時～休憩時間終了まで)
-          for bt4 in range(break_end4):
-            # 作業内容リストの要素を空にする
-            kosu_def[bt4] = '#'
-            # 作業詳細リストの要素を空にする
-            detail_list[bt4] = ''
+        # 休憩時間内の工数データと作業詳細を消すループ(0時～休憩時間終了まで)
+        for bt4 in range(break_end4):
+          # 作業内容リストの要素を空にする
+          kosu_def[bt4] = '#'
+          # 作業詳細リストの要素を空にする
+          detail_list[bt4] = ''
 
 
         # 休憩時間直後の時間に工数入力がある場合の処理
@@ -4215,22 +4216,22 @@ def today_break_time(request):
             kosu_def[bt4] = '$'
 
 
-        # 休憩4が日を超えていない場合の処理
-        else:
-          # 休憩時間内の工数データと作業詳細を消すループ
-          for bt4 in range(break_start4, break_end4):
-            # 作業内容リストの要素を空にする
-            kosu_def[bt4] = '#'
-            # 作業詳細リストの要素を空にする
-            detail_list[bt4] = ''
+      # 休憩4が日を超えていない場合の処理
+      else:
+        # 休憩時間内の工数データと作業詳細を消すループ
+        for bt4 in range(break_start4, break_end4):
+          # 作業内容リストの要素を空にする
+          kosu_def[bt4] = '#'
+          # 作業詳細リストの要素を空にする
+          detail_list[bt4] = ''
 
 
-        # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[break_end4] != '#':
-          # 休憩時間内の工数データを休憩に書き換えるループ
-          for bt4 in range(break_start4, break_end4):
-            # 作業内容リストの要素を休憩に書き換え
-            kosu_def[bt4] = '$'
+      # 休憩時間直後の時間に工数入力がある場合の処理
+      if kosu_def[break_end4] != '#':
+        # 休憩時間内の工数データを休憩に書き換えるループ
+        for bt4 in range(break_start4, break_end4):
+          # 作業内容リストの要素を休憩に書き換え
+          kosu_def[bt4] = '$'
 
 
       # 作業詳細変数リセット
