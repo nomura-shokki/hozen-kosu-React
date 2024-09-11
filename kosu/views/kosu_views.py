@@ -750,12 +750,7 @@ def input(request):
       # 休憩変更チェック状態に0を入れる
       break_change = 0
 
-    print(def_work)
-    print(work)
-    print(tyoku)
-    print(start_time)
-    print(end_time)
-    print(request.POST['over_work'])
+
     # 直、工数区分、勤務、残業のいずれかが空欄の場合の処理
     if (def_work in (None, '')) or (work in (None, '')) or (tyoku in (None, '')) or \
       (start_time in (None, '')) or (end_time in (None, '')) or (request.POST['over_work'] in (None, '')):
@@ -819,14 +814,14 @@ def input(request):
       # このページをリダイレクト
       return redirect(to = '/input')
 
-    # 作業開始時間が作業終了時間より遅い場合の処理
+    # 1日以上の工数が入力された場合の処理
     if start_time_ind <= end_time_ind and check == 1:
       # エラーメッセージ出力
       messages.error(request, '1日以上の工数は入力できません。誤って翌日チェックを入れていませんか？ERROR097')
       # このページをリダイレクト
       return redirect(to = '/input')
 
-    # 作業開始時間が作業終了時間より遅い場合の処理
+    # 入力時間が21時間を超える場合の処理
     if ((end_time_ind + 36) >= start_time_ind and check == 1) or ((end_time_ind - 252) >= start_time_ind and check == 0):
       # エラーメッセージ出力
       messages.error(request, '作業時間が21時間を超えています。入力できません。ERROR098')
@@ -2338,6 +2333,18 @@ def input(request):
       if work == '早退・遅刻' and kosu_total != 0:
         # 工数入力OK_NGをOKに切り替え
         judgement = True
+
+      # 常昼の場合の処理
+      if tyoku == '4':
+        # 半前年休時、工数合計と残業に整合性がある場合の処理
+        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
+          # 工数入力OK_NGをOKに切り替え
+          judgement = True
+
+        # 半後年休時、工数合計と残業に整合性がある場合の処理
+        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 240:
+          # 工数入力OK_NGをOKに切り替え
+          judgement = True
 
       # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
       if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
