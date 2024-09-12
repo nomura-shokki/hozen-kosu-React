@@ -722,6 +722,10 @@ def input(request):
     request.session['error_detail'] = detail_work
     # 残業初期値設定(エラー保持)
     request.session['error_over_work'] = request.POST['over_work']
+    # 作業開始時間保持(エラー保持)
+    request.session['start_time'] = start_time
+    # 作業終了時間保持(エラー保持)
+    request.session['end_time'] = end_time
     
 
     # 翌日チェック状態リセット
