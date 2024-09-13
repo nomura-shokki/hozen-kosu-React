@@ -7732,8 +7732,7 @@ def over_time(request):
                                                 work_day2 = datetime.date(year, month, d))
       
       # 残業データを分から時に変換
-      over_time = int(obj_get.over_time)/60
-      obj_get = Business_Time_graph(over_time = over_time)
+      obj_get.over_time = int(obj_get.over_time)/60
 
       # 残業リストにレコードを追加
       over_time_list.append(obj_get)

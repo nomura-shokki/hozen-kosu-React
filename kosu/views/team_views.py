@@ -282,6 +282,7 @@ def team(request):
 
 # 班員工数グラフ確認画面定義
 def team_graph(request):
+  
   # 未ログインならログインページに飛ぶ
   if request.session.get('login_No', None) == None:
     return redirect(to = '/login')
@@ -2199,7 +2200,7 @@ def team_calendar(request):
 
 
 
-# 班員工数入力状況一覧画面定義
+# 班員残業一覧画面定義
 def team_over_time(request):
 
   # 未ログインならログインページに飛ぶ
@@ -2677,8 +2678,7 @@ def team_over_time(request):
                                                   work_day2 = datetime.date(year, month, d))
         
         # 残業データを分→時に変換
-        over_time = int(obj_get.over_time)/60
-        obj_get = Business_Time_graph(over_time = over_time)
+        obj_get.over_time = int(obj_get.over_time)/60
 
         # 残業リストにレコードを追加
         eval('over_time_list{}.append(obj_get)'.format(ind + 1))
