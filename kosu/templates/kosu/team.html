@@ -15,7 +15,7 @@
   <form action="{% url 'team' %}" method="post">
   {% csrf_token %}
     <table class="table table-custom">
-      {% if data.shop == '組長以上' %}
+      {% if data.shop == '組長以上(P,R,T,その他)' or data.shop == '組長以上(W,A)' %}
         <tr>
           <th>
             ショップ絞り込み

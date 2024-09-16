@@ -6768,31 +6768,6 @@ def schedule(request):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   # デフォルト勤務入力の処理
   if "default_work" in request.POST:
 
