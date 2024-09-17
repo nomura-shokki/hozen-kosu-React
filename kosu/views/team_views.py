@@ -686,8 +686,8 @@ def team_kosu(request, num):
   dt = datetime.date.today()
 
   # フォームの初期値に定義
-  if request.session.get('find_employee_no', '') != '':
-    start_list = {'employee_no6' : request.session['find_employee_no']}
+  if request.session.get('find_employee_no2', '') != '':
+    start_list = {'employee_no6' : request.session['find_employee_no2']}
 
   else:
     start_list = {'employee_no6' : ''}
@@ -751,7 +751,7 @@ def team_kosu(request, num):
     # POSTした値を変数に入れる
     find = request.POST['employee_no6']
     find2 = request.POST['team_day']
-    request.session['find_employee_no'] = find
+    request.session['find_employee_no2'] = find
     request.session['find_team_day'] = find2
 
     # 就業日と班員の従業員番号でフィルターをかけて一致したものをHTML表示用変数に入れる
@@ -765,9 +765,31 @@ def team_kosu(request, num):
     # POST送信していない時のフォームの状態(今日の日付が入ったフォーム)
     form = team_kosuForm(start_list)
 
-    # 班員の従業員番号でフィルターをかけて一致したものをHTML表示用変数に入れる
-    data2 = Business_Time_graph.objects.filter(employee_no3__in = filtered_list).order_by('work_day2').reverse()
+    # 指定メンバーと指定日のセッションある場合の処理
+    if ('find_employee_no2' in request.session) and ('find_team_day' in request.session):
+      # 班員の従業員番号でフィルターをかけて一致したものをHTML表示用変数に入れる
+      data2 = Business_Time_graph.objects.filter(employee_no3__icontains = request.session['find_employee_no2'], \
+                                                 employee_no3__in = filtered_list, \
+                                                 work_day2__contains = request.session['find_team_day']).order_by('work_day2').reverse()
+
+    # 指定メンバーのセッションのみある場合の処理
+    elif ('find_employee_no2' in request.session) and ('find_team_day' not in request.session):
+      # 班員の従業員番号でフィルターをかけて一致したものをHTML表示用変数に入れる
+      data2 = Business_Time_graph.objects.filter(employee_no3__icontains = request.session['find_employee_no2'], \
+                                                 employee_no3__in = filtered_list).order_by('work_day2').reverse()
+
+    # 指定日のセッションのみある場合の処理
+    elif ('find_team_day' in request.session) and ('find_employee_no2' not in request.session):
+      # 班員の従業員番号でフィルターをかけて一致したものをHTML表示用変数に入れる
+      data2 = Business_Time_graph.objects.filter(work_day2__contains = request.session['find_team_day'], \
+                                                 employee_no3__in = filtered_list).order_by('work_day2').reverse()
+
+    # セッションがない場合の処理
+    else:
+      # 班員の従業員番号でフィルターをかけて一致したものをHTML表示用変数に入れる
+      data2 = Business_Time_graph.objects.filter(employee_no3__in = filtered_list).order_by('work_day2').reverse()
     
+
     page = Paginator(data2, page_num.menu_row)
 
 
