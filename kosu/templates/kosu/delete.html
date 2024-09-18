@@ -14,18 +14,18 @@
   <form action="{% url 'delete' id %}" method="post">
   {% csrf_token %}
   <p>　</p>
+  <table class="table no-wrap">
+    <tr>
+      <p class="h5">※{{obj_get.work_day2}}の工数データを一括で削除します。</p>
+    </tr>
+    <tr>
+      <input type="submit" value="工数データ削除" name="kosu_delete" onclick="return confirmDelete();" class="btn btn-blue7 mt-2">
+    </tr>
+    <tr>
+      <h1 class="display-4 text-primary">　</h1>
+    </tr>
+  </table>
   <div class="table-responsive">
-    <table class="table no-wrap">
-      <tr>
-        <p class="h5">※{{obj_get.work_day2}}の工数データを一括で削除します。</p>
-      </tr>
-      <tr>
-        <input type="submit" value="工数データ削除" name="kosu_delete" onclick="return confirmDelete();" class="btn btn-blue7 mt-2">
-      </tr>
-      <tr>
-        <h1 class="display-4 text-primary">　</h1>
-      </tr>
-    </table>
     <table class="table no-wrap">
       <tr>
         <th class="text-center">直</th>
