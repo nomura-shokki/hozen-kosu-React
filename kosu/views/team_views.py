@@ -1159,7 +1159,7 @@ def team_detail(request, num):
   context = {
     'title' : '工数詳細',
     'id' : num,
-    'day' : obj_get.work_day2,
+    'obj_get' : obj_get,
     'time_display_list' : time_display_list,
     'name' : obj_get.name,
     }
@@ -3361,7 +3361,7 @@ def class_detail(request, num):
   context = {
     'title' : '工数詳細',
     'id' : num,
-    'day' : obj_get.work_day2,
+    'obj_get' : obj_get,
     'time_display_list' : time_display_list,
     'name' : name_obj_get.name,
     }

@@ -13,11 +13,35 @@
   <h1 class="display-5 text-danger">{{name}}さんの{{title}}</h1>
   <p class="h6"><a href="{% url 'class_list' %}" class="text-danger">工数入力可否へ</a></p>
   <p>　</p>
+  <p class="h5">{{obj_get.work_day2}}の工数入力状況</p>
   <div class="table-responsive">
     <table class="table no-wrap">
       <tr>
-        <p class="h5">{{day}}の工数入力状況</p>
+        <th class="text-center">直</th>
+        <th class="text-center">勤務</th>
+        <th class="text-center">残業</th>
+        <th class="text-center">整合性</th>
       </tr>
+      <tr>
+        {% if obj_get.tyoku2 == "" %}<td class="text-center"></td>{% endif %}
+        {% if obj_get.tyoku2 == "1" %}<td class="text-center">1直</td>{% endif %}
+        {% if obj_get.tyoku2 == "2" %}<td class="text-center">2直</td>{% endif %}
+        {% if obj_get.tyoku2 == "3" %}<td class="text-center">3直</td>{% endif %}
+        {% if obj_get.tyoku2 == "4" %}<td class="text-center">常昼</td>{% endif %}
+        <td class="text-center">{{obj_get.work_time}}</td>
+        <td class="text-center">{{obj_get.over_time}}</td>
+        <td class="text-center">
+          {% if obj_get.judgement == True %}
+            <b class="text-primary h4">OK</b>
+          {% else %}
+            <b class="text-danger h4">NG</b>
+          {% endif %}
+        </td>
+      </tr>
+    </table>
+    <p>　</p>
+    <p>　</p>
+    <table class="table no-wrap">
       <tr>
         <th class="text-center">作業時間</th>
         <th class="text-center">工数区分</th>

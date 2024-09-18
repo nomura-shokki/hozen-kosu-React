@@ -14,9 +14,9 @@
   <form action="{% url 'delete' id %}" method="post">
   {% csrf_token %}
   <p>　</p>
-  <table class="table">
+  <table class="table no-wrap">
     <tr>
-      <p class="h5">※{{day}}の工数データを一括で削除します。</p>
+      <p class="h5">※{{obj_get.work_day2}}の工数データを一括で削除します。</p>
     </tr>
     <tr>
       <input type="submit" value="工数データ削除" name="kosu_delete" onclick="return confirmDelete();" class="btn btn-blue7 mt-2">
@@ -24,19 +24,47 @@
     <tr>
       <h1 class="display-4 text-primary">　</h1>
     </tr>
+  </table>
+  <table class="table no-wrap">
     <tr>
-      <th>作業時間</th>
-      <th>工数区分</th>
-      <th>作業詳細</th>
+      <th class="text-center">直</th>
+      <th class="text-center">勤務</th>
+      <th class="text-center">残業</th>
+      <th class="text-center">整合性</th>
+    </tr>
+    <tr>
+      {% if obj_get.tyoku2 == "" %}<td class="text-center"></td>{% endif %}
+      {% if obj_get.tyoku2 == "1" %}<td class="text-center">1直</td>{% endif %}
+      {% if obj_get.tyoku2 == "2" %}<td class="text-center">2直</td>{% endif %}
+      {% if obj_get.tyoku2 == "3" %}<td class="text-center">3直</td>{% endif %}
+      {% if obj_get.tyoku2 == "4" %}<td class="text-center">常昼</td>{% endif %}
+      <td class="text-center">{{obj_get.work_time}}</td>
+      <td class="text-center">{{obj_get.over_time}}</td>
+      <td class="text-center">
+        {% if obj_get.judgement == True %}
+          <b class="text-primary h4">OK</b>
+        {% else %}
+          <b class="text-danger h4">NG</b>
+        {% endif %}
+      </td>
+    </tr>
+  </table>
+  <p>　</p>
+  <p>　</p>
+  <table class="table no-wrap">
+    <tr>
+      <th class="text-center">作業時間</th>
+      <th class="text-center">工数区分</th>
+      <th class="text-center">作業詳細</th>
     </tr>
     {% for i in time_display_list %}
-    <tr>
-      {% for k in i %}
-      <td>
-      {{k}}
-      </td>
-      {% endfor %}
-    </tr>
+      <tr>
+        {% for k in i %}
+          <td class="text-center">
+            {{k}}
+          </td>
+        {% endfor %}
+      </tr>
     {% endfor %}
   </table>
   </form>

@@ -6068,6 +6068,7 @@ def delete(request, num):
     time_display_list.append(for_list)
 
 
+
   # POST時の処理
   if (request.method == 'POST'):
 
@@ -6078,12 +6079,13 @@ def delete(request, num):
     return redirect(to = '/list/1')
 
 
+
   # HTMLに渡す辞書
   context = {
     'title' : '工数データ削除',
     'id' : num,
     'time_display_list' : time_display_list,
-    'day' : obj_get.work_day2,
+    'obj_get' : obj_get,
     }
 
   # 指定したHTMLに辞書を渡して表示を完成させる
