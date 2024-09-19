@@ -33,7 +33,7 @@
         </p>
       </div>
     {% endfor %}
-    <table class="table table-custom">
+    <table class="table table-custom no-wrap">
       <tr>
         <th class="d-none d-md-table-cell" style="text-align:center;">
           就業日・勤務・直
@@ -139,27 +139,37 @@
       <button id="update" name="update" class="btn btn-link"></button>
     </table>
     {% if obj_link != '' %}
-    <table class="table table-custom">
-      <tr>
-        <th style="text-align:center;">
-          工数詳細
-        </th>
-        <th style="text-align:center;">
-          工数区分
-        </th>
-      </tr>
-      {% for i in time_display_list %}
-      <tr>
-        {% for k in i %}
+      <table class="table no-wrap">
+        <tr>
+          <th style="text-align:center;">
+            工数詳細
+          </th>
+          <th style="text-align:center;">
+            工数区分
+          </th>
+        </tr>
+        {% for i in time_display_list %}
+          <tr>
+            {% for k in i %}
+              <div class="number-input-group">
+                <td style="text-align:center;">
+                  {{k}}
+                </td>
+              </div>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+        <tr>
           <div class="number-input-group">
             <td style="text-align:center;">
-              {{k}}
+              工数合計(基準時間)
+            </td>
+            <td style="text-align:center;">
+              {{time_total}}分({{default_total}}分)
             </td>
           </div>
-        {% endfor %}
-      </tr>
-      {% endfor %}
-    </table>
+        </tr>
+      </table>
     {% endif %}
   </form>
   <div style="width:100%">

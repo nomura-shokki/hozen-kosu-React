@@ -2945,6 +2945,11 @@ def input(request):
       del work_list[288:]
       del detail_list[288:]
 
+    # 直入力ない時の処理
+    else:
+      del work_list[288:]
+      del detail_list[288:]
+
 
     # 作業時間リストリセット
     kosu_list = []
@@ -3189,9 +3194,76 @@ def input(request):
       for_list.append(detail_time[k])
       time_display_list.append(for_list)
 
+    # 工数合計取得
+    time_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
+ 
+    # 基準合計工数定義
+    default_total = 0
+    if obj_get.work_time == '出勤':
+      default_total = 470
+    elif obj_get.work_time == 'シフト出勤':
+      default_total = 470
+    elif obj_get.work_time == '休出':
+      default_total = 0
+    elif obj_get.work_time == '遅刻・早退':
+      default_total = '-'
+    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
+            obj_get.work_time == '半前年休':
+      default_total = 220
+    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
+            obj_get.work_time == '半後年休':
+      default_total = 250
+    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
+            obj_get.work_time == '半前年休':
+      default_total = 230
+    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
+            obj_get.work_time == '半後年休':
+      default_total = 240
+    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
+            obj_get.work_time == '半前年休':
+      default_total = 275
+    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
+          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
+            obj_get.work_time == '半後年休':
+      default_total = 195
+    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
+          data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半前年休':
+      default_total = 230
+    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
+          data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半後年休':
+      default_total = 240
+    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
+          data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半前年休':
+      default_total = 290
+    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
+          data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半後年休':
+      default_total = 180
+    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
+          data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半前年休':
+      default_total = 230
+    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
+          data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半後年休':
+      default_total = 240
+    elif obj_get.tyoku2 == '4' and obj_get.work_time == '半前年休':
+      default_total = 230
+    elif obj_get.tyoku2 == '4' and obj_get.work_time == '半後年休':
+      default_total = 240
+
+
   # 工数データない場合の処理
   else:
     def_n = 0
+
+    # 工数合計定義
+    time_total = 0
+ 
+    # 基準合計工数定義
+    default_total = 0
 
 
 
@@ -3207,6 +3279,8 @@ def input(request):
     'graph_kosu_list' : graph_kosu_list,
     'def_n' : def_n,
     'OK_NG' : ok_ng,
+    'time_total' : time_total,
+    'default_total' : default_total,
     'obj_link' : obj_link,
     'time_display_list' : time_display_list,
     'member_obj' : member_obj
@@ -4472,6 +4546,11 @@ def detail(request, num):
     del work_list[288:]
     del detail_list[288:]
 
+  # 直指定ない場合の処理
+  else:
+    del work_list[288:]
+    del detail_list[288:]
+
 
   # 作業時間リストリセット
   kosu_list = []
@@ -4770,6 +4849,69 @@ def detail(request, num):
     over_time_default = obj_get.over_time
   else:
     over_time_default = 0
+
+
+  # 工数合計取得
+  time_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
+
+  # 基準合計工数定義
+  default_total = 0
+  if obj_get.work_time == '出勤':
+    default_total = 470
+  elif obj_get.work_time == 'シフト出勤':
+    default_total = 470
+  elif obj_get.work_time == '休出':
+    default_total = 0
+  elif obj_get.work_time == '遅刻・早退':
+    default_total = '-'
+  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
+        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
+          obj_get.work_time == '半前年休':
+    default_total = 220
+  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
+        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
+          obj_get.work_time == '半後年休':
+    default_total = 250
+  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
+        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
+          obj_get.work_time == '半前年休':
+    default_total = 230
+  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
+        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
+          obj_get.work_time == '半後年休':
+    default_total = 240
+  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
+        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
+          obj_get.work_time == '半前年休':
+    default_total = 275
+  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
+        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
+          obj_get.work_time == '半後年休':
+    default_total = 195
+  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
+        data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半前年休':
+    default_total = 230
+  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
+        data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半後年休':
+    default_total = 240
+  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
+        data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半前年休':
+    default_total = 290
+  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
+        data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半後年休':
+    default_total = 180
+  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
+        data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半前年休':
+    default_total = 230
+  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
+        data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半後年休':
+    default_total = 240
+  elif obj_get.tyoku2 == '4' and obj_get.work_time == '半前年休':
+    default_total = 230
+  elif obj_get.tyoku2 == '4' and obj_get.work_time == '半後年休':
+    default_total = 240
+
+
 
   # 就業日変更時の処理
   if "edit_day" in request.POST:
@@ -5705,6 +5847,8 @@ def detail(request, num):
     'obj_get' : obj_get,
     'over_time_default' : over_time_default,
     'now_day' : str(obj_get.work_day2),
+    'time_total' : time_total,
+    'default_total' : default_total,
     'time_display_list' : time_display_list,
     'has_next_record' : has_next_record,
     'has_before_record' : has_before_record,

@@ -10,7 +10,7 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
 </head>
 <body class="container">
-  <h1 class="display-5 text-danger">{{name}}さんの{{title}}</h1>
+  <h1 class="display-5 text-danger">{{obj_get.name}}さんの{{title}}</h1>
   <p class="h6"><a href="{% url 'team_kosu' 1 %}" class="text-danger">班員工数詳細へ</a></p>
   {% for message in messages %}
   <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
@@ -46,6 +46,8 @@
         </td>
       </tr>
     </table>
+    <p>　</p>
+    <p>工数合計(基準時間)：{{time_total}}分({{default_total}}分)</p>
     <p>　</p>
     <p>　</p>
     <table class="table no-wrap">

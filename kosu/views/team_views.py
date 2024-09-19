@@ -918,6 +918,11 @@ def team_detail(request, num):
     del work_list[288:]
     del detail_list[288:]
 
+  # 直指定がない場合の処理
+  else:
+    del work_list[288:]
+    del detail_list[288:]
+
 
   # 作業時間リストリセット
   kosu_list = []
@@ -1155,13 +1160,76 @@ def team_detail(request, num):
     time_display_list.append(for_list)
 
 
+  # 工数合計取得
+  time_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
+
+  # 基準合計工数定義
+  default_total = 0
+  if obj_get.work_time == '出勤':
+    default_total = 470
+  elif obj_get.work_time == 'シフト出勤':
+    default_total = 470
+  elif obj_get.work_time == '休出':
+    default_total = 0
+  elif obj_get.work_time == '遅刻・早退':
+    default_total = '-'
+  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
+        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
+          obj_get.work_time == '半前年休':
+    default_total = 220
+  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
+        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
+          obj_get.work_time == '半後年休':
+    default_total = 250
+  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
+        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
+          obj_get.work_time == '半前年休':
+    default_total = 230
+  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
+        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
+          obj_get.work_time == '半後年休':
+    default_total = 240
+  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
+        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
+          obj_get.work_time == '半前年休':
+    default_total = 275
+  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
+        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
+          obj_get.work_time == '半後年休':
+    default_total = 195
+  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2' or \
+        name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半前年休':
+    default_total = 230
+  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2' or \
+        name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半後年休':
+    default_total = 240
+  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2' or \
+        name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半前年休':
+    default_total = 290
+  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2' or \
+        name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半後年休':
+    default_total = 180
+  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2' or \
+        name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半前年休':
+    default_total = 230
+  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2' or \
+        name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半後年休':
+    default_total = 240
+  elif obj_get.tyoku2 == '4' and obj_get.work_time == '半前年休':
+    default_total = 230
+  elif obj_get.tyoku2 == '4' and obj_get.work_time == '半後年休':
+    default_total = 240
+
+
+
   # HTMLに渡す辞書
   context = {
     'title' : '工数詳細',
     'id' : num,
     'obj_get' : obj_get,
     'time_display_list' : time_display_list,
-    'name' : obj_get.name,
+    'time_total' : time_total,
+    'default_total' : default_total,
     }
 
   # 指定したHTMLに辞書を渡して表示を完成させる
