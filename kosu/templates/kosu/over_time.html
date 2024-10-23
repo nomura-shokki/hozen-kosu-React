@@ -17,99 +17,254 @@
   </p>
   <form action="{% url 'over_time' %}" method="post">
   {% csrf_token %}
-  <div class="number-input-group">
-    {{form.year}}年　
-    {{form.month}}月　
-    <input type="submit" value="表示切替" name="date_change" class="btn btn-blue7 mt-2">
-  </div>
-  <p>　</p>
-  <p>
-    <svg width="70" height="40">
-      <rect x="0" y="0" width="60" height="40" fill="#33ff00" />
-      <text x="15" y="25" font-weight="bold">残業</text>
-    </svg>
-    工数入力OK
-  </p>
-  <table class="table table-bordered border-dark table-custom">
+  <table class="table table-bordered border-dark">
+    <p>表示月指定</p>
+    <div class="number-input-group">
+      {{form.year}}年　{{form.month}}月　　
+      <input type="submit" value="表示切替" name="time_update" class="btn btn-blue7 mt-2">
+    </div>
+    <p>　</p>
+    <p>
+      <svg width="100" height="40">
+        <rect x="0" y="0" width="90" height="40" fill="#33ff00" />
+      </svg>
+      工数入力OK
+    </p>
+    <tr><p class="text-center display-6">月残業合計：{{over_time_total}}H</p></tr>
+    <tr><p>　</p></tr>
     <tr>
-      <td rowspan="2" style="text-align:center;" class="no-wrap">
-        氏名
-      </td>
-      <td rowspan="2" class="no-wrap" style="text-align:center;">
-        合計
-      </td>
-      {% for d, w in day_list %}
-      {% if w == "土" %}
-        <td class="table-light_blue no-wrap" style="text-align:center;">
-      {% else %}
-      {% if w == "日" %}
-        <td class="table-pink no-wrap" style="text-align:center;">
-      {% else %}
-        <td class="no-wrap" style="text-align:center;">
-      {% endif %}
-      {% endif %}
-          {{d}}日
-        </td>
-      {% endfor %}
-      <td rowspan="2" class="no-wrap" style="text-align:center;">
-        合計
-      </td>
+      <th class="table-pink"><div class="text-center">日</div></th>
+      <th><div class="text-center">月</div></th>
+      <th><div class="text-center">火</div></th>
+      <th><div class="text-center">水</div></th>
+      <th><div class="text-center">木</div></th>
+      <th><div class="text-center">金</div></th>
+      <th class="table-light_blue"><div class="text-center">土</div></th>
     </tr>
 
     <tr>
-      {% for d in week_list %}
-      {% if d == "土" %}
-        <td class="table-light_blue" style="text-align:center;">
-      {% else %}
-      {% if d == "日" %}
-        <td class="table-pink" style="text-align:center;">
-      {% else %}
-        <td style="text-align:center;">
-      {% endif %}
-      {% endif %}
-          {{d}}
+      {% for i in day_list|slice:":7" %}
+        {% if forloop.first %}
+          <td class="table-pink">
+        {% else %}
+          {% if forloop.last %}
+            <td class="table-light_blue">
+          {% else %}
+            <td>
+          {% endif %}
+        {% endif %}
+          <div class="text-center fw-bold">{{i}}</div>
         </td>
       {% endfor %}
     </tr>
-  
+
     <tr>
-      {% for m in over_time_list %}
-      {% if forloop.first %}
-      <td class="no-wrap" style="text-align:center;">
-        {{m}}
-      </td>
+      {% for i in over_time_list|slice:":7" %}
+      {% with inp=OK_NG_list.pop %}
+      {% if forloop.first and inp == False %}
+      <td class="table-pink">
       {% else %}
-      {% if forloop.last %}
-      <td class="no-wrap" style="text-align:center;">
-        <p class="fs-5">
-        {{ m|floatformat:2 }}
-        </p>
-      </td>
+      {% if forloop.last and inp == False %}
+      <td class="table-light_blue">
       {% else %}
-      {% if forloop.counter == 2 %}
-      <td class="no-wrap" style="text-align:center;">
-        <p class="fs-5">
-        {{ m|floatformat:2 }}
-        </p>
-      </td>
+      {% if inp == True %}
+      <td class="table-green">
       {% else %}
-      {% if m.judgement == True %}
-      <td class="table-green no-wrap" style="text-align:center;">
-      {% else %}
-      <td class="no-wrap" style="text-align:center;">
-      {% endif %}
-        {% if m.over_time == 0 %}
-          0
-        {% else %}
-          {{ m.over_time|floatformat:2 }}
-        {% endif %}
-      </td>
+      <td>
       {% endif %}
       {% endif %}
       {% endif %}
+        <div class="text-center display-6">{{i|floatformat:2}}</div>
+      </td>
+      {% endwith %}
       {% endfor %}
-      </tr>
-    </table>
-  </form>
+    </tr>
+
+    <tr>
+      {% for i in day_list|slice:"7:14" %}
+        {% if forloop.first %}
+          <td class="table-pink">
+        {% else %}
+          {% if forloop.last %}
+            <td class="table-light_blue">
+          {% else %}
+            <td>
+          {% endif %}
+        {% endif %}
+          <div class="text-center fw-bold">{{i}}</div>
+        </td>
+      {% endfor %}
+    </tr>
+
+    <tr>
+      {% for i in over_time_list|slice:"7:14" %}
+      {% with inp=OK_NG_list.pop %}
+      {% if forloop.first and inp == False %}
+      <td class="table-pink">
+      {% else %}
+      {% if forloop.last and inp == False %}
+      <td class="table-light_blue">
+      {% else %}
+      {% if inp == True %}
+      <td class="table-green">
+      {% else %}
+      <td>
+      {% endif %}
+      {% endif %}
+      {% endif %}
+        <div class="text-center display-6">{{i|floatformat:2}}</div>
+      </td>
+      {% endwith %}
+      {% endfor %}
+    </tr>
+
+    <tr>
+      {% for i in day_list|slice:"14:21" %}
+        {% if forloop.first %}
+          <td class="table-pink">
+        {% else %}
+          {% if forloop.last %}
+            <td class="table-light_blue">
+          {% else %}
+            <td>
+          {% endif %}
+        {% endif %}
+          <div class="text-center fw-bold">{{i}}</div>
+        </td>
+      {% endfor %}
+    </tr>
+
+    <tr>
+      {% for i in over_time_list|slice:"14:21" %}
+      {% with inp=OK_NG_list.pop %}
+      {% if forloop.first and inp == False %}
+      <td class="table-pink">
+      {% else %}
+      {% if forloop.last and inp == False %}
+      <td class="table-light_blue">
+      {% else %}
+      {% if inp == True %}
+      <td class="table-green">
+      {% else %}
+      <td>
+      {% endif %}
+      {% endif %}
+      {% endif %}
+        <div class="text-center display-6">{{i|floatformat:2}}</div>
+      </td>
+      {% endwith %}
+      {% endfor %}
+    </tr>
+
+    <tr>
+      {% for i in day_list|slice:"21:28" %}
+        {% if forloop.first %}
+          <td class="table-pink">
+        {% else %}
+          {% if forloop.last %}
+            <td class="table-light_blue">
+          {% else %}
+            <td>
+          {% endif %}
+        {% endif %}
+          <div class="text-center fw-bold">{{i}}</div>
+        </td>
+      {% endfor %}
+    </tr>
+
+    <tr>
+      {% for i in over_time_list|slice:"21:28" %}
+      {% with inp=OK_NG_list.pop %}
+      {% if forloop.first and inp == False %}
+      <td class="table-pink">
+      {% else %}
+      {% if forloop.last and inp == False %}
+      <td class="table-light_blue">
+      {% else %}
+      {% if inp == True %}
+      <td class="table-green">
+      {% else %}
+      <td>
+      {% endif %}
+      {% endif %}
+      {% endif %}
+        <div class="text-center display-6">{{i|floatformat:2}}</div>
+      </td>
+      {% endwith %}
+      {% endfor %}
+    </tr>
+
+    {% if day_list.28 != '' %}
+    <tr>
+      {% for i in day_list|slice:"28:35" %}
+        {% if forloop.first %}
+          <td class="table-pink">
+        {% else %}
+          {% if forloop.last %}
+            <td class="table-light_blue">
+          {% else %}
+            <td>
+          {% endif %}
+        {% endif %}
+          <div class="text-center fw-bold">{{i}}</div>
+        </td>
+      {% endfor %}
+    </tr>
+
+    <tr>
+      {% for i in over_time_list|slice:"28:35" %}
+      {% with inp=OK_NG_list.pop %}
+      {% if forloop.first and inp == False %}
+      <td class="table-pink">
+      {% else %}
+      {% if forloop.last and inp == False %}
+      <td class="table-light_blue">
+      {% else %}
+      {% if inp == True %}
+      <td class="table-green">
+      {% else %}
+      <td>
+      {% endif %}
+      {% endif %}
+      {% endif %}
+        <div class="text-center display-6">{{i|floatformat:2}}</div>
+      </td>
+      {% endwith %}
+      {% endfor %}
+    </tr>
+    {% endif %}
+
+    {% if day_list.35 != '' %}
+    <tr>
+      {% for i in day_list|slice:"35:37" %}
+        {% if forloop.first %}
+          <td class="table-pink">
+        {% else %}
+          <td>
+        {% endif %}
+          <div class="text-center fw-bold">{{i}}</div>
+        </td>
+      {% endfor %}
+    </tr>
+
+    <tr>
+      {% for i in over_time_list|slice:"35:37" %}
+      {% with inp=OK_NG_list.pop %}
+      {% if forloop.first and inp == False %}
+      <td class="table-pink">
+      {% else %}
+      {% if inp == True %}
+      <td class="table-green">
+      {% else %}
+      <td>
+      {% endif %}
+      {% endif %}
+        <div class="text-center display-6">{{i|floatformat:2}}</div>
+      </td>
+      {% endwith %}
+      {% endfor %}
+    </tr>
+    {% endif %}
+  </table>
 </body>
 </html>

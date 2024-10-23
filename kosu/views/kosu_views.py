@@ -6807,10 +6807,10 @@ def schedule(request):
     form_default_list = {}
     for i in range(37):
       if day_list[i] != '':
-        day_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None), \
+        day_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
                                                         work_day2 = datetime.date(year, month, day_list[i]))
         if day_filter.count() > 0:
-          day_get = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None), \
+          day_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
                                                     work_day2 = datetime.date(year, month, day_list[i]))
           form_default_list[('day{}'.format(i + 1))] = day_get.work_time
           form_default_list[('tyoku{}'.format(i + 1))] = day_get.tyoku2
@@ -7595,7 +7595,6 @@ def schedule(request):
 
   # 入力工数表示リセット
   time_list1 = []
-  time_list1 = []
   time_list2 = []
   time_list3 = []
   time_list4 = []
@@ -7651,7 +7650,7 @@ def schedule(request):
     if day_list[i] != '':
       # ログイン者の工数データを該当日でフィルター 
       graph_data_filter = Business_Time_graph.objects.filter(employee_no3 = \
-                          request.session.get('login_No', None), \
+                          request.session['login_No'], \
                           work_day2 = datetime.date(year, month, day_list[i]))
 
       # 工数データがない場合の処理
@@ -7666,7 +7665,7 @@ def schedule(request):
 
         # ログイン者の該当日の工数データ取得
         graph_data_get = Business_Time_graph.objects.get(employee_no3 = \
-                        request.session.get('login_No', None), \
+                        request.session['login_No'], \
                           work_day2 =datetime.date(year, month, day_list[i]))
         # 作業内容リストに解凍
         data_list = list(graph_data_get.time_work)
@@ -7791,30 +7790,15 @@ def schedule(request):
           eval(k).append('　')
 
 
-  # 入力できる日付範囲を表示月に制限
-  min_day = str(datetime.date(year, month, 1))
-  max_day = str(month_day_end)
-
-  # 日付の初期値指定
-  if datetime.date(year, month, 1) <= today and today <= month_day_end:
-    default_day = str(today)
-
-  if datetime.date(year, month, 1) >= today:
-    default_day = min_day
-
-  if today >= month_day_end:
-    default_day = max_day
-
-
   # 工数入力OKリスト作成
   OK_NG_list = []
   for ok_ng in range(37):
     if day_list[ok_ng] != '':
-      OK_NG_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None), \
+      OK_NG_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
                                                        work_day2 = datetime.date(year, month, day_list[ok_ng]))
       if OK_NG_filter.count() != 0:
         
-        OK_NG_obj = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None), \
+        OK_NG_obj = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
                                                     work_day2 = datetime.date(year, month, day_list[ok_ng]))
         if OK_NG_obj.judgement == True:
           OK_NG_list.append(OK_NG_obj.judgement)
@@ -7833,9 +7817,6 @@ def schedule(request):
     'form' : form,
     'form2' : form2,
     'day_list' : day_list,
-    'min_day' : min_day,
-    'max_day' : max_day,
-    'default_day' : default_day,
     'OK_NG_list' : OK_NG_list,
     'time_list1': time_list1,
     'time_list2': time_list2,
@@ -7894,14 +7875,13 @@ def schedule(request):
 # 残業管理画面定義
 def over_time(request):
 
-  # セッションにログインした従業員番号がない場合の処理
+  # 未ログインならログインページに飛ぶ
   if request.session.get('login_No', None) == None:
-    # 未ログインならログインページに飛ぶ
     return redirect(to = '/login')
-
+  
   try:
     # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
+    member_data = member.objects.get(employee_no = request.session['login_No'])
 
   # セッション値から人員情報取得できない場合の処理
   except member.DoesNotExist:
@@ -7911,125 +7891,249 @@ def over_time(request):
     return redirect(to = '/login')
 
 
+  # 本日の日付取得
+  today = datetime.date.today()
+
+
+
+  # GET時の処理
+  if (request.method == 'GET'):
+    # 本日の年取得
+    year = today.year
+    # 本日の月取得
+    month = today.month
+
+    # 表示月をセッションに登録
+    request.session['update_year'] = year
+    request.session['update_month'] = month
+
+    # GET時のカレンダー設定フォームの初期値設定
+    default_list = {'year' : year, 'month' : month}
+    # GET時のカレンダー設定フォーム定義
+    form = schedule_timeForm(default_list)
+
+    # GETされた月の初日取得
+    select_month = datetime.date(year, month, 1)
+    # GETされた月の初日の曜日取得
+    week_day = select_month.weekday()
+
+    # GETされた月の最終日取得
+    if month == 12:
+      month_end = 1
+      year_end = year + 1
+    else:
+      month_end = month + 1
+      year_end = year
+
+    select_month = datetime.date(year_end, month_end, 1)
+    month_day_end = select_month - datetime.timedelta(days = 1)
+    day_end = month_day_end.day
+
+    # カレンダー表示日付変数リセット
+    day_list = list(itertools.repeat('', 37))
+
+    # 1週目の日付設定
+    if week_day == 6:
+      day_list[0] = 1
+      day_list[1] = 2
+      day_list[2] = 3
+      day_list[3] = 4
+      day_list[4] = 5
+      day_list[5] = 6
+      day_list[6] = 7
+
+    if week_day == 0:
+      day_list[1] = 1
+      day_list[2] = 2
+      day_list[3] = 3
+      day_list[4] = 4
+      day_list[5] = 5
+      day_list[6] = 6
+
+    if week_day == 1:
+      day_list[2] = 1
+      day_list[3] = 2
+      day_list[4] = 3
+      day_list[5] = 4
+      day_list[6] = 5
+
+    if week_day == 2:
+      day_list[3] = 1
+      day_list[4] = 2
+      day_list[5] = 3
+      day_list[6] = 4
+
+    if week_day == 3:
+      day_list[4] = 1
+      day_list[5] = 2
+      day_list[6] = 3
+
+    if week_day == 4:
+      day_list[5] = 1
+      day_list[6] = 2
+
+    if week_day == 5:
+      day_list[6] = 1
+
+    # 基準日指定
+    start_day = day_list[6]
+
+    # 2～5週目の日付設定
+    for i in range(7, 37):
+      day_list[i] = start_day + 1
+      start_day += 1
+      if start_day == day_end:
+        break
+
+
 
   # POST時の処理
   if (request.method == 'POST'):
-    # 検索項目に空欄がある場合の処理
-    if request.POST['year'] == '' or request.POST['month'] == '':
-      # エラーメッセージ出力
-      messages.error(request, '表示年月に未入力箇所があります。ERROR083')
-      # このページをリダイレクト
-      return redirect(to = '/over_time')
-    
-
-    # フォームの初期値定義
-    schedule_default = {'year' : request.POST['year'], 
-                        'month' : request.POST['month']}
-    # フォーム定義
-    form = schedule_timeForm(schedule_default)
-    
-    # POSTした値をセッションに登録
-    request.session['over_time_year'] = request.POST['year']
-    request.session['over_time_month'] = request.POST['month']
-
+    # POSTされたの年取得
     year = int(request.POST['year'])
+    # POSTされたの月取得
     month = int(request.POST['month'])
 
+    # 表示月をセッションに登録
+    request.session['update_year'] = year
+    request.session['update_month'] = month
 
+    # POST時のカレンダー設定フォームの初期値設定
+    default_list = {'year' : year, 'month' : month}
+    # POST時のカレンダー設定フォーム定義
+    form = schedule_timeForm(default_list)
 
-  # POST時以外の処理
-  else:
-    # セッション値に年月のデータがない場合の処理
-    if request.session.get('over_time_year', '') == '' or request.session.get('over_time_month', '') == '':
-      # 本日の年月取得
-      year = datetime.date.today().year
-      month = datetime.date.today().month
+    # POSTされた月の初日取得
+    select_month = datetime.date(year, month, 1)
+    # POSTされた月の初日の曜日取得
+    week_day = select_month.weekday()
 
-    # セッション値に年月のデータがある場合の処理
+    # POSTされた月の最終日取得
+    if month == 12:
+      month_end = 1
+      year_end = year + 1
     else:
-      # セッション値から年月取得
-      year = int(request.session['over_time_year'])
-      month = int(request.session['over_time_month'])
+      month_end = month + 1
+      year_end = year
 
-    # フォームの初期値定義
-    schedule_default = {'year' : str(year), 
-                        'month' : str(month)}
-    # フォーム定義
-    form = schedule_timeForm(schedule_default)
+    select_month = datetime.date(year_end, month_end, 1)
+    month_day_end = select_month - datetime.timedelta(days = 1)
+    day_end = month_day_end.day
+
+    # カレンダー表示日付変数リセット
+    day_list = list(itertools.repeat('', 37))
+
+    # 1週目の日付設定
+    if week_day == 6:
+      day_list[0] = 1
+      day_list[1] = 2
+      day_list[2] = 3
+      day_list[3] = 4
+      day_list[4] = 5
+      day_list[5] = 6
+      day_list[6] = 7
+
+    if week_day == 0:
+      day_list[1] = 1
+      day_list[2] = 2
+      day_list[3] = 3
+      day_list[4] = 4
+      day_list[5] = 5
+      day_list[6] = 6
+
+    if week_day == 1:
+      day_list[2] = 1
+      day_list[3] = 2
+      day_list[4] = 3
+      day_list[5] = 4
+      day_list[6] = 5
+
+    if week_day == 2:
+      day_list[3] = 1
+      day_list[4] = 2
+      day_list[5] = 3
+      day_list[6] = 4
+
+    if week_day == 3:
+      day_list[4] = 1
+      day_list[5] = 2
+      day_list[6] = 3
+
+    if week_day == 4:
+      day_list[5] = 1
+      day_list[6] = 2
+
+    if week_day == 5:
+      day_list[6] = 1
+
+    # 基準日指定
+    start_day = day_list[6]
+
+    # 2～5週目の日付設定
+    for i in range(7, 37):
+      day_list[i] = start_day + 1
+      start_day += 1
+      if start_day == day_end:
+        break
 
 
 
-  # 次の月の最初の日を定義
-  if month == 12:
-    next_month = datetime.date(year + 1, 1, 1)
-
-  else:
-    next_month = datetime.date(year, month + 1, 1)
-
-  # 次の月の最初の日から1を引くことで、指定した月の最後の日を取得
-  last_day_of_month = next_month - datetime.timedelta(days = 1)
-
-  # 曜日リスト定義
-  week_list = []
-  # 曜日リスト作成するループ
-  for d in range(1, last_day_of_month.day + 1):
-    # 曜日を取得する日を作成
-    week_day = datetime.date(year, month, d)
-
-    # 指定日の曜日をリストに挿入
-    if week_day.weekday() == 0:
-      week_list.append('月')
-    if week_day.weekday() == 1:
-      week_list.append('火')
-    if week_day.weekday() == 2:
-      week_list.append('水')
-    if week_day.weekday() == 3:
-      week_list.append('木')
-    if week_day.weekday() == 4:
-      week_list.append('金')
-    if week_day.weekday() == 5:
-      week_list.append('土')
-    if week_day.weekday() == 6:
-      week_list.append('日')
-
-  # 残業リスト定義
+  # 残業リストリセット
   over_time_list = []
-
-  # 残業合計リセット
   over_time_total = 0
 
-  # 残業リストに名前追加
-  over_time_list.append(data.name)
+  # 工数入力データ取得
+  for i in  day_list:
 
-  # 日毎の残業と整合性をリストに追加するループ
-  for d in range(1, int(last_day_of_month.day) + 1):
-    # 該当日に工数データあるか確認
-    obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                    work_day2 = datetime.date(year, month, d))
+    # 日付リストの該当要素が空でない場合の処理
+    if i != '':
+      # ログイン者の工数データを該当日でフィルター 
+      over_time_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
+                                                             work_day2 = datetime.date(year, month, i))
 
-    # 該当日に工数データがある場合の処理
-    if obj_filter.count() != 0:
-      # 工数データ取得
-      obj_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                work_day2 = datetime.date(year, month, d))
-      
-      # 残業データを分から時に変換
-      obj_get.over_time = int(obj_get.over_time)/60
+      # 工数データがない場合の処理
+      if over_time_filter.count() == 0:
+        # 残業リストに0を追加
+        over_time_list.append('0')
 
-      # 残業リストにレコードを追加
-      over_time_list.append(obj_get)
+      # 工数データある場合の処理
+      else:
+        # 工数データ取得
+        over_time_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
+                                                        work_day2 = datetime.date(year, month, i))
 
-      # 残業を合計する
-      over_time_total += float(obj_get.over_time)
+        # 残業データを分から時に変換
+        over_time_get.over_time = int(over_time_get.over_time)/60
+        over_time_total += over_time_get.over_time
 
-    # 該当日に工数データがない場合の処理
+        # 残業リストに残業追加
+        over_time_list.append(over_time_get.over_time)    
+
+    # 日付リストの該当要素が空の場合の処理
     else:
-      # 残業リストに残業0と整合性否を追加
-      over_time_list.append(Business_Time_graph(over_time = 0, judgement = False))
+      # 残業リストに空を入れる
+      over_time_list.append('')
 
-  # リストに残業合計追加
-  over_time_list.append(over_time_total)
-  over_time_list.insert(1, over_time_total)
+
+  # 工数入力OKリスト作成
+  OK_NG_list = []
+  for ok_ng in range(37):
+    if day_list[ok_ng] != '':
+      OK_NG_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None), \
+                                                       work_day2 = datetime.date(year, month, day_list[ok_ng]))
+      if OK_NG_filter.count() != 0:
+        
+        OK_NG_obj = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None), \
+                                                    work_day2 = datetime.date(year, month, day_list[ok_ng]))
+        if OK_NG_obj.judgement == True:
+          OK_NG_list.append(OK_NG_obj.judgement)
+        else:
+          OK_NG_list.append(False)
+      else:
+        OK_NG_list.append(False)
+    else:
+      OK_NG_list.append(False)
+  OK_NG_list.reverse()
 
 
 
@@ -8037,9 +8141,10 @@ def over_time(request):
   context = {
     'title' : '残業管理',
     'form' : form,
-    'day_list' : zip(range(1, last_day_of_month.day + 1), week_list), 
-    'week_list' : week_list,
-    'over_time_list' : over_time_list
+    'day_list' : day_list, 
+    'over_time_list' : over_time_list,
+    'OK_NG_list' : OK_NG_list,
+    'over_time_total' : over_time_total,
     }
   
 
