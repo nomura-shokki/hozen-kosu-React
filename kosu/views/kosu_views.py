@@ -2861,6 +2861,7 @@ def input(request):
   for i, m in enumerate(str_list):
     choices_list.append((m,eval('kosu_obj.kosu_title_{}'.format(i + 1))))
     graph_kosu_list.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
+  choices_list.append(('$','休憩'))
 
 
   # ログイン者情報取得
@@ -7535,11 +7536,11 @@ def schedule(request):
         # 工数データがなくPOSTした値が空欄でない場合の処理
         if eval('request.POST["day{}"]'.format(i + 1)) != '' and work_filter.count() == 0:
           # POST値が休日の場合の処理
-          if eval('request.POST["day{}"]'.format(i + 1)) != '年休' or \
-            eval('request.POST["day{}"]'.format(i + 1)) != '休日' or \
-              eval('request.POST["day{}"]'.format(i + 1)) != '公休' or \
-                eval('request.POST["day{}"]'.format(i + 1)) != 'シフト休' or \
-                  eval('request.POST["day{}"]'.format(i + 1)) != '代休':
+          if eval('request.POST["day{}"]'.format(i + 1)) == '年休' or \
+            eval('request.POST["day{}"]'.format(i + 1)) == '休日' or \
+              eval('request.POST["day{}"]'.format(i + 1)) == '公休' or \
+                eval('request.POST["day{}"]'.format(i + 1)) == 'シフト休' or \
+                  eval('request.POST["day{}"]'.format(i + 1)) == '代休':
             # 整合性OK
             judgement = True
 
