@@ -2099,11 +2099,11 @@ class Page_form(TestCase):
         # 変数を読み出し
         name_list = response.context['name_list']
         # 変数整合性チェック
-        self.assertEqual(name_list, ['', 'テストユーザー', '', 'テストユーザー', '', 'テストユーザー', '', 'テストユーザー', '', 'テストユーザー', '', 'テストユーザー', '', 'テストユーザー', ''])
+        self.assertEqual(name_list, ['テストユーザー', 'テストユーザー', 'テストユーザー', 'テストユーザー', 'テストユーザー', 'テストユーザー', 'テストユーザー'])
         # 変数を読み出し
         n = response.context['n']
         # 変数整合性チェック
-        self.assertEqual(n, 14)
+        self.assertEqual(n, 7)
         # 変数を読み出し
         graph_list2 = response.context['graph_list2']
         # 変数整合性チェック
