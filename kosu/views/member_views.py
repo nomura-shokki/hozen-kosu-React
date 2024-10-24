@@ -46,7 +46,6 @@ def member_page(request, num):
 
   # POST時の処理
   if (request.method == 'POST'):
-
     # POST送信時のフォームの状態(POSTした値は入ったまま)
     form = member_findForm(request.POST)
 
@@ -57,13 +56,17 @@ def member_page(request, num):
     request.session['find_employee_no'] = find2
 
     # 就業日とログイン者の従業員番号でフィルターをかけて一致したものを変数に入れる
-    data2 = member.objects.filter(shop__contains = find, \
-            employee_no__contains = find2).order_by('employee_no')
+    if find == '':
+      data2 = member.objects.filter(shop__contains = find, \
+              employee_no__contains = find2).order_by('employee_no')
+    else:
+      data2 = member.objects.filter(shop = find, \
+              employee_no__contains = find2).order_by('employee_no')
+      
     page = Paginator(data2, page_num.menu_row)
 
-
+  # POSTしていない時の処理
   else:
-
     # フォームの初期値設定
     form_default = {'shop2' : request.session.get('find_shop', ''), \
                     'employee_no6' : request.session.get('find_employee_no', '')}
