@@ -12,7 +12,6 @@ from ..models import kosu_division
 from ..models import administrator_data
 from ..forms import input_kosuForm
 from ..forms import kosu_dayForm
-from ..forms import team_kosuForm
 from ..forms import schedule_timeForm
 from ..forms import scheduleForm
 from ..forms import all_kosu_findForm
