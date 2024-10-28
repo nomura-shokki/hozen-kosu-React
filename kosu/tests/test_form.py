@@ -1403,7 +1403,7 @@ class Page_form(TestCase):
         form_data = {
             'year': '2000',
             'month': '1',
-            'date_change': '表示切替',
+            'time_update': '表示切替',
             }
 
         # URLに対してPOSTリクエスト送信
@@ -1412,9 +1412,9 @@ class Page_form(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # 集計値が正しいか確認
-        week_list = list(response.context['week_list'])
-        expected_list = ['土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月']
-        self.assertEqual(week_list, expected_list)
+        day_list = list(response.context['day_list'])
+        expected_list = ['', '', '', '', '', '', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+        self.assertEqual(day_list, expected_list)
 
 
         # フォームデータ定義
@@ -1430,9 +1430,9 @@ class Page_form(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # 集計値が正しいか確認
-        week_list = list(response.context['week_list'])
-        expected_list = ['火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火']
-        self.assertEqual(week_list, expected_list)
+        day_list = list(response.context['day_list'])
+        expected_list = ['', '', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, '', '', '', '', '', '']
+        self.assertEqual(day_list, expected_list)
 
 
 
