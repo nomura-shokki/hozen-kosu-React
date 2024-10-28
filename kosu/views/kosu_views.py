@@ -4971,6 +4971,13 @@ def detail(request, num):
       judgement = True
 
 
+    # 休日時、工数が入力されていない場合の処理
+    if (request.POST['work'] == '休日' or request.POST['work'] == '年休' or request.POST['work'] == '公休' or \
+        request.POST['work'] == 'シフト休' or request.POST['work'] == '代休') and kosu_total == 0:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+
     # ログイン者の人員データ取得
     member_obj = member.objects.get(employee_no = request.session['login_No'])
 
