@@ -1332,7 +1332,7 @@ class Page_form(TestCase):
 
 
 
-    # 勤務入力ページデフォルト勤務登録チェック
+    # 勤務入力ページデフォルト直登録チェック
     def test_schedule_tyoku_default_form(self):
 
         # フォームデータ定義
@@ -1436,6 +1436,13 @@ class Page_form(TestCase):
 
 
 
+    # 全工数履歴ページ検索チェック
+    # 全工数履歴ページ一括削除チェック
+    # 全工数工数データ詳細ページ編集チェック
+    # 全工数工数データ削除ページ削除チェック
+
+
+
     # 工数区分定義確認ページ表示切替チェック
     def test_kosu_def_change_form(self):
 
@@ -1468,7 +1475,7 @@ class Page_form(TestCase):
 
 
 
-    # 工数区分定義Ver切替ページ切替チェック
+    # 工数区分定義Ver切替ページVer切替チェック
     def test_def_Ver_change_form(self):
 
         # kosu_divisionダミーデータ
@@ -1776,7 +1783,7 @@ class Page_form(TestCase):
 
 
 
-    # 人員新規作成ページチェック
+    # 人員新規作成ページ新規作成チェック
     def test_member_new_form(self):
 
         # フォームデータ定義
@@ -1802,7 +1809,7 @@ class Page_form(TestCase):
 
 
 
-    # 人員検索ページチェック
+    # 人員検索ページ検索チェック
     def test_member_find_form(self):
 
         # memberダミーデータ
@@ -1926,7 +1933,7 @@ class Page_form(TestCase):
 
 
 
-    # 人員情報編集ページチェック
+    # 人員情報編集ページ編集チェック
     def test_member_edit_form(self):
 
         # セッション定義
@@ -1988,7 +1995,7 @@ class Page_form(TestCase):
 
 
 
-    # 人員削除ページチェック
+    # 人員削除ページ削除チェック
     def test_member_delete_form(self):
 
         # memberダミーデータ
@@ -2033,7 +2040,7 @@ class Page_form(TestCase):
 
 
 
-    # 班員登録ページチェック
+    # 班員登録ページ登録チェック
     def test_team_form(self):
 
         # フォームデータ定義
@@ -2082,7 +2089,7 @@ class Page_form(TestCase):
 
 
 
-    # 班員グラフ確認ページチェック
+    # 班員グラフ確認ページ検索チェック
     def test_team_graph_form(self):
 
         # フォームデータ定義
@@ -2115,7 +2122,7 @@ class Page_form(TestCase):
 
 
 
-    # 班員工数詳細ページチェック
+    # 班員工数ページ検索チェック
     def test_team_kosu_form(self):
 
         # memberダミーデータ
@@ -2295,7 +2302,7 @@ class Page_form(TestCase):
 
 
 
-    #班員工数一覧ページチェック
+    #班員工数一覧ページ切替チェック
     def test_team_calendar_form(self):
 
         # フォームデータ定義
@@ -2360,7 +2367,7 @@ class Page_form(TestCase):
 
 
 
-    # 班員残業ページチェック
+    # 班員残業ページ切替チェック
     def test_team_over_time_form(self):
 
         # memberダミーデータ
@@ -2489,7 +2496,7 @@ class Page_form(TestCase):
 
 
 
-    # 入力可否(ショップ)ページチェック
+    # 入力可否(ショップ)ページ切替チェック
     def test_class_form(self):
 
         # memberダミーデータ

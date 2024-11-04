@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 import datetime
 import itertools
+import re
 from ..utils import round_time
 from django.db.models import Q
 from ..models import member
@@ -7179,13 +7180,14 @@ def schedule(request):
           # 工数データに勤務情報がない場合
           if work_get.work_time in (None, ''):
             # 平日である場合の処理
-            if (0 > i and i < 6) or (7 > i and i < 13) or (14 > i and i < 20) or (21 > i and i < 27) or (28 > i and i < 34) or (i == 36):
+            if i in (1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 15, 16, 17, 18, 19, 22, 23, 24, 25, 26, 29, 30, 31, 32, 33, 36, 37):
               # 就業を上書き
               Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
                 work_day2 = datetime.date(year, month, day_list[i]), \
                   defaults = {'work_time' : '出勤'})
               
             else:
+              print(i)
               # 就業を上書き
               Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
                 work_day2 = datetime.date(year, month, day_list[i]), \
@@ -8206,16 +8208,20 @@ def all_kosu(request, num):
 
   # 従業員番号を名前に変更するループ
   for No in list(employee_no_list):
-    # 指定従業員番号で人員情報取得
-    name = member.objects.get(employee_no = No)
-    # 名前リスト作成
-    name_list.append([No, name])
+    try:
+      # 指定従業員番号で人員情報取得
+      name = member.objects.get(employee_no = No)
+      # 名前リスト作成
+      name_list.append([No, name])
+    # 人員情報取得できない場合の処理
+    except member.DoesNotExist:
+      #何もしない
+      pass
 
 
 
-  # POST時の処理
+  # 検索時の処理
   if 'kosu_find' in request.POST:
-
     # 従業員番号リスト定義
     employee_no_name_list = []
 
@@ -8252,28 +8258,54 @@ def all_kosu(request, num):
       judgement = [True, False]
 
 
+    # ID指定している場合の処理
+    if request.POST['identification'] != '':
 
-    try:
-      # 工数データ取得
-      obj = Business_Time_graph.objects.filter(employee_no3__contains = request.POST['name'], \
-                                              employee_no3__in = employee_no_name_list, \
-                                              work_day2__gte = request.POST['start_day'], \
-                                              work_day2__lte = request.POST['end_day'], \
-                                              tyoku2__contains = request.POST['tyoku'], \
-                                              work_time__contains = request.POST['work'], \
-                                              judgement__in = judgement, \
-                                              ).order_by('work_day2', 'employee_no3').reverse()
+      try:
+        # 工数データ取得
+        obj = Business_Time_graph.objects.filter(id = request.POST['identification'], \
+                                                employee_no3__contains = request.POST['name'], \
+                                                employee_no3__in = employee_no_name_list, \
+                                                work_day2__gte = request.POST['start_day'], \
+                                                work_day2__lte = request.POST['end_day'], \
+                                                tyoku2__contains = request.POST['tyoku'], \
+                                                work_time__contains = request.POST['work'], \
+                                                judgement__in = judgement, \
+                                                ).order_by('work_day2', 'employee_no3').reverse()
 
-    # エラー時の処理
-    except:
-      # 工数データ取得
-      obj = Business_Time_graph.objects.filter(employee_no3__contains = request.POST['name'], \
-                                              employee_no3__in = employee_no_name_list, \
-                                              tyoku2__contains = request.POST['tyoku'], \
-                                              work_time__contains = request.POST['work'], \
-                                              judgement__in = judgement, \
-                                              ).order_by('work_day2', 'employee_no3').reverse()
+      # エラー時の処理
+      except:
+        # 工数データ取得
+        obj = Business_Time_graph.objects.filter(id = request.POST['identification'], \
+                                                employee_no3__contains = request.POST['name'], \
+                                                employee_no3__in = employee_no_name_list, \
+                                                tyoku2__contains = request.POST['tyoku'], \
+                                                work_time__contains = request.POST['work'], \
+                                                judgement__in = judgement, \
+                                                ).order_by('work_day2', 'employee_no3').reverse()
 
+    # ID指定していない場合の処理 
+    else:
+      try:
+        # 工数データ取得
+        obj = Business_Time_graph.objects.filter(employee_no3__contains = request.POST['name'], \
+                                                employee_no3__in = employee_no_name_list, \
+                                                work_day2__gte = request.POST['start_day'], \
+                                                work_day2__lte = request.POST['end_day'], \
+                                                tyoku2__contains = request.POST['tyoku'], \
+                                                work_time__contains = request.POST['work'], \
+                                                judgement__in = judgement, \
+                                                ).order_by('work_day2', 'employee_no3').reverse()
+        
+      # エラー時の処理
+      except:
+        # 工数データ取得
+        obj = Business_Time_graph.objects.filter(employee_no3__contains = request.POST['name'], \
+                                                employee_no3__in = employee_no_name_list, \
+                                                tyoku2__contains = request.POST['tyoku'], \
+                                                work_time__contains = request.POST['work'], \
+                                                judgement__in = judgement, \
+                                                ).order_by('work_day2', 'employee_no3').reverse()
 
 
 
@@ -8352,6 +8384,7 @@ def all_kosu(request, num):
                                               work_time__contains = request.POST['work'], \
                                               judgement__in = judgement, \
                                               ).order_by('work_day2', 'employee_no3').reverse()
+
     # 検索レコード削除
     obj.delete()
     # このページ読み直し
@@ -8485,37 +8518,481 @@ def all_kosu_detail(request, num):
                 request.POST['time_work23']
 
     # 作業詳細整形
-    detail_work = request.POST['detail_work0'] + \
-                  request.POST['detail_work1'] + \
-                  request.POST['detail_work2'] + \
-                  request.POST['detail_work3'] + \
-                  request.POST['detail_work4'] + \
-                  request.POST['detail_work5'] + \
-                  request.POST['detail_work6'] + \
-                  request.POST['detail_work7'] + \
-                  request.POST['detail_work8'] + \
-                  request.POST['detail_work9'] + \
-                  request.POST['detail_work10'] + \
-                  request.POST['detail_work11'] + \
-                  request.POST['detail_work12'] + \
-                  request.POST['detail_work13'] + \
-                  request.POST['detail_work14'] + \
-                  request.POST['detail_work15'] + \
-                  request.POST['detail_work16'] + \
-                  request.POST['detail_work17'] + \
-                  request.POST['detail_work18'] + \
-                  request.POST['detail_work19'] + \
-                  request.POST['detail_work20'] + \
-                  request.POST['detail_work21'] + \
-                  request.POST['detail_work22'] + \
+    detail_work = request.POST['detail_work0'] + '$' +\
+                  request.POST['detail_work1'] + '$' +\
+                  request.POST['detail_work2'] + '$' +\
+                  request.POST['detail_work3'] + '$' +\
+                  request.POST['detail_work4'] + '$' +\
+                  request.POST['detail_work5'] + '$' +\
+                  request.POST['detail_work6'] + '$' +\
+                  request.POST['detail_work7'] + '$' +\
+                  request.POST['detail_work8'] + '$' +\
+                  request.POST['detail_work9'] + '$' +\
+                  request.POST['detail_work10'] + '$' +\
+                  request.POST['detail_work11'] + '$' +\
+                  request.POST['detail_work12'] + '$' +\
+                  request.POST['detail_work13'] + '$' +\
+                  request.POST['detail_work14'] + '$' +\
+                  request.POST['detail_work15'] + '$' +\
+                  request.POST['detail_work16'] + '$' +\
+                  request.POST['detail_work17'] + '$' +\
+                  request.POST['detail_work18'] + '$' +\
+                  request.POST['detail_work19'] + '$' +\
+                  request.POST['detail_work20'] + '$' +\
+                  request.POST['detail_work21'] + '$' +\
+                  request.POST['detail_work22'] + '$' +\
                   request.POST['detail_work23']
+
 
     # POSTした従業員番号があるか確認
     member_filter = member.objects.filter(employee_no = request.POST['employee_no'])
+
     # 従業員番号がない場合の処理
     if member_filter.count() == 0:
       # エラーメッセージ出力
       messages.error(request, 'その従業員番号は人員データにありません。ERROR092')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 従業員番号か就業日が空欄の場合の処理
+    if (request.POST['employee_no'] in (None, '')) or (request.POST['work_day'] in (None, '')):
+      # エラーメッセージ出力
+      messages.error(request, '従業員番号か就業日が未入力です。ERROR100')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 12桁の#とアルファベットの小文字、大文字の文字列の正規表現パターン
+    pattern = r'^[a-zA-Z#]{12}$'
+
+    # 0時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work0']):
+      # エラーメッセージ出力
+      messages.error(request, '0時台の作業内容の入力値が不適切です。ERROR101')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 1時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work1']):
+      # エラーメッセージ出力
+      messages.error(request, '1時台の作業内容の入力値が不適切です。ERROR102')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 2時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work2']):
+      # エラーメッセージ出力
+      messages.error(request, '2時台の作業内容の入力値が不適切です。ERROR103')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 3時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work3']):
+      # エラーメッセージ出力
+      messages.error(request, '3時台の作業内容の入力値が不適切です。ERROR104')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 4時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work4']):
+      # エラーメッセージ出力
+      messages.error(request, '4時台の作業内容の入力値が不適切です。ERROR105')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 5時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work5']):
+      # エラーメッセージ出力
+      messages.error(request, '5時台の作業内容の入力値が不適切です。ERROR106')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 6時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work6']):
+      # エラーメッセージ出力
+      messages.error(request, '6時台の作業内容の入力値が不適切です。ERROR107')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 7時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work7']):
+      # エラーメッセージ出力
+      messages.error(request, '7時台の作業内容の入力値が不適切です。ERROR108')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 8時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work8']):
+      # エラーメッセージ出力
+      messages.error(request, '8時台の作業内容の入力値が不適切です。ERROR109')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 9時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work9']):
+      # エラーメッセージ出力
+      messages.error(request, '9時台の作業内容の入力値が不適切です。ERROR110')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 10時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work10']):
+      # エラーメッセージ出力
+      messages.error(request, '10時台の作業内容の入力値が不適切です。ERROR111')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 11時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work11']):
+      # エラーメッセージ出力
+      messages.error(request, '11時台の作業内容の入力値が不適切です。ERROR112')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 12時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work12']):
+      # エラーメッセージ出力
+      messages.error(request, '12時台の作業内容の入力値が不適切です。ERROR113')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 13時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work13']):
+      # エラーメッセージ出力
+      messages.error(request, '13時台の作業内容の入力値が不適切です。ERROR114')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 14時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work14']):
+      # エラーメッセージ出力
+      messages.error(request, '14時台の作業内容の入力値が不適切です。ERROR115')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 15時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work15']):
+      # エラーメッセージ出力
+      messages.error(request, '15時台の作業内容の入力値が不適切です。ERROR116')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 16時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work16']):
+      # エラーメッセージ出力
+      messages.error(request, '16時台の作業内容の入力値が不適切です。ERROR117')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 17時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work17']):
+      # エラーメッセージ出力
+      messages.error(request, '17時台の作業内容の入力値が不適切です。ERROR118')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 18時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work18']):
+      # エラーメッセージ出力
+      messages.error(request, '18時台の作業内容の入力値が不適切です。ERROR119')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 19時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work19']):
+      # エラーメッセージ出力
+      messages.error(request, '19時台の作業内容の入力値が不適切です。ERROR120')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 20時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work20']):
+      # エラーメッセージ出力
+      messages.error(request, '20時台の作業内容の入力値が不適切です。ERROR121')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 21時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work21']):
+      # エラーメッセージ出力
+      messages.error(request, '21時台の作業内容の入力値が不適切です。ERROR122')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 22時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work22']):
+      # エラーメッセージ出力
+      messages.error(request, '22時台の作業内容の入力値が不適切です。ERROR123')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 23時台の作業内容の入力値が不適切な場合の処理
+    if not re.fullmatch(pattern, request.POST['time_work23']):
+      # エラーメッセージ出力
+      messages.error(request, '23時台の作業内容の入力値が不適切です。ERROR124')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 0時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work0'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '0時台の作業内容の入力値が不適切です。ERROR125')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 1時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work1'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '1時台の作業内容の入力値が不適切です。ERROR126')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 2時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work2'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '2時台の作業内容の入力値が不適切です。ERROR127')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 3時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work3'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '3時台の作業内容の入力値が不適切です。ERROR128')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 4時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work4'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '4時台の作業内容の入力値が不適切です。ERROR129')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 5時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work5'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '5時台の作業内容の入力値が不適切です。ERROR130')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 6時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work6'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '6時台の作業内容の入力値が不適切です。ERROR131')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 7時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work7'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '7時台の作業内容の入力値が不適切です。ERROR132')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 8時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work8'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '8時台の作業内容の入力値が不適切です。ERROR133')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 9時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work9'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '9時台の作業内容の入力値が不適切です。ERROR134')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 10時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work10'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '10時台の作業内容の入力値が不適切です。ERROR135')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 11時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work11'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '11時台の作業内容の入力値が不適切です。ERROR136')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 12時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work12'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '12時台の作業内容の入力値が不適切です。ERROR137')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 13時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work13'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '13時台の作業内容の入力値が不適切です。ERROR138')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 14時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work14'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '14時台の作業内容の入力値が不適切です。ERROR139')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 15時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work15'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '15時台の作業内容の入力値が不適切です。ERROR140')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 16時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work16'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '16時台の作業内容の入力値が不適切です。ERROR141')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 17時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work17'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '17時台の作業内容の入力値が不適切です。ERROR142')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 18時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work18'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '18時台の作業内容の入力値が不適切です。ERROR143')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 19時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work19'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '19時台の作業内容の入力値が不適切です。ERROR144')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 20時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work20'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '20時台の作業内容の入力値が不適切です。ERROR145')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 21時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work21'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '21時台の作業内容の入力値が不適切です。ERROR146')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 22時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work22'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '22時台の作業内容の入力値が不適切です。ERROR147')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 23時台の作業詳細の入力値が不適切な場合の処理
+    if request.POST['detail_work23'].count('$') != 11:
+      # エラーメッセージ出力
+      messages.error(request, '23時台の作業内容の入力値が不適切です。ERROR148')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 残業が5の倍数でない場合の処理
+    if int(request.POST['over_time']) % 5 != 0:
+      # エラーメッセージ出力
+      messages.error(request, '残業の入力値が5の倍数ではありません。ERROR149')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # #と8桁の数字の文字列の正規表現パターン
+    pattern2 = r'^#([0-9]{8})$'
+    match = re.fullmatch(pattern2, request.POST['breaktime'])
+    match2 = re.fullmatch(pattern2, request.POST['breaktime_over1'])
+    match3 = re.fullmatch(pattern2, request.POST['breaktime_over2'])
+    match4 = re.fullmatch(pattern2, request.POST['breaktime_over3'])
+
+    # 昼休憩の入力値の形式が不適切な場合の処理
+    if not match:
+      # エラーメッセージ出力
+      messages.error(request, '昼休憩の記入が#+数字8桁の形式になっていません。ERROR150')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 残業休憩時間1の入力値の形式が不適切な場合の処理
+    if not match2:
+      # エラーメッセージ出力
+      messages.error(request, '残業休憩時間1の記入が#+数字8桁の形式になっていません。ERROR151')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 残業休憩時間2の入力値の形式が不適切な場合の処理
+    if not match3:
+      # エラーメッセージ出力
+      messages.error(request, '残業休憩時間2の記入が#+数字8桁の形式になっていません。ERROR152')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 残業休憩時間3の入力値の形式が不適切な場合の処理
+    if not match4:
+      # エラーメッセージ出力
+      messages.error(request, '残業休憩時間3の記入が#+数字8桁の形式になっていません。ERROR153')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 休憩時間の数字部分を抽出
+    number_part = str(match.group(1))
+    number_part_1 = int(number_part[ : 2])
+    number_part_2 = int(number_part[2 : 4])
+    number_part_3 = int(number_part[4 : 6])
+    number_part_4 = int(number_part[6 : ]) 
+    number_part2 = str(match2.group(1))
+    number_part2_1 = int(number_part2[ : 2])
+    number_part2_2 = int(number_part2[2 : 4])
+    number_part2_3 = int(number_part2[4 : 6])
+    number_part2_4 = int(number_part2[6 : ]) 
+    number_part3 = str(match3.group(1))
+    number_part3_1 = int(number_part3[ : 2])
+    number_part3_2 = int(number_part3[2 : 4])
+    number_part3_3 = int(number_part3[4 : 6])
+    number_part3_4 = int(number_part3[6 : ]) 
+    number_part4 = str(match4.group(1))
+    number_part4_1 = int(number_part4[ : 2])
+    number_part4_2 = int(number_part4[2 : 4])
+    number_part4_3 = int(number_part4[4 : 6])
+    number_part4_4 = int(number_part4[6 : ]) 
+
+    # 昼休憩時間の設定が60進数の入力でないか5分刻みの数字でない場合の処理
+    if number_part_1 < 0 or number_part_1 > 23 or number_part_2 < 0 or number_part_2 > 55 or number_part_2 % 5 != 0 or\
+      number_part_3 < 0 or number_part_3 > 23 or number_part_4 < 0 or number_part_4 > 55 or number_part_4 % 5 != 0:
+      # エラーメッセージ出力
+      messages.error(request, '昼休憩時間の設定が60進数の入力でないか5分刻みの数字ではありません。ERROR154')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 残業休憩時間1の設定が60進数の入力でないか5分刻みの数字でない場合の処理
+    if number_part2_1 < 0 or number_part2_1 > 23 or number_part2_2 < 0 or number_part2_2 > 55 or number_part2_2 % 5 != 0 or\
+      number_part2_3 < 0 or number_part2_3 > 23 or number_part2_4 < 0 or number_part2_4 > 55 or number_part2_4 % 5 != 0:
+      # エラーメッセージ出力
+      messages.error(request, '残業休憩時間1の設定が60進数の入力でないか5分刻みの数字ではありません。ERROR155')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 残業休憩時間2の設定が60進数の入力でないか5分刻みの数字でない場合の処理
+    if number_part3_1 < 0 or number_part3_1 > 23 or number_part3_2 < 0 or number_part3_2 > 55 or number_part3_2 % 5 != 0 or\
+      number_part3_3 < 0 or number_part3_3 > 23 or number_part3_4 < 0 or number_part3_4 > 55 or number_part3_4 % 5 != 0:
+      # エラーメッセージ出力
+      messages.error(request, '残業休憩時間2の設定が60進数の入力でないか5分刻みの数字ではありません。ERROR156')
+      # このページをリダイレクト
+      return redirect(to = '/all_kosu_detail/{}'.format(num))
+
+    # 残業休憩時間3の設定が60進数の入力でないか5分刻みの数字でない場合の処理
+    if number_part4_1 < 0 or number_part4_1 > 23 or number_part4_2 < 0 or number_part4_2 > 55 or number_part4_2 % 5 != 0 or\
+      number_part4_3 < 0 or number_part4_3 > 23 or number_part4_4 < 0 or number_part4_4 > 55 or number_part4_4 % 5 != 0:
+      # エラーメッセージ出力
+      messages.error(request, '残業休憩時間3の設定が60進数の入力でないか5分刻みの数字ではありません。ERROR157')
       # このページをリダイレクト
       return redirect(to = '/all_kosu_detail/{}'.format(num))
 
@@ -8533,9 +9010,11 @@ def all_kosu_detail(request, num):
         # このページをリダイレクト
         return redirect(to = '/all_kosu_detail/{}'.format(num))
       
+      # 工数データがない場合の処理
       else:
         # 元の工数データ削除
         obj_get.delete()
+
     # 従業員番号に該当するmemberインスタンスを取得
     member_instance = member.objects.get(employee_no = request.POST['employee_no'])
 
@@ -8562,8 +9041,11 @@ def all_kosu_detail(request, num):
 
   # POST時以外の処理
   else:
+    # 日付初期値
+    default_day = obj_get.work_day2
+
     # 変更前従業員番号記憶
-    request.session['memory_No'] = obj_get.employee_no3
+    request.session['memory_No'] = str(obj_get.employee_no3)
     # 変更前日付記憶
     request.session['memory_day'] = str(obj_get.work_day2)
 
@@ -8853,9 +9335,6 @@ def all_kosu_detail(request, num):
       'judgement' : obj_get.judgement,
       'break_change' : obj_get.break_change,
       }
-
-    default_day = obj_get.work_day2
-
 
     # フォーム定義
     form = all_kosuForm(form_default)

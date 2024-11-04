@@ -618,7 +618,8 @@ class all_kosu_findForm(forms.Form):
     ('OK', 'OK'), 
     ('NG', 'NG'), 
     ]
-
+  
+  identification = forms.IntegerField(label = 'ID', widget = forms.NumberInput(attrs = {'class' : 'form-control custom-border', 'min' : 0, 'style' : 'width : 315px;'}), required = False)
   name = forms.ChoiceField(label = '氏名', widget = forms.Select(attrs = {'class' : 'form-control custom-border', 'style' : 'width : 315px;'}), required = False)
   shop = forms.ChoiceField(label = 'ショップ選択', widget = forms.Select(attrs = {'class' : 'form-control custom-border', 'style' : 'width : 315px;'}), choices = shop_list, required = False)
   tyoku = forms.ChoiceField(label = '直選択', widget = forms.Select(attrs = {'class' : 'form-control custom-border', 'style' : 'width : 315px;'}), choices = tyoku_list, required = False)

@@ -17,6 +17,13 @@
   <p>　</p>
   <form action="{% url 'all_kosu_detail' num %}" method="post">
     {% csrf_token %}
+    {% for message in messages %}
+    <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
+      <p class="text-danger">
+        {{ message }}
+      </p>
+    </div>
+    {% endfor %}
     <table class="table text-nowrap table-custom">
       <tr>
         <th>{{form.employee_no.label}}</th>
