@@ -171,14 +171,15 @@ def inquiry_list(request, num):
 
   # 従業員番号を名前に変更するループ
   for No in list(employee_no_list):
-
-    # 指定従業員番号で人員情報取得
-    name = member.objects.get(employee_no = No)
-
-    # 名前リスト作成
-    name_list.append([No, name])
-
-
+    try:
+      # 指定従業員番号で人員情報取得
+      name = member.objects.get(employee_no = No)
+      # 名前リスト作成
+      name_list.append([No, name])
+    # 人員情報取得できない場合の処理
+    except member.DoesNotExist:
+      #何もしない
+      pass
 
   # 設定データ取得
   default_data = administrator_data.objects.order_by("id").last()
