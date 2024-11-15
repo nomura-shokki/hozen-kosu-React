@@ -48,6 +48,7 @@ class member(models.Model):
     pop_up_id4 =  models.CharField('ポップアップID4', null = True, blank = True)
     pop_up5 = models.CharField('ポップアップ5', blank = True)
     pop_up_id5 =  models.CharField('ポップアップID5', null = True, blank = True)
+    break_check = models.BooleanField('休憩エラー有効チェック', null = True)
 
     def __str__(self):
         return self.name

@@ -997,28 +997,46 @@ def input(request):
         if break_change == 0:
           # 休憩1が日を超えている場合の処理
           if break_next_day1 == 1:
-            # 休憩時間内に工数が入力されていないかチェックするループ(休憩時間開始～24時まで)
+            # 休憩時間ループ(休憩時間開始～24時まで)
             for bt1 in range(int(break_start1), 288):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt1] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt1] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR158')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt1] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt1] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR158')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt1] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt1] = ''
 
 
-            # 休憩時間内に工数が入力されていないかチェックするループ(0時～休憩時間終了まで)
+            # 休憩時間ループ(0時～休憩時間終了まで)
             for bt1 in range(0, int(break_end1)):
-              # 作業内容が空でない場合の処理
-              if kosu_def[bt1] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt1] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR159')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容が空でない場合の処理
+                if kosu_def[bt1] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt1] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR159')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+                  
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt1] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt1] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1037,16 +1055,25 @@ def input(request):
 
           # 休憩1が日を超えていない場合の処理
           else:
-            # 休憩時間内に工数が入力されていないかチェックするループ
+            # 休憩時間ループ
             for bt1 in range(int(break_start1), int(break_end1)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt1] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt1] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR160')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt1] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt1] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR160')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt1] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt1] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1059,28 +1086,46 @@ def input(request):
 
           # 休憩2が日を超えている場合の処理
           if break_next_day2 == 1:
-            # 休憩時間内に工数が入力されていないかチェックするループ(休憩時間開始～24時まで)
+            # 休憩時間ループ(休憩時間開始～24時まで)
             for bt2 in range(int(break_start2), 288):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt2] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt2] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR161')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt2] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt2] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR161')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt2] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt2] = ''
 
 
-            # 休憩時間内に工数が入力されていないかチェックするループ(0時～休憩時間終了まで)
+            # 休憩時間ループ(0時～休憩時間終了まで)
             for bt2 in range(0, int(break_end2)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt2] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt2] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR162')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt2] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt2] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR162')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt2] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt2] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1099,16 +1144,25 @@ def input(request):
 
           # 休憩2が日を超えていない場合の処理
           else:
-            # 休憩時間内に工数が入力されていないかチェックするループ
+            # 休憩時間ループ
             for bt2 in range(int(break_start2), int(break_end2)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt2] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt2] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR163')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt2] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt2] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR163')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt2] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt2] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1121,28 +1175,46 @@ def input(request):
 
           # 休憩3が日を超えている場合の処理
           if break_next_day3 == 1:
-            # 休憩時間内に工数が入力されていないかチェックするループ(休憩時間開始～24時まで)
+            # 休憩時間ループ(休憩時間開始～24時まで)
             for bt3 in range(int(break_start3), 288):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt3] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt3] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR164')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt3] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt3] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR164')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt3] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt3] = ''
 
 
-            # 休憩時間内に工数が入力されていないかチェックするループ(0時～休憩時間終了まで)
+            # 休憩時間ループ(0時～休憩時間終了まで)
             for bt3 in range(0, int(break_end3)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt3] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt3] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR165')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt3] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt3] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR165')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt3] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt3] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1161,16 +1233,25 @@ def input(request):
 
           # 休憩3が日を超えていない場合の処理
           else:
-            # 休憩時間内に工数が入力されていないかチェックするループ
+            # 休憩時間ループ
             for bt3 in range(int(break_start3), int(break_end3)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt3] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt3] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR166')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt3] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt3] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR166')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt3] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt3] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1183,28 +1264,46 @@ def input(request):
 
           # 休憩4が日を超えている場合の処理
           if break_next_day4 == 1:
-            # 休憩時間内に工数が入力されていないかチェックするループ(休憩時間開始～24時まで)
+            # 休憩時間ループ(休憩時間開始～24時まで)
             for bt4 in range(int(break_start4), 288):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt4] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt4] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR167')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt4] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt4] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR167')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+                  
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt4] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt4] = ''
 
 
-            # 休憩時間内に工数が入力されていないかチェックするループ(0時～休憩時間終了まで)
+            # 休憩時間ループ(0時～休憩時間終了まで)
             for bt4 in range(0, int(break_end4)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt4] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt4] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR168')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt4] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt4] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR168')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt4] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt4] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1223,16 +1322,25 @@ def input(request):
 
           # 休憩4が日を超えていない場合の処理
           else:
-            # 休憩時間内に工数が入力されていないかチェックするループ
+            # 休憩時間ループ
             for bt4 in range(int(break_start4), int(break_end4)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt4] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt4] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR169')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt4] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt4] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR169')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt4] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt4] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1287,28 +1395,46 @@ def input(request):
         if break_change == 0:
           # 休憩1が日を超えている場合の処理
           if break_next_day1 == 1:
-            # 休憩時間内に工数が入力されていないかチェックするループ(休憩時間開始～24時まで)
+            # 休憩時間ループ(休憩時間開始～24時まで)
             for bt1 in range(int(break_start1), 288):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt1] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt1] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR170')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt1] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt1] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR170')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+                  
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt1] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt1] = ''
 
 
-            # 休憩時間内に工数が入力されていないかチェックするループ(0時から作業終了時間まで)
+            # 休憩時間ループ(0時から作業終了時間まで)
             for bt1 in range(0, int(break_end1)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt1] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt1] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR171')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt1] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt1] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR171')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+                
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt1] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt1] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1327,16 +1453,25 @@ def input(request):
 
           # 休憩1が日を超えていない場合の処理
           else:
-            # 休憩時間内に工数が入力されていないかチェックするループ
+            # 休憩時間ループ
             for bt1 in range(int(break_start1), int(break_end1)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt1] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt1] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR172')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt1] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt1] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR172')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt1] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt1] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1349,28 +1484,46 @@ def input(request):
 
           # 休憩2が日を超えている場合の処理
           if break_next_day2 == 1:
-            # 休憩時間内に工数が入力されていないかチェックするループ(休憩時間開始～24時まで)
+            # 休憩時間ループ(休憩時間開始～24時まで)
             for bt2 in range(int(break_start2), 288):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt2] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt2] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR173')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt2] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt2] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR173')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+                
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt2] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt2] = ''
 
 
-            # 休憩時間内に工数が入力されていないかチェックするループ(0時から作業終了時間まで)
+            # 休憩時間ループ(0時から作業終了時間まで)
             for bt2 in range(0, int(break_end2)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt2] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt2] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR174')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt2] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt2] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR174')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+                  
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt2] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt2] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1389,16 +1542,25 @@ def input(request):
 
           # 休憩2が日を超えていない場合の処理
           else:
-            # 休憩時間内に工数が入力されていないかチェックするループ
+            # 休憩時間ループ
             for bt2 in range(int(break_start2), int(break_end2)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt2] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt2] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR175')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt2] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt2] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR175')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+                
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt2] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt2] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1411,28 +1573,46 @@ def input(request):
 
           # 休憩3が日を超えている場合の処理
           if break_next_day3 == 1:
-            # 休憩時間内に工数が入力されていないかチェックするループ(休憩時間開始～24時まで)
+            # 休憩時間ループ(休憩時間開始～24時まで)
             for bt3 in range(int(break_start3), 288):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt3] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt3] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR176')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt3] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt3] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR176')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt3] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt3] = ''
 
 
-            # 休憩時間内に工数が入力されていないかチェックするループ(0時から作業終了時間まで)
+            # 休憩時間ループ(0時から作業終了時間まで)
             for bt3 in range(0, int(break_end3)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt3] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt3] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR177')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt3] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt3] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR177')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt3] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt3] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1451,16 +1631,25 @@ def input(request):
 
           # 休憩3が日を超えていない場合の処理
           else:
-            # 休憩時間内に工数が入力されていないかチェックするループ
+            # 休憩時間ループ
             for bt3 in range(int(break_start3), int(break_end3)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt3] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt3] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR178')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt3] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt3] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR178')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt3] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt3] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1473,28 +1662,46 @@ def input(request):
 
           # 休憩4が日を超えている場合の処理
           if break_next_day4 == 1:
-            # 休憩時間内に工数が入力されていないかチェックするループ(休憩時間開始～24時まで)
+            # 休憩時間ループ(休憩時間開始～24時まで)
             for bt4 in range(int(break_start4), 288):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt4] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt4] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR179')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt4] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt4] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR179')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt4] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt4] = ''
 
 
-            # 休憩時間内に工数が入力されていないかチェックするループ(0時から作業終了時間まで)
+            # 休憩時間ループ(0時から作業終了時間まで)
             for bt4 in range(0, int(break_end4)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt4] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt4] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR180')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt4] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt4] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR180')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt4] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt4] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -1513,16 +1720,25 @@ def input(request):
 
           # 休憩4が日を超えていない場合の処理
           else:
-            # 休憩時間内に工数が入力されていないかチェックするループ
+            # 休憩時間ループ
             for bt4 in range(int(break_start4), int(break_end4)):
-              # 作業内容リストが空でない場合の処理
-              if kosu_def[bt4] != '#':
-                # 作業内容リストが休憩でない場合の処理
-                if kosu_def[bt4] != '$':
-                  # エラーメッセージ出力
-                  messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR181')
-                  # このページをリダイレクト
-                  return redirect(to = '/input')
+              # ユーザーが休憩エラー有効チェックONの場合の処理
+              if member_obj.break_check == True:
+                # 作業内容リストが空でない場合の処理
+                if kosu_def[bt4] != '#':
+                  # 作業内容リストが休憩でない場合の処理
+                  if kosu_def[bt4] != '$':
+                    # エラーメッセージ出力
+                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR181')
+                    # このページをリダイレクト
+                    return redirect(to = '/input')
+
+              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+              else:
+                # 作業内容リストの要素を空にする
+                kosu_def[bt4] = '#'
+                # 作業詳細リストの要素を空にする
+                detail_list[bt4] = ''
 
 
             # 休憩時間直後の時間に工数入力がある場合の処理
@@ -3894,7 +4110,8 @@ def break_time(request):
                                     'break_time4' : '#' + break_time13, \
                                     'break_time4_over1' : '#' + break_time14, \
                                     'break_time4_over2' : '#' + break_time15, \
-                                    'break_time4_over3' : '#' + break_time16})
+                                    'break_time4_over3' : '#' + break_time16, \
+                                    'break_check' : 'break_check' in request.POST})
     
     # 工数MENU画面に戻る
     return redirect(to = '/kosu_main')
@@ -3954,6 +4171,15 @@ def break_time(request):
   default_start_time16 = break4_3[1 : 3] + ':' + break4_3[3 : 5]
   default_end_time16 = break4_3[5 : 7] + ':' + break4_3[7 : ]
 
+  # 休憩エラー有効チェックがONの場合の処理
+  if member_data.break_check == True:
+    # チェックBOX初期値ON
+    initial_checkbox = True
+
+  # 休憩エラー有効チェックがOFFの場合の処理
+  else:
+    # チェックBOX初期値OFF
+    initial_checkbox = False
 
 
   # HTMLに渡す辞書
@@ -3991,6 +4217,7 @@ def break_time(request):
     'default_end_time15' : default_end_time15,
     'default_start_time16' : default_start_time16,
     'default_end_time16' : default_end_time16,
+    'initial_checkbox' : initial_checkbox,
     }
 
   # 指定したHTMLに辞書を渡して表示を完成させる
