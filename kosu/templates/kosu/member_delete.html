@@ -13,6 +13,7 @@
     <p class="h6"><a href="{% url 'member' 1 %}" class="text-warning">一覧へ戻る</a></p>
     <p>以下の人員データを削除します</p>
     <p>削除した人員の工数もデータから消えてしまうので<br>バックアップをしてから実施のこと</p>
+    <p>異動・退社の場合はショップを"異動・退社"に変更<br>して人員データは削除しないで下さい</p>
     <table class="table">
       <tr><th>従業員番号</th><td>{{obj.employee_no}}</td></tr>
       <tr><th>氏名</th><td>{{obj.name}}</td></tr>
@@ -33,7 +34,7 @@
       </td></th></tr>
     </table>
   <script>
-    function confirmDelete() {return confirm('この操作は元に戻せません。本当に削除しますか？');}
+    function confirmDelete() {return confirm('異動・退社の場合は編集画面でショップを"異動・退社"に変更して人員データの削除は実施しないで下さい。削除する人員の工数データや問い合わせデータがある場合にはバックアップを実施しましたか？');}
   </script>
 </body>
 </html>

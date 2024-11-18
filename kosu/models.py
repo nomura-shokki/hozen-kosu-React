@@ -15,6 +15,7 @@ class member(models.Model):
         ('その他', 'その他'),
         ('組長以上(P,R,T,その他)', '組長以上(P,R,T,その他)'),
         ('組長以上(W,A)', '組長以上(W,A)'),
+        ('異動・退社', '異動・退社'),
         ]
     
     employee_no = models.IntegerField('従業員番号')
