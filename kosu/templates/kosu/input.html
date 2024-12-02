@@ -13,9 +13,9 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
   <style>
     .clock-time-picker-popover {
+      position: fixed;
       max-height: 80vh;
       overflow-y: auto;
-      overflow-x: hidden;
     }
   </style>
 </head>
@@ -206,24 +206,28 @@
         onAdjust: function(newVal, oldVal) {}
       });
 
-      // 以下のコードはポップアップが画面外に出ないように調整する
+      // ポップアップ表示の際に位置を制御
       $('.your-time-field').on('show.clockTimePicker', function(e) {
         var $popover = $('.clock-time-picker-popover');
+        
+        // ビューポートとポップアップの位置、高さを取得
         var windowHeight = $(window).height();
         var popoverTop = $popover.offset().top;
         var popoverHeight = $popover.outerHeight();
 
-        // ポップアップの下側が画面を超える場合
-        if ((popoverTop + popoverHeight) > windowHeight) {
+        // 必要に応じてスクロールのための高さを設定
+        var availableHeight = windowHeight - popoverTop - 20; // 20pxの余裕を追加
+        if (popoverHeight > availableHeight) {
           $popover.css({
-            top: windowHeight - popoverHeight - 20 + 'px'  // 20pxのマージンを追加
+            'max-height': availableHeight + 'px',
+            'overflow-y': 'scroll'
           });
         }
-
-        // ポップアップの上側が見切れる場合
-        if (popoverTop < 0) {
+        
+        // 下側が画面を超える場合の調整
+        if ((popoverTop + popoverHeight) > windowHeight) {
           $popover.css({
-            top: '20px'  // 20pxのマージンを上側に追加
+            'top': windowHeight - popoverHeight - 20 + 'px' // 20pxのマージンを追加
           });
         }
       });
