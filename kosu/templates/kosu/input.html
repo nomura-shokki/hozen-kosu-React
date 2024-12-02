@@ -12,8 +12,9 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
   <style>
-    .clock-time-picker-popover {
-      position: fixed;
+    .clock-timepicker-popup {
+      position: absolute;
+      z-index: 99999;
       max-height: 80vh;
       overflow-y: auto;
     }
@@ -203,51 +204,73 @@
         i18n: {
           cancelButton: 'キャンセル'
         },
-        onAdjust: function(newVal, oldVal) {}
+        onAdjust: function(newVal, oldVal) {},
+        onOpen: function() {
+          adjustPopoverPosition();
+        }
       });
 
-      // ポップアップ表示の際に位置を制御
-      $('.your-time-field').on('show.clockTimePicker', function(e) {
-        var $popover = $('.clock-time-picker-popover');
-        
-        // ビューポートとポップアップの位置、高さを取得
+      function adjustPopoverPosition() {
+        var $popover = $('.clock-timepicker-popup');
         var windowHeight = $(window).height();
-        var popoverTop = $popover.offset().top;
+        var windowWidth = $(window).width();
+        var inputOffset = $('.your-time-field').offset();
+        var inputHeight = $('.your-time-field').outerHeight();
         var popoverHeight = $popover.outerHeight();
+        var popoverWidth = $popover.outerWidth();
+        
+        // ポップアップの位置を計算
+        var top = inputOffset.top + inputHeight;
+        var left = inputOffset.left;
+        
+        // ポップアップがウィンドウの高さから超えないようにする
+        if ((top + popoverHeight) > windowHeight) {
+          top = windowHeight - popoverHeight - 20; // 20px マージンを追加
+          if (top < 0) top = 20; // ビューポートの上部に重ならないようにする
+        }
+        
+        // ポップアップがウィンドウの幅から超えないようにする
+        if ((left + popoverWidth) > windowWidth) {
+          left = windowWidth - popoverWidth - 20; // 20px マージンを追加
+          if (left < 0) left = 20; // ビューポートの左側に重ならないようにする
+        }
+        
+        // 計算された位置にポップアップを移動
+        $popover.css({
+          'top': top + 'px',
+          'left': left + 'px'
+        });
 
-        // 必要に応じてスクロールのための高さを設定
-        var availableHeight = windowHeight - popoverTop - 20; // 20pxの余裕を追加
+        // ポップアップが画面内に収まるように高さを調整
+        var availableHeight = windowHeight - top - 20; // 20px の下余白を確保
         if (popoverHeight > availableHeight) {
           $popover.css({
             'max-height': availableHeight + 'px',
             'overflow-y': 'scroll'
           });
-        }
-        
-        // 下側が画面を超える場合の調整
-        if ((popoverTop + popoverHeight) > windowHeight) {
+        } else {
           $popover.css({
-            'top': windowHeight - popoverHeight - 20 + 'px' // 20pxのマージンを追加
+            'max-height': '',
+            'overflow-y': ''
           });
         }
-      });
-    });
-  </script>
+      }
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      
-      var inputElements = document.querySelectorAll('input, textarea');
-      
-      inputElements.forEach(function(inputElement) {
-        inputElement.addEventListener('keydown', function(event) {
+      function positionPopup() {
+        var element = $('.your-time-field');
+        var popup = $('.clock-timepicker-popup');
+        var top = element.offset().top - $(window).scrollTop() + element.outerHeight();
+        if (top + popup.outerHeight() > window.innerHeight) {
+          var newTop = element.offset().top - $(window).scrollTop() - popup.outerHeight();
+          if (newTop >= 0) top = newTop;
+        }
+        var left = element.offset().left - $(window).scrollLeft() - parseInt((popup.outerWidth() - element.outerWidth()) / 2);
+        popup.css('left', left + 'px').css('top', top + 'px');
+        adjustPopoverPosition(); // ポップアップの位置とサイズを再調整
+      }
 
-          // textarea 以外の input で Enter キーが押された場合にのみ実行
-          if (event.key === 'Enter' && inputElement.tagName.toLowerCase() !== 'textarea') {
-            event.preventDefault();  // エンターキーによるフォーム送信を防止
-            inputElement.blur();     // フォーカスを外す
-          }
-        });
+      $(window).on('resize', function() {
+        adjustPopoverPosition();
       });
     });
   </script>
