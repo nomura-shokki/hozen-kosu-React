@@ -12,17 +12,16 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
   <style>
-    /* カスタムCSS */
-    @media (max-width: 768px) { /* スマートフォン向け */
-      .clock-timepicker-popover {
-        transform: translateY(-100%); /* 上に表示 */
-        margin-top: -10px; /* 微調整 */
-      }
+    /* 必要に応じてカスタムCSSを定義 */
+    .custom-border {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 0.5em;
     }
   </style>
 </head>
 <body class="container">
-  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}</h1>
+  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}1</h1>
   <div class="number-input-group">
     <p class="h6 no-wrap">
       <a href="{% url 'kosu_main' %}">工数MENUへ</a>　　
@@ -207,32 +206,31 @@
         },
         onAdjust: function(newVal, oldVal) {},
         onOpen: function(currentTimeElement) {
-          // アナログ時計のポップアップの位置を調整
           adjustPosition(currentTimeElement);
         }
       });
 
       function adjustPosition(element) {
-        var picker = $('.clock-timepicker-popover'); // 実際のポップアップ要素
+        var picker = $('.clock-timepicker-popover').last(); // 最新のポップアップ要素
         var pickerHeight = picker.outerHeight(); // ポップアップの高さ
         var inputOffset = $(element).offset(); // フィールドのオフセット
         var inputHeight = $(element).outerHeight(); // フィールドの高さ
+        var windowBottom = $(window).scrollTop() + $(window).height();
 
         // デフォルトでは下側に表示される
         var topPosition = inputOffset.top + inputHeight;
+        var leftPosition = inputOffset.left;
 
-        // 上にスペースがあるかを確認し、なければ上側に表示
-        if ((topPosition + pickerHeight) > $(window).height()) {
-          picker.css({
-            top: inputOffset.top - pickerHeight,
-            left: inputOffset.left
-          });
-        } else {
-          picker.css({
-            top: topPosition,
-            left: inputOffset.left
-          });
+        // ポップアップが画面の高さを超えないように調整
+        if (topPosition + pickerHeight > windowBottom) {
+          topPosition = inputOffset.top - pickerHeight;
         }
+
+        // ポップアップの位置を設定
+        picker.css({
+          top: topPosition,
+          left: leftPosition
+        });
       }
     });
   </script>
