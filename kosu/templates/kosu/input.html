@@ -12,11 +12,12 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
   <style>
-    .clock-timepicker-popup {
-      position: fixed;
-      z-index: 99999;
-      max-height: 80vh;
-      overflow: hidden;
+    /* カスタムCSS */
+    @media (max-width: 768px) { /* スマートフォン向け */
+      .clock-timepicker-popover {
+        transform: translateY(-100%); /* 上に表示 */
+        margin-top: -10px; /* 微調整 */
+      }
     }
   </style>
 </head>
@@ -197,71 +198,61 @@
   </script>
 
   <script>
-  $(document).ready(function() {
-    $('.your-time-field').clockTimePicker({
-      alwaysSelectHoursFirst: true,
-      precision: 5,
-      i18n: {
-        cancelButton: 'キャンセル'
-      },
-      onAdjust: function(newVal, oldVal) {},
-      onOpen: function() {
-        adjustPopoverPosition();
-      }
-    });
+    $(document).ready(function() {
+      $('.your-time-field').clockTimePicker({
+        alwaysSelectHoursFirst: true,
+        precision: 5,
+        i18n: {
+          cancelButton: 'キャンセル'
+        },
+        onAdjust: function(newVal, oldVal) {},
+        onOpen: function(currentTimeElement) {
+          // アナログ時計のポップアップの位置を調整
+          adjustPosition(currentTimeElement);
+        }
+      });
 
-    function adjustPopoverPosition() {
-      var $popover = $('.clock-timepicker-popup');
-      var windowHeight = $(window).height();
-      var windowWidth = $(window).width();
-      var scrollTop = $(window).scrollTop();
-      var scrollLeft = $(window).scrollLeft();
-      var inputOffset = $('.your-time-field').offset();
-      var inputHeight = $('.your-time-field').outerHeight();
-      var popoverHeight = $popover.outerHeight();
-      var popoverWidth = $popover.outerWidth();
+      function adjustPosition(element) {
+        var picker = $('.clock-timepicker-popover'); // 実際のポップアップ要素
+        var pickerHeight = picker.outerHeight(); // ポップアップの高さ
+        var inputOffset = $(element).offset(); // フィールドのオフセット
+        var inputHeight = $(element).outerHeight(); // フィールドの高さ
 
-      // 初期位置: 入力フィールドの下に配置
-      var top = inputOffset.top + inputHeight - scrollTop;
-      var left = inputOffset.left - scrollLeft;
+        // デフォルトでは下側に表示される
+        var topPosition = inputOffset.top + inputHeight;
 
-      // ポップアップの上下方向の見切れを防ぐために、位置を調整
-      if ((top + popoverHeight) > windowHeight) {
-        top = inputOffset.top - popoverHeight - scrollTop;
-        if (top < 0) {
-          top = 10; // 上部に切れないように調整
+        // 上にスペースがあるかを確認し、なければ上側に表示
+        if ((topPosition + pickerHeight) > $(window).height()) {
+          picker.css({
+            top: inputOffset.top - pickerHeight,
+            left: inputOffset.left
+          });
+        } else {
+          picker.css({
+            top: topPosition,
+            left: inputOffset.left
+          });
         }
       }
+    });
+  </script>
 
-      // ポップアップがウィンドウの下側を超える場合に調整
-      if ((top + scrollTop + popoverHeight) > (windowHeight + scrollTop)) {
-        top = windowHeight - popoverHeight - 10; // 下部に切れないように調整
-      }
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      
+      var inputElements = document.querySelectorAll('input, textarea');
+      
+      inputElements.forEach(function(inputElement) {
+        inputElement.addEventListener('keydown', function(event) {
 
-      // 水平方向の調整
-      if ((left + popoverWidth) > windowWidth) {
-        left = windowWidth - popoverWidth - 10; // 右側に切れないように調整
-      }
-      if (left < 10) {
-        left = 10; // 左側に切れないように調整
-      }
-
-      // 計算された位置にポップアップを設定
-      $popover.css({
-        'top': top + 'px',
-        'left': left + 'px'
+          // textarea 以外の input で Enter キーが押された場合にのみ実行
+          if (event.key === 'Enter' && inputElement.tagName.toLowerCase() !== 'textarea') {
+            event.preventDefault();  // エンターキーによるフォーム送信を防止
+            inputElement.blur();     // フォーカスを外す
+          }
+        });
       });
-    }
-
-    $(window).on('scroll.clockTimePicker resize.clockTimePicker', function() {
-      adjustPopoverPosition();
     });
-
-    // フォーカスまたはクリック時にも位置調整を実行
-    $('.your-time-field').on('focus.clockTimePicker click.clockTimePicker', function() {
-      adjustPopoverPosition();
-    });
-  });
   </script>
 
   <script>
@@ -480,7 +471,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="plum" rx="5" ry="5" />
     </svg>
-    {{context.def_library.0.1}}
+    {{def_library.0.1}}
   </p>
   {% endif %}
   {% if def_n >= 2 %}
@@ -488,7 +479,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkgray" rx="5" ry="5" />
     </svg>
-    {{context.def_library.1.1}}
+    {{def_library.1.1}}
   </p>
   {% endif %}
   {% if def_n >= 3 %}
@@ -496,7 +487,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="slategray" rx="5" ry="5" />
     </svg>
-    {{context.def_library.2.1}}
+    {{def_library.2.1}}
   </p>
   {% endif %}
   {% if def_n >= 4 %}
@@ -504,7 +495,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="steelblue" rx="5" ry="5" />
     </svg>
-    {{context.def_library.3.1}}
+    {{def_library.3.1}}
   </p>
   {% endif %}
   {% if def_n >= 5 %}
@@ -512,7 +503,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="royalblue" rx="5" ry="5" />
     </svg>
-    {{context.def_library.4.1}}
+    {{def_library.4.1}}
   </p>
   {% endif %}
   {% if def_n >= 6 %}
@@ -520,7 +511,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="dodgerblue" rx="5" ry="5" />
     </svg>
-    {{context.def_library.5.1}}
+    {{def_library.5.1}}
   </p>
   {% endif %}
   {% if def_n >= 7 %}
@@ -528,7 +519,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="deepskyblue" rx="5" ry="5" />
     </svg>
-    {{context.def_library.6.1}}
+    {{def_library.6.1}}
   </p>
   {% endif %}
   {% if def_n >= 8 %}
@@ -536,7 +527,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="aqua" rx="5" ry="5" />
     </svg>
-    {{context.def_library.7.1}}
+    {{def_library.7.1}}
   </p>
   {% endif %}
   {% if def_n >= 9 %}
@@ -544,7 +535,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="mediumturquoise" rx="5" ry="5" />
     </svg>
-    {{context.def_library.8.1}}
+    {{def_library.8.1}}
   </p>
   {% endif %}
   {% if def_n >= 10 %}
@@ -552,7 +543,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="lightseagreen" rx="5" ry="5" />
     </svg>
-    {{context.def_library.9.1}}
+    {{def_library.9.1}}
   </p>
   {% endif %}
   {% if def_n >= 11 %}
@@ -560,7 +551,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="springgreen" rx="5" ry="5" />
     </svg>
-    {{context.def_library.10.1}}
+    {{def_library.10.1}}
   </p>
   {% endif %}
   {% if def_n >= 12 %}
@@ -568,7 +559,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="limegreen" rx="5" ry="5" />
     </svg>
-    {{context.def_library.11.1}}
+    {{def_library.11.1}}
   </p>
   {% endif %}
   {% if def_n >= 13 %}
@@ -576,7 +567,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="lawngreen" rx="5" ry="5" />
     </svg>
-    {{context.def_library.12.1}}
+    {{def_library.12.1}}
   </p>
   {% endif %}
   {% if def_n >= 14 %}
@@ -584,7 +575,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="greenyellow" rx="5" ry="5" />
     </svg>
-    {{context.def_library.13.1}}
+    {{def_library.13.1}}
   </p>
   {% endif %}
   {% if def_n >= 15 %}
@@ -592,7 +583,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="gold" rx="5" ry="5" />
     </svg>
-    {{context.def_library.14.1}}
+    {{def_library.14.1}}
   </p>
   {% endif %}
   {% if def_n >= 16 %}
@@ -600,7 +591,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkorange" rx="5" ry="5" />
     </svg>
-    {{context.def_library.15.1}}
+    {{def_library.15.1}}
   </p>
   {% endif %}
   {% if def_n >= 17 %}
@@ -608,7 +599,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="burlywood" rx="5" ry="5" />
     </svg>
-    {{context.def_library.16.1}}
+    {{def_library.16.1}}
   </p>
   {% endif %}
   {% if def_n >= 18 %}
@@ -616,7 +607,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="sandybrown" rx="5" ry="5" />
     </svg>
-    {{context.def_library.17.1}}
+    {{def_library.17.1}}
   </p>
   {% endif %}
   {% if def_n >= 19 %}
@@ -624,7 +615,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="lightcoral" rx="5" ry="5" />
     </svg>
-    {{context.def_library.18.1}}
+    {{def_library.18.1}}
   </p>
   {% endif %}
   {% if def_n >= 20 %}
@@ -632,7 +623,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="lightsalmon" rx="5" ry="5" />
     </svg>
-    {{context.def_library.19.1}}
+    {{def_library.19.1}}
   </p>
   {% endif %}
   {% if def_n >= 21 %}
@@ -640,7 +631,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="tomato" rx="5" ry="5" />
     </svg>
-    {{context.def_library.20.1}}
+    {{def_library.20.1}}
   </p>
   {% endif %}
   {% if def_n >= 22 %}
@@ -648,7 +639,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="orangered" rx="5" ry="5" />
     </svg>
-    {{context.def_library.21.1}}
+    {{def_library.21.1}}
   </p>
   {% endif %}
   {% if def_n >= 23 %}
@@ -656,7 +647,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="red" rx="5" ry="5" />
     </svg>
-    {{context.def_library.22.1}}
+    {{def_library.22.1}}
   </p>
   {% endif %}
   {% if def_n >= 24 %}
@@ -664,7 +655,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="deeppink" rx="5" ry="5" />
     </svg>
-    {{context.def_library.23.1}}
+    {{def_library.23.1}}
   </p>
   {% endif %}
   {% if def_n >= 25 %}
@@ -672,7 +663,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="hotpink" rx="5" ry="5" />
     </svg>
-    {{context.def_library.24.1}}
+    {{def_library.24.1}}
   </p>
   {% endif %}
   {% if def_n >= 26 %}
@@ -680,7 +671,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="violet" rx="5" ry="5" />
     </svg>
-    {{context.def_library.25.1}}
+    {{def_library.25.1}}
   </p>
   {% endif %}
   {% if def_n >= 27 %}
@@ -688,7 +679,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="magenta" rx="5" ry="5" />
     </svg>
-    {{context.def_library.26.1}}
+    {{def_library.26.1}}
   </p>
   {% endif %}
   {% if def_n >= 28 %}
@@ -696,7 +687,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="mediumorchid" rx="5" ry="5" />
     </svg>
-    {{context.def_library.27.1}}
+    {{def_library.27.1}}
   </p>
   {% endif %}
   {% if def_n >= 29 %}
@@ -704,7 +695,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkviolet" rx="5" ry="5" />
     </svg>
-    {{context.def_library.28.1}}
+    {{def_library.28.1}}
   </p>
   {% endif %}
   {% if def_n >= 30 %}
@@ -712,7 +703,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="mediumpurple" rx="5" ry="5" />
     </svg>
-    {{context.def_library.29.1}}
+    {{def_library.29.1}}
   </p>
   {% endif %}
   {% if def_n >= 31 %}
@@ -720,7 +711,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="mediumblue" rx="5" ry="5" />
     </svg>
-    {{context.def_library.30.1}}
+    {{def_library.30.1}}
   </p>
   {% endif %}
   {% if def_n >= 32 %}
@@ -728,7 +719,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="cadetblue" rx="5" ry="5" />
     </svg>
-    {{context.def_library.31.1}}
+    {{def_library.31.1}}
   </p>
   {% endif %}
   {% if def_n >= 33 %}
@@ -736,7 +727,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="mediumseagreen" rx="5" ry="5" />
     </svg>
-    {{context.def_library.32.1}}
+    {{def_library.32.1}}
   </p>
   {% endif %}
   {% if def_n >= 34 %}
@@ -744,7 +735,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="forestgreen" rx="5" ry="5" />
     </svg>
-    {{context.def_library.33.1}}
+    {{def_library.33.1}}
   </p>
   {% endif %}
   {% if def_n >= 35 %}
@@ -752,7 +743,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkkhaki" rx="5" ry="5" />
     </svg>
-    {{context.def_library.34.1}}
+    {{def_library.34.1}}
   </p>
   {% endif %}
   {% if def_n >= 36 %}
@@ -760,7 +751,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="crimson" rx="5" ry="5" />
     </svg>
-    {{context.def_library.35.1}}
+    {{def_library.35.1}}
   </p>
   {% endif %}
   {% if def_n >= 37 %}
@@ -768,7 +759,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="rosybrown" rx="5" ry="5" />
     </svg>
-    {{context.def_library.36.1}}
+    {{def_library.36.1}}
   </p>
   {% endif %}
   {% if def_n >= 38 %}
@@ -776,7 +767,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="dimgray" rx="5" ry="5" />
     </svg>
-    {{context.def_library.37.1}}
+    {{def_library.37.1}}
   </p>
   {% endif %}
   {% if def_n >= 39 %}
@@ -784,7 +775,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="midnightblue" rx="5" ry="5" />
     </svg>
-    {{context.def_library.38.1}}
+    {{def_library.38.1}}
   </p>
   {% endif %}
   {% if def_n >= 40 %}
@@ -792,7 +783,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkblue" rx="5" ry="5" />
     </svg>
-    {{context.def_library.39.1}}
+    {{def_library.39.1}}
   </p>
   {% endif %}
   {% if def_n >= 41 %}
@@ -800,7 +791,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkslategray" rx="5" ry="5" />
     </svg>
-    {{context.def_library.40.1}}
+    {{def_library.40.1}}
   </p>
   {% endif %}
   {% if def_n >= 42 %}
@@ -808,7 +799,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkgreen" rx="5" ry="5" />
     </svg>
-    {{context.def_library.41.1}}
+    {{def_library.41.1}}
   </p>
   {% endif %}
   {% if def_n >= 43 %}
@@ -816,7 +807,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="olivedrab" rx="5" ry="5" />
     </svg>
-    {{context.def_library.42.1}}
+    {{def_library.42.1}}
   </p>
   {% endif %}
   {% if def_n >= 44 %}
@@ -824,7 +815,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkgoldenrod" rx="5" ry="5" />
     </svg>
-    {{context.def_library.43.1}}
+    {{def_library.43.1}}
   </p>
   {% endif %}
   {% if def_n >= 45 %}
@@ -832,7 +823,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="sienna" rx="5" ry="5" />
     </svg>
-    {{context.def_library.44.1}}
+    {{def_library.44.1}}
   </p>
   {% endif %}
   {% if def_n >= 46 %}
@@ -840,7 +831,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="firebrick" rx="5" ry="5" />
     </svg>
-    {{context.def_library.45.1}}
+    {{def_library.45.1}}
   </p>
   {% endif %}
   {% if def_n >= 47 %}
@@ -848,7 +839,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="maroon" rx="5" ry="5" />
     </svg>
-    {{context.def_library.46.1}}
+    {{def_library.46.1}}
   </p>
   {% endif %}
   {% if def_n >= 48 %}
@@ -856,7 +847,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkmagenta" rx="5" ry="5" />
     </svg>
-    {{context.def_library.47.1}}
+    {{def_library.47.1}}
   </p>
   {% endif %}
   {% if def_n >= 49 %}
@@ -864,7 +855,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="indigo" rx="5" ry="5" />
     </svg>
-    {{context.def_library.48.1}}
+    {{def_library.48.1}}
   </p>
   {% endif %}
   {% if def_n >= 50 %}
@@ -872,7 +863,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="black" rx="5" ry="5" />
     </svg>
-    {{context.def_library.49.1}}
+    {{def_library.49.1}}
   </p>
   {% endif %}
 </body>
