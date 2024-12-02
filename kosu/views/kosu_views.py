@@ -32,123 +32,874 @@ from ..forms import all_kosuForm
 def kosu_list(request, num):
 
   # セッションにログインした従業員番号がない場合の処理
-  if request.session.get('login_No', None) == None:
-    # 未ログインならログインページに飛ぶ
-    return redirect(to = '/login')
-
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
+  
   try:
     # ログイン者の情報取得
-    member_data = member.objects.get(employee_no = request.session['login_No'])
-
+    member_data = member.objects.get(employee_no=request.session['login_No'])
   # セッション値から人員情報取得できない場合の処理
   except member.DoesNotExist:
     # セッション削除
     request.session.clear()
     # ログインページに戻る
-    return redirect(to = '/login')
+    return redirect('/login')
   
-
   # 今日の日時取得
   kosu_today = datetime.date.today()
-
   # 設定データ取得
   page_num = administrator_data.objects.order_by("id").last()
-
   # 全データ確認表示変数
-  if request.session['login_No'] in (page_num.administrator_employee_no1, page_num.administrator_employee_no2, page_num.administrator_employee_no3):
-    display_open = True
-  else:
-    display_open = False
+  display_open = request.session['login_No'] in (
+      page_num.administrator_employee_no1,
+      page_num.administrator_employee_no2,
+      page_num.administrator_employee_no3
+  )
 
 
 
   # 日付指定検索時の処理
   if "kosu_find" in request.POST:
-
     # 指定日セッションに登録
     request.session['find_day'] = request.POST['kosu_day']
     # 指定月のセッション削除
-    if 'kosu_month' in request.session:
-      del request.session['kosu_month']
+    request.session.pop('kosu_month', None)
 
-    # 就業日とログイン者の従業員番号でフィルターをかけて一致した工数データを取得
-    obj_filter = Business_Time_graph.objects.filter(work_day2__contains = request.POST['kosu_day'], \
-                                                    employee_no3 = request.session['login_No']).\
-                                                    order_by('work_day2').reverse()
-    # 取得した工数データを1ページあたりの件数分取得
-    data = Paginator(obj_filter, page_num.menu_row)
+    # フィルター内容定義
+    filter_kwargs = {
+        'work_day2__contains': request.POST['kosu_day'],
+        'employee_no3': request.session['login_No']
+    }
 
 
 
   # 月指定検索時の処理
-  if "kosu_find_month" in request.POST:
-
-    # POST送信された就業日を変数に入れる
-    post_day = request.POST['kosu_day']
+  elif "kosu_find_month" in request.POST:
     # POST送信された就業日の年、月部分抜き出し
-    kosu_month = post_day[: 7]
+    kosu_month = request.POST['kosu_day'][:7]
     # 指定月セッションに登録
     request.session['kosu_month'] = kosu_month
     # 指定日セッションに登録
     request.session['find_day'] = request.POST['kosu_day']
 
-    # 指定月の工数取得
-    obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                    work_day2__startswith = request.session['kosu_month']).\
-                                                    order_by('work_day2').reverse()
-    # 取得した工数データを1ページあたりの件数分取得
-    data = Paginator(obj_filter, page_num.menu_row)
+    # フィルター内容定義
+    filter_kwargs = {
+        'employee_no3': request.session['login_No'],
+        'work_day2__startswith': kosu_month
+    }
 
 
 
   # GET時の処理
-  if (request.method == 'GET'):
+  elif request.method == 'GET':
+    # フィルター内容定義
+    filter_kwargs = {
+        'employee_no3': request.session['login_No']
+    }
 
     # 指定月のセッションある場合の処理
     if 'kosu_month' in request.session:
-      # ログイン者の従業員番号でフィルターをかけて一致した工数データを取得
-      obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                      work_day2__startswith = request.session.get('kosu_month', '')).\
-                                                      order_by('work_day2').reverse()
-      
+      # フィルター内容定義
+      filter_kwargs['work_day2__startswith'] = request.session['kosu_month']
+
     # 指定月のセッションない場合の処理
     else:
-      # ログイン者の従業員番号でフィルターをかけて一致した工数データを取得
-      obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                      work_day2__startswith = request.session.get('find_day', '')).\
-                                                      order_by('work_day2').reverse()
-
-    # 取得した工数データを1ページあたりの件数分取得
-    data = Paginator(obj_filter, page_num.menu_row)
+      # フィルター内容定義
+      filter_kwargs['work_day2__startswith'] = request.session.get('find_day', '')
+  
 
 
+  # フィルターをかけて一致した工数データを取得
+  obj_filter = Business_Time_graph.objects.filter(**filter_kwargs).order_by('work_day2').reverse()
 
-  # セッションに検索履歴がある場合の処理
-  if request.session.get('find_day', '') != '':
-    # フォームの初期値に検索履歴を入れる
-    default_day = request.session['find_day']
+  # 取得した工数データを1ページあたりの件数分取得
+  data = Paginator(obj_filter, page_num.menu_row)
 
-  # セッションに検索履歴がない場合の処理
-  else:
-    # フォームの初期値に今日の日付を入れる
-    default_day = str(kosu_today)
+  # フォーム初期値定義
+  default_day = request.session.get('find_day', str(kosu_today))
 
 
 
   # HTMLに渡す辞書
   context = {
-    'title' : '工数履歴',
-    'member_data' : member_data,
-    'data' : data.get_page(num),
-    'default_day' : default_day,
-    'display_open' : display_open,
-    'num' : num,
-    }
-  
-
+      'title': '工数履歴',
+      'member_data': member_data,
+      'data': data.get_page(num),
+      'default_day': default_day,
+      'display_open': display_open,
+      'num': num,
+  }
 
   # 指定したHTMLに辞書を渡して表示を完成させる
   return render(request, 'kosu/kosu_list.html', context)
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数データの始まり検索関数
+def get_graph_start_index(graph_list):
+
+  # 工数データの始まり検索ループ
+  for i in range(288):
+    # グラフデータが0でない場合の処理
+    if graph_list[i] != 0:
+      # iが0であればそのまま返す
+      # iが0以外なら前のインデックスを返す
+      return i if i == 0 else i - 1
+  # 工数データが空であれば0を返す
+  return 0
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数データの終わり検索関数
+def get_graph_end_index(graph_list):
+
+  # 工数データの終わり検索ループ
+  for i in range(1, 289):
+    # グラフデータが0でない場合の処理
+    if graph_list[-i] != 0:
+      # iが1であればそのまま返す
+      # iが1以外ならグラフデータの終わりの次のインデックスを返す
+      return 289 - i if i == 1 else 290 - i
+  # 工数データが空であれば288を返す
+  return 288
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数データの表示調整関数
+def adjust_end_index_for_work_shift(graph_end_index, work_shift, shop):
+    
+  # 入力直が1直で工数が入力され終わりのインデックスが184以下である場合の処理(工数入力が15:20以前の場合)
+  if work_shift == '1' and graph_end_index <= 184:
+    # 工数の入力され終わりのインデックスで184を返す(15:20を返す)
+    return 184
+  
+  # 入力直が2直の場合の処理
+  elif work_shift == '2':
+    # ログイン者のショップがボデーか組立で入力され終わりのインデックスが240以下である場合の処理(工数入力が20:00以前の場合)
+    if shop in ['W1', 'W2', 'A1', 'A2', '組長以上(W,A)'] and graph_end_index <= 240:
+      # 工数の入力され終わりのインデックスで240を返す(20:00を返す)
+      return 240
+    
+    # ログイン者のショップがプレスか成形か塗装で入力され終わりのインデックスが270以下である場合の処理(工数入力が22:30以前の場合)
+    elif shop in ['P', 'R', 'T1', 'T2', 'その他', '組長以上(P,R,T,その他)'] and graph_end_index <= 270:
+      # 工数の入力され終わりのインデックスで270を返す(22:30を返す)
+      return 270
+    
+  # 入力直が常昼で入力され終わりのインデックスが204以下である場合の処理(工数入力が17:00以前の場合)
+  elif work_shift == '4' and graph_end_index <= 204:
+    # 工数の入力され終わりのインデックスで204を返す(17:00を返す)
+    return 204
+  
+  # グラフデータの終わりを返す
+  return graph_end_index
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+# 工数データの表示調整関数(3直の場合)
+def adjust_end_index_for_night_shift(graph_end_index, shop):
+
+  # ログイン者のショップがボデーか組立の場合の処理
+  if shop in ['W1', 'W2', 'A1', 'A2', '組長以上(W,A)']:
+    # 工数が入力され終わりのインデックスと140で大きい方を返す(4:40以降の場合そこまで表示)
+    return max(graph_end_index, 140)
+  
+  # ログイン者のショップがプレスか成形か塗装の場合の処理
+  else:
+    # 工数が入力され終わりのインデックスと169で大きい方を返す(7:05以降の場合そこまで表示)
+    return max(graph_end_index, 169)
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# グラフラベル＆グラフデータ作成関数
+def handle_get_request(request, new_work_day, member_obj):
+  # 該当日に工数データがあるか確認
+  obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=new_work_day)
+
+  # グラフラベルリスト作成(0:00~23:55の5分刻みのリスト)
+  graph_item = ['{}:{}'.format(i, '00' if n == 0 else '05' if n == 5 else n) for i in range(24) for n in range(0, 60, 5)]
+
+  # グラフデータリスト内の各文字を定義
+  str_list = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 
+              'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 
+              'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 
+              'q', 'r', 's', 't', 'u', 'v', 'w', 'x']
+
+  # 該当日に工数データがある場合の処理
+  if obj_filter.exists():
+    # 工数データ取得
+    obj_get = obj_filter.first()
+    # グラフデータ作成
+    graph_list = [str_list.index(char) if char in str_list else 0 for char in list(obj_get.time_work)]
+
+    # グラフリストが空でない場合の処理
+    if graph_list != [0] * 288:
+      #　入力直が3直でない場合の処理
+      if obj_get.tyoku2 != '3':
+        # グラフデータの始まりのインデックス取得
+        graph_start_index = get_graph_start_index(graph_list)
+        # グラフデータの終わりのインデックス取得
+        graph_end_index = get_graph_end_index(graph_list)
+        # グラフデータの表示を定時前の場合定時まで表示させる
+        graph_end_index = adjust_end_index_for_work_shift(graph_end_index, obj_get.tyoku2, member_obj.shop)
+
+        # グラフ表示のリストを工数データが空の部分を削除する
+        del graph_list[graph_end_index:]
+        del graph_list[:graph_start_index]
+        del graph_item[graph_end_index:]
+        del graph_item[:graph_start_index]
+
+      #　入力直が3直である場合の処理
+      else:
+        # 17:00～のグラフ表示に変更
+        graph_list = (graph_list * 2)[204:492]
+        graph_item = (graph_item * 2)[204:492]
+        # グラフデータの始まりのインデックス取得
+        graph_start_index = get_graph_start_index(graph_list)
+        # グラフデータの終わりのインデックス取得
+        graph_end_index = get_graph_end_index(graph_list)
+        # グラフデータの表示を定時前の場合定時まで表示させる
+        graph_end_index = adjust_end_index_for_night_shift(graph_end_index, member_obj.shop)
+
+        # グラフ表示のリストを工数データが空の部分を削除する
+        del graph_list[graph_end_index:]
+        del graph_list[:graph_start_index]
+        del graph_item[graph_end_index:]
+        del graph_item[:graph_start_index]
+
+  # 該当日に工数データがない場合の処理
+  else:
+    # グラフデータに空を入れる
+    graph_list = [0] * 288
+
+  # グラフラベルデータとグラフデータを入れる
+  return graph_item, graph_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 日付変更時の作業時間フォーム変更関数
+def handle_work_shift(request, member_obj, new_work_day):
+
+  # 該当日に工数データがあるか確認
+  obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=new_work_day)
+
+  # 該当日に工数データがある場合の処理
+  if obj_filter.exists():
+    # 工数データ取得
+    obj_get = obj_filter.first()
+
+
+    # 1直がPOSTされた場合の処理
+    if obj_get.tyoku2 == '1':
+      # 作業開始時間更新
+      request.session['start_time'] = '06:30'
+      # 作業終了時間更新
+      request.session['end_time'] = '06:30'
+
+    # 2直がPOSTされてログイン者のショップがボデーか組立の場合の処理
+    elif obj_get.tyoku2 == '2' and (member_obj.shop == 'W1' or \
+      member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)'):
+      # 作業開始時間更新
+      request.session['start_time'] = '11:10'
+      # 作業終了時間更新
+      request.session['end_time'] = '11:10'
+
+    # 2直がPOSTされてログイン者のショップがプレス、成形、塗装の場合の処理
+    elif obj_get.tyoku2 == '2' and (member_obj.shop == 'P' or \
+      member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+      member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)'):
+      # 作業開始時間更新
+      request.session['start_time'] = '13:40'
+      # 作業終了時間更新
+      request.session['end_time'] = '13:40'
+
+    # 3直がPOSTされてログイン者のショップがボデーか組立の場合の処理
+    elif obj_get.tyoku2 == '3' and (member_obj.shop == 'W1' or \
+      member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)'):
+      # 作業開始時間更新
+      request.session['start_time'] = '19:50'
+      # 作業終了時間更新
+      request.session['end_time'] = '19:50'
+
+    # 3直がPOSTされてログイン者のショップがプレス、成形、塗装、その他の場合の処理
+    elif obj_get.tyoku2 == '3' and (member_obj.shop == 'P' or \
+      member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+      member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)'):
+      # 作業開始時間更新
+      request.session['start_time'] = '22:10'
+      # 作業終了時間更新
+      request.session['end_time'] = '22:10'
+
+    # 常昼がPOSTされた場合の処理
+    elif obj_get.tyoku2 == '4':
+      # 作業開始時間更新
+      request.session['start_time'] = '08:00'
+      # 作業終了時間更新
+      request.session['end_time'] = '08:00'
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 時＆分　分離関数
+def time_index(post_time):
+
+  # 時間の区切りのインデックス取得
+  post_index = post_time.index(':')
+  # 時取得
+  time_hour = post_time[ : post_index]
+  # 分取得
+  time_min = post_time[post_index + 1 : ]
+
+  # 時と分返す
+  return time_hour, time_min
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 休憩時間のインデント日またぎチェック関数
+def break_time_process(breaktime_str):
+
+  # 休憩開始時間のインデント取得
+  break_start = int(breaktime_str[1 : 3])*12 + int(breaktime_str[3 : 5])/5
+  # 休憩終了時間のインデント取得
+  break_end = int(breaktime_str[5 : 7])*12 + int(breaktime_str[7 :])/5
+
+  # 休憩の日またぎ変数リセット
+  break_next_day = 0
+  # 休憩開始時間より終了時間の方が早い場合の処理
+  if break_start > break_end:
+    # 日またぎ変数に1を入れる
+    break_next_day = 1
+
+  # 休憩開始時間より終了時間の方が遅い場合の処理
+  else:
+    # 日またぎ変数に0を入れる
+    break_next_day = 0
+
+  return break_start, break_end, break_next_day
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数に被りチェック関数
+def kosu_duplication_check(start_ind, end_ind, kosu_def, request):
+
+  # 工数に被りがないかチェックするループ
+  for kosu in range(start_ind, end_ind):
+    # 工数データの要素が空でない場合の処理
+    if kosu_def[kosu] != '$':
+      if kosu_def[kosu] != '#':
+        # エラーメッセージ出力
+        messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR008')
+        # このページをリダイレクト
+        return redirect(to = '/input')
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数書き込み関数
+def kosu_write(start_ind, end_ind, kosu_def, detail_list, request):
+
+  # 作業内容と作業詳細を書き込むループ
+  for kosu in range(start_ind, end_ind):
+    # 作業内容リストに入力された工数定義区分の対応する記号を入れる
+    kosu_def[kosu] = request.POST['kosu_def_list']
+    # 作業詳細リストに入力した作業詳細を入れる
+    detail_list[kosu] = request.POST['work_detail']
+
+  return kosu_def, detail_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 休憩範囲工数削除関数
+def break_time_delete(break_start_ind, break_end_ind, kosu_def, detail_list, member_obj, request):
+
+  # 休憩時間ループ
+  for bt in range(int(break_start_ind), int(break_end_ind)):
+    # ユーザーが休憩エラー有効チェックONの場合の処理
+    if member_obj.break_check == True:
+      # 作業内容リストが空でない場合の処理
+      if kosu_def[bt] != '#':
+        # 作業内容リストが休憩でない場合の処理
+        if kosu_def[bt] != '$':
+          # エラーメッセージ出力
+          messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR158')
+          # このページをリダイレクト
+          return redirect(to = '/input')
+
+    # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+    else:
+      # 作業内容リストの要素を空にする
+      kosu_def[bt] = '#'
+      # 作業詳細リストの要素を空にする
+      detail_list[bt] = ''
+
+  return kosu_def, detail_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 休憩書き込み関数
+def break_time_write(break_start_ind, break_end_ind, kosu_def, detail_list):
+
+  # 休憩時間内の工数データを休憩に書き換えるループ
+  for bt in range(int(break_start_ind), int(break_end_ind)):
+    # 作業内容リストの要素を休憩に書き換え
+    kosu_def[bt] = '$'
+    detail_list[bt] = ''
+
+  return kosu_def, detail_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 作業詳細リスト文字列変換関数
+def detail_list_summarize(detail_list):
+
+  # 作業詳細str型定義
+  detail_list_str = ''
+
+  # 作業詳細リストをstr型に変更するループ
+  for i, e in enumerate(detail_list):
+    # 最終ループの処理
+    if i == len(detail_list) - 1:
+      # 作業詳細変数に作業詳細リストの要素をstr型で追加する
+      detail_list_str = detail_list_str + detail_list[i]
+
+    # 最終ループ以外の処理
+    else:
+      # 作業詳細変数に作業詳細リストの要素をstr型で追加し、区切り文字の'$'も追加
+      detail_list_str = detail_list_str + detail_list[i] + '$'
+
+  return detail_list_str
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数データ整合性判断関数
+def judgement_check(kosu_def, work, tyoku, member_obj, over_work):
+
+  # 工数合計取得
+  kosu_total = 1440 - (kosu_def.count('#')*5) - (kosu_def.count('$')*5)
+
+  # 工数入力OK_NGリセット
+  judgement = False
+
+  # 出勤、休出時、工数合計と残業に整合性がある場合の処理
+  if (work == '出勤' or work == 'シフト出') and \
+    kosu_total - int(over_work) == 470:
+    # 工数入力OK_NGをOKに切り替え
+    judgement = True
+
+  # 休出時、工数合計と残業に整合性がある場合の処理
+  if work == '休出' and kosu_total == int(over_work):
+    # 工数入力OK_NGをOKに切り替え
+    judgement = True
+
+  # 早退・遅刻時、工数合計と残業に整合性がある場合の処理
+  if work == '早退・遅刻' and kosu_total != 0:
+    # 工数入力OK_NGをOKに切り替え
+    judgement = True
+
+  # 常昼の場合の処理
+  if tyoku == '4':
+    # 半前年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半前年休' and kosu_total - int(over_work) == 230:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+    # 半後年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半後年休' and kosu_total - int(over_work) == 240:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+  # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
+  if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
+    member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+      member_obj.shop == '組長以上(W,A)') and \
+      tyoku == '1':
+    # 半前年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半前年休' and kosu_total - int(over_work) == 230:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+    # 半後年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半後年休' and kosu_total - int(over_work) == 240:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+  # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
+  if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
+    member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+      member_obj.shop == '組長以上(W,A)') and \
+      tyoku == '2':
+    # 半前年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半前年休' and kosu_total - int(over_work) == 290:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+    # 半後年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半後年休' and kosu_total - int(over_work) == 180:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+  # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
+  if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
+    member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+      member_obj.shop == '組長以上(W,A)') and \
+      tyoku == '3':
+    # 半前年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半前年休' and kosu_total - int(over_work) == 230:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+    # 半後年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半後年休' and kosu_total - int(over_work) == 240:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+  # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
+  if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
+    member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+      member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
+      tyoku == '1':
+    # 半前年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半前年休' and kosu_total - int(over_work) == 220:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+    # 半後年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半後年休' and kosu_total - int(over_work) == 250:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+  # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
+  if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
+    member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+      member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
+      tyoku == '2':
+    # 半前年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半前年休' and kosu_total - int(over_work) == 230:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+    # 半後年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半後年休' and kosu_total - int(over_work) == 240:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+  # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
+  if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
+    member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+      member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
+      tyoku == '3':
+    # 半前年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半前年休' and kosu_total - int(over_work) == 275:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+    # 半後年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半後年休' and kosu_total - int(over_work) == 195:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+  return judgement
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数区分定義辞書作成関数
+def kosu_division_dictionary(request):
+
+  # 現在使用している工数区分のオブジェクトを取得
+  kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
+
+  # 工数区分登録カウンターリセット
+  n = 0
+  # 工数区分登録数カウント
+  for kosu_num in range(1, 50):
+    if eval('kosu_obj.kosu_title_{}'.format(kosu_num)) not in [None, '']:
+      n = kosu_num
+
+  # 工数区分処理用記号リスト用意
+  str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
+              'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
+                'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
+                    'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
+
+  # リストの長さを工数区分の登録数に応じて調整
+  del str_list[n:]
+
+  # 工数区分の選択リスト作成
+  choices_list = []
+  for i, m in enumerate(str_list):
+    choices_list.append([m,eval('kosu_obj.kosu_title_{}'.format(i + 1))])
+
+  return choices_list, n
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数データを直に合わせて並び替えする関数
+def kosu_sort(obj_get, member_obj):
+
+  # 作業内容と作業詳細を取得しリストに解凍
+  kosu_def = list(obj_get.time_work)
+  detail_list = obj_get.detail_work.split('$')
+
+  # 作業内容と作業詳細のリストを2個連結
+  kosu_def = kosu_def*2
+  detail_list = detail_list*2
+
+  # 1直の時の処理
+  if obj_get.tyoku2 == '1':
+    # 作業内容と作業詳細のリストを4時半からの表示に変える
+    del kosu_def[:54]
+    del detail_list[:54]
+    del kosu_def[288:]
+    del detail_list[288:]
+
+  # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
+  elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
+    # 作業内容と作業詳細のリストを12時からの表示に変える
+    del kosu_def[:144]
+    del detail_list[:144]
+    del kosu_def[288:]
+    del detail_list[288:]
+
+  # 2直の時の処理(ログイン者のショップがW1,W2,A1,A2)
+  elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
+        and obj_get.tyoku2 == '2':
+    # 作業内容と作業詳細のリストを9時からの表示に変える
+    del kosu_def[:108]
+    del detail_list[:108]
+    del kosu_def[288:]
+    del detail_list[288:]
+
+  # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
+  elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
+    # 作業内容と作業詳細のリストを20時半からの表示に変える
+    del kosu_def[:246]
+    del detail_list[:246]
+    del kosu_def[288:]
+    del detail_list[288:]
+
+  # 3直の時の処理(ログイン者のショップがW1,W2,A1,A2)
+  elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
+        and obj_get.tyoku2 == '3':
+    # 作業内容と作業詳細のリストを18時からの表示に変える
+    del kosu_def[:216]
+    del detail_list[:216]
+    del kosu_def[288:]
+    del detail_list[288:]
+
+  # 常昼の時の処理
+  elif obj_get.tyoku2 == '4':
+    # 作業内容と作業詳細のリストを6時からの表示に変える
+    del kosu_def[:72]
+    del detail_list[:72]
+    del kosu_def[288:]
+    del detail_list[288:]
+
+  # 直入力ない時の処理
+  else:
+    del kosu_def[288:]
+    del detail_list[288:]
+
+  return kosu_def, detail_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+# 基準合計工数作成関数
+def default_work_time(obj_get, member_obj):
+
+  # 基準合計工数定義
+  default_total = 0
+  if obj_get.work_time == '出勤':
+    default_total = 470
+  elif obj_get.work_time == 'シフト出':
+    default_total = 470
+  elif obj_get.work_time == '休出':
+    default_total = 0
+  elif obj_get.work_time == '遅刻・早退':
+    default_total = '-'
+  elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
+          obj_get.work_time == '半前年休':
+    default_total = 220
+  elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
+          obj_get.work_time == '半後年休':
+    default_total = 250
+  elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
+          obj_get.work_time == '半前年休':
+    default_total = 230
+  elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
+          obj_get.work_time == '半後年休':
+    default_total = 240
+  elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
+          obj_get.work_time == '半前年休':
+    default_total = 275
+  elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
+          obj_get.work_time == '半後年休':
+    default_total = 195
+  elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半前年休':
+    default_total = 230
+  elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半後年休':
+    default_total = 240
+  elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半前年休':
+    default_total = 290
+  elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半後年休':
+    default_total = 180
+  elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半前年休':
+    default_total = 230
+  elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
+        member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半後年休':
+    default_total = 240
+  elif obj_get.tyoku2 == '4' and obj_get.work_time == '半前年休':
+    default_total = 230
+  elif obj_get.tyoku2 == '4' and obj_get.work_time == '半後年休':
+    default_total = 240
+
+  return default_total
 
 
 
@@ -164,504 +915,59 @@ def kosu_list(request, num):
 def input(request):
 
   # セッションにログインした従業員番号がない場合の処理
-  if request.session.get('login_No', None) == None:
-    # 未ログインならログインページに飛ぶ
-    return redirect(to = '/login')
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
 
   try:
     # ログイン者の情報取得
-    member_obj = member.objects.get(employee_no = request.session['login_No'])
+    member_obj = member.objects.get(employee_no=request.session['login_No'])
   # セッション値から人員情報取得できない場合の処理
   except member.DoesNotExist:
     # セッション削除
     request.session.clear()
     # ログインページに戻る
-    return redirect(to = '/login')
-
+    return redirect('/login')
 
   # 今日の日時を変数に格納
   kosu_today = datetime.date.today()
 
-  # セッションに就業日の履歴がない場合の処理
-  if request.session.get('day', None) == None:
-    # フォームの初期値に今日の日付を入れる
-    new_work_day = kosu_today
-
-  # セッションに就業日の履歴がある場合の処理
-  else:
-    # フォームの初期値に就業日の履歴を入れる
-    new_work_day = request.session['day']
+  # フォーム初期値定義
+  new_work_day = kosu_today if request.session.get('day') is None else request.session['day']
 
 
 
   # GET時の処理
-  if (request.method == 'GET'):
-    # グラフデータ確認用データ取得
-    obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None),\
-                                                    work_day2 = new_work_day)
-
-    # グラフラベルデータリセット
-    graph_item = []
-
-    # 0:00から23:55までの5分毎のリスト作成(グラフラベル用)
-    for i in range(24):
-        for n in range(0, 60, 5):
-            t = n
-            if n == 0:
-              t = '00'
-            if n == 5:
-              t = '05'
-            graph_item.append('{}:{}'.format(i, t))
-
-
-    # 選択されている就業日のグラフデータがない場合の処理
-    if obj_filter.count() == 0:
-      # 0を288個入れたリスト作成
-      graph_list = list(itertools.repeat(0, 288))
-
-    # 選択されている就業日のグラフデータがある場合の処理
-    else:
-      # グラフデータを取得
-      obj_get = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None),\
-                                                  work_day2 = new_work_day)
-
-      # 取得したグラフデータを文字型からリストに解凍
-      graph_list = list(obj_get.time_work)
-
-      # グラフデータリスト内の各文字を定義
-      str_list = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-                    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                      'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                          'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
-
-      # グラフデータリスト内の各文字を数字に変更
-      for i in range(288):
-        for n, m in enumerate(str_list):
-          if graph_list[i]  == m:
-            graph_list[i] = n
-            break
-
-
-      # 作業内容が空でない場合の処理
-      if graph_list != list(itertools.repeat(0, 288)):
-        # 入力直が3直でない場合の処理
-        if obj_get.tyoku2 != '3':
-          # 工数が入力され始めのインデント取得ループ
-          for i in range(288):
-            # 工数入力データが空でない時の処理
-            if graph_list[i] != 0:
-              # 最初のループである場合の処理
-              if i == 0:
-                # 工数が入力され始めのインデントで0を取得
-                graph_start_index = i
-              # 最初のループ以外の処理
-              else:
-                # 工数が入力され始めのインデントで最後の空データのインデント取得
-                graph_start_index = i - 1
-              # ループから抜ける
-              break
-
-
-          # 工数が入力され終わりのインデント取得ループ
-          for i in range(1, 289):
-            # 工数入力データが空でない場合の処理(後ろから順に)
-            if graph_list[-i] != 0:
-              # 最初のループの場合の処理
-              if i == 1:
-                # 工数が入力され終わりのインデント取得
-                graph_end_index = 289 - i
-              # 最初のループ以外の場合の処理
-              else:
-                # 工数が入力され終わりのインデント取得
-                graph_end_index = 290 - i
-              # ループから抜ける
-              break
-
-
-          # 入力直が1直の場合の処理
-          if obj_get.tyoku2 == '1':
-            # 工数が入力され終わりのインデントが184以下である場合の処理(工数入力が15:20以前の場合)
-            if graph_end_index <= 184:
-              # 工数が入力され終わりのインデントを184にする(15:20の定時まで表示)
-              graph_end_index = 184
-
-          # 入力直が2直の場合の処理でログイン者のショップがボデーか組立の場合の処理
-          if obj_get.tyoku2 == '2' and (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-                                          member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-                                            member_obj.shop == '組長以上(W,A)'):
-            # 工数が入力され終わりのインデントが240以下である場合の処理(工数入力が20:00以前の場合)
-            if graph_end_index <= 240:
-              # 工数が入力され終わりのインデントを240にする(20:00の定時まで表示)
-              graph_end_index = 240
-
-          # 入力直が2直の場合の処理でログイン者のショップがプレス、成形、塗装の場合の処理
-          if obj_get.tyoku2 == '2' and (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-                                          member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-                                          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)'):
-            # 工数が入力され終わりのインデントが270以下である場合の処理(工数入力が22:30以前の場合)
-            if graph_end_index <= 270:
-              # 工数が入力され終わりのインデントを270にする(22:30の定時まで表示)
-              graph_end_index = 270
-
-          # 入力直が常昼の場合の処理
-          if obj_get.tyoku2 == '4':
-            # 工数が入力され終わりのインデントが204以下である場合の処理(工数入力が17:00以前の場合)
-            if graph_end_index <= 204:
-              # 工数が入力され終わりのインデントを204にする(17:00の定時まで表示)
-              graph_end_index = 204
-
-          # グラフ表示のリストを工数データが空の部分を削除する
-          del graph_list[graph_end_index:]
-          del graph_list[:graph_start_index]
-          del graph_item[graph_end_index:]
-          del graph_item[:graph_start_index]
-
-        # 入力直が3直の場合の処理
-        else:
-          # グラフ表示のリストを2回繰り返す
-          graph_list = graph_list*2
-          graph_item = graph_item*2
-
-          # 17時～のグラフ表示に変更
-          del graph_list[:204]
-          del graph_list[288:]
-          del graph_item[:204]
-          del graph_item[288:]
-
-          # 工数が入力され始めのインデント取得ループ
-          for i in range(288):
-            # 工数入力データが空でない時の処理
-            if graph_list[i] != 0:
-              # 最初のループの場合の処理
-              if i == 0:
-                # 工数が入力され始めのインデントで0を取得
-                graph_start_index = i
-
-              # 最初のループ以外の場合の処理
-              else:
-                # 工数が入力され始めのインデントで最後の空データのインデント取得
-                graph_start_index = i - 1
-                # ループから抜ける
-                break
-
-
-          # 工数が入力され終わりのインデント取得ループ
-          for i in range(1, 289):
-            # 工数入力データが空でない場合の処理(後ろから順に)
-            if graph_list[-i] != 0:
-              # 最初のループの場合の処理
-              if i == 1:
-                # 工数が入力され終わりのインデント取得
-                graph_end_index = 289 - i
-
-              # 最初のループ以外の処理
-              else:
-                # 工数が入力され終わりのインデント取得
-                graph_end_index = 290 - i
-                break
-
-
-          # ログイン者のショップがボデーか組立の場合の処理
-          if member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-            member_obj.shop == 'A1' or member_obj.shop == 'A2':
-            # 工数が入力され終わりのインデントが140以下である場合の処理(工数入力が4:40以前の場合)
-            if graph_end_index <= 140:
-              # 工数が入力され終わりのインデントを140にする(4:40の定時まで表示)
-              graph_end_index = 140
-
-          # ログイン者のショップがボデーか組立以外の場合の処理
-          else:
-            # 工数が入力され終わりのインデントが169以下である場合の処理(工数入力が7:05以前の場合)
-            if graph_end_index <= 169:
-              # 工数が入力され終わりのインデントを169にする(7:05の定時まで表示)
-              graph_end_index = 169
-
-
-          # グラフ表示のリストを工数データが空の部分を削除する
-          del graph_list[graph_end_index:]
-          del graph_list[:graph_start_index]
-          del graph_item[graph_end_index:]
-          del graph_item[:graph_start_index]
+  if request.method == 'GET':
+    # グラフラベル＆グラフデータ作成
+    graph_item, graph_list = handle_get_request(request, new_work_day, member_obj)
 
 
 
   # グラフ更新時の処理
-  if "update" in request.POST:
+  elif "update" in request.POST:
 
-    # 2つのフォームで入力のあった直を変数に入れる
-    if request.POST['tyoku'] != '':
-      tyoku = request.POST['tyoku']
-    elif request.POST['tyoku2'] != '':
-      tyoku = request.POST['tyoku2']
+    if request.POST['work_day']:
+      # 更新された就業日をセッションに登録
+      request.session['day'] = request.POST['work_day']
+      # 更新された就業日を変数に入れる
+      new_work_day = request.session['day']
+      # 日付変更時作業時間フォーム修正
+      handle_work_shift(request, member_obj, new_work_day)
+      
+      # グラフラベル＆グラフデータ作成
+      graph_item, graph_list = handle_get_request(request, new_work_day, member_obj)
     else:
-      tyoku = ''
-
-
-    # POSTされた直をセッションに保存
-    request.session['tyoku'] = tyoku
-
-
-    # 1直がPOSTされた場合の処理
-    if tyoku == '1':
-      # 作業終了時のセッションに06を定数として入れ直す
-      request.session['end_hour'] = '06'
-      # 作業終了分のセッションに30を定数として入れ直す
-      request.session['end_min'] = '30'
-
-    # 2直がPOSTされてログイン者のショップがボデーか組立の場合の処理
-    elif tyoku == '2' and (member_obj.shop == 'W1' or \
-       member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)'):
-      # 作業終了時のセッションに11を定数として入れ直す
-      request.session['end_hour'] = '11'
-      # 作業終了分のセッションに10を定数として入れ直す
-      request.session['end_min'] = '10'
-
-    # 2直がPOSTされてログイン者のショップがプレス、成形、塗装の場合の処理
-    elif tyoku == '2' and (member_obj.shop == 'P' or \
-       member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-       member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)'):
-      # 作業終了時のセッションに13を定数として入れ直す
-      request.session['end_hour'] = '13'
-      # 作業終了分のセッションに40を定数として入れ直す
-      request.session['end_min'] = '40'
-
-    # 3直がPOSTされてログイン者のショップがボデーか組立の場合の処理
-    elif tyoku == '3' and (member_obj.shop == 'W1' or \
-       member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)'):
-      # 作業終了時のセッションに19を定数として入れ直す
-      request.session['end_hour'] = '19'
-      # 作業終了分のセッションに50を定数として入れ直す
-      request.session['end_min'] = '50'
-
-    # 3直がPOSTされてログイン者のショップがプレス、成形、塗装、その他の場合の処理
-    elif tyoku == '3' and (member_obj.shop == 'P' or \
-       member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-       member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)'):
-      # 作業終了時のセッションに22を定数として入れ直す
-      request.session['end_hour'] = '22'
-      # 作業終了分のセッションに10を定数として入れ直す
-      request.session['end_min'] = '10'
-
-    # 常昼がPOSTされた場合の処理
-    elif tyoku == '4':
-      # 作業終了時のセッションに08を定数として入れ直す
-      request.session['end_hour'] = '08'
-      # 作業終了分のセッションに00を定数として入れ直す
-      request.session['end_min'] = '00'
-
-
-    # 更新された就業日をセッションに登録
-    request.session['day'] = request.POST['work_day']
-
-    # 更新された就業日を変数に入れる
-    new_work_day = request.session.get('day', None)
-
-    # グラフデータ確認用データ取得
-    data_count = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None),\
-                                                    work_day2 = new_work_day)
-
-    # グラフラベルデータリセット
-    graph_item = []
-
-    # グラフラベルデータ作成ループ(時)
-    for i in range(24):
-      # グラフラベルデータ作成ループ(分)
-      for n in range(0, 60, 5):
-        # ループデータ取得
-        t = n
-        # ループデータ0の場合の処理
-        if n == 0:
-          # 2桁表示のstr型で定義
-          t = '00'
-
-        # ループデータ5の場合の処理
-        if n == 5:
-          # 2桁表示のstr型で定義
-          t = '05'
-
-        # グラフラベルデータリストに時間を順番に追加
-        graph_item.append('{}:{}'.format(i, t))
-
-
-    # 選択されている就業日のグラフデータがない場合の処理
-    if data_count.count() == 0:
-      # 0を288個入れたリスト作成
-      graph_list = list(itertools.repeat(0, 288))
-
-    # 選択されている就業日のグラフデータがある場合の処理
-    else:
-      # グラフデータを取得
-      obj_get = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None),\
-                                                  work_day2 = new_work_day)
-      # 取得したグラフデータをリストに解凍
-      graph_list = list(obj_get.time_work)
-
-      # グラフデータリスト内の各文字を数値に変更
-      str_list = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-                    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                      'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                          'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
-
-      # グラフデータリスト内の各文字を数字に変更
-      for i in range(288):
-        for n, m in enumerate(str_list):
-          if graph_list[i]  == m:
-            graph_list[i] = n
-            break
-
-
-      # 作業内容が空でない場合の処理
-      if obj_get.time_work != '#'*288:
-        # 入力直が3直でない場合の処理
-        if obj_get.tyoku2 != '3':
-          # 工数が入力され始めのインデント取得ループ
-          for i in range(288):
-            # 工数入力データが空でない時の処理
-            if graph_list[i] != 0:
-
-              # 最初のループである場合の処理
-              if i == 0:
-                # 工数が入力され始めのインデントで0を取得
-                graph_start_index = i
-
-              # 最初のループ以外の処理
-              else:
-                # 工数が入力され始めのインデントで最後の空データのインデント取得
-                graph_start_index = i - 1
-              # ループから抜ける
-              break
-
-
-          # 工数が入力され終わりのインデント取得ループ
-          for i in range(1, 289):
-            # 工数入力データが空でない場合の処理(後ろから順に)
-            if graph_list[-i] != 0:
-
-              # 最初のループである場合の処理
-              if i == 1:
-                # 工数が入力され終わりのインデント取得
-                graph_end_index = 289 - i
-
-              # 最初のループ以外の処理
-              else:
-                # 工数が入力され終わりのインデント取得
-                graph_end_index = 290 - i
-              # ループから抜ける
-              break
-
-  
-          # 入力直が1直の場合の処理
-          if obj_get.tyoku2 == '1':
-            # 工数が入力され終わりのインデントが184以下である場合の処理(工数入力が15:20以前の場合)
-            if graph_end_index <= 184:
-              # 工数が入力され終わりのインデントを184にする(15:20の定時まで表示)
-              graph_end_index = 184
-
-          # 入力直が2直でログイン者のショップがボデーか組立の場合の処理
-          if obj_get.tyoku2 == '2' and (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-                                          member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-                                            member_obj.shop == '組長以上(W,A)'):
-            # 工数が入力され終わりのインデントが240以下である場合の処理(工数入力が20:00以前の場合)
-            if graph_end_index <= 240:
-              # 工数が入力され終わりのインデントを240にする(20:00の定時まで表示)
-              graph_end_index = 240
-
-          # 入力直が2直でログイン者のショップがプレス、成形、塗装の場合の処理
-          if obj_get.tyoku2 == '2' and (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-                                          member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-                                          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)'):
-            # 工数が入力され終わりのインデントが270以下である場合の処理(工数入力が22:30以前の場合)
-            if graph_end_index <= 270:
-              # 工数が入力され終わりのインデントを270にする(22:30の定時まで表示)
-              graph_end_index = 270
-  
-          # 入力直が常昼の場合の処理
-          if obj_get.tyoku2 == '4':
-            # 工数が入力され終わりのインデントが204以下である場合の処理(工数入力が17:00以前の場合)
-            if graph_end_index <= 204:
-              # 工数が入力され終わりのインデントを204にする(17:00の定時まで表示)
-              graph_end_index = 204
-
-          # グラフ表示のリストを工数データが空の部分を削除する
-          del graph_list[graph_end_index:]
-          del graph_list[:graph_start_index]
-          del graph_item[graph_end_index:]
-          del graph_item[:graph_start_index]
-
-        # 入力直が3直の場合の処理
-        else:
-          # グラフ表示のリストを2回繰り返す
-          graph_list = graph_list*2
-          graph_item = graph_item*2
-
-          # 17時～のグラフ表示に変更
-          del graph_list[:204]
-          del graph_list[288:]
-          del graph_item[:204]
-          del graph_item[288:]
-
-          # 工数が入力され始めのインデント取得ループ
-          for i in range(288):
-            # 工数入力データが空でない時の処理
-            if graph_list[i] != 0:
-              # 最初のループである場合の処理
-              if i == 0:
-                # 工数が入力され始めのインデントで0を取得
-                graph_start_index = i
-
-              # 最初のループ以外の処理
-              else:
-                # 工数が入力され始めのインデントで最後の空データのインデント取得
-                graph_start_index = i - 1
-                # ループを抜ける
-                break
-
-
-          # 工数が入力され終わりのインデント取得ループ
-          for i in range(1, 289):
-            # 工数入力データが空でない場合の処理(後ろから順に)
-            if graph_list[-i] != 0:
-              # 最初のループである場合の処理
-              if i == 1:
-                # 工数が入力され終わりのインデント取得
-                graph_end_index = 289 - i
-
-              # 最初のループでない場合の処理
-              else:
-                # 工数が入力され終わりのインデント取得
-                graph_end_index = 290 - i
-                # ループから抜ける
-                break
-
-
-          # ログイン者のショップがボデーか組立の場合の処理
-          if member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-            member_obj.shop == 'A1' or member_obj.shop == 'A2':
-            # 工数が入力され終わりのインデントが140以下である場合の処理(工数入力が4:40以前の場合)
-            if graph_end_index <= 140:
-              # 工数が入力され終わりのインデントを140にする(4:40の定時まで表示)
-              graph_end_index = 140
-  
-          # ログイン者のショップがボデーか組立以外の場合の処理
-          else:
-            # 工数が入力され終わりのインデントが169以下である場合の処理(工数入力が7:05以前の場合)
-            if graph_end_index <= 169:
-              # 工数が入力され終わりのインデントを169にする(7:05の定時まで表示)
-              graph_end_index = 169
-
-          # グラフ表示のリストを工数データが空の部分を削除する
-          del graph_list[graph_end_index:]
-          del graph_list[:graph_start_index]
-          del graph_item[graph_end_index:]
-          del graph_item[:graph_start_index]
+      # エラーメッセージ出力
+      messages.error(request, '就業日の削除はしないで下さい。ERROR009')
+      # このページをリダイレクト
+      return redirect(to = '/input')
 
 
 
   # 工数登録時の処理
-  if "Registration" in request.POST:
-    # それぞれPOSTされた値を変数に入れる(従業員番号のみセッション値)
+  elif "Registration" in request.POST:
+    # それぞれPOSTされた値を変数に入れる
     work_day = request.POST['work_day']
     start_time = request.POST['start_time']
     end_time = request.POST['end_time']
@@ -669,14 +975,12 @@ def input(request):
     detail_work = request.POST['work_detail']
 
     # 指定日に工数データが既にあるか確認
-    obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                    work_day2 = work_day)
+    obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=work_day)
 
     # 指定日に工数データがある場合の処理
-    if obj_filter.count() != 0:
+    if obj_filter.exists():
       # 工数データ取得
-      obj_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                work_day2 = work_day)
+      obj_get = obj_filter.first()
 
       # 直入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
       if obj_get.tyoku2 != request.POST['tyoku'] and request.POST['tyoku'] not in (None, ''):
@@ -791,19 +1095,10 @@ def input(request):
       # このページをリダイレクト
       return redirect(to = '/input')
 
-    
-    # 作業開始時間の区切りのインデックス取得
-    start_time_index = start_time.index(':')
-    # 作業開始時取得
-    start_time_hour = start_time[ : start_time_index]
-    # 作業開始分取得
-    start_time_min = start_time[start_time_index + 1 : ]
-    # 作業終了時間の区切りのインデックス取得
-    end_time_index = end_time.index(':')
-    # 作業終了時取得
-    end_time_hour = end_time[ : end_time_index]
-    # 作業終了分取得
-    end_time_min = end_time[end_time_index + 1 : ]
+    # 作業開始の時と分取得
+    start_time_hour, start_time_min = time_index(start_time)
+    # 作業終了の時と分取得
+    end_time_hour, end_time_min = time_index(end_time)
 
     # 作業開始時間のインデント取得
     start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
@@ -834,20 +1129,18 @@ def input(request):
 
 
     # 指定日に工数データがある場合の処理
-    if obj_filter.count() != 0:
+    if obj_filter.exists():
       # 工数データ取得
-      obj_get = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None), \
-                                                work_day2 = work_day)
+      obj_get = obj_filter.first()
       # 作業内容データを文字列からリストに解凍
       kosu_def = list(obj_get.time_work)
       # 作業詳細データを文字列からリストに解凍
       detail_list = obj_get.detail_work.split('$')
 
-
       # 以前同日に打ち込んだ工数区分定義と違う場合の処理
       if obj_get.def_ver2 not in (request.session['input_def'], None, ''):
         # エラーメッセージ出力
-        messages.error(request, '前に入力された工数と工数区分定義のVerが違います。入力できません。ERROR007')
+        messages.error(request, '前に入力された工数と工数区分定義のVerが違います。ERROR007')
         # このページをリダイレクト
         return redirect(to = '/input')
 
@@ -895,1000 +1188,228 @@ def input(request):
         breaktime_over2 = obj_get.breaktime_over2
         breaktime_over3 = obj_get.breaktime_over3
 
-      # 休憩1開始時間のインデント取得
-      break_start1 = int(breaktime[1 : 3])*12 + int(breaktime[3 : 5])/5
-      # 休憩1終了時間のインデント取得
-      break_end1 = int(breaktime[5 : 7])*12 + int(breaktime[7 :])/5
-
-      # 休憩1の日またぎ変数リセット
-      break_next_day1 = 0
-
-      # 休憩開始時間より終了時間の方が早い場合の処理
-      if break_start1 > break_end1:
-        # 休憩1の日またぎ変数に1を入れる
-        break_next_day1 = 1
-
-      # 休憩開始時間より終了時間の方が遅い場合の処理
-      else:
-        # 休憩1の日またぎ変数に0を入れる
-        break_next_day1 = 0
-
-
-      # 休憩2開始時間のインデント取得
-      break_start2 = int(breaktime_over1[1 : 3])*12 + int(breaktime_over1[3 : 5])/5
-      # 休憩2終了時間のインデント取得
-      break_end2 = int(breaktime_over1[5 : 7])*12 + int(breaktime_over1[7 :])/5
-
-      # 休憩2の日またぎ変数リセット
-      break_next_day2 = 0
-
-      # 休憩開始時間より終了時間の方が早い場合の処理
-      if break_start2 > break_end2:
-        # 休憩2の日またぎ変数に1を入れる
-        break_next_day2 = 1
-
-      # 休憩開始時間より終了時間の方が遅い場合の処理
-      else:
-        # 休憩2の日またぎ変数に0を入れる
-        break_next_day2 = 0
-
-
-      # 休憩3開始時間のインデント取得
-      break_start3 = int(breaktime_over2[1 : 3])*12 + int(breaktime_over2[3 : 5])/5
-      # 休憩3終了時間のインデント取得
-      break_end3 = int(breaktime_over2[5 : 7])*12 + int(breaktime_over2[7 :])/5
-
-      # 休憩3の日またぎ変数リセット
-      break_next_day3 = 0
-
-      # 休憩開始時間より終了時間の方が早い場合の処理
-      if break_start3 > break_end3:
-        # 休憩3の日またぎ変数に1を入れる
-        break_next_day3 = 1
-
-      # 休憩開始時間より終了時間の方が遅い場合の処理
-      else:
-        # 休憩3の日またぎ変数に0を入れる
-        break_next_day3 = 0
-
-
-      # 休憩4開始時間のインデント取得
-      break_start4 = int(breaktime_over3[1 : 3])*12 + int(breaktime_over3[3 : 5])/5
-      # 休憩4終了時間のインデント取得
-      break_end4 = int(breaktime_over3[5 : 7])*12 + int(breaktime_over3[7 :])/5
-
-      # 休憩4の日またぎ変数リセット
-      break_next_day4 = 0
-
-      # 休憩開始時間より終了時間の方が早い場合の処理
-      if break_start4 > break_end4:
-        # 休憩4の日またぎ変数に1を入れる
-        break_next_day4 = 1
-
-      # 休憩開始時間より終了時間の方が遅い場合の処理
-      else:
-        # 休憩4の日またぎ変数に0を入れる
-        break_next_day4 = 0
-
+      # 休憩時間のインデックス＆日またぎ変数定義
+      break_start1, break_end1, break_next_day1 = break_time_process(breaktime)
+      break_start2, break_end2, break_next_day2 = break_time_process(breaktime_over1)
+      break_start3, break_end3, break_next_day3 = break_time_process(breaktime_over2)
+      break_start4, break_end4, break_next_day4 = break_time_process(breaktime_over3)
 
       # 入力時間が日をまたいでいない場合の処理
       if check == 0:
+        # 工数に被りがないかチェック
+        response = kosu_duplication_check(start_time_ind, end_time_ind, kosu_def, request)
+        if response:
+          return response
 
-        # 工数に被りがないかチェックするループ
-        for kosu in range(start_time_ind, end_time_ind):
-          # 工数データの要素が空でない場合の処理
-          if kosu_def[kosu] != '$':
-            if kosu_def[kosu] != '#':
-              # エラーメッセージ出力
-              messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR008')
-              # このページをリダイレクト
-              return redirect(to = '/input')
-
-
-        # 作業内容と作業詳細を書き込むループ
-        for kosu in range(start_time_ind, end_time_ind):
-          # 作業内容リストに入力された工数定義区分の対応する記号を入れる
-          kosu_def[kosu] = def_work
-          # 作業詳細リストに入力した作業詳細を入れる
-          detail_list[kosu] = detail_work
-
+        # 作業内容、作業詳細書き込み
+        kosu_def, detail_list = kosu_write(start_time_ind, end_time_ind, kosu_def, detail_list, request)
 
         # 休憩変更チェックが入っていない時の処理
         if break_change == 0:
           # 休憩1が日を超えている場合の処理
           if break_next_day1 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt1 in range(int(break_start1), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt1] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt1] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR158')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt1] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt1] = ''
-
-
-            # 休憩時間ループ(0時～休憩時間終了まで)
-            for bt1 in range(0, int(break_end1)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容が空でない場合の処理
-                if kosu_def[bt1] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt1] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR159')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-                  
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt1] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt1] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt1 in range(int(break_start1), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt1] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt1 in range(0, int(break_end1)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt1] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start1, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end1, kosu_def, detail_list)
 
           # 休憩1が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt1 in range(int(break_start1), int(break_end1)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt1] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt1] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR160')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt1] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt1] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt1 in range(int(break_start1), int(break_end1)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt1] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start1, break_end1, kosu_def, detail_list)
 
 
           # 休憩2が日を超えている場合の処理
           if break_next_day2 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt2 in range(int(break_start2), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt2] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt2] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR161')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt2] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt2] = ''
-
-
-            # 休憩時間ループ(0時～休憩時間終了まで)
-            for bt2 in range(0, int(break_end2)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt2] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt2] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR162')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt2] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt2] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt2 in range(int(break_start2), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt2] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt2 in range(0, int(break_end2)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt2] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start2, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end2, kosu_def, detail_list)
 
           # 休憩2が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt2 in range(int(break_start2), int(break_end2)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt2] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt2] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR163')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt2] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt2] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt2 in range(int(break_start2), int(break_end2)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt2] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start2, break_end2, kosu_def, detail_list)
 
 
           # 休憩3が日を超えている場合の処理
           if break_next_day3 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt3 in range(int(break_start3), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt3] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt3] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR164')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt3] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt3] = ''
-
-
-            # 休憩時間ループ(0時～休憩時間終了まで)
-            for bt3 in range(0, int(break_end3)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt3] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt3] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR165')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt3] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt3] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt3 in range(int(break_start3), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt3] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt3 in range(0, int(break_end3)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt3] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start3, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end3, kosu_def, detail_list)
 
           # 休憩3が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt3 in range(int(break_start3), int(break_end3)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt3] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt3] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR166')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt3] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt3] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt3 in range(int(break_start3), int(break_end3)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt3] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start3, break_end3, kosu_def, detail_list)
 
 
           # 休憩4が日を超えている場合の処理
           if break_next_day4 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt4 in range(int(break_start4), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt4] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt4] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR167')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-                  
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt4] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt4] = ''
-
-
-            # 休憩時間ループ(0時～休憩時間終了まで)
-            for bt4 in range(0, int(break_end4)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt4] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt4] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR168')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt4] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt4] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt4 in range(int(break_start4), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt4] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt4 in range(0, int(break_end4)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt4] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start4, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end4, kosu_def, detail_list)
 
           # 休憩4が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt4 in range(int(break_start4), int(break_end4)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt4] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt4] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR169')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt4] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt4] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt4 in range(int(break_start4), int(break_end4)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt4] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start4, break_end4, kosu_def, detail_list)
 
 
       # 入力時間が日をまたいでいる場合の処理
-      if check == 1:
+      elif check == 1:
+        # 工数に被りがないかチェック
+        response = kosu_duplication_check(start_time_ind, 288, kosu_def, request)
+        if response:
+          return response
 
-        # 工数に被りがないかチェックするループ
-        for kosu in range(start_time_ind, 288):
-          # 作業内容の要素が空でない場合の処理
-          if kosu_def[kosu] != '#':
-            if kosu_def[kosu] != '$':
-              # エラーメッセージ出力
-              messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR009')
-              # このページをリダイレクト
-              return redirect(to = '/input')
-          
-        # 工数に被りがないかチェックするループ
-        for kosu in range(0, end_time_ind):
-          # 作業内容の要素が空でない場合の処理
-          if kosu_def[kosu] != '#':
-            if kosu_def[kosu] != '$':
-              # エラーメッセージ出力
-              messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR010')
-              # このページをリダイレクト
-              return redirect(to = '/input')
-          
+        response = kosu_duplication_check(0, end_time_ind, kosu_def, request)          
+        if response:
+          return response
 
-        # 作業内容と作業詳細を書き込むループ(作業開始時間から24時まで)
-        for kosu in range(start_time_ind, 288):
-          # 作業内容リストに入力した工数区分定義の対応する記号を入れる
-          kosu_def[kosu] = def_work
-          # 作業詳細リストに入力した作業詳細を入れる
-          detail_list[kosu] = detail_work
-
-
-        # 作業内容と作業詳細を書き込むループ(0時から作業終了時間まで)
-        for kosu in range(0, end_time_ind):
-          # 作業内容リストに入力した工数区分定義の対応する記号を入れる
-          kosu_def[kosu] = def_work
-          # 作業詳細リストに入力した作業詳細を入れる
-          detail_list[kosu] = detail_work
-
+        # 作業内容、作業詳細書き込み
+        kosu_def, detail_list = kosu_write(start_time_ind, 288, kosu_def, detail_list, request)
+        kosu_def, detail_list = kosu_write(0, end_time_ind, kosu_def, detail_list, request)
 
         # 休憩変更チェックが入っていない時の処理
         if break_change == 0:
           # 休憩1が日を超えている場合の処理
           if break_next_day1 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt1 in range(int(break_start1), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt1] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt1] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR170')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-                  
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt1] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt1] = ''
-
-
-            # 休憩時間ループ(0時から作業終了時間まで)
-            for bt1 in range(0, int(break_end1)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt1] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt1] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR171')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-                
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt1] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt1] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt1 in range(int(break_start1), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt1] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt1 in range(0, int(break_end1)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt1] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start1, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end1, kosu_def, detail_list)
 
           # 休憩1が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt1 in range(int(break_start1), int(break_end1)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt1] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt1] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR172')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt1] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt1] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt1 in range(int(break_start1), int(break_end1)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt1] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start1, break_end1, kosu_def, detail_list)
 
 
           # 休憩2が日を超えている場合の処理
           if break_next_day2 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt2 in range(int(break_start2), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt2] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt2] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR173')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-                
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt2] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt2] = ''
-
-
-            # 休憩時間ループ(0時から作業終了時間まで)
-            for bt2 in range(0, int(break_end2)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt2] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt2] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR174')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-                  
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt2] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt2] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt2 in range(int(break_start2), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt2] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt2 in range(0, int(break_end2)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt2] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start2, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end2, kosu_def, detail_list)
 
           # 休憩2が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt2 in range(int(break_start2), int(break_end2)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt2] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt2] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR175')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-                
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt2] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt2] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt2 in range(int(break_start2), int(break_end2)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt2] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start2, break_end2, kosu_def, detail_list)
 
 
           # 休憩3が日を超えている場合の処理
           if break_next_day3 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt3 in range(int(break_start3), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt3] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt3] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR176')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt3] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt3] = ''
-
-
-            # 休憩時間ループ(0時から作業終了時間まで)
-            for bt3 in range(0, int(break_end3)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt3] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt3] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR177')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt3] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt3] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt3 in range(int(break_start3), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt3] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt3 in range(0, int(break_end3)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt3] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start3, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end3, kosu_def, detail_list)
 
           # 休憩3が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt3 in range(int(break_start3), int(break_end3)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt3] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt3] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR178')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt3] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt3] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt3 in range(int(break_start3), int(break_end3)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt3] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start3, break_end3, kosu_def, detail_list)
 
 
           # 休憩4が日を超えている場合の処理
           if break_next_day4 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt4 in range(int(break_start4), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt4] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt4] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR179')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt4] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt4] = ''
-
-
-            # 休憩時間ループ(0時から作業終了時間まで)
-            for bt4 in range(0, int(break_end4)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt4] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt4] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR180')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt4] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt4] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt4 in range(int(break_start4), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt4] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt4 in range(0, int(break_end4)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt4] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start4, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end4, kosu_def, detail_list)
 
           # 休憩4が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt4 in range(int(break_start4), int(break_end4)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt4] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt4] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR181')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt4] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt4] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt4 in range(int(break_start4), int(break_end4)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt4] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start4, break_end4, kosu_def, detail_list)
 
-
-      # 作業詳細変数リセット
-      detail_list_str = ''
-
-      # 作業詳細リストをstr型に変更するループ
-      for i, e in enumerate(detail_list):
-        # 最終ループの処理
-        if i == len(detail_list) - 1:
-          # 作業詳細変数に作業詳細リストの要素をstr型で追加する
-          detail_list_str = detail_list_str + detail_list[i]
-
-        # 最終ループ以外の処理
-        else:
-          # 作業詳細変数に作業詳細リストの要素をstr型で追加し、区切り文字の'$'も追加
-          detail_list_str = detail_list_str + detail_list[i] + '$'
-
-
-      # 工数合計取得
-      kosu_total = 1440 - (kosu_def.count('#')*5) - (kosu_def.count('$')*5)
-
-
-      # 工数入力OK_NGリセット
-      judgement = False
-
-      # 出勤、休出時、工数合計と残業に整合性がある場合の処理
-      if (work == '出勤' or work == 'シフト出') and \
-        kosu_total - int(request.POST['over_work']) == 470:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 休出時、工数合計と残業に整合性がある場合の処理
-      if work == '休出' and kosu_total == int(request.POST['over_work']):
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 早退・遅刻時、工数合計と残業に整合性がある場合の処理
-      if work == '早退・遅刻' and kosu_total != 0:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 常昼の場合の処理
-      if tyoku == '4':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 240:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
-      if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-          member_obj.shop == '組長以上(W,A)') and \
-          tyoku == '1':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 240:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
-      if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-          member_obj.shop == '組長以上(W,A)') and \
-          tyoku == '2':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 290:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 180:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
-      if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-          member_obj.shop == '組長以上(W,A)') and \
-          tyoku == '3':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 240:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
-      if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-        member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-          tyoku == '1':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 220:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 250:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
-      if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-        member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-          tyoku == '2':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 240:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
-      if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-        member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-          tyoku == '3':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 275:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 195:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
+      # 作業詳細を文字列に変換
+      detail_list_str = detail_list_summarize(detail_list)
+      # 工数整合性取得
+      judgement = judgement_check(kosu_def, work, tyoku, member_obj, request.POST['over_work'])
 
 
       # 作業内容データの内容を上書きして更新
@@ -1908,7 +1429,7 @@ def input(request):
       
 
     # 指定日に工数データがない場合の処理
-    if obj_filter.count() == 0:
+    else:
       # '#'が288個並んだ作業内容リスト作成
       kosu_def = list(itertools.repeat('#', 288))
       # ''が288個並んだ作業詳細リスト作成
@@ -1945,934 +1466,215 @@ def input(request):
         breaktime_over2 = break_time_obj.break_time4_over2
         breaktime_over3 = break_time_obj.break_time4_over3
 
-      # 休憩1開始時間のインデント取得
-      break_start1 = int(breaktime[1 : 3])*12 + int(breaktime[3 : 5])/5
-      # 休憩1終了時間のインデント取得
-      break_end1 = int(breaktime[5 : 7])*12 + int(breaktime[7 :])/5
-
-      # 休憩1が日をまたいでいないか確認
-      break_next_day1 = 0
-
-      if break_start1 > break_end1:
-        break_next_day1 = 1
-
-      else:
-        break_next_day1 = 0
-
-      # 休憩2開始時間のインデント取得
-      break_start2 = int(breaktime_over1[1 : 3])*12 + int(breaktime_over1[3 : 5])/5
-      # 休憩2終了時間のインデント取得
-      break_end2 = int(breaktime_over1[5 : 7])*12 + int(breaktime_over1[7 :])/5
-
-      # 休憩2が日をまたいでいないか確認
-      break_next_day2 = 0
-
-      if break_start2 > break_end2:
-        break_next_day2 = 1
-
-      else:
-        break_next_day2 = 0
-
-      # 休憩3開始時間のインデント取得
-      break_start3 = int(breaktime_over2[1 : 3])*12 + int(breaktime_over2[3 : 5])/5
-      # 休憩3終了時間のインデント取得
-      break_end3 = int(breaktime_over2[5 : 7])*12 + int(breaktime_over2[7 :])/5
-
-      # 休憩3が日をまたいでいないか確認
-      break_next_day3 = 0
-
-      if break_start3 > break_end3:
-        break_next_day3 = 1
-
-      else:
-        break_next_day3 = 0
-
-      # 休憩4開始時間のインデント取得
-      break_start4 = int(breaktime_over3[1 : 3])*12 + int(breaktime_over3[3 : 5])/5
-      # 休憩4終了時間のインデント取得
-      break_end4 = int(breaktime_over3[5 : 7])*12 + int(breaktime_over3[7 :])/5
-
-      # 休憩4が日をまたいでいないか確認
-      break_next_day4 = 0
-
-      if break_start4 > break_end4:
-        break_next_day4 = 1
-
-      else:
-        break_next_day4 = 0
-
+      # 休憩時間のインデックス＆日またぎ変数定義
+      break_start1, break_end1, break_next_day1 = break_time_process(breaktime)
+      break_start2, break_end2, break_next_day2 = break_time_process(breaktime_over1)
+      break_start3, break_end3, break_next_day3 = break_time_process(breaktime_over2)
+      break_start4, break_end4, break_next_day4 = break_time_process(breaktime_over3)
 
       # 入力時間が日をまたいでいない場合の処理
       if check == 0:
-        # リストの作業時間に合った場所に工数区分と作業詳細を入れる
-        for kosu in range(start_time_ind, end_time_ind):
-          kosu_def[kosu] = def_work
-          detail_list[kosu] = detail_work
+        # 作業内容、作業詳細書き込み
+        kosu_def, detail_list = kosu_write(start_time_ind, end_time_ind, kosu_def, detail_list, request)
 
         # 休憩変更チェックが入っていない時の処理
         if break_change == 0:
           # 休憩1が日を超えている場合の処理
           if break_next_day1 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt1 in range(int(break_start1), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt1] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt1] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR182')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt1] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt1] = ''
-
-
-            # 休憩時間ループ(0時～休憩時間終了まで)
-            for bt1 in range(0, int(break_end1)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容が空でない場合の処理
-                if kosu_def[bt1] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt1] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR183')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-                  
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt1] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt1] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt1 in range(int(break_start1), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt1] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt1 in range(0, int(break_end1)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt1] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start1, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end1, kosu_def, detail_list)
 
           # 休憩1が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt1 in range(int(break_start1), int(break_end1)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt1] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt1] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR184')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt1] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt1] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt1 in range(int(break_start1), int(break_end1)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt1] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start1, break_end1, kosu_def, detail_list)
 
 
           # 休憩2が日を超えている場合の処理
           if break_next_day2 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt2 in range(int(break_start2), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt2] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt2] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR185')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt2] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt2] = ''
-
-
-            # 休憩時間ループ(0時～休憩時間終了まで)
-            for bt2 in range(0, int(break_end2)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt2] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt2] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR186')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt2] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt2] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt2 in range(int(break_start2), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt2] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt2 in range(0, int(break_end2)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt2] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start2, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end2, kosu_def, detail_list)
 
           # 休憩2が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt2 in range(int(break_start2), int(break_end2)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt2] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt2] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR187')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt2] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt2] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt2 in range(int(break_start2), int(break_end2)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt2] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start2, break_end2, kosu_def, detail_list)
 
 
           # 休憩3が日を超えている場合の処理
           if break_next_day3 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt3 in range(int(break_start3), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt3] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt3] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR188')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt3] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt3] = ''
-
-
-            # 休憩時間ループ(0時～休憩時間終了まで)
-            for bt2 in range(0, int(break_end3)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt3] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt3] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR189')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt3] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt3] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt3 in range(int(break_start3), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt3] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt3 in range(0, int(break_end3)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt3] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start3, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end3, kosu_def, detail_list)
 
           # 休憩3が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt3 in range(int(break_start3), int(break_end3)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt3] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt3] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR190')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt3] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt3] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt3 in range(int(break_start3), int(break_end3)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt3] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start3, break_end3, kosu_def, detail_list)
 
 
           # 休憩4が日を超えている場合の処理
           if break_next_day4 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt4 in range(int(break_start4), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt4] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt4] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR191')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt4] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt4] = ''
-
-
-            # 休憩時間ループ(0時～休憩時間終了まで)
-            for bt4 in range(0, int(break_end4)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt4] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt4] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR192')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt4] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt4] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt4 in range(int(break_start4), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt4] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt4 in range(0, int(break_end4)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt4] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start4, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end4, kosu_def, detail_list)
 
           # 休憩4が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt4 in range(int(break_start4), int(break_end4)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt4] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt4] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR191')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt4] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt4] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt4 in range(int(break_start4), int(break_end4)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt4] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start4, break_end4, kosu_def, detail_list)
 
 
       # 入力時間が日をまたいでいる場合の処理
       else:
-        # リストの作業時間に合った場所に工数区分と作業詳細を入れる
-        for kosu in range(start_time_ind, 288):
-          kosu_def[kosu] = def_work
-          detail_list[kosu] = detail_work
-
-
-        for kosu in range(0, end_time_ind):
-          kosu_def[kosu] = def_work
-          detail_list[kosu] = detail_work
-
+        # 作業内容、作業詳細書き込み
+        kosu_def, detail_list = kosu_write(start_time_ind, 288, kosu_def, detail_list, request)
+        kosu_def, detail_list = kosu_write(0, end_time_ind, kosu_def, detail_list, request)
 
         # 休憩変更チェックが入っていない時の処理
         if break_change == 0:
           # 休憩1が日を超えている場合の処理
           if break_next_day1 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt1 in range(int(break_start1), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt1] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt1] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR192')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt1] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt1] = ''
-
-
-            # 休憩時間ループ(0時～休憩時間終了まで)
-            for bt1 in range(0, int(break_end1)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容が空でない場合の処理
-                if kosu_def[bt1] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt1] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR193')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-                  
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt1] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt1] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt1 in range(int(break_start1), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt1] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt1 in range(0, int(break_end1)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt1] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start1, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end1, kosu_def, detail_list)
 
           # 休憩1が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt1 in range(int(break_start1), int(break_end1)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt1] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt1] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR194')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt1] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt1] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt1 in range(int(break_start1), int(break_end1)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt1] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start1, break_end1, kosu_def, detail_list)
 
 
           # 休憩2が日を超えている場合の処理
           if break_next_day2 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt2 in range(int(break_start2), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt2] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt2] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR195')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt2] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt2] = ''
-
-
-            # 休憩時間ループ(0時～休憩時間終了まで)
-            for bt2 in range(0, int(break_end2)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt2] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt2] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR196')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt2] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt2] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt2 in range(int(break_start2), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt2] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt2 in range(0, int(break_end2)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt2] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start2, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end2, kosu_def, detail_list)
 
           # 休憩2が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt2 in range(int(break_start2), int(break_end2)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt2] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt2] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR197')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt2] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt2] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt2 in range(int(break_start2), int(break_end2)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt2] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start2, break_end2, kosu_def, detail_list)
 
 
           # 休憩3が日を超えている場合の処理
           if break_next_day3 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt3 in range(int(break_start3), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt3] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt3] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR198')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt3] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt3] = ''
-
-
-            # 休憩時間ループ(0時～休憩時間終了まで)
-            for bt2 in range(0, int(break_end3)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt3] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt3] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR199')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt3] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt3] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt3 in range(int(break_start3), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt3] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt3 in range(0, int(break_end3)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt3] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start3, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end3, kosu_def, detail_list)
 
           # 休憩3が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt3 in range(int(break_start3), int(break_end3)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt3] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt3] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR200')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt3] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt3] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt3 in range(int(break_start3), int(break_end3)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt3] = '$'
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start3, break_end3, kosu_def, detail_list)
 
 
           # 休憩4が日を超えている場合の処理
           if break_next_day4 == 1:
-            # 休憩時間ループ(休憩時間開始～24時まで)
-            for bt4 in range(int(break_start4), 288):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt4] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt4] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR191')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt4] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt4] = ''
-
-
-            # 休憩時間ループ(0時～休憩時間終了まで)
-            for bt4 in range(0, int(break_end4)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt4] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt4] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR192')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt4] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt4] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
+            kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-              for bt4 in range(int(break_start4), 288):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt4] = '$'
-
-
-              # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-              for bt4 in range(0, int(break_end4)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt4] = '$'
-
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start4, 288, kosu_def, detail_list)
+              kosu_def, detail_list = break_time_write(0, break_end4, kosu_def, detail_list)
 
           # 休憩4が日を超えていない場合の処理
           else:
-            # 休憩時間ループ
-            for bt4 in range(int(break_start4), int(break_end4)):
-              # ユーザーが休憩エラー有効チェックONの場合の処理
-              if member_obj.break_check == True:
-                # 作業内容リストが空でない場合の処理
-                if kosu_def[bt4] != '#':
-                  # 作業内容リストが休憩でない場合の処理
-                  if kosu_def[bt4] != '$':
-                    # エラーメッセージ出力
-                    messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR191')
-                    # このページをリダイレクト
-                    return redirect(to = '/input')
-
-              # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-              else:
-                # 作業内容リストの要素を空にする
-                kosu_def[bt4] = '#'
-                # 作業詳細リストの要素を空にする
-                detail_list[bt4] = ''
-
+            # 休憩時間内の工数データを削除
+            kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
 
             # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換えるループ
-              for bt4 in range(int(break_start4), int(break_end4)):
-                # 作業内容リストの要素を休憩に書き換え
-                kosu_def[bt4] = '$'
+            if kosu_def[int(break_end3)] != '#':
+              # 休憩時間内の工数データを休憩に書き換え
+              kosu_def, detail_list = break_time_write(break_start4, break_end4, kosu_def, detail_list)
 
 
-      # 作業詳細リストを文字列に変更
-      detail_list_str = ''
-
-      for i, e in enumerate(detail_list):
-        if i == len(detail_list) - 1:
-          detail_list_str = detail_list_str + detail_list[i]
-
-        else:
-          detail_list_str = detail_list_str + detail_list[i] + '$'
-
-
-      # 工数合計取得
-      kosu_total = 1440 - (kosu_def.count('#')*5) - (kosu_def.count('$')*5)
-
-
-      # 工数入力OK_NGリセット
-      judgement = False
-
-      # 出勤、休出時、工数合計と残業に整合性がある場合の処理
-      if (work == '出勤' or work == 'シフト出') and \
-        kosu_total - int(request.POST['over_work']) == 470:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 休出時、工数合計と残業に整合性がある場合の処理
-      if work == '休出' and kosu_total == int(request.POST['over_work']):
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 早退・遅刻時、工数合計と残業に整合性がある場合の処理
-      if work == '早退・遅刻' and kosu_total != 0:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
-      if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-          member_obj.shop == '組長以上(W,A)') and \
-          tyoku == '1':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 240:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
-      if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-          member_obj.shop == '組長以上(W,A)') and \
-          tyoku == '2':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 290:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 180:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
-      if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-          member_obj.shop == '組長以上(W,A)') and \
-          tyoku == '3':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 240:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
-      if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-        member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-          tyoku == '1':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 220:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 250:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
-      if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-        member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-          tyoku == '2':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 240:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
-      if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-        member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-          tyoku == '3':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 275:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 195:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # 常昼の場合の処理
-      if tyoku == '4':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 240:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
+      # 作業詳細を文字列に変換
+      detail_list_str = detail_list_summarize(detail_list)
+      # 工数整合性取得
+      judgement = judgement_check(kosu_def, work, tyoku, member_obj, request.POST['over_work'])
 
 
       # 従業員番号に該当するmemberインスタンスを取得
@@ -2939,23 +1741,48 @@ def input(request):
 
 
   # 残業登録時の処理
-  if "over_time_correction" in request.POST:
+  elif "over_time_correction" in request.POST:
+    # 指定日に工数データが既にあるか確認
+    obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=request.POST['work_day'])
 
-    # 2つのフォームで入力のあった直を変数に入れる
-    if request.POST['tyoku'] != '':
-      tyoku = request.POST['tyoku']
-    elif request.POST['tyoku2'] != '':
-      tyoku = request.POST['tyoku2']
-    else:
-      tyoku = ''
+    # 指定日に工数データがある場合の処理
+    if obj_filter.exists():
+      # 工数データ取得
+      obj_get = obj_filter.first()
 
-    # 2つのフォームで入力のあった勤務を変数に入れる
-    if request.POST['work'] != '':
-      work = request.POST['work']
-    elif request.POST['work2'] != '':
-      work = request.POST['work2']
+      # 直入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
+      if obj_get.tyoku2 != request.POST['tyoku'] and request.POST['tyoku'] not in (None, ''):
+        tyoku = request.POST['tyoku']
+      elif obj_get.tyoku2 != request.POST['tyoku2'] and request.POST['tyoku2'] not in (None, ''):
+        tyoku = request.POST['tyoku2']
+      else:
+        tyoku = obj_get.tyoku2
+
+      # 勤務入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
+      if obj_get.work_time != request.POST['work'] and request.POST['work'] not in (None, ''):
+        work = request.POST['work']
+      elif obj_get.work_time != request.POST['work2'] and request.POST['work2'] not in (None, ''):
+        work = request.POST['work2']
+      else:
+        work = obj_get.work_time
+
+    # 指定日に工数データがない場合の処理
     else:
-      work = ''
+      # 2つのフォームで入力のあった直を変数に入れる
+      if request.POST['tyoku'] not in (None, ''):
+        tyoku = request.POST['tyoku']
+      elif request.POST['tyoku2'] not in (None, '') != '':
+        tyoku = request.POST['tyoku2']
+      else:
+        tyoku = ''
+
+      # 2つのフォームで入力のあった勤務を変数に入れる
+      if request.POST['work'] != '':
+        work = request.POST['work']
+      elif request.POST['work2'] != '':
+        work = request.POST['work2']
+      else:
+        work = ''
 
     # 未入力がないことを確認
     if request.POST['over_work'] == '':
@@ -2978,140 +1805,13 @@ def input(request):
       # このページをリダイレクト
       return redirect(to = '/input')
 
-
-    # 工数データがあるか確認
-    obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None), \
-                                                    work_day2 = request.POST['work_day'])
     
     # 工数データがある場合の処理
-    if obj_filter.count() != 0:
+    if obj_filter.exists():
       # 工数データ取得
-      obj_get = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None), \
-                                                work_day2 = request.POST['work_day'])
-      # 工数の合計値取得
-      kosu_total = 1440 - (obj_get.time_work.count('#')*5) - (obj_get.time_work.count('$')*5)
-
-      # 工数入力OK_NGリセット
-      judgement = False
-
-      # 出勤、休出時、工数合計と残業に整合性がある場合の処理
-      if (work == '出勤' or work == 'シフト出') and \
-        kosu_total - int(request.POST['over_work']) == 470:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 休出時、工数合計と残業に整合性がある場合の処理
-      if work == '休出' and kosu_total == int(request.POST['over_work']):
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 早退・遅刻時、工数合計と残業に整合性がある場合の処理
-      if work == '早退・遅刻' and kosu_total != 0:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 常昼の場合の処理
-      if tyoku == '4':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 240:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
-      if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-          member_obj.shop == '組長以上(W,A)') and \
-          tyoku == '1':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 240:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
-      if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-          member_obj.shop == '組長以上(W,A)') and \
-          tyoku == '2':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 290:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 180:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
-      if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-        member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-          member_obj.shop == '組長以上(W,A)') and \
-          tyoku == '3':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 240:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
-      if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-        member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-          tyoku == '1':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 220:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 250:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
-      if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-        member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-          tyoku == '2':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 230:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 240:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-      # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
-      if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-        member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-          tyoku == '3':
-        # 半前年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半前年休' and kosu_total - int(request.POST['over_work']) == 275:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
-        # 半後年休時、工数合計と残業に整合性がある場合の処理
-        if work == '半後年休' and kosu_total - int(request.POST['over_work']) == 195:
-          # 工数入力OK_NGをOKに切り替え
-          judgement = True
-
+      obj_get = obj_filter.first()
+      # 工数整合性取得
+      judgement = judgement_check(list(obj_get.time_work), work, tyoku, member_obj, request.POST['over_work'])
 
       # 残業を上書きして更新
       Business_Time_graph.objects.update_or_create(employee_no3 = request.session.get('login_No', None), \
@@ -3138,23 +1838,49 @@ def input(request):
 
 
   # 現在時刻取得処理
-  if "now_time" in request.POST:
+  elif "now_time" in request.POST:
 
-    # 2つのフォームで入力のあった直を変数に入れる
-    if request.POST['tyoku'] != '':
-      tyoku = request.POST['tyoku']
-    elif request.POST['tyoku2'] != '':
-      tyoku = request.POST['tyoku2']
+    # 指定日に工数データが既にあるか確認
+    obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=request.POST['work_day'])
+
+    # 指定日に工数データがある場合の処理
+    if obj_filter.exists():
+      # 工数データ取得
+      obj_get = obj_filter.first()
+
+      # 直入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
+      if obj_get.tyoku2 != request.POST['tyoku'] and request.POST['tyoku'] not in (None, ''):
+        tyoku = request.POST['tyoku']
+      elif obj_get.tyoku2 != request.POST['tyoku2'] and request.POST['tyoku2'] not in (None, ''):
+        tyoku = request.POST['tyoku2']
+      else:
+        tyoku = obj_get.tyoku2
+
+      # 勤務入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
+      if obj_get.work_time != request.POST['work'] and request.POST['work'] not in (None, ''):
+        work = request.POST['work']
+      elif obj_get.work_time != request.POST['work2'] and request.POST['work2'] not in (None, ''):
+        work = request.POST['work2']
+      else:
+        work = obj_get.work_time
+
+    # 指定日に工数データがない場合の処理
     else:
-      tyoku = ''
-  
-    # 2つのフォームで入力のあった勤務を変数に入れる
-    if request.POST['work'] != '':
-      work = request.POST['work']
-    elif request.POST['work2'] != '':
-      work = request.POST['work2']
-    else:
-      work = ''
+      # 2つのフォームで入力のあった直を変数に入れる
+      if request.POST['tyoku'] not in (None, ''):
+        tyoku = request.POST['tyoku']
+      elif request.POST['tyoku2'] not in (None, '') != '':
+        tyoku = request.POST['tyoku2']
+      else:
+        tyoku = ''
+
+      # 2つのフォームで入力のあった勤務を変数に入れる
+      if request.POST['work'] != '':
+        work = request.POST['work']
+      elif request.POST['work2'] != '':
+        work = request.POST['work2']
+      else:
+        work = ''
 
     # 現在時刻取得
     now_time = datetime.datetime.now().time()
@@ -3193,148 +1919,13 @@ def input(request):
                    'over_work' : request.POST['over_work']}
 
 
-    # グラフデータ確認用データ取得
-    data_count = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None),\
-                                                    work_day2 = new_work_day)
-
-    # グラフラベルデータ
-    graph_item = []
-    for i in range(24):
-        for n in range(0, 60, 5):
-            t = n
-            if n == 0:
-              t = '00'
-            if n == 5:
-              t = '05'
-            graph_item.append('{}:{}'.format(i, t))
-
- 
-    # 選択されている就業日のグラフデータがない場合の処理
-    if data_count.count() == 0:
-      # 0を288個入れたリスト作成
-      graph_list = list(itertools.repeat(0, 288))
-
-    # 選択されている就業日のグラフデータがある場合の処理
-    else:
-      # グラフデータを取得
-      obj_get = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None),\
-                                                  work_day2 = new_work_day)
-
-      # 取得したグラフデータを文字型からリストに解凍
-      graph_list = list(obj_get.time_work)
-
-      # グラフデータリスト内の各文字を数値に変更
-      str_list = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-                    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                      'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                          'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
-
-      # グラフ用データの文字リストをインデックスに変換
-      for i in range(288):
-        for n, m in enumerate(str_list):
-          if graph_list[i]  == m:
-            graph_list[i] = n
-            break
-
-
-      # 作業内容が空でない場合の処理
-      if graph_list != list(itertools.repeat(0, 288)):
-        # 工数が入力されていない部分を切り捨てデータを見やすく
-        if obj_get.tyoku2 != '3':
-          for i in range(288):
-            if graph_list[i] != 0:
-              if i == 0:
-                graph_start_index = i
-
-              else:
-                graph_start_index = i - 1
-
-              break
-    
-
-          for i in range(1, 289):
-            if graph_list[-i] != 0:
-              if i == 1:
-                graph_end_index = 289 - i
-
-              else:
-                graph_end_index = 290 - i
-
-              break
-
-
-          if obj_get.tyoku2 == '1':
-            if graph_end_index <= 184:
-              graph_end_index = 184
-
-          if obj_get.tyoku2 == '2' and (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-                                          member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-                                            member_obj.shop == '組長以上(W,A)'):
-            if graph_end_index <= 240:
-              graph_end_index = 240
-
-          if obj_get.tyoku2 == '2' and (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-                                          member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-                                          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)'):
-            if graph_end_index <= 270:
-              graph_end_index = 270
-
-          if obj_get.tyoku2 == '4':
-            if graph_end_index <= 204:
-              graph_end_index = 204
-
-          del graph_list[graph_end_index:]
-          del graph_list[:graph_start_index]
-          del graph_item[graph_end_index:]
-          del graph_item[:graph_start_index]
-
-        else:
-          graph_list = graph_list*2
-          graph_item = graph_item*2
-
-          del graph_list[:204]
-          del graph_list[288:]
-          del graph_item[:204]
-          del graph_item[288:]
-
-          for i in range(288):
-            if graph_list[i] != 0:
-              if i == 0:
-                graph_start_index = i
-
-              else:
-                graph_start_index = i - 1
-                break
-
-
-          for i in range(1, 289):
-            if graph_list[-i] != 0:
-              if i == 1:
-                graph_end_index = 289 - i
-
-              else:
-                graph_end_index = 290 - i
-                break
-
-
-          if member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-            member_obj.shop == 'A1' or member_obj.shop == 'A2':
-            if graph_end_index <= 140:
-              graph_end_index = 140
-
-          else:
-            if graph_end_index <= 169:
-              graph_end_index = 169
-
-          del graph_list[graph_end_index:]
-          del graph_list[:graph_start_index]
-          del graph_item[graph_end_index:]
-          del graph_item[:graph_start_index]
+    # グラフラベル＆グラフデータ作成
+    graph_item, graph_list = handle_get_request(request, new_work_day, member_obj)
 
 
 
   # 休憩変更時の処理
-  if "change_display" in request.POST:
+  elif "change_display" in request.POST:
     # 休憩変更したい日を記憶
     request.session['break_today'] = request.POST['work_day']
 
@@ -3342,18 +1933,10 @@ def input(request):
     obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None),\
                                                     work_day2 = request.POST['work_day'])
 
-    # 工数データがない場合の処理
-    if obj_filter.count() == 0:
-      # エラーメッセージ出力
-      messages.error(request, 'この日は、まだ工数データがありません。工数を1件以上入力してから休憩を変更して下さい。ERROR006')
-      # このページをリダイレクト
-      return redirect(to = '/input')
-
     #工数データがある場合の処理
-    if obj_filter.count() != 0:
+    if obj_filter.exists():
       # 工数データ取得
-      obj_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'],\
-                                                work_day2 = request.session.get('day', kosu_today))
+      obj_get = obj_filter.first()
 
       # 休憩データが空の場合の処理
       if obj_get.breaktime == None or obj_get.breaktime_over1 == None or \
@@ -3367,27 +1950,58 @@ def input(request):
       else:
         # 休憩変更画面へジャンプ
         return redirect(to = '/today_break_time')
-      
+
+    # 工数データがない場合の処理
+    else:
+      # エラーメッセージ出力
+      messages.error(request, 'この日は、まだ工数データがありません。工数を1件以上入力してから休憩を変更して下さい。ERROR006')
+      # このページをリダイレクト
+      return redirect(to = '/input')
 
 
   # 定義確認処理
-  if "def_find" in request.POST:
+  elif "def_find" in request.POST:
+    # 指定日に工数データが既にあるか確認
+    obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=request.POST['work_day'])
 
-    # 2つのフォームで入力のあった直を変数に入れる
-    if request.POST['tyoku'] != '':
-      tyoku = request.POST['tyoku']
-    elif request.POST['tyoku2'] != '':
-      tyoku = request.POST['tyoku2']
-    else:
-      tyoku = ''
+    # 指定日に工数データがある場合の処理
+    if obj_filter.exists():
+      # 工数データ取得
+      obj_get = obj_filter.first()
 
-    # 2つのフォームで入力のあった勤務を変数に入れる
-    if request.POST['work'] != '':
-      work = request.POST['work']
-    elif request.POST['work2'] != '':
-      work = request.POST['work2']
+      # 直入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
+      if obj_get.tyoku2 != request.POST['tyoku'] and request.POST['tyoku'] not in (None, ''):
+        tyoku = request.POST['tyoku']
+      elif obj_get.tyoku2 != request.POST['tyoku2'] and request.POST['tyoku2'] not in (None, ''):
+        tyoku = request.POST['tyoku2']
+      else:
+        tyoku = obj_get.tyoku2
+
+      # 勤務入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
+      if obj_get.work_time != request.POST['work'] and request.POST['work'] not in (None, ''):
+        work = request.POST['work']
+      elif obj_get.work_time != request.POST['work2'] and request.POST['work2'] not in (None, ''):
+        work = request.POST['work2']
+      else:
+        work = obj_get.work_time
+
+    # 指定日に工数データがない場合の処理
     else:
-      work = ''
+      # 2つのフォームで入力のあった直を変数に入れる
+      if request.POST['tyoku'] not in (None, ''):
+        tyoku = request.POST['tyoku']
+      elif request.POST['tyoku2'] not in (None, '') != '':
+        tyoku = request.POST['tyoku2']
+      else:
+        tyoku = ''
+
+      # 2つのフォームで入力のあった勤務を変数に入れる
+      if request.POST['work'] != '':
+        work = request.POST['work']
+      elif request.POST['work2'] != '':
+        work = request.POST['work2']
+      else:
+        work = ''
 
     # 直初期値設定保持
     request.session['error_tyoku'] = tyoku
@@ -3423,27 +2037,26 @@ def input(request):
 
 
   # 残業データあるか確認
-  over_work_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None),\
-                                                        work_day2 = request.session.get('day', kosu_today))
+  obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None),\
+                                               work_day2 = request.session.get('day', kosu_today))
 
   # 残業データある場合の処理
-  if over_work_filter.count() != 0:
+  if obj_filter.exists():
     # 残業データ取得
-    over_work_get = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None),\
-                                                    work_day2 = request.session.get('day', kosu_today))
-    over_work_default = over_work_get.over_time
-
+    obj_get = obj_filter.first()
+    over_work_default = obj_get.over_time
     # 直情報取得
-    tyoku_default = over_work_get.tyoku2
+    tyoku_default = obj_get.tyoku2
     # 勤務情報取得
-    work_default = over_work_get.work_time
+    work_default = obj_get.work_time
     # 工数入力状況取得
-    ok_ng = over_work_get.judgement
+    ok_ng = obj_get.judgement
     # 休憩変更情報取得
-    break_change_default = over_work_get.break_change
+    break_change_default = obj_get.break_change
 
   # 残業データない場合の処理
   else:
+    obj_get = ''
     # 残業に0を入れる
     over_work_default = 0
     # 工数入力状況に空を入れる
@@ -3488,56 +2101,16 @@ def input(request):
                'over_work' : over_work_default,
                'break_change' : break_change_default,}
   
-  default_start_time = request.session.get('start_time', '')
-  
-  # エラー時の工数定義区分保持がセッションにある場合の処理
-  if 'error_def' in request.session:
-    # セッション削除
-    del request.session['error_def']
-
-  # エラー時の作業詳細保持保持がセッションにある場合の処理
-  if 'error_detail' in request.session:
-    # セッション削除
-    del request.session['error_detail']
-  
+  default_start_time = request.session.get('start_time', '')  
 
   # 時刻取得時の初期値の定義追加あれば追加
   if 'def_default' in locals():
     kosu_list.update(def_default)
 
-
-  # 現在使用している工数区分のオブジェクトを取得
-  kosu_obj = kosu_division.objects.get(kosu_name = request.session.get('input_def', None))
-
-  # 工数区分登録カウンターリセット
-  n = 0
-
-  # 工数区分登録数カウント
-  for kosu_num in range(1, 50):
-    if eval('kosu_obj.kosu_title_{}'.format(kosu_num)) not in [None, '']:
-      n = kosu_num
-
-
-  # 工数区分処理用記号リスト用意
-  str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-              'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                    'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
-
-  # リストの長さを工数区分の登録数に応じて調整
-  del str_list[n:]
-
-  # 工数区分の選択リスト作成
-  choices_list = [('','')]
-  graph_kosu_list = []
-  for i, m in enumerate(str_list):
-    choices_list.append((m,eval('kosu_obj.kosu_title_{}'.format(i + 1))))
-    graph_kosu_list.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
-  choices_list.append(('$','休憩'))
-
-
-  # ログイン者情報取得
-  data = member.objects.get(employee_no = request.session['login_No'])
+  # 工数区分定義リスト作成
+  choices_list, def_n = kosu_division_dictionary(request)
+  choices_list.insert(0, ['', ''])
+  choices_list.append(['$', '休憩'])
 
   # フォームの初期状態定義
   form = input_kosuForm(kosu_list)
@@ -3545,84 +2118,20 @@ def input(request):
   # フォームの選択肢定義
   form.fields['kosu_def_list'].choices = choices_list
 
-  # 工数データ無い場合リンクに空を入れる
-  if 'obj_get' in locals():
-    obj_link = obj_get
 
+  # 工数データ無い場合リンクに空を入れる    
+  if any(num != 0 for num in graph_list):
+    obj_link = True
   else:
-    obj_link = ''
+    obj_link = False
 
 
   # HTML表示用リストリセット
   time_display_list = []
-
   # 工数データある場合の処理
-  if obj_link != '':
-    # 作業内容と作業詳細を取得しリストに解凍
-    work_list = list(obj_get.time_work)
-    detail_list = obj_get.detail_work.split('$')
-  
-    # 作業内容と作業詳細のリストを2個連結
-    work_list = work_list*2
-    detail_list = detail_list*2
-
-    # 1直の時の処理
-    if obj_get.tyoku2 == '1':
-      # 作業内容と作業詳細のリストを4時半からの表示に変える
-      del work_list[:54]
-      del detail_list[:54]
-      del work_list[288:]
-      del detail_list[288:]
-
-    # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
-    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
-      # 作業内容と作業詳細のリストを12時からの表示に変える
-      del work_list[:144]
-      del detail_list[:144]
-      del work_list[288:]
-      del detail_list[288:]
-
-    # 2直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
-          and obj_get.tyoku2 == '2':
-      # 作業内容と作業詳細のリストを9時からの表示に変える
-      del work_list[:108]
-      del detail_list[:108]
-      del work_list[288:]
-      del detail_list[288:]
-
-    # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
-    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
-      # 作業内容と作業詳細のリストを20時半からの表示に変える
-      del work_list[:246]
-      del detail_list[:246]
-      del work_list[288:]
-      del detail_list[288:]
-
-    # 3直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
-          and obj_get.tyoku2 == '3':
-      # 作業内容と作業詳細のリストを18時からの表示に変える
-      del work_list[:216]
-      del detail_list[:216]
-      del work_list[288:]
-      del detail_list[288:]
-
-    # 常昼の時の処理
-    elif obj_get.tyoku2 == '4':
-      # 作業内容と作業詳細のリストを6時からの表示に変える
-      del work_list[:72]
-      del detail_list[:72]
-      del work_list[288:]
-      del detail_list[288:]
-
-    # 直入力ない時の処理
-    else:
-      del work_list[288:]
-      del detail_list[288:]
-
+  if obj_link == True:
+    # 作業内容と作業詳細を直に合わせて調整
+    work_list, detail_list = kosu_sort(obj_get, member_obj)
 
     # 作業時間リストリセット
     kosu_list = []
@@ -3643,22 +2152,22 @@ def input(request):
         if obj_get.tyoku2 == '1':
           kosu_list.append(i + 54)
 
-        elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-            data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
+        elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+            member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 144)
 
-        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+        elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
               and obj_get.tyoku2 == '2':
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 108)
 
-        elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-            data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
+        elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+            member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 246)
 
-        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+        elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
               and obj_get.tyoku2 == '3':
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 216)
@@ -3681,8 +2190,8 @@ def input(request):
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 54)
 
-        elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-            data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
+        elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+            member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
           if i >= 144:
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i - 144)
@@ -3691,7 +2200,7 @@ def input(request):
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 144)
 
-        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+        elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
               and obj_get.tyoku2 == '2':
           if i >= 180:
             # 作業時間インデックスに作業時間のインデックス記録
@@ -3701,8 +2210,8 @@ def input(request):
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 108)
   
-        elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-            data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
+        elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+            member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
           if i >= 42:
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i - 42)
@@ -3710,7 +2219,7 @@ def input(request):
           else:
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 246)
-        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+        elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
               and obj_get.tyoku2 == '3':
           if i >= 72:
             # 作業時間インデックスに作業時間のインデックス記録
@@ -3743,8 +2252,8 @@ def input(request):
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 55)
 
-        elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-            data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
+        elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+            member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
           if i >= 144:
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i - 143)
@@ -3753,7 +2262,7 @@ def input(request):
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 145)
 
-        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+        elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
               and obj_get.tyoku2 == '2':
           if i >= 180:
             # 作業時間インデックスに作業時間のインデックス記録
@@ -3763,8 +2272,8 @@ def input(request):
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 109)
 
-        elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-            data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
+        elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+            member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
           if i >= 42:
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i - 41)
@@ -3773,7 +2282,7 @@ def input(request):
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 247)
 
-        elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+        elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
               and obj_get.tyoku2 == '3':
           if i >= 72:
             # 作業時間インデックスに作業時間のインデックス記録
@@ -3809,53 +2318,20 @@ def input(request):
           time_list_start.append(time_obj_start)
           time_list_end.append(time_obj_end)
 
-  
-    # 現在使用している工数区分のオブジェクトを取得
-    kosu_obj = kosu_division.objects.get(kosu_name = request.session.get('input_def', None))
-
-    # 工数区分登録カウンターリセット
-    def_n = 0
-
-    # 工数区分登録数カウント
-    for kosu_num in range(1, 50):
-      if eval('kosu_obj.kosu_title_{}'.format(kosu_num)) != '':
-        def_n = kosu_num
-
-  
-    # 工数区分処理用記号リスト用意
-    str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-                'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                  'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                      'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
-
-    # リストの長さを工数区分の登録数に応じて調整
-    del str_list[def_n : ]
-    
-    # 工数区分の選択リスト作成
-    for i, m in enumerate(str_list):
-      # 工数区分定義要素を追加
-      def_list.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
-
-
-    # 作業なし追加
-    def_list.append('-')
-    # 休憩追加
-    def_list.append('休憩')
-
-
-    # 作業無し記号追加
-    str_list.append('#')
-    # 休憩記号追加
-    str_list.append('$')
-
-    # 工数区分辞書作成
-    def_library = dict(zip(str_list, def_list))
+    # 工数区分定義リスト作成
+    def_library, def_n = kosu_division_dictionary(request)
+    def_library.append(['#', '-'])
+    def_library.append(['$', '休憩'])
 
     # 作業内容と作業詳細リスト作成
     for ind, t in enumerate(find_list):
       # 最後以外のループ処理
       if len(find_list) - 1 != ind:
-        def_time.append(def_library[work_list[t]])
+        for d in def_library:
+          if work_list[t] == d[0]:
+            def_time.append(d[1])
+            break
+
         detail_time.append(detail_list[t])
 
 
@@ -3870,73 +2346,19 @@ def input(request):
     # 工数合計取得
     time_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
  
-    # 基準合計工数定義
-    default_total = 0
-    if obj_get.work_time == '出勤':
-      default_total = 470
-    elif obj_get.work_time == 'シフト出勤':
-      default_total = 470
-    elif obj_get.work_time == '休出':
-      default_total = 0
-    elif obj_get.work_time == '遅刻・早退':
-      default_total = '-'
-    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
-            obj_get.work_time == '半前年休':
-      default_total = 220
-    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
-            obj_get.work_time == '半後年休':
-      default_total = 250
-    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
-            obj_get.work_time == '半前年休':
-      default_total = 230
-    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
-            obj_get.work_time == '半後年休':
-      default_total = 240
-    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
-            obj_get.work_time == '半前年休':
-      default_total = 275
-    elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
-            obj_get.work_time == '半後年休':
-      default_total = 195
-    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
-          data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半前年休':
-      default_total = 230
-    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
-          data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半後年休':
-      default_total = 240
-    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
-          data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半前年休':
-      default_total = 290
-    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
-          data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半後年休':
-      default_total = 180
-    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
-          data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半前年休':
-      default_total = 230
-    elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
-          data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半後年休':
-      default_total = 240
-    elif obj_get.tyoku2 == '4' and obj_get.work_time == '半前年休':
-      default_total = 230
-    elif obj_get.tyoku2 == '4' and obj_get.work_time == '半後年休':
-      default_total = 240
+    # 基準合計工数取得
+    default_total = default_work_time(obj_get, member_obj)
 
 
   # 工数データない場合の処理
   else:
     def_n = 0
-
     # 工数合計定義
     time_total = 0
- 
     # 基準合計工数定義
     default_total = 0
+    # 工数区分定義
+    def_library = []
 
 
 
@@ -3949,11 +2371,12 @@ def input(request):
     'default_end_time' : default_end_time,
     'graph_list' : graph_list,
     'graph_item' : graph_item,
-    'graph_kosu_list' : graph_kosu_list,
+    'def_library' : def_library,
     'def_n' : def_n,
     'OK_NG' : ok_ng,
     'time_total' : time_total,
     'default_total' : default_total,
+    'obj_get' : obj_get,
     'obj_link' : obj_link,
     'time_display_list' : time_display_list,
     'member_obj' : member_obj
@@ -3978,21 +2401,21 @@ def input(request):
 def break_time(request): 
 
   # セッションにログインした従業員番号がない場合の処理
-  if request.session.get('login_No', None) == None:
-    # 未ログインならログインページに飛ぶ
-    return redirect(to = '/login')
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
 
   try:
     # ログイン者の情報取得
-    member_data = member.objects.get(employee_no = request.session['login_No'])
-
+    member_obj = member.objects.get(employee_no=request.session['login_No'])
   # セッション値から人員情報取得できない場合の処理
   except member.DoesNotExist:
     # セッション削除
     request.session.clear()
     # ログインページに戻る
-    return redirect(to = '/login')
-
+    return redirect('/login')
+  
+  
 
   # POST時の処理
   if (request.method == 'POST'):
@@ -4030,199 +2453,54 @@ def break_time(request):
     break_time16_start = request.POST['start_time16']
     break_time16_end = request.POST['end_time16']
 
-    # 休憩1開始時間の区切りのインデックス取得
-    break_time1_start_index = break_time1_start.index(':')
-    # 休憩1開始時取得
-    break_time1_start_hour = break_time1_start[ : break_time1_start_index]
-    # 休憩1開始分取得
-    break_time1_start_min = break_time1_start[break_time1_start_index + 1 : ]
-    # 休憩1終了時間の区切りのインデックス取得
-    break_time1_end_index = break_time1_end.index(':')
-    # 休憩1終了時取得
-    break_time1_end_hour = break_time1_end[ : break_time1_end_index]
-    # 休憩1終了分取得
-    break_time1_end_min = break_time1_end[break_time1_end_index + 1 : ]
-    # 休憩2開始時間の区切りのインデックス取得
-    break_time2_start_index = break_time2_start.index(':')
-    # 休憩2開始時取得
-    break_time2_start_hour = break_time2_start[ : break_time2_start_index]
-    # 休憩2開始分取得
-    break_time2_start_min = break_time2_start[break_time2_start_index + 1 : ]
-    # 休憩2終了時間の区切りのインデックス取得
-    break_time2_end_index = break_time2_end.index(':')
-    # 休憩2終了時取得
-    break_time2_end_hour = break_time2_end[ : break_time2_end_index]
-    # 休憩2終了分取得
-    break_time2_end_min = break_time2_end[break_time2_end_index + 1 : ]
-    # 休憩3開始時間の区切りのインデックス取得
-    break_time3_start_index = break_time3_start.index(':')
-    # 休憩3開始時取得
-    break_time3_start_hour = break_time3_start[ : break_time3_start_index]
-    # 休憩3開始分取得
-    break_time3_start_min = break_time3_start[break_time3_start_index + 1 : ]
-    # 休憩3終了時間の区切りのインデックス取得
-    break_time3_end_index = break_time3_end.index(':')
-    # 休憩3終了時取得
-    break_time3_end_hour = break_time3_end[ : break_time3_end_index]
-    # 休憩3終了分取得
-    break_time3_end_min = break_time3_end[break_time3_end_index + 1 : ]
-    # 休憩4開始時間の区切りのインデックス取得
-    break_time4_start_index = break_time4_start.index(':')
-    # 休憩4開始時取得
-    break_time4_start_hour = break_time4_start[ : break_time4_start_index]
-    # 休憩4開始分取得
-    break_time4_start_min = break_time4_start[break_time4_start_index + 1 : ]
-    # 休憩4終了時間の区切りのインデックス取得
-    break_time4_end_index = break_time4_end.index(':')
-    # 休憩4終了時取得
-    break_time4_end_hour = break_time4_end[ : break_time4_end_index]
-    # 休憩4終了分取得
-    break_time4_end_min = break_time4_end[break_time4_end_index + 1 : ]
-    # 休憩5開始時間の区切りのインデックス取得
-    break_time5_start_index = break_time5_start.index(':')
-    # 休憩5開始時取得
-    break_time5_start_hour = break_time5_start[ : break_time5_start_index]
-    # 休憩5開始分取得
-    break_time5_start_min = break_time5_start[break_time5_start_index + 1 : ]
-    # 休憩5終了時間の区切りのインデックス取得
-    break_time5_end_index = break_time5_end.index(':')
-    # 休憩5終了時取得
-    break_time5_end_hour = break_time5_end[ : break_time5_end_index]
-    # 休憩5終了分取得
-    break_time5_end_min = break_time5_end[break_time5_end_index + 1 : ]
-    # 休憩6開始時間の区切りのインデックス取得
-    break_time6_start_index = break_time6_start.index(':')
-    # 休憩6開始時取得
-    break_time6_start_hour = break_time6_start[ : break_time6_start_index]
-    # 休憩6開始分取得
-    break_time6_start_min = break_time6_start[break_time6_start_index + 1 : ]
-    # 休憩6終了時間の区切りのインデックス取得
-    break_time6_end_index = break_time6_end.index(':')
-    # 休憩6終了時取得
-    break_time6_end_hour = break_time6_end[ : break_time6_end_index]
-    # 休憩6終了分取得
-    break_time6_end_min = break_time6_end[break_time6_end_index + 1 : ]
-    # 休憩7開始時間の区切りのインデックス取得
-    break_time7_start_index = break_time7_start.index(':')
-    # 休憩7開始時取得
-    break_time7_start_hour = break_time7_start[ : break_time7_start_index]
-    # 休憩7開始分取得
-    break_time7_start_min = break_time7_start[break_time7_start_index + 1 : ]
-    # 休憩7終了時間の区切りのインデックス取得
-    break_time7_end_index = break_time7_end.index(':')
-    # 休憩7終了時取得
-    break_time7_end_hour = break_time7_end[ : break_time7_end_index]
-    # 休憩7終了分取得
-    break_time7_end_min = break_time7_end[break_time7_end_index + 1 : ]
-    # 休憩8開始時間の区切りのインデックス取得
-    break_time8_start_index = break_time8_start.index(':')
-    # 休憩8開始時取得
-    break_time8_start_hour = break_time8_start[ : break_time8_start_index]
-    # 休憩8開始分取得
-    break_time8_start_min = break_time8_start[break_time8_start_index + 1 : ]
-    # 休憩8終了時間の区切りのインデックス取得
-    break_time8_end_index = break_time8_end.index(':')
-    # 休憩8終了時取得
-    break_time8_end_hour = break_time8_end[ : break_time8_end_index]
-    # 休憩8終了分取得
-    break_time8_end_min = break_time8_end[break_time8_end_index + 1 : ]
-    # 休憩9開始時間の区切りのインデックス取得
-    break_time9_start_index = break_time9_start.index(':')
-    # 休憩9開始時取得
-    break_time9_start_hour = break_time9_start[ : break_time9_start_index]
-    # 休憩9開始分取得
-    break_time9_start_min = break_time9_start[break_time9_start_index + 1 : ]
-    # 休憩9終了時間の区切りのインデックス取得
-    break_time9_end_index = break_time9_end.index(':')
-    # 休憩9終了時取得
-    break_time9_end_hour = break_time9_end[ : break_time9_end_index]
-    # 休憩9終了分取得
-    break_time9_end_min = break_time9_end[break_time9_end_index + 1 : ]
-    # 休憩10開始時間の区切りのインデックス取得
-    break_time10_start_index = break_time10_start.index(':')
-    # 休憩10開始時取得
-    break_time10_start_hour = break_time10_start[ : break_time10_start_index]
-    # 休憩10開始分取得
-    break_time10_start_min = break_time10_start[break_time10_start_index + 1 : ]
-    # 休憩10終了時間の区切りのインデックス取得
-    break_time10_end_index = break_time10_end.index(':')
-    # 休憩10終了時取得
-    break_time10_end_hour = break_time10_end[ : break_time10_end_index]
-    # 休憩10終了分取得
-    break_time10_end_min = break_time10_end[break_time10_end_index + 1 : ]
-    # 休憩11開始時間の区切りのインデックス取得
-    break_time11_start_index = break_time11_start.index(':')
-    # 休憩11開始時取得
-    break_time11_start_hour = break_time11_start[ : break_time11_start_index]
-    # 休憩11開始分取得
-    break_time11_start_min = break_time11_start[break_time11_start_index + 1 : ]
-    # 休憩11終了時間の区切りのインデックス取得
-    break_time11_end_index = break_time11_end.index(':')
-    # 休憩11終了時取得
-    break_time11_end_hour = break_time11_end[ : break_time11_end_index]
-    # 休憩11終了分取得
-    break_time11_end_min = break_time11_end[break_time11_end_index + 1 : ]
-    # 休憩12開始時間の区切りのインデックス取得
-    break_time12_start_index = break_time12_start.index(':')
-    # 休憩12開始時取得
-    break_time12_start_hour = break_time12_start[ : break_time12_start_index]
-    # 休憩12開始分取得
-    break_time12_start_min = break_time12_start[break_time12_start_index + 1 : ]
-    # 休憩12終了時間の区切りのインデックス取得
-    break_time12_end_index = break_time12_end.index(':')
-    # 休憩12終了時取得
-    break_time12_end_hour = break_time12_end[ : break_time12_end_index]
-    # 休憩12終了分取得
-    break_time12_end_min = break_time12_end[break_time12_end_index + 1 : ]
-    # 休憩13開始時間の区切りのインデックス取得
-    break_time13_start_index = break_time13_start.index(':')
-    # 休憩13開始時取得
-    break_time13_start_hour = break_time13_start[ : break_time13_start_index]
-    # 休憩13開始分取得
-    break_time13_start_min = break_time13_start[break_time13_start_index + 1 : ]
-    # 休憩13終了時間の区切りのインデックス取得
-    break_time13_end_index = break_time13_end.index(':')
-    # 休憩13終了時取得
-    break_time13_end_hour = break_time13_end[ : break_time13_end_index]
-    # 休憩13終了分取得
-    break_time13_end_min = break_time13_end[break_time13_end_index + 1 : ]
-    # 休憩14開始時間の区切りのインデックス取得
-    break_time14_start_index = break_time14_start.index(':')
-    # 休憩14開始時取得
-    break_time14_start_hour = break_time14_start[ : break_time14_start_index]
-    # 休憩14開始分取得
-    break_time14_start_min = break_time14_start[break_time14_start_index + 1 : ]
-    # 休憩14終了時間の区切りのインデックス取得
-    break_time14_end_index = break_time14_end.index(':')
-    # 休憩14終了時取得
-    break_time14_end_hour = break_time14_end[ : break_time14_end_index]
-    # 休憩14終了分取得
-    break_time14_end_min = break_time14_end[break_time14_end_index + 1 : ]
-    # 休憩15開始時間の区切りのインデックス取得
-    break_time15_start_index = break_time15_start.index(':')
-    # 休憩15開始時取得
-    break_time15_start_hour = break_time15_start[ : break_time15_start_index]
-    # 休憩15開始分取得
-    break_time15_start_min = break_time15_start[break_time15_start_index + 1 : ]
-    # 休憩15終了時間の区切りのインデックス取得
-    break_time15_end_index = break_time15_end.index(':')
-    # 休憩15終了時取得
-    break_time15_end_hour = break_time15_end[ : break_time15_end_index]
-    # 休憩15終了分取得
-    break_time15_end_min = break_time15_end[break_time15_end_index + 1 : ]
-    # 休憩16開始時間の区切りのインデックス取得
-    break_time16_start_index = break_time16_start.index(':')
-    # 休憩16開始時取得
-    break_time16_start_hour = break_time16_start[ : break_time16_start_index]
-    # 休憩16開始分取得
-    break_time16_start_min = break_time16_start[break_time16_start_index + 1 : ]
-    # 休憩16終了時間の区切りのインデックス取得
-    break_time16_end_index = break_time16_end.index(':')
-    # 休憩16終了時取得
-    break_time16_end_hour = break_time16_end[ : break_time16_end_index]
-    # 休憩16終了分取得
-    break_time16_end_min = break_time16_end[break_time16_end_index + 1 : ]
-
+    # 休憩1開始時間の時と分取得
+    break_time1_start_hour, break_time1_start_min = time_index(break_time1_start)
+    break_time1_end_hour, break_time1_end_min = time_index(break_time1_end)
+    # 休憩2開始時間の時と分取得
+    break_time2_start_hour, break_time2_start_min = time_index(break_time2_start)
+    break_time2_end_hour, break_time2_end_min = time_index(break_time2_end)
+    # 休憩3開始時間の時と分取得
+    break_time3_start_hour, break_time3_start_min = time_index(break_time3_start)
+    break_time3_end_hour, break_time3_end_min = time_index(break_time3_end)
+    # 休憩4開始時間の時と分取得
+    break_time4_start_hour, break_time4_start_min = time_index(break_time4_start)
+    break_time4_end_hour, break_time4_end_min = time_index(break_time4_end)
+    # 休憩5開始時間の時と分取得
+    break_time5_start_hour, break_time5_start_min = time_index(break_time5_start)
+    break_time5_end_hour, break_time5_end_min = time_index(break_time5_end)
+    # 休憩6開始時間の時と分取得
+    break_time6_start_hour, break_time6_start_min = time_index(break_time6_start)
+    break_time6_end_hour, break_time6_end_min = time_index(break_time6_end)
+    # 休憩7開始時間の時と分取得
+    break_time7_start_hour, break_time7_start_min = time_index(break_time7_start)
+    break_time7_end_hour, break_time7_end_min = time_index(break_time7_end)
+    # 休憩8開始時間の時と分取得
+    break_time8_start_hour, break_time8_start_min = time_index(break_time8_start)
+    break_time8_end_hour, break_time8_end_min = time_index(break_time8_end)
+    # 休憩9開始時間の時と分取得
+    break_time9_start_hour, break_time9_start_min = time_index(break_time9_start)
+    break_time9_end_hour, break_time9_end_min = time_index(break_time9_end)
+    # 休憩10開始時間の時と分取得
+    break_time10_start_hour, break_time10_start_min = time_index(break_time10_start)
+    break_time10_end_hour, break_time10_end_min = time_index(break_time10_end)
+    # 休憩11開始時間の時と分取得
+    break_time11_start_hour, break_time11_start_min = time_index(break_time11_start)
+    break_time11_end_hour, break_time11_end_min = time_index(break_time11_end)
+    # 休憩12開始時間の時と分取得
+    break_time12_start_hour, break_time12_start_min = time_index(break_time12_start)
+    break_time12_end_hour, break_time12_end_min = time_index(break_time12_end)
+    # 休憩13開始時間の時と分取得
+    break_time13_start_hour, break_time13_start_min = time_index(break_time13_start)
+    break_time13_end_hour, break_time13_end_min = time_index(break_time13_end)
+    # 休憩14開始時間の時と分取得
+    break_time14_start_hour, break_time14_start_min = time_index(break_time14_start)
+    break_time14_end_hour, break_time14_end_min = time_index(break_time14_end)
+    # 休憩15開始時間の時と分取得
+    break_time15_start_hour, break_time15_start_min = time_index(break_time15_start)
+    break_time15_end_hour, break_time15_end_min = time_index(break_time15_end)
+    # 休憩16開始時間の時と分取得
+    break_time16_start_hour, break_time16_start_min = time_index(break_time16_start)
+    break_time16_end_hour, break_time16_end_min = time_index(break_time16_end)
 
     # POSTされた値をまとめる
     break_time1 = break_time1_start_hour.zfill(2) + break_time1_start_min + \
@@ -4532,7 +2810,7 @@ def break_time(request):
   default_end_time16 = break4_3[5 : 7] + ':' + break4_3[7 : ]
 
   # 休憩エラー有効チェックがONの場合の処理
-  if member_data.break_check == True:
+  if member_obj.break_check == True:
     # チェックBOX初期値ON
     initial_checkbox = True
 
@@ -4597,20 +2875,24 @@ def break_time(request):
 def today_break_time(request): 
 
   # セッションにログインした従業員番号がない場合の処理
-  if request.session.get('login_No', None) == None:
-    # 未ログインならログインページに飛ぶ
-    return redirect(to = '/login')
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
+  
+  # 日付データがセッションにない場合の処理
+  if not request.session.get('break_today'):
+    # 工数MENUへ飛ぶ
+    return redirect('/kosu_main')
 
   try:
     # ログイン者の情報取得
-    member_data = member.objects.get(employee_no = request.session['login_No'])
-
+    member_obj = member.objects.get(employee_no=request.session['login_No'])
   # セッション値から人員情報取得できない場合の処理
   except member.DoesNotExist:
     # セッション削除
     request.session.clear()
     # ログインページに戻る
-    return redirect(to = '/login')
+    return redirect('/login')
 
 
   # セッションに工数入力日がない場合の処理
@@ -4632,63 +2914,27 @@ def today_break_time(request):
     break_time4_start = request.POST['start_time4']
     break_time4_end = request.POST['end_time4']
 
-    # 休憩1開始時間の区切りのインデックス取得
-    break_time1_start_index = break_time1_start.index(':')
-    # 休憩1開始時取得
-    break_time1_start_hour = break_time1_start[ : break_time1_start_index]
-    # 休憩1開始分取得
-    break_time1_start_min = break_time1_start[break_time1_start_index + 1 : ]
-    # 休憩1終了時間の区切りのインデックス取得
-    break_time1_end_index = break_time1_end.index(':')
-    # 休憩1終了時取得
-    break_time1_end_hour = break_time1_end[ : break_time1_end_index]
-    # 休憩1終了分取得
-    break_time1_end_min = break_time1_end[break_time1_end_index + 1 : ]
-    # 休憩2開始時間の区切りのインデックス取得
-    break_time2_start_index = break_time2_start.index(':')
-    # 休憩2開始時取得
-    break_time2_start_hour = break_time2_start[ : break_time2_start_index]
-    # 休憩2開始分取得
-    break_time2_start_min = break_time2_start[break_time2_start_index + 1 : ]
-    # 休憩2終了時間の区切りのインデックス取得
-    break_time2_end_index = break_time2_end.index(':')
-    # 休憩2終了時取得
-    break_time2_end_hour = break_time2_end[ : break_time2_end_index]
-    # 休憩2終了分取得
-    break_time2_end_min = break_time2_end[break_time2_end_index + 1 : ]
-    # 休憩3開始時間の区切りのインデックス取得
-    break_time3_start_index = break_time3_start.index(':')
-    # 休憩3開始時取得
-    break_time3_start_hour = break_time3_start[ : break_time3_start_index]
-    # 休憩3開始分取得
-    break_time3_start_min = break_time3_start[break_time3_start_index + 1 : ]
-    # 休憩3終了時間の区切りのインデックス取得
-    break_time3_end_index = break_time3_end.index(':')
-    # 休憩3終了時取得
-    break_time3_end_hour = break_time3_end[ : break_time3_end_index]
-    # 休憩3終了分取得
-    break_time3_end_min = break_time3_end[break_time3_end_index + 1 : ]
-    # 休憩4開始時間の区切りのインデックス取得
-    break_time4_start_index = break_time4_start.index(':')
-    # 休憩4開始時取得
-    break_time4_start_hour = break_time4_start[ : break_time4_start_index]
-    # 休憩4開始分取得
-    break_time4_start_min = break_time4_start[break_time4_start_index + 1 : ]
-    # 休憩4終了時間の区切りのインデックス取得
-    break_time4_end_index = break_time4_end.index(':')
-    # 休憩4終了時取得
-    break_time4_end_hour = break_time4_end[ : break_time4_end_index]
-    # 休憩4終了分取得
-    break_time4_end_min = break_time4_end[break_time4_end_index + 1 : ]
+    # 休憩1開始時間の時と分取得
+    break_time1_start_hour, break_time1_start_min = time_index(break_time1_start)
+    break_time1_end_hour, break_time1_end_min = time_index(break_time1_end)
+    # 休憩2開始時間の時と分取得
+    break_time2_start_hour, break_time2_start_min = time_index(break_time2_start)
+    break_time2_end_hour, break_time2_end_min = time_index(break_time2_end)
+    # 休憩3開始時間の時と分取得
+    break_time3_start_hour, break_time3_start_min = time_index(break_time3_start)
+    break_time3_end_hour, break_time3_end_min = time_index(break_time3_end)
+    # 休憩4開始時間の時と分取得
+    break_time4_start_hour, break_time4_start_min = time_index(break_time4_start)
+    break_time4_end_hour, break_time4_end_min = time_index(break_time4_end)
 
     # POSTされた値をまとめる
-    break_time1 = break_time1_start_hour.zfill(2) + break_time1_start_min + \
+    break_time1 = '#' + break_time1_start_hour.zfill(2) + break_time1_start_min + \
                   break_time1_end_hour.zfill(2) + break_time1_end_min
-    break_time2 = break_time2_start_hour.zfill(2) + break_time2_start_min + \
+    break_time2 = '#' + break_time2_start_hour.zfill(2) + break_time2_start_min + \
                   break_time2_end_hour.zfill(2) + break_time2_end_min
-    break_time3 = break_time3_start_hour.zfill(2) + break_time3_start_min + \
+    break_time3 = '#' + break_time3_start_hour.zfill(2) + break_time3_start_min + \
                   break_time3_end_hour.zfill(2) + break_time3_end_min
-    break_time4 = break_time4_start_hour.zfill(2) + break_time4_start_min + \
+    break_time4 = '#' + break_time4_start_hour.zfill(2) + break_time4_start_min + \
                   break_time4_end_hour.zfill(2) + break_time4_end_min
 
 
@@ -4746,308 +2992,121 @@ def today_break_time(request):
                                                     work_day2 = request.session['break_today'])
 
     # 工数データある場合の処理
-    if kosu_data_filter.count() != 0:
+    if kosu_data_filter.exists():
       # 工数データ取得
-      kosu_data_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                      work_day2 = request.session['break_today'])
+      kosu_data_get = kosu_data_filter.first()
 
       # 作業内容と作業詳細をリストに解凍
       kosu_def = list(kosu_data_get.time_work)
       detail_list = kosu_data_get.detail_work.split('$')
 
-      # 休憩1開始時間のインデント取得
-      break_start1 = int(int(break_time1_start_hour)*12 + int(break_time1_start_min)/5)
-  
-      # 休憩1終了時間のインデント取得
-      break_end1 = int(int(break_time1_end_hour)*12 + int(break_time1_end_min)/5)
+      # 休憩1のインデント取得
+      break_start1, break_end1, break_next_day1 = break_time_process(break_time1)
+      # 休憩2のインデント取得
+      break_start2, break_end2, break_next_day2 = break_time_process(break_time2)
+      # 休憩3のインデント取得
+      break_start3, break_end3, break_next_day3 = break_time_process(break_time3)
+      # 休憩4のインデント取得
+      break_start4, break_end4, break_next_day4 = break_time_process(break_time4)
 
-      # 休憩1の日またぎ変数リセット
-      break_next_day1 = 0
 
-      # 休憩開始時間より終了時間の方が早い場合の処理
-      if break_start1 > break_end1:
-        # 休憩1の日またぎ変数に1を入れる
-        break_next_day1 = 1
-
-      # 休憩開始時間より終了時間の方が遅い場合の処理
-      else:
-        # 休憩1の日またぎ変数に0を入れる
-        break_next_day1 = 0
-
-      # 休憩2開始時間のインデント取得
-      break_start2 = int(int(break_time2_start_hour)*12 + int(break_time2_start_min)/5)
-
-      # 休憩2終了時間のインデント取得
-      break_end2 = int(int(break_time2_end_hour)*12 + int(break_time2_end_min)/5)
-
-      # 休憩2の日またぎ変数リセット
-      break_next_day2 = 0
-
-      # 休憩開始時間より終了時間の方が早い場合の処理
-      if break_start2 > break_end2:
-        # 休憩2の日またぎ変数に1を入れる
-        break_next_day2 = 1
-
-      # 休憩開始時間より終了時間の方が遅い場合の処理
-      else:
-        # 休憩2の日またぎ変数に0を入れる
-        break_next_day2 = 0
-
-      # 休憩3開始時間のインデント取得
-      break_start3 = int(int(break_time3_start_hour)*12 + int(break_time3_start_min)/5)
-
-      # 休憩3終了時間のインデント取得
-      break_end3 = int(int(break_time3_end_hour)*12 + int(break_time3_end_min)/5)
-
-      # 休憩3の日またぎ変数リセット
-      break_next_day3 = 0
-
-      # 休憩開始時間より終了時間の方が早い場合の処理
-      if break_start3 > break_end3:
-        # 休憩3の日またぎ変数に1を入れる
-        break_next_day3 = 1
-
-      # 休憩開始時間より終了時間の方が遅い場合の処理
-      else:
-        # 休憩3の日またぎ変数に0を入れる
-        break_next_day3 = 0
-
-      # 休憩4開始時間のインデント取得
-      break_start4 = int(int(break_time4_start_hour)*12 + int(break_time4_start_min)/5)
-
-      # 休憩4終了時間のインデント取得
-      break_end4 = int(int(break_time4_end_hour)*12 + int(break_time4_end_min)/5)
-
-      # 休憩4の日またぎ変数リセット
-      break_next_day4 = 0
-
-      # 休憩開始時間より終了時間の方が早い場合の処理
-      if break_start4 > break_end4:
-        # 休憩4の日またぎ変数に1を入れる
-        break_next_day4 = 1
-
-      # 休憩開始時間より終了時間の方が遅い場合の処理
-      else:
-        # 休憩4の日またぎ変数に0を入れる
-        break_next_day4 = 0
-
+      # 休憩エラー有効チェック一時的に無効
+      member_obj.break_check = False
 
       # 休憩1が日を超えている場合の処理
       if break_next_day1 == 1:
-        # 休憩時間内の工数データと作業詳細を消すループ(休憩時間開始～24時まで)
-        for bt1 in range(break_start1, 288):
-          # 作業内容リストの要素を空にする
-          kosu_def[bt1] = '#'
-
-          # 作業詳細リストの要素を空にする
-          detail_list[bt1] = ''
-
-
-        # 休憩時間内の工数データと作業詳細を消すループ(0時～休憩時間終了まで)
-        for bt1 in range(break_end1):
-          # 作業内容リストの要素を空にする
-          kosu_def[bt1] = '#'
-
-          # 作業詳細リストの要素を空にする
-          detail_list[bt1] = ''
-
+        # 休憩時間内の工数データを削除
+        kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
+        kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
 
         # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[break_end1] != '#':
-          # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-          for bt1 in range(break_start1, 288):
-            # 作業内容リストの要素を休憩に書き換え
-            kosu_def[bt1] = '$'
-
-
-          # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-          for bt1 in range(break_end1):
-            # 作業内容リストの要素を休憩に書き換え
-            kosu_def[bt1] = '$'
-
+        if kosu_def[int(break_end1)] != '#':
+          # 休憩時間内の工数データを休憩に書き換え
+          kosu_def, detail_list = break_time_write(break_start1, 288, kosu_def, detail_list)
+          kosu_def, detail_list = break_time_write(0, break_end1, kosu_def, detail_list)
 
       # 休憩1が日を超えていない場合の処理
       else:
-        # 休憩時間内の工数データと作業詳細を消すループ
-        for bt1 in range(break_start1, break_end1):
-          # 作業内容リストの要素を空にする
-          kosu_def[bt1] = '#'
-          # 作業詳細リストの要素を空にする
-          detail_list[bt1] = ''
- 
+        # 休憩時間内の工数データを削除
+        kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
 
         # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[break_end1] != '#':
-          # 休憩時間内の工数データを休憩に書き換えるループ
-          for bt1 in range(break_start1, break_end1):
-            # 作業内容リストの要素を休憩に書き換え
-            kosu_def[bt1] = '$'
+        if kosu_def[int(break_end1)] != '#':
+          # 休憩時間内の工数データを休憩に書き換え
+          kosu_def, detail_list = break_time_write(break_start1, break_end1, kosu_def, detail_list)
 
 
       # 休憩2が日を超えている場合の処理
       if break_next_day2 == 1:
-        # 休憩時間内の工数データと作業詳細を消すループ(休憩時間開始～24時まで)
-        for bt2 in range(break_start2, 288):
-          # 作業内容リストの要素を空にする
-          kosu_def[bt2] = '#'
-          # 作業詳細リストの要素を空にする
-          detail_list[bt2] = ''
-
-
-        # 休憩時間内の工数データと作業詳細を消すループ(0時～休憩時間終了まで)
-        for bt2 in range(break_end2):
-          # 作業内容リストの要素を空にする
-          kosu_def[bt2] = '#'
-          # 作業詳細リストの要素を空にする
-          detail_list[bt2] = ''
-
+        # 休憩時間内の工数データを削除
+        kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
+        kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
 
         # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[break_end2] != '#':
-          # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-          for bt2 in range(break_start2, 288):
-            # 作業内容リストの要素を休憩に書き換え
-            kosu_def[bt2] = '$'
-
-
-          # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-          for bt2 in range(break_end2):
-            # 作業内容リストの要素を休憩に書き換え
-            kosu_def[bt2] = '$'
-
+        if kosu_def[int(break_end2)] != '#':
+          # 休憩時間内の工数データを休憩に書き換え
+          kosu_def, detail_list = break_time_write(break_start2, 288, kosu_def, detail_list)
+          kosu_def, detail_list = break_time_write(0, break_end2, kosu_def, detail_list)
 
       # 休憩2が日を超えていない場合の処理
       else:
-        # 休憩時間内の工数データと作業詳細を消すループ
-        for bt2 in range(break_start2, break_end2):
-          # 作業内容リストの要素を空にする
-          kosu_def[bt2] = '#'
-          # 作業詳細リストの要素を空にする
-          detail_list[bt2] = ''
-
+        # 休憩時間内の工数データを削除
+        kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
 
         # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[break_end2] != '#':
-          # 休憩時間内の工数データを休憩に書き換えるループ
-          for bt2 in range(break_start2, break_end2):
-            # 作業内容リストの要素を休憩に書き換え
-            kosu_def[bt2] = '$'
+        if kosu_def[int(break_end2)] != '#':
+          # 休憩時間内の工数データを休憩に書き換え
+          kosu_def, detail_list = break_time_write(break_start2, break_end2, kosu_def, detail_list)
 
 
       # 休憩3が日を超えている場合の処理
       if break_next_day3 == 1:
-        # 休憩時間内の工数データと作業詳細を消すループ(休憩時間開始～24時まで)
-        for bt3 in range(break_start3, 288):
-          # 作業内容リストの要素を空にする
-          kosu_def[bt3] = '#'
-          # 作業詳細リストの要素を空にする
-          detail_list[bt3] = ''
-
-
-        # 休憩時間内の工数データと作業詳細を消すループ(0時～休憩時間終了まで)
-        for bt2 in range(break_end3):
-          # 作業内容リストの要素を空にする
-          kosu_def[bt3] = '#'
-          # 作業詳細リストの要素を空にする
-          detail_list[bt3] = ''
-
+        # 休憩時間内の工数データを削除
+        kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
+        kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
 
         # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[break_end3] != '#':
-          # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-          for bt3 in range(break_start3, 288):
-            # 作業内容リストの要素を休憩に書き換え
-            kosu_def[bt3] = '$'
-
-
-          # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-          for bt3 in range(break_end3):
-            # 作業内容リストの要素を休憩に書き換え
-            kosu_def[bt3] = '$'
-
+        if kosu_def[int(break_end3)] != '#':
+          # 休憩時間内の工数データを休憩に書き換え
+          kosu_def, detail_list = break_time_write(break_start3, 288, kosu_def, detail_list)
+          kosu_def, detail_list = break_time_write(0, break_end3, kosu_def, detail_list)
 
       # 休憩3が日を超えていない場合の処理
       else:
-        # 休憩時間内の工数データと作業詳細を消す
-        for bt3 in range(break_start3, break_end3):
-          # 作業内容リストの要素を空にする
-          kosu_def[bt3] = '#'
-          # 作業詳細リストの要素を空にする
-          detail_list[bt3] = ''
-
+        # 休憩時間内の工数データを削除
+        kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
 
         # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[break_end3] != '#':
-          # 休憩時間内の工数データを休憩に書き換えるループ
-          for bt3 in range(break_start3, break_end3):
-            # 作業内容リストの要素を休憩に書き換え
-            kosu_def[bt3] = '$'
+        if kosu_def[int(break_end3)] != '#':
+          # 休憩時間内の工数データを休憩に書き換え
+          kosu_def, detail_list = break_time_write(break_start3, break_end3, kosu_def, detail_list)
 
 
       # 休憩4が日を超えている場合の処理
       if break_next_day4 == 1:
-        # 休憩時間内の工数データと作業詳細を消すループ(休憩時間開始～24時まで)
-        for bt4 in range(break_start4, 288):
-          # 作業内容リストの要素を空にする
-          kosu_def[bt4] = '#'
-          # 作業詳細リストの要素を空にする
-          detail_list[bt4] = ''
-
-
-        # 休憩時間内の工数データと作業詳細を消すループ(0時～休憩時間終了まで)
-        for bt4 in range(break_end4):
-          # 作業内容リストの要素を空にする
-          kosu_def[bt4] = '#'
-          # 作業詳細リストの要素を空にする
-          detail_list[bt4] = ''
-
+        # 休憩時間内の工数データを削除
+        kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
+        kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
 
         # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[break_end4] != '#':
-          # 休憩時間内の工数データを休憩に書き換えるループ(休憩時間開始～24時まで)
-          for bt4 in range(break_start4, 288):
-            # 作業内容リストの要素を休憩に書き換え
-            kosu_def[bt4] = '$'
-
-
-          # 休憩時間内の工数データを休憩に書き換えるループ(0時～休憩時間終了まで)
-          for bt4 in range(break_end4):
-            # 作業内容リストの要素を休憩に書き換え
-            kosu_def[bt4] = '$'
-
+        if kosu_def[int(break_end4)] != '#':
+          # 休憩時間内の工数データを休憩に書き換え
+          kosu_def, detail_list = break_time_write(break_start4, 288, kosu_def, detail_list)
+          kosu_def, detail_list = break_time_write(0, break_end4, kosu_def, detail_list)
 
       # 休憩4が日を超えていない場合の処理
       else:
-        # 休憩時間内の工数データと作業詳細を消すループ
-        for bt4 in range(break_start4, break_end4):
-          # 作業内容リストの要素を空にする
-          kosu_def[bt4] = '#'
-          # 作業詳細リストの要素を空にする
-          detail_list[bt4] = ''
+        # 休憩時間内の工数データを削除
+        kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
+
+        # 休憩時間直後の時間に工数入力がある場合の処理
+        if kosu_def[int(break_end4)] != '#':
+          # 休憩時間内の工数データを休憩に書き換え
+          kosu_def, detail_list = break_time_write(break_start4, break_end4, kosu_def, detail_list)
 
 
-      # 休憩時間直後の時間に工数入力がある場合の処理
-      if kosu_def[break_end4] != '#':
-        # 休憩時間内の工数データを休憩に書き換えるループ
-        for bt4 in range(break_start4, break_end4):
-          # 作業内容リストの要素を休憩に書き換え
-          kosu_def[bt4] = '$'
-
-
-      # 作業詳細変数リセット
-      detail_list_str = ''
-
-      # 作業詳細リストをstr型に変更するループ
-      for i, e in enumerate(detail_list):
-        # 最終ループの処理
-        if i == len(detail_list) - 1:
-          # 作業詳細変数に作業詳細リストの要素をstr型で追加する
-          detail_list_str = detail_list_str + detail_list[i]
-
-        # 最終ループ以外の処理
-        else:
-          # 作業詳細変数に作業詳細リストの要素をstr型で追加し、区切り文字の'$'も追加
-          detail_list_str = detail_list_str + detail_list[i] + '$'
+      # 作業詳細を文字列に変換
+      detail_list_str = detail_list_summarize(detail_list)
 
 
       # 作業内容データの内容を上書きして更新
@@ -5055,10 +3114,10 @@ def today_break_time(request):
                                                   work_day2 = request.session.get('break_today', None), \
                                                   defaults = {'time_work' : ''.join(kosu_def), \
                                                               'detail_work' : detail_list_str, \
-                                                              'breaktime' : '#' + break_time1, \
-                                                              'breaktime_over1' : '#' + break_time2, \
-                                                              'breaktime_over2' : '#' + break_time3, \
-                                                              'breaktime_over3' : '#' + break_time4})
+                                                              'breaktime' : break_time1, \
+                                                              'breaktime_over1' : break_time2, \
+                                                              'breaktime_over2' : break_time3, \
+                                                              'breaktime_over3' : break_time4})
 
 
     # 工数データない場合の処理
@@ -5083,14 +3142,13 @@ def today_break_time(request):
 
 
   # 工数データあるか確認
-  break_data_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None), \
-                                                  work_day2 = request.session.get('break_today', None))
+  break_data_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
+                                                  work_day2 = request.session['break_today'])
 
   # 工数データがある場合の処理
-  if break_data_filter.count() != 0:
+  if break_data_filter.exists():
     # 工数データ取得
-    break_data_get = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None), \
-                                                     work_day2 = request.session.get('break_today', None))
+    break_data_get = break_data_filter.first()
     
     # 休憩データ取得
     break1 = break_data_get.breaktime
@@ -5152,89 +3210,26 @@ def today_break_time(request):
 # 工数詳細確認画面定義
 def detail(request, num):
 
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
-  
+  # セッションにログインした従業員番号がない場合の処理
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
+
   try:
     # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
-
+    member_obj = member.objects.get(employee_no=request.session['login_No'])
   # セッション値から人員情報取得できない場合の処理
   except member.DoesNotExist:
     # セッション削除
     request.session.clear()
     # ログインページに戻る
-    return redirect(to = '/login')
+    return redirect('/login')
 
   # 指定IDの工数履歴のレコードのオブジェクトを変数に入れる
   obj_get = Business_Time_graph.objects.get(id = num)
 
-  # 作業内容と作業詳細を取得しリストに解凍
-  work_list = list(obj_get.time_work)
-  detail_list = obj_get.detail_work.split('$')
-
-  # 作業内容と作業詳細のリストを2個連結
-  work_list = work_list*2
-  detail_list = detail_list*2
-
-  # 1直の時の処理
-  if obj_get.tyoku2 == '1':
-    # 作業内容と作業詳細のリストを4時半からの表示に変える
-    del work_list[:54]
-    del detail_list[:54]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
-  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
-    # 作業内容と作業詳細のリストを12時からの表示に変える
-    del work_list[:144]
-    del detail_list[:144]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 2直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
-        and obj_get.tyoku2 == '2':
-    # 作業内容と作業詳細のリストを9時からの表示に変える
-    del work_list[:108]
-    del detail_list[:108]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
-  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
-    # 作業内容と作業詳細のリストを20時半からの表示に変える
-    del work_list[:246]
-    del detail_list[:246]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 3直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
-        and obj_get.tyoku2 == '3':
-    # 作業内容と作業詳細のリストを18時からの表示に変える
-    del work_list[:216]
-    del detail_list[:216]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 常昼の時の処理
-  elif obj_get.tyoku2 == '4':
-    # 作業内容と作業詳細のリストを6時からの表示に変える
-    del work_list[:72]
-    del detail_list[:72]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 直指定ない場合の処理
-  else:
-    del work_list[288:]
-    del detail_list[288:]
-
+  # 作業内容と作業詳細を直に合わせて調整
+  work_list, detail_list = kosu_sort(obj_get, member_obj)
 
   # 作業時間リストリセット
   kosu_list = []
@@ -5257,22 +3252,22 @@ def detail(request, num):
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 54)
 
-      elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
+      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 144)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '2':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 108)
 
-      elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '(P,R,T,その他)') and obj_get.tyoku2 == '3':
+      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+          member_obj.shop == 'その他' or member_obj.shop == '(P,R,T,その他)') and obj_get.tyoku2 == '3':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 246)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '3':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 216)
@@ -5294,8 +3289,8 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 54)
 
-      elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
+      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 144)
@@ -5303,7 +3298,7 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 144)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -5312,8 +3307,8 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 108)
 
-      elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
+      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 42)
@@ -5321,7 +3316,7 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 246)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -5351,8 +3346,8 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 55)
 
-      elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
+      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 143)
@@ -5360,7 +3355,7 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 145)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -5369,8 +3364,8 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 109)
 
-      elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
+      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 41)
@@ -5378,7 +3373,7 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 247)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -5538,62 +3533,8 @@ def detail(request, num):
   # 工数合計取得
   time_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
 
-  # 基準合計工数定義
-  default_total = 0
-  if obj_get.work_time == '出勤':
-    default_total = 470
-  elif obj_get.work_time == 'シフト出勤':
-    default_total = 470
-  elif obj_get.work_time == '休出':
-    default_total = 0
-  elif obj_get.work_time == '遅刻・早退':
-    default_total = '-'
-  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
-          obj_get.work_time == '半前年休':
-    default_total = 220
-  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
-          obj_get.work_time == '半後年休':
-    default_total = 250
-  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
-          obj_get.work_time == '半前年休':
-    default_total = 230
-  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
-          obj_get.work_time == '半後年休':
-    default_total = 240
-  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
-          obj_get.work_time == '半前年休':
-    default_total = 275
-  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
-          obj_get.work_time == '半後年休':
-    default_total = 195
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
-        data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半前年休':
-    default_total = 230
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
-        data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半後年休':
-    default_total = 240
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
-        data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半前年休':
-    default_total = 290
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
-        data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半後年休':
-    default_total = 180
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
-        data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半前年休':
-    default_total = 230
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or \
-        data.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半後年休':
-    default_total = 240
-  elif obj_get.tyoku2 == '4' and obj_get.work_time == '半前年休':
-    default_total = 230
-  elif obj_get.tyoku2 == '4' and obj_get.work_time == '半後年休':
-    default_total = 240
+  # 基準合計工数取得
+  default_total = default_work_time(obj_get, member_obj)
 
 
 
@@ -7870,7 +5811,6 @@ def schedule(request):
                   defaults = {'work_time' : '出勤'})
               
             else:
-              print(i)
               # 就業を上書き
               Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
                 work_day2 = datetime.date(year, month, day_list[i]), \

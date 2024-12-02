@@ -151,6 +151,7 @@ class Page_form(TestCase):
     def test_input_now_time_not_over_day_smartphone_form(self):
         # URLに対してPOST送信するデータ定義
         response = self.client.post(reverse('input'), {
+            'work_day': '2000-01-01',
             'now_time': '現在時刻',
             'start_time': '0:00',
             'work': '',
@@ -198,6 +199,7 @@ class Page_form(TestCase):
     def test_input_now_time_not_over_day_pc_form(self):
         # URLに対してPOST送信するデータ定義
         response = self.client.post(reverse('input'), {
+            'work_day': '2000-01-01',
             'now_time': '現在時刻',
             'start_time': '0:00',
             'work2': '',
@@ -245,6 +247,7 @@ class Page_form(TestCase):
     def test_input_now_time_over_day_smartphone_form(self):
         # URLに対してPOST送信するデータ定義 
         response = self.client.post(reverse('input'), {
+            'work_day': '2000-01-01',
             'now_time': '現在時刻',
             'start_time': '23:55',
             'work': '',
@@ -292,6 +295,7 @@ class Page_form(TestCase):
     def test_input_now_time_over_day_pc_form(self):
         # URLに対してPOST送信するデータ定義 
         response = self.client.post(reverse('input'), {
+            'work_day': '2000-01-01',
             'now_time': '現在時刻',
             'start_time': '23:55',
             'work2': '',

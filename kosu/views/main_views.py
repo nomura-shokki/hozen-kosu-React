@@ -2618,6 +2618,44 @@ def help(request):
 
 
 
+# ストップウォッチ画面定義
+def stopwatch(request):
+
+  # セッションにログインした従業員番号がない場合の処理
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
+  
+  try:
+    # ログイン者の情報取得
+    member_data = member.objects.get(employee_no=request.session['login_No'])
+  # セッション値から人員情報取得できない場合の処理
+  except member.DoesNotExist:
+    # セッション削除
+    request.session.clear()
+    # ログインページに戻る
+    return redirect('/login')
+   
+
+   
+  # HTMLに渡す辞書
+  context = {
+    'title' : 'ストップウォッチ',
+    }
+  
+  # 指定したHTMLに辞書を渡して表示を完成させる
+  return render(request, 'kosu/stopwatch.html', context)
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
 # 半角文字入力チェック関数
 def has_non_halfwidth_characters(input_string):
 

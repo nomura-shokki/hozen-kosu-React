@@ -571,6 +571,7 @@ class Page_jump(TestCase):
 
         # 定義確認を押す
         response = self.client.post(reverse('input'), {
+            'work_day': '2000-01-01',
             'tyoku': '',
             'tyoku2': self.Business_Time_graph.tyoku2,
             'work': '',
@@ -598,6 +599,7 @@ class Page_jump(TestCase):
 
         # 定義確認を押す
         response = self.client.post(reverse('input'), {
+            'work_day': '2000-01-01',
             'tyoku2': '',
             'tyoku': self.Business_Time_graph.tyoku2,
             'work2': '',

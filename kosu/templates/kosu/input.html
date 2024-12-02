@@ -18,8 +18,8 @@
     <p class="h6 no-wrap">
       <a href="{% url 'kosu_main' %}">工数MENUへ</a>　　
       <a href="{% url 'kosu_list' 1 %}">履歴へ</a>　　
-      {% if obj_link != '' %}
-        <a href="{% url 'detail' obj_link.id %}">工数編集</a>　　
+      {% if obj_link == True %}
+        <a href="{% url 'detail' obj_get.id %}">工数編集</a>　　
       {% endif %}
       <a href="{% url 'main' %}">メインMENUへ</a>
     </p>
@@ -435,7 +435,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="plum" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.0}}
+    {{context.def_library.0.1}}
   </p>
   {% endif %}
   {% if def_n >= 2 %}
@@ -443,7 +443,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkgray" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.1}}
+    {{context.def_library.1.1}}
   </p>
   {% endif %}
   {% if def_n >= 3 %}
@@ -451,7 +451,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="slategray" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.2}}
+    {{context.def_library.2.1}}
   </p>
   {% endif %}
   {% if def_n >= 4 %}
@@ -459,7 +459,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="steelblue" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.3}}
+    {{context.def_library.3.1}}
   </p>
   {% endif %}
   {% if def_n >= 5 %}
@@ -467,7 +467,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="royalblue" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.4}}
+    {{context.def_library.4.1}}
   </p>
   {% endif %}
   {% if def_n >= 6 %}
@@ -475,7 +475,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="dodgerblue" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.5}}
+    {{context.def_library.5.1}}
   </p>
   {% endif %}
   {% if def_n >= 7 %}
@@ -483,7 +483,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="deepskyblue" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.6}}
+    {{context.def_library.6.1}}
   </p>
   {% endif %}
   {% if def_n >= 8 %}
@@ -491,7 +491,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="aqua" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.7}}
+    {{context.def_library.7.1}}
   </p>
   {% endif %}
   {% if def_n >= 9 %}
@@ -499,7 +499,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="mediumturquoise" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.8}}
+    {{context.def_library.8.1}}
   </p>
   {% endif %}
   {% if def_n >= 10 %}
@@ -507,7 +507,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="lightseagreen" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.9}}
+    {{context.def_library.9.1}}
   </p>
   {% endif %}
   {% if def_n >= 11 %}
@@ -515,7 +515,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="springgreen" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.10}}
+    {{context.def_library.10.1}}
   </p>
   {% endif %}
   {% if def_n >= 12 %}
@@ -523,7 +523,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="limegreen" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.11}}
+    {{context.def_library.11.1}}
   </p>
   {% endif %}
   {% if def_n >= 13 %}
@@ -531,7 +531,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="lawngreen" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.12}}
+    {{context.def_library.12.1}}
   </p>
   {% endif %}
   {% if def_n >= 14 %}
@@ -539,7 +539,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="greenyellow" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.13}}
+    {{context.def_library.13.1}}
   </p>
   {% endif %}
   {% if def_n >= 15 %}
@@ -547,7 +547,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="gold" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.14}}
+    {{context.def_library.14.1}}
   </p>
   {% endif %}
   {% if def_n >= 16 %}
@@ -555,7 +555,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkorange" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.15}}
+    {{context.def_library.15.1}}
   </p>
   {% endif %}
   {% if def_n >= 17 %}
@@ -563,7 +563,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="burlywood" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.16}}
+    {{context.def_library.16.1}}
   </p>
   {% endif %}
   {% if def_n >= 18 %}
@@ -571,7 +571,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="sandybrown" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.17}}
+    {{context.def_library.17.1}}
   </p>
   {% endif %}
   {% if def_n >= 19 %}
@@ -579,7 +579,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="lightcoral" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.18}}
+    {{context.def_library.18.1}}
   </p>
   {% endif %}
   {% if def_n >= 20 %}
@@ -587,7 +587,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="lightsalmon" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.19}}
+    {{context.def_library.19.1}}
   </p>
   {% endif %}
   {% if def_n >= 21 %}
@@ -595,7 +595,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="tomato" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.20}}
+    {{context.def_library.20.1}}
   </p>
   {% endif %}
   {% if def_n >= 22 %}
@@ -603,7 +603,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="orangered" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.21}}
+    {{context.def_library.21.1}}
   </p>
   {% endif %}
   {% if def_n >= 23 %}
@@ -611,7 +611,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="red" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.22}}
+    {{context.def_library.22.1}}
   </p>
   {% endif %}
   {% if def_n >= 24 %}
@@ -619,7 +619,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="deeppink" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.23}}
+    {{context.def_library.23.1}}
   </p>
   {% endif %}
   {% if def_n >= 25 %}
@@ -627,7 +627,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="hotpink" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.24}}
+    {{context.def_library.24.1}}
   </p>
   {% endif %}
   {% if def_n >= 26 %}
@@ -635,7 +635,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="violet" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.25}}
+    {{context.def_library.25.1}}
   </p>
   {% endif %}
   {% if def_n >= 27 %}
@@ -643,7 +643,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="magenta" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.26}}
+    {{context.def_library.26.1}}
   </p>
   {% endif %}
   {% if def_n >= 28 %}
@@ -651,7 +651,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="mediumorchid" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.27}}
+    {{context.def_library.27.1}}
   </p>
   {% endif %}
   {% if def_n >= 29 %}
@@ -659,7 +659,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkviolet" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.28}}
+    {{context.def_library.28.1}}
   </p>
   {% endif %}
   {% if def_n >= 30 %}
@@ -667,7 +667,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="mediumpurple" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.29}}
+    {{context.def_library.29.1}}
   </p>
   {% endif %}
   {% if def_n >= 31 %}
@@ -675,7 +675,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="mediumblue" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.30}}
+    {{context.def_library.30.1}}
   </p>
   {% endif %}
   {% if def_n >= 32 %}
@@ -683,7 +683,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="cadetblue" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.31}}
+    {{context.def_library.31.1}}
   </p>
   {% endif %}
   {% if def_n >= 33 %}
@@ -691,7 +691,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="mediumseagreen" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.32}}
+    {{context.def_library.32.1}}
   </p>
   {% endif %}
   {% if def_n >= 34 %}
@@ -699,7 +699,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="forestgreen" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.33}}
+    {{context.def_library.33.1}}
   </p>
   {% endif %}
   {% if def_n >= 35 %}
@@ -707,7 +707,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkkhaki" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.34}}
+    {{context.def_library.34.1}}
   </p>
   {% endif %}
   {% if def_n >= 36 %}
@@ -715,7 +715,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="crimson" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.35}}
+    {{context.def_library.35.1}}
   </p>
   {% endif %}
   {% if def_n >= 37 %}
@@ -723,7 +723,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="rosybrown" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.36}}
+    {{context.def_library.36.1}}
   </p>
   {% endif %}
   {% if def_n >= 38 %}
@@ -731,7 +731,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="dimgray" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.37}}
+    {{context.def_library.37.1}}
   </p>
   {% endif %}
   {% if def_n >= 39 %}
@@ -739,7 +739,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="midnightblue" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.38}}
+    {{context.def_library.38.1}}
   </p>
   {% endif %}
   {% if def_n >= 40 %}
@@ -747,7 +747,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkblue" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.39}}
+    {{context.def_library.39.1}}
   </p>
   {% endif %}
   {% if def_n >= 41 %}
@@ -755,7 +755,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkslategray" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.40}}
+    {{context.def_library.40.1}}
   </p>
   {% endif %}
   {% if def_n >= 42 %}
@@ -763,7 +763,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkgreen" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.41}}
+    {{context.def_library.41.1}}
   </p>
   {% endif %}
   {% if def_n >= 43 %}
@@ -771,7 +771,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="olivedrab" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.42}}
+    {{context.def_library.42.1}}
   </p>
   {% endif %}
   {% if def_n >= 44 %}
@@ -779,7 +779,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkgoldenrod" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.43}}
+    {{context.def_library.43.1}}
   </p>
   {% endif %}
   {% if def_n >= 45 %}
@@ -787,7 +787,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="sienna" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.44}}
+    {{context.def_library.44.1}}
   </p>
   {% endif %}
   {% if def_n >= 46 %}
@@ -795,7 +795,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="firebrick" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.45}}
+    {{context.def_library.45.1}}
   </p>
   {% endif %}
   {% if def_n >= 47 %}
@@ -803,7 +803,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="maroon" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.46}}
+    {{context.def_library.46.1}}
   </p>
   {% endif %}
   {% if def_n >= 48 %}
@@ -811,7 +811,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="darkmagenta" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.47}}
+    {{context.def_library.47.1}}
   </p>
   {% endif %}
   {% if def_n >= 49 %}
@@ -819,7 +819,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="indigo" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.48}}
+    {{context.def_library.48.1}}
   </p>
   {% endif %}
   {% if def_n >= 50 %}
@@ -827,7 +827,7 @@
     <svg width="10%" height="20">
       <rect x="10" y="5" width="10" height="10" fill="black" rx="5" ry="5" />
     </svg>
-    {{graph_kosu_list.49}}
+    {{context.def_library.49.1}}
   </p>
   {% endif %}
 </body>
