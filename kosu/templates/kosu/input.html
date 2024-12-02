@@ -221,18 +221,30 @@
         var popoverWidth = $popover.outerWidth();
 
         // 初期位置: 入力フィールドの下に表示
-        var top = inputOffset.top + inputHeight;
-        var left = inputOffset.left;
+        var top = inputOffset.top + inputHeight - $(window).scrollTop();
+        var left = inputOffset.left - $(window).scrollLeft();
 
         // ポップアップがウィンドウの下部を超えないようにする (下に切れないようにする)
         if ((top + popoverHeight) > windowHeight) {
-          top = inputOffset.top - popoverHeight; // 上に配置
+          top = inputOffset.top - popoverHeight - $(window).scrollTop();
           if (top < 10) top = 10; // 上部に切れないように調整
         }
 
         // ポップアップがウィンドウの上部を超えないようにする (上に切れないようにする)
         if (top < 0) {
-          top = inputOffset.top + inputHeight;
+          top = inputOffset.top + inputHeight - $(window).scrollTop();
+          if ((top + popoverHeight) > windowHeight) {
+            popoverHeight = windowHeight - 20;  // 余裕を持たせる
+            $popover.css({
+              'max-height': popoverHeight + 'px',
+              'overflow-y': 'scroll'
+            });
+          }
+        } else {
+          $popover.css({
+            'max-height': '80vh',
+            'overflow-y': 'auto'
+          });
         }
 
         // ポップアップがウィンドウの右側を超えないようにする (水平スクロールを防ぐ)
@@ -248,20 +260,6 @@
           'top': top + 'px',
           'left': left + 'px'
         });
-
-        // ポップアップの高さ調整
-        var availableHeight = windowHeight - top - 10; // 10px の下余白を確保
-        if (popoverHeight > availableHeight) {
-          $popover.css({
-            'max-height': availableHeight + 'px',
-            'overflow-y': 'scroll'
-          });
-        } else {
-          $popover.css({
-            'max-height': '80vh',
-            'overflow-y': 'auto'
-          });
-        }
       }
 
       function positionPopup() {
