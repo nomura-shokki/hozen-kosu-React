@@ -15,9 +15,8 @@
     .clock-timepicker-popup {
       position: absolute;
       z-index: 99999;
-      max-height: 80vh;
-      overflow-y: hidden;
-      overflow-x: hidden;
+      max-height: 80vh;  /* ビューポートの高さの80% */
+      overflow: hidden;  /* スクロールを無効に */
     }
   </style>
 </head>
@@ -215,50 +214,57 @@
         var $popover = $('.clock-timepicker-popup');
         var windowHeight = $(window).height();
         var windowWidth = $(window).width();
+        var scrollTop = $(window).scrollTop();
+        var scrollLeft = $(window).scrollLeft();
         var inputOffset = $('.your-time-field').offset();
         var inputHeight = $('.your-time-field').outerHeight();
         var popoverHeight = $popover.outerHeight();
         var popoverWidth = $popover.outerWidth();
-        var scrollTop = $(window).scrollTop();
-        var scrollLeft = $(window).scrollLeft();
 
-        // 初期位置：入力フィールドの下に表示
-        var top = inputOffset.top + inputHeight - scrollTop;
-        var left = inputOffset.left - scrollLeft;
+        // 初期位置: 入力フィールドの下に配置
+        var top = inputOffset.top + inputHeight;
+        var left = inputOffset.left;
 
-        // ポップアップがウィンドウの下側を超えるかどうかを判断
-        var bottomOverflow = (top + popoverHeight) > windowHeight;
-        var topOverflow = top < 0;
-
-        // ポップアップを上に配置する場合
-        if (bottomOverflow && !topOverflow) {
-          top = inputOffset.top - popoverHeight - scrollTop;
-          if (top < 0) top = 10; // 上端を超えないように調整
+        // ポップアップがウィンドウの下側を超える場合は上に配置
+        if ((top + popoverHeight - scrollTop) > windowHeight) {
+          top = inputOffset.top - popoverHeight;
+          if (top < scrollTop) {
+            top = scrollTop; // 上に切れないようにする
+          }
         }
 
-        // ポップアップが上下どちらでも見切れないようにする
-        if (top < 0) top = 10;
-        if ((top + popoverHeight) > windowHeight) {
-          top = windowHeight - popoverHeight - 10; // 下端を超えないように調整
+        // ポップアップがウィンドウの上側を超える場合の対処
+        if (top < scrollTop) {
+          top = scrollTop + 10;
+          var availableHeight = windowHeight - 20; // マージンを考慮した高さ
+          $popover.css({
+            'max-height': availableHeight + 'px'
+          });
+        } else {
+          $popover.css('max-height', '80vh');
         }
 
-        // ポップアップがウィンドウの右側を超えないようにする (水平スクロールを防ぐ)
-        if ((left + popoverWidth) > windowWidth) {
-          left = windowWidth - popoverWidth - 10; // 右側に切れないように調整
+        // 水平方向の調整
+        if ((left + popoverWidth) > windowWidth + scrollLeft) {
+          left = windowWidth - popoverWidth - 10 + scrollLeft;
         }
-        if (left < 10) {
-          left = 10; // 左側に切れないように調整
+        if (left < scrollLeft + 10) {
+          left = scrollLeft + 10;
         }
 
         // 計算された位置にポップアップを移動
         $popover.css({
           'top': top + 'px',
-          'left': left + 'px',
-          'max-height': '80vh' // 最大高さを再設定
+          'left': left + 'px'
         });
       }
 
       $(window).on('scroll.clockTimePicker resize.clockTimePicker', function() {
+        adjustPopoverPosition();
+      });
+
+      // フォームの入力フィールドがフォーカスされたときにも調整
+      $('.your-time-field').on('focus.clockTimePicker click.clockTimePicker', function() {
         adjustPopoverPosition();
       });
     });
