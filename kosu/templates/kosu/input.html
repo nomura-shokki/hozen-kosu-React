@@ -15,8 +15,8 @@
     .clock-timepicker-popup {
       position: absolute;
       z-index: 99999;
-      max-height: 80vh;  /* ビューポートの高さの80% */
-      overflow: hidden;  /* スクロールを無効に */
+      max-height: 80vh;
+      overflow: hidden;
     }
   </style>
 </head>
@@ -215,7 +215,6 @@
         var windowHeight = $(window).height();
         var windowWidth = $(window).width();
         var scrollTop = $(window).scrollTop();
-        var scrollLeft = $(window).scrollLeft();
         var inputOffset = $('.your-time-field').offset();
         var inputHeight = $('.your-time-field').outerHeight();
         var popoverHeight = $popover.outerHeight();
@@ -229,30 +228,32 @@
         if ((top + popoverHeight - scrollTop) > windowHeight) {
           top = inputOffset.top - popoverHeight;
           if (top < scrollTop) {
-            top = scrollTop; // 上に切れないようにする
+            top = scrollTop; // 上部に切れないように調整
           }
         }
 
         // ポップアップがウィンドウの上側を超える場合の対処
         if (top < scrollTop) {
-          top = scrollTop + 10;
-          var availableHeight = windowHeight - 20; // マージンを考慮した高さ
+          top = scrollTop + 10; // マージンを考慮して調整
+          var availableHeight = windowHeight - 20; // 余裕を持たせた高さ
           $popover.css({
-            'max-height': availableHeight + 'px'
+            'max-height': availableHeight + 'px',
+            'overflow-y': 'auto'
           });
         } else {
           $popover.css('max-height', '80vh');
+          $popover.css('overflow-y', 'hidden');
         }
 
         // 水平方向の調整
-        if ((left + popoverWidth) > windowWidth + scrollLeft) {
-          left = windowWidth - popoverWidth - 10 + scrollLeft;
+        if ((left + popoverWidth) > windowWidth) {
+          left = windowWidth - popoverWidth - 10; // 右側に調整
         }
-        if (left < scrollLeft + 10) {
-          left = scrollLeft + 10;
+        if (left < 10) {
+          left = 10; // 左側に調整
         }
 
-        // 計算された位置にポップアップを移動
+        // 計算された位置にポップアップを設定
         $popover.css({
           'top': top + 'px',
           'left': left + 'px'
@@ -263,7 +264,7 @@
         adjustPopoverPosition();
       });
 
-      // フォームの入力フィールドがフォーカスされたときにも調整
+      // フォーカスまたはクリック時にも位置調整を実行
       $('.your-time-field').on('focus.clockTimePicker click.clockTimePicker', function() {
         adjustPopoverPosition();
       });
