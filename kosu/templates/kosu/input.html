@@ -13,10 +13,11 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
   <style>
     .clock-timepicker-popup {
-      position: fixed;
+      position: absolute;
       z-index: 99999;
       max-height: 80vh;
-      overflow: hidden;
+      overflow-y: hidden;
+      overflow-x: hidden;
     }
   </style>
 </head>
@@ -218,49 +219,46 @@
         var inputHeight = $('.your-time-field').outerHeight();
         var popoverHeight = $popover.outerHeight();
         var popoverWidth = $popover.outerWidth();
+        var scrollTop = $(window).scrollTop();
+        var scrollLeft = $(window).scrollLeft();
 
-        // Initial position: show below the input field
-        var top = inputOffset.top + inputHeight;
-        var left = inputOffset.left;
+        // 初期位置：入力フィールドの下に表示
+        var top = inputOffset.top + inputHeight - scrollTop;
+        var left = inputOffset.left - scrollLeft;
 
-        // Adjust horizontally if popover goes off screen
+        // ポップアップがウィンドウの下側を超えるかどうかを判断
+        var bottomOverflow = (top + popoverHeight) > windowHeight;
+        var topOverflow = top < 0;
+
+        // ポップアップを上に配置する場合
+        if (bottomOverflow && !topOverflow) {
+          top = inputOffset.top - popoverHeight - scrollTop;
+          if (top < 0) top = 10; // 上端を超えないように調整
+        }
+
+        // ポップアップが上下どちらでも見切れないようにする
+        if (top < 0) top = 10;
+        if ((top + popoverHeight) > windowHeight) {
+          top = windowHeight - popoverHeight - 10; // 下端を超えないように調整
+        }
+
+        // ポップアップがウィンドウの右側を超えないようにする (水平スクロールを防ぐ)
         if ((left + popoverWidth) > windowWidth) {
-          left = windowWidth - popoverWidth - 10; // Adjust to fit within right of screen
+          left = windowWidth - popoverWidth - 10; // 右側に切れないように調整
         }
         if (left < 10) {
-          left = 10; // Adjust to fit within left of screen
+          left = 10; // 左側に切れないように調整
         }
 
-        // Adjust vertically if popover goes off screen (downwards)
-        if ((top + popoverHeight) > windowHeight) {
-          top = windowHeight - popoverHeight - 10; // Move the popover up
-          if (top < 10) top = 10; // Ensure it doesn't go above the screen edge
-
-          // Adjust max height if necessary
-          var availableHeight = windowHeight - top - 10;
-          $popover.css({
-            'max-height': availableHeight + 'px'
-          });
-        } else {
-          // Reset max height
-          $popover.css({
-            'max-height': '80vh'
-          });
-        }
-
-        // Set the calculated position
+        // 計算された位置にポップアップを移動
         $popover.css({
           'top': top + 'px',
-          'left': left + 'px'
+          'left': left + 'px',
+          'max-height': '80vh' // 最大高さを再設定
         });
       }
 
       $(window).on('scroll.clockTimePicker resize.clockTimePicker', function() {
-        adjustPopoverPosition();
-      });
-
-      // Ensure adjusting position when the timepicker is clicked to open
-      $('.your-time-field').on('focus.clockTimePicker click.clockTimePicker', function() {
         adjustPopoverPosition();
       });
     });
