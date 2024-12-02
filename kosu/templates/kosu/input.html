@@ -13,11 +13,11 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
   <style>
     .clock-timepicker-popup {
-      position: absolute;
+      position: fixed;
       z-index: 99999;
-      max-height: 80vh;
-      overflow-y: auto;
-      overflow-x: hidden;
+      max-height: 80vh;  /* ビューポートの高さの 80% */
+      overflow-y: auto;  /* 垂直スクロールを有効に */
+      overflow-x: hidden; /* 水平方向のスクロールを無効にする */
     }
   </style>
 </head>
