@@ -1012,61 +1012,67 @@
 			  ADJUST POPUP DIMENSION AND POSITION (FOR MOBILE PHONES)
 			 ************************************************************************************************/
 			function adjustMobilePopupDimensionAndPosition() {
-				var popupHeight;
-			
-				// Adjust popup to fit into viewport
 				var viewportHeight = window.innerHeight;
 				var viewportWidth = window.innerWidth;
 			
+				// Adjust popup width
 				popupWidth = viewportWidth - 80;
 				if (popupWidth > 300) popupWidth = 300;
 				popup.css('width', popupWidth + 'px');
-			
 				inputElement.css('position', 'static')
 							.css('width', '100%')
 							.css('height', 'auto');
 			
-				canvasHolder.css('margin', '10px 25px 10px 25px');
-			
-				popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom')) + 65;
-			
-				// If the calculated height of the popup is greater than viewport height, adjust canvas size
-				if (popupHeight > viewportHeight) {
-					canvasSize = viewportHeight - 120; // reserve some space for margins and buttons
-					popupHeight = viewportHeight - 80; // reserve some space for margins
-				} else {
-					canvasSize = popupWidth - 50;
-				}
-			
+				canvasSize = popupWidth - 50;
 				clockRadius = parseInt(canvasSize / 2);
 				clockCenterX = parseInt(canvasSize / 2);
 				clockCenterY = parseInt(canvasSize / 2);
 				clockOuterRadius = clockRadius - 16;
 				clockInnerRadius = clockOuterRadius - 29;
-			
 				canvasHolder.css('width', canvasSize + 'px');
 				canvasHolder.css('height', canvasSize + 'px');
 			
 				var dpr = window.devicePixelRatio || 1;
-				var hourCanvas = clockHourCanvas.get(0);
-				var minuteCanvas = clockMinuteCanvas.get(0);
-				hourCanvas.width = canvasSize * dpr;
-				hourCanvas.height = canvasSize * dpr;
-				minuteCanvas.width = canvasSize * dpr;
-				minuteCanvas.height = canvasSize * dpr;
-				var hourCtx = hourCanvas.getContext('2d');
-				var minuteCtx = minuteCanvas.getContext('2d');
-				hourCtx.scale(dpr, dpr);
-				minuteCtx.scale(dpr, dpr);
+				clockHourCanvas.get(0).width = canvasSize * dpr;
+				clockHourCanvas.get(0).height = canvasSize * dpr;
+				clockMinuteCanvas.get(0).width = canvasSize * dpr;
+				clockMinuteCanvas.get(0).height = canvasSize * dpr;
+				clockHourCanvas.get(0).getContext('2d').scale(dpr, dpr);
+				clockMinuteCanvas.get(0).getContext('2d').scale(dpr, dpr);
 			
-				clockHourCanvas.css('width', canvasSize);
-				clockHourCanvas.css('height', canvasSize);
-				clockMinuteCanvas.css('width', canvasSize);
-				clockMinuteCanvas.css('height', canvasSize);
+				clockHourCanvas.css('width', canvasSize + 'px');
+				clockHourCanvas.css('height', canvasSize + 'px');
+				clockMinuteCanvas.css('width', canvasSize + 'px');
+				clockMinuteCanvas.css('height', canvasSize + 'px');
+			
+				// Force the popup to fit within the viewport height
+				var availableHeight = viewportHeight - 80; // Reserve some space for margins
+				if (canvasHolder.outerHeight() + 65 > availableHeight) {
+					canvasHolder.css('height', availableHeight - 65 + 'px');
+					canvasSize = availableHeight - 65;
+					clockRadius = parseInt(canvasSize / 2);
+					clockCenterX = parseInt(canvasSize / 2);
+					clockCenterY = parseInt(canvasSize / 2);
+					clockOuterRadius = clockRadius - 16;
+					clockInnerRadius = clockOuterRadius - 29;
+			
+					clockHourCanvas.get(0).width = canvasSize * dpr;
+					clockHourCanvas.get(0).height = canvasSize * dpr;
+					clockMinuteCanvas.get(0).width = canvasSize * dpr;
+					clockMinuteCanvas.get(0).height = canvasSize * dpr;
+					clockHourCanvas.get(0).getContext('2d').scale(dpr, dpr);
+					clockMinuteCanvas.get(0).getContext('2d').scale(dpr, dpr);
+				}
+			
+				var popupHeight = canvasHolder.outerHeight() + 65;
+				if (popupHeight > viewportHeight) {
+					popupHeight = viewportHeight - 80; // Ensure popup height does not exceed viewport height
+					canvasHolder.css('height', (popupHeight - 65) + 'px');
+				}
 			
 				// Align popup in the middle of the screen
-				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
-				popup.css('top', parseInt((window.innerHeight - popupHeight) / 2) + 'px');
+				popup.css('left', '50%').css('top', '50%')
+					 .css('transform', 'translate(-50%, -50%)');
 			}
 
 
