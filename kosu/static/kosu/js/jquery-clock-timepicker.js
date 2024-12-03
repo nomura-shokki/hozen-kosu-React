@@ -1040,7 +1040,6 @@
 			
 				// Align popup in the middle of the screen and adjust maximum height
 				var top = Math.max(10, parseInt((window.innerHeight - popupHeight) / 2)); // Ensure top is at least 10px
-				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
 				popup.css('top', top + 'px');
 			
 				// Ensure popup doesn't exceed screen height
