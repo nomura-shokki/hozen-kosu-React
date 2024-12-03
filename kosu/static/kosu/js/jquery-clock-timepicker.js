@@ -1012,16 +1012,41 @@
 			  ADJUST POPUP DIMENSION AND POSITION (FOR MOBILE PHONES)
 			 ************************************************************************************************/
 			function adjustMobilePopupDimensionAndPosition() {
-				var viewportHeight = window.innerHeight;
-				var viewportWidth = window.innerWidth;
+				var popupHeight;
 			
-				// Adjust popup width
-				popupWidth = viewportWidth - 80;
-				if (popupWidth > 300) popupWidth = 300;
-				popup.css('width', popupWidth + 'px');
-				inputElement.css('position', 'static')
-							.css('width', '100%')
-							.css('height', 'auto');
+				// Landscape mode
+				if (window.innerHeight < 400) {
+					popupWidth = window.innerHeight - 60;
+					popup.css('width', popupWidth + 200 + 'px');
+					inputElement.css('position', 'absolute')
+								.css('left', '0px')
+								.css('top', '0px')
+								.css('width', '200px')
+								.css('height', popupWidth + 20 + 'px');
+					canvasHolder.css('margin', '10px 25px 0px 230px');
+					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom'));
+				}
+				// Normal mode (enough space for normal popup)
+				else {
+					popupWidth = window.innerWidth - 80;
+					if (popupWidth > 300) popupWidth = 300;
+					popup.css('width', popupWidth + 'px');
+					inputElement.css('position', 'static')
+								.css('width', '100%')
+								.css('height', 'auto');
+					canvasHolder.css('margin', '10px 25px 10px 25px');
+					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom')) + 65;
+				}
+			
+				// Align popup in the middle of the screen and adjust maximum height
+				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
+				var top = parseInt((window.innerHeight - popupHeight) / 2);
+				if (top < 0) {
+					popup.css('top', '10px');
+				} else {
+					popup.css('top', top + 'px');
+				}
+				popup.css('max-height', window.innerHeight - 20 + 'px'); // Ensure popup doesn't exceed screen height
 			
 				canvasSize = popupWidth - 50;
 				clockRadius = parseInt(canvasSize / 2);
@@ -1033,46 +1058,21 @@
 				canvasHolder.css('height', canvasSize + 'px');
 			
 				var dpr = window.devicePixelRatio || 1;
-				clockHourCanvas.get(0).width = canvasSize * dpr;
-				clockHourCanvas.get(0).height = canvasSize * dpr;
-				clockMinuteCanvas.get(0).width = canvasSize * dpr;
-				clockMinuteCanvas.get(0).height = canvasSize * dpr;
-				clockHourCanvas.get(0).getContext('2d').scale(dpr, dpr);
-				clockMinuteCanvas.get(0).getContext('2d').scale(dpr, dpr);
+				var hourCanvas = clockHourCanvas.get(0);
+				var minuteCanvas = clockMinuteCanvas.get(0);
+				hourCanvas.width = canvasSize * dpr;
+				hourCanvas.height = canvasSize * dpr;
+				minuteCanvas.width = canvasSize * dpr;
+				minuteCanvas.height = canvasSize * dpr;
+				var hourCtx = hourCanvas.getContext('2d');
+				var minuteCtx = minuteCanvas.getContext('2d');
+				hourCtx.scale(dpr, dpr);
+				minuteCtx.scale(dpr, dpr);
 			
-				clockHourCanvas.css('width', canvasSize + 'px');
-				clockHourCanvas.css('height', canvasSize + 'px');
-				clockMinuteCanvas.css('width', canvasSize + 'px');
-				clockMinuteCanvas.css('height', canvasSize + 'px');
-			
-				// Force the popup to fit within the viewport height
-				var availableHeight = viewportHeight - 80; // Reserve some space for margins
-				if (canvasHolder.outerHeight() + 65 > availableHeight) {
-					canvasHolder.css('height', availableHeight - 65 + 'px');
-					canvasSize = availableHeight - 65;
-					clockRadius = parseInt(canvasSize / 2);
-					clockCenterX = parseInt(canvasSize / 2);
-					clockCenterY = parseInt(canvasSize / 2);
-					clockOuterRadius = clockRadius - 16;
-					clockInnerRadius = clockOuterRadius - 29;
-			
-					clockHourCanvas.get(0).width = canvasSize * dpr;
-					clockHourCanvas.get(0).height = canvasSize * dpr;
-					clockMinuteCanvas.get(0).width = canvasSize * dpr;
-					clockMinuteCanvas.get(0).height = canvasSize * dpr;
-					clockHourCanvas.get(0).getContext('2d').scale(dpr, dpr);
-					clockMinuteCanvas.get(0).getContext('2d').scale(dpr, dpr);
-				}
-			
-				var popupHeight = canvasHolder.outerHeight() + 65;
-				if (popupHeight > viewportHeight) {
-					popupHeight = viewportHeight - 80; // Ensure popup height does not exceed viewport height
-					canvasHolder.css('height', (popupHeight - 65) + 'px');
-				}
-			
-				// Align popup in the middle of the screen
-				popup.css('left', '50%').css('top', '50%')
-					 .css('transform', 'translate(-50%, -50%)');
+				clockHourCanvas.css('width', canvasSize);
+				clockHourCanvas.css('height', canvasSize);
+				clockMinuteCanvas.css('width', canvasSize);
+				clockMinuteCanvas.css('height', canvasSize);
 			}
 
 
