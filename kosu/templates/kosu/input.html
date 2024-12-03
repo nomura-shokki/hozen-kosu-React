@@ -15,11 +15,15 @@
     .clock-timepicker-popup {
       max-height: 90vh; /* 画面の高さの90% */
       overflow-y: auto; /* 高さを超える部分をスクロール可能に */
+      position: fixed;  /* 常に表示される場所を固定 */
+      top: 5vh;         /* 上からの位置を5vhに */
+      left: 50%;        /* 左からの位置を50%に */
+      transform: translate(-50%, 0); /* 横方向の位置調整 */
     }
   </style>
 </head>
 <body class="container">
-  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}3</h1>
+  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}4</h1>
   <div class="number-input-group">
     <p class="h6 no-wrap">
       <a href="{% url 'kosu_main' %}">工数MENUへ</a>　　
