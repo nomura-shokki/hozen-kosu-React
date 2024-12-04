@@ -1007,18 +1007,14 @@
 				if (settings.duration && settings.durationNegative) repaintSignButton(ctx, hoverSign);
 			}
 
-
-			/************************************************************************************************
-			  ADJUST POPUP DIMENSION AND POSITION (FOR MOBILE PHONES)
-			 ************************************************************************************************/
 			function adjustMobilePopupDimensionAndPosition() {
-				var marginFromEdge = 10; // ここで上下のマージンを設定
+				var marginFromEdge = 30; // ここで上下のマージンを設定
 				var popupHeight;
 			
 				// Landscape mode
 				if (window.innerHeight < 400) {
 					popupWidth = window.innerHeight - 60;
-					popup.css('width', popupWidth + 200 + 'px');
+					popup.css('width', popupWidth + 'px');
 					inputElement.css('position', 'absolute')
 								.css('left', '0px')
 								.css('top', '0px')
@@ -1048,6 +1044,12 @@
 				if (top < marginFromEdge) top = marginFromEdge;
 				if (top + popupHeight > window.innerHeight - marginFromEdge) top = window.innerHeight - popupHeight - marginFromEdge;
 			
+				// Popupが画面の上下に収まるように調整
+				if (popupHeight > window.innerHeight) {
+					popup.css('height', (window.innerHeight - (2 * marginFromEdge)) + 'px');
+					top = marginFromEdge;
+				}
+				
 				popup.css('top', top + 'px');
 			
 				canvasSize = popupWidth - 50;
@@ -1076,11 +1078,9 @@
 				clockMinuteCanvas.css('width', canvasSize);
 				clockMinuteCanvas.css('height', canvasSize);
 			}
+			
 
 
-			/************************************************************************************************
-			  SHOWS THE TIME PICKER
-			 ************************************************************************************************/
 			function showTimePicker() {
 				if (!element.val()) setInputElementValue(formatTime('00:00'));
 				else setInputElementValue(formatTime(element.val()));
@@ -1101,13 +1101,14 @@
 			
 			function positionPopup() {
 				// 上下の端からポップアップまでの距離（ピクセル単位）
-				var marginFromEdge = 50; // ここで上下のマージンを設定
+				var marginFromEdge = 30; // ここで上下のマージンを設定
 				
 				var elementTop = element.offset().top;
 				var elementBottom = elementTop + element.outerHeight();
 				var popupHeight = popup.outerHeight();
 				var newTop = elementBottom;
 			
+				// 上端見切れ防止
 				if (newTop + popupHeight > $(window).scrollTop() + window.innerHeight - marginFromEdge) {
 					newTop = elementTop - popupHeight;
 					if (newTop < $(window).scrollTop() + marginFromEdge) {
