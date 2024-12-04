@@ -1007,16 +1007,10 @@
 				if (settings.duration && settings.durationNegative) repaintSignButton(ctx, hoverSign);
 			}
 
-
 			function adjustMobilePopupDimensionAndPosition() {
-
 				var popupHeight;
-				var screenHalfHeight = window.innerHeight / 2;
 			
-				// 念のためポップアップの高さを初期化する
-				popupHeight = 0;
-			
-				// Landscape mode
+				//Landscape mode
 				if (window.innerHeight < 400) {
 					popupWidth = window.innerHeight - 60;
 					popup.css('width', popupWidth + 200 + 'px');
@@ -1028,7 +1022,7 @@
 					canvasHolder.css('margin', '10px 25px 0px 230px');
 					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom'));
 				}
-				// Normal mode (enough space for normal popup)
+				//Normal mode (enough space for normal popup)
 				else {
 					popupWidth = window.innerWidth - 80;
 					if (popupWidth > 300) popupWidth = 300;
@@ -1040,18 +1034,10 @@
 					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom')) + 65;
 				}
 			
-				// Align popup in the middle of the screen
-				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
-			
-				// 縦方向の位置調整
-				var topPosition = parseInt((window.innerHeight - popupHeight) / 2);
-				if (topPosition + popupHeight > window.innerHeight) {
-					topPosition = window.innerHeight - popupHeight - 10; // スクリーンの範囲内におさまるよう調整
-				} else if (topPosition < 0) {
-					topPosition = 10; // スクリーン上端におさまるよう調整
-				}
-			
-				popup.css('top', topPosition + 'px');
+				//Align popup in the middle of the screen regardless of input element position
+				popup.css('left', '50%');
+				popup.css('top', '50%');
+				popup.css('transform', 'translate(-50%, -50%)');
 			
 				canvasSize = popupWidth - 50;
 				clockRadius = parseInt(canvasSize / 2);
@@ -1061,7 +1047,7 @@
 				clockInnerRadius = clockOuterRadius - 29;
 				canvasHolder.css('width', canvasSize + 'px');
 				canvasHolder.css('height', canvasSize + 'px');
-				
+			
 				var dpr = window.devicePixelRatio || 1;
 				var hourCanvas = clockHourCanvas.get(0);
 				var minuteCanvas = clockMinuteCanvas.get(0);
