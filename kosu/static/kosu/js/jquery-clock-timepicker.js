@@ -1007,9 +1007,15 @@
 				if (settings.duration && settings.durationNegative) repaintSignButton(ctx, hoverSign);
 			}
 
+
+			/************************************************************************************************
+			  ADJUST POPUP DIMENSION AND POSITION (FOR MOBILE PHONES)
+			 ************************************************************************************************/
 			function adjustMobilePopupDimensionAndPosition() {
+
 				var popupHeight;
-			
+
+				//Landscape mode
 				if (window.innerHeight < 400) {
 					popupWidth = window.innerHeight - 60;
 					popup.css('width', popupWidth + 200 + 'px');
@@ -1020,7 +1026,9 @@
 								.css('height', popupWidth + 20 + 'px');
 					canvasHolder.css('margin', '10px 25px 0px 230px');
 					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom'));
-				} else {
+				}
+				//Normal mode (enough space for normal popup)
+				else {
 					popupWidth = window.innerWidth - 80;
 					if (popupWidth > 300) popupWidth = 300;
 					popup.css('width', popupWidth + 'px');
@@ -1030,18 +1038,11 @@
 					canvasHolder.css('margin', '10px 25px 10px 25px');
 					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom')) + 65;
 				}
-			
-				popup.css({
-					'position': 'fixed',
-					'zIndex': 99999,
-					'left': '50%',
-					'top': '50%',
-					'transform': 'translate(-50%, -50%)',
-					'margin': '0',
-					'max-width': '100%',
-					'max-height': '100%'
-				});
-			
+
+				//Align popup in the middle of the screen
+				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
+				popup.css('top', parseInt((window.innerHeight - popupHeight) / 2) + 'px');
+
 				canvasSize = popupWidth - 50;
 				clockRadius = parseInt(canvasSize / 2);
 				clockCenterX = parseInt(canvasSize / 2);
@@ -1050,7 +1051,7 @@
 				clockInnerRadius = clockOuterRadius - 29;
 				canvasHolder.css('width', canvasSize + 'px');
 				canvasHolder.css('height', canvasSize + 'px');
-			
+				
 				var dpr = window.devicePixelRatio || 1;
 				var hourCanvas = clockHourCanvas.get(0);
 				var minuteCanvas = clockMinuteCanvas.get(0);
@@ -1062,45 +1063,34 @@
 				var minuteCtx = minuteCanvas.getContext('2d');
 				hourCtx.scale(dpr, dpr);
 				minuteCtx.scale(dpr, dpr);
-			
+
 				clockHourCanvas.css('width', canvasSize);
 				clockHourCanvas.css('height', canvasSize);
 				clockMinuteCanvas.css('width', canvasSize);
 				clockMinuteCanvas.css('height', canvasSize);
 			}
 
+
+			/************************************************************************************************
+			  SHOWS THE TIME PICKER
+			 ************************************************************************************************/
 			function showTimePicker() {
 				if (!element.val()) setInputElementValue(formatTime('00:00'));
 				else setInputElementValue(formatTime(element.val()));
 				if (!isMobile() && settings.onlyShowClockOnMobile) popup.css('visibility', 'hidden');
-				if (isMobile()) {
-					adjustMobilePopupDimensionAndPosition();
-				} else {
-					positionFixedPopup();
-				}
+				if (isMobile()) adjustMobilePopupDimensionAndPosition();
 				popup.css('display', 'block');
 				repaintClock();
 				if (isMobile()) {
 					if (background) background.stop().css('opacity', 0).css('display', 'block').animate({opacity: 1}, 300);
 				} else {
-					positionFixedPopup();
+					positionPopup();
+					$(window).on('scroll.clockTimePicker', _ => {
+						positionPopup();
+					});
 				}
 				settings.onOpen.call(element.get(0));
 			}
-			
-			function positionFixedPopup() {
-				popup.css({
-					'position': 'fixed',
-					'zIndex': 99999,
-					'left': '50%',
-					'top': '50%',
-					'transform': 'translate(-50%, -50%)',
-					'margin': '0',
-					'max-width': '100%',
-					'max-height': '100%'
-				});
-			}
-
 			
 			function positionPopup() {
 				var top = element.offset().top - $(window).scrollTop() + element.outerHeight();

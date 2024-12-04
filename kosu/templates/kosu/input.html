@@ -13,7 +13,7 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
 </head>
 <body class="container">
-  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}18</h1>
+  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}</h1>
   <div class="number-input-group">
     <p class="h6 no-wrap">
       <a href="{% url 'kosu_main' %}">工数MENUへ</a>　　
@@ -198,6 +198,27 @@
           cancelButton: 'キャンセル'
         },
         onAdjust: function(newVal, oldVal) {}
+      });
+
+      // 中央に表示するためのカスタマイズ
+      $('.your-time-field').on('focus', function() {
+        setTimeout(function() {
+          var clockPicker = $('.ctp-clockTimePicker .ctp-popup');
+          var screenWidth = $(window).width();
+          var screenHeight = $(window).height();
+          var clockWidth = clockPicker.outerWidth();
+          var clockHeight = clockPicker.outerHeight();
+
+          var leftPosition = (screenWidth - clockWidth) / 2;
+          var topPosition = (screenHeight - clockHeight) / 2;
+
+          clockPicker.css({
+            'left': leftPosition + 'px',
+            'top': topPosition + 'px',
+            'transform': 'translateX(0) translateY(0)',
+            'position': 'fixed'
+          });
+        }, 0);
       });
     });
   </script>
