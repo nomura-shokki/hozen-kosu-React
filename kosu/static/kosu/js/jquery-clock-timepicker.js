@@ -1010,7 +1010,6 @@
 			function adjustMobilePopupDimensionAndPosition() {
 				var popupHeight;
 			
-				// Landscape mode
 				if (window.innerHeight < 400) {
 					popupWidth = window.innerHeight - 60;
 					popup.css('width', popupWidth + 200 + 'px');
@@ -1021,9 +1020,7 @@
 								.css('height', popupWidth + 20 + 'px');
 					canvasHolder.css('margin', '10px 25px 0px 230px');
 					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom'));
-				}
-				// Normal mode (enough space for normal popup)
-				else {
+				} else {
 					popupWidth = window.innerWidth - 80;
 					if (popupWidth > 300) popupWidth = 300;
 					popup.css('width', popupWidth + 'px');
@@ -1034,15 +1031,15 @@
 					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom')) + 65;
 				}
 			
-				// Align popup in the middle of the screen regardless of input element position and scrolling
 				popup.css({
 					'position': 'fixed',
 					'zIndex': 99999,
-					'width': popupWidth + 'px',
-					'top': '50%',
 					'left': '50%',
+					'top': '50%',
 					'transform': 'translate(-50%, -50%)',
-					'margin': '0' // Add this line to make sure there's no margin that could affect the display
+					'margin': '0',
+					'max-width': '100%',
+					'max-height': '100%'
 				});
 			
 				canvasSize = popupWidth - 50;
@@ -1098,7 +1095,9 @@
 					'left': '50%',
 					'top': '50%',
 					'transform': 'translate(-50%, -50%)',
-					'margin': '0' // Add this line to make sure there's no margin that could affect the display
+					'margin': '0',
+					'max-width': '100%',
+					'max-height': '100%'
 				});
 			}
 
