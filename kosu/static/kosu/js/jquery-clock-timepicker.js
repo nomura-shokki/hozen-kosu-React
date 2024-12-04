@@ -1038,9 +1038,11 @@
 				popup.css({
 					'position': 'fixed',
 					'zIndex': 99999,
-					'left': '50%',
+					'width': popupWidth + 'px',
 					'top': '50%',
-					'transform': 'translate(-50%, -50%)'
+					'left': '50%',
+					'transform': 'translate(-50%, -50%)',
+					'margin': '0' // Add this line to make sure there's no margin that could affect the display
 				});
 			
 				canvasSize = popupWidth - 50;
@@ -1095,9 +1097,11 @@
 					'zIndex': 99999,
 					'left': '50%',
 					'top': '50%',
-					'transform': 'translate(-50%, -50%)'
+					'transform': 'translate(-50%, -50%)',
+					'margin': '0' // Add this line to make sure there's no margin that could affect the display
 				});
 			}
+
 			
 			function positionPopup() {
 				var top = element.offset().top - $(window).scrollTop() + element.outerHeight();
