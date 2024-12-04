@@ -1015,7 +1015,7 @@
 				var popupHeight;
 			
 				// Landscape mode
-				if (window.innerHeight < window.innerWidth) {
+				if (window.innerHeight < 400) {
 					popupWidth = window.innerHeight - 60;
 					popup.css('width', popupWidth + 200 + 'px');
 					inputElement.css('position', 'absolute')
@@ -1038,12 +1038,13 @@
 					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom')) + 65;
 				}
 			
-				// Align popup in the middle of the screen and adjust maximum height
-				var top = Math.max(10, parseInt((window.innerHeight - popupHeight) / 2)); // Ensure top is at least 10px
-				popup.css('top', top + 'px');
+				// Align popup in the middle of the screen
+				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
 			
-				// Ensure popup doesn't exceed screen height
-				popup.css('max-height', '90vh');
+				// Adjust top based on visibility within the viewport
+				var top = $(window).scrollTop() + (window.innerHeight - popupHeight) / 2;
+				if (top < 0) top = 0;
+				popup.css('top', top + 'px');
 			
 				canvasSize = popupWidth - 50;
 				clockRadius = parseInt(canvasSize / 2);
@@ -1053,7 +1054,7 @@
 				clockInnerRadius = clockOuterRadius - 29;
 				canvasHolder.css('width', canvasSize + 'px');
 				canvasHolder.css('height', canvasSize + 'px');
-			
+				
 				var dpr = window.devicePixelRatio || 1;
 				var hourCanvas = clockHourCanvas.get(0);
 				var minuteCanvas = clockMinuteCanvas.get(0);
