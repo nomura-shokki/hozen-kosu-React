@@ -1007,14 +1007,19 @@
 				if (settings.duration && settings.durationNegative) repaintSignButton(ctx, hoverSign);
 			}
 
+
 			function adjustMobilePopupDimensionAndPosition() {
-				var marginFromEdge = 30; // ここで上下のマージンを設定
+
 				var popupHeight;
+				var screenHalfHeight = window.innerHeight / 2;
+			
+				// 念のためポップアップの高さを初期化する
+				popupHeight = 0;
 			
 				// Landscape mode
 				if (window.innerHeight < 400) {
 					popupWidth = window.innerHeight - 60;
-					popup.css('width', popupWidth + 'px');
+					popup.css('width', popupWidth + 200 + 'px');
 					inputElement.css('position', 'absolute')
 								.css('left', '0px')
 								.css('top', '0px')
@@ -1038,19 +1043,15 @@
 				// Align popup in the middle of the screen
 				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
 			
-				// Adjust top based on visibility within the viewport
-				var top = window.innerHeight / 2 - popupHeight / 2;
-				
-				if (top < marginFromEdge) top = marginFromEdge;
-				if (top + popupHeight > window.innerHeight - marginFromEdge) top = window.innerHeight - popupHeight - marginFromEdge;
-			
-				// Popupが画面の上下に収まるように調整
-				if (popupHeight > window.innerHeight) {
-					popup.css('height', (window.innerHeight - (2 * marginFromEdge)) + 'px');
-					top = marginFromEdge;
+				// 縦方向の位置調整
+				var topPosition = parseInt((window.innerHeight - popupHeight) / 2);
+				if (topPosition + popupHeight > window.innerHeight) {
+					topPosition = window.innerHeight - popupHeight - 10; // スクリーンの範囲内におさまるよう調整
+				} else if (topPosition < 0) {
+					topPosition = 10; // スクリーン上端におさまるよう調整
 				}
-				
-				popup.css('top', top + 'px');
+			
+				popup.css('top', topPosition + 'px');
 			
 				canvasSize = popupWidth - 50;
 				clockRadius = parseInt(canvasSize / 2);
@@ -1078,8 +1079,6 @@
 				clockMinuteCanvas.css('width', canvasSize);
 				clockMinuteCanvas.css('height', canvasSize);
 			}
-			
-
 
 			function showTimePicker() {
 				if (!element.val()) setInputElementValue(formatTime('00:00'));
@@ -1100,24 +1099,13 @@
 			}
 			
 			function positionPopup() {
-				// 上下の端からポップアップまでの距離（ピクセル単位）
-				var marginFromEdge = 30; // ここで上下のマージンを設定
-				
-				var elementTop = element.offset().top;
-				var elementBottom = elementTop + element.outerHeight();
-				var popupHeight = popup.outerHeight();
-				var newTop = elementBottom;
-			
-				// 上端見切れ防止
-				if (newTop + popupHeight > $(window).scrollTop() + window.innerHeight - marginFromEdge) {
-					newTop = elementTop - popupHeight;
-					if (newTop < $(window).scrollTop() + marginFromEdge) {
-						newTop = $(window).scrollTop() + marginFromEdge;
-					}
+				var top = element.offset().top - $(window).scrollTop() + element.outerHeight();
+				if (top + popup.outerHeight() > window.innerHeight) {
+					var newTop = element.offset().top - $(window).scrollTop() - popup.outerHeight();
+					if (newTop >= 0) top = newTop;
 				}
-			
 				var left = element.offset().left - $(window).scrollLeft() - parseInt((popup.outerWidth() - element.outerWidth()) / 2);
-				popup.css('left', left + 'px').css('top', newTop + 'px');
+				popup.css('left', left + 'px').css('top', top + 'px');
 			}
 
 
