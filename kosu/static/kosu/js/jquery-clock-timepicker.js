@@ -1042,8 +1042,10 @@
 				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
 			
 				// Adjust top based on visibility within the viewport
-				var top = $(window).scrollTop() + (window.innerHeight - popupHeight) / 2;
+				var top = window.innerHeight / 2 - popupHeight / 2;
+			
 				if (top < 0) top = 0;
+			
 				popup.css('top', top + 'px');
 			
 				canvasSize = popupWidth - 50;
@@ -1099,7 +1101,10 @@
 				var top = element.offset().top - $(window).scrollTop() + element.outerHeight();
 				if (top + popup.outerHeight() > window.innerHeight) {
 					var newTop = element.offset().top - $(window).scrollTop() - popup.outerHeight();
-					if (newTop >= 0) top = newTop;
+					if (newTop < 0) {
+						newTop = 0;
+					}
+					top = newTop;
 				}
 				var left = element.offset().left - $(window).scrollLeft() - parseInt((popup.outerWidth() - element.outerWidth()) / 2);
 				popup.css('left', left + 'px').css('top', top + 'px');
