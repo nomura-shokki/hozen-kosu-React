@@ -1037,6 +1037,7 @@
 				// Align popup in the middle of the screen regardless of input element position and scrolling
 				popup.css({
 					'position': 'fixed',
+					'zIndex': 99999,
 					'left': '50%',
 					'top': '50%',
 					'transform': 'translate(-50%, -50%)'
@@ -1073,18 +1074,29 @@
 				if (!element.val()) setInputElementValue(formatTime('00:00'));
 				else setInputElementValue(formatTime(element.val()));
 				if (!isMobile() && settings.onlyShowClockOnMobile) popup.css('visibility', 'hidden');
-				if (isMobile()) adjustMobilePopupDimensionAndPosition();
+				if (isMobile()) {
+					adjustMobilePopupDimensionAndPosition();
+				} else {
+					positionFixedPopup();
+				}
 				popup.css('display', 'block');
 				repaintClock();
 				if (isMobile()) {
 					if (background) background.stop().css('opacity', 0).css('display', 'block').animate({opacity: 1}, 300);
 				} else {
-					positionPopup();
-					$(window).on('scroll.clockTimePicker', _ => {
-						positionPopup();
-					});
+					positionFixedPopup();
 				}
 				settings.onOpen.call(element.get(0));
+			}
+			
+			function positionFixedPopup() {
+				popup.css({
+					'position': 'fixed',
+					'zIndex': 99999,
+					'left': '50%',
+					'top': '50%',
+					'transform': 'translate(-50%, -50%)'
+				});
 			}
 			
 			function positionPopup() {
