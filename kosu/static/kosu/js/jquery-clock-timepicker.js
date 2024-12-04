@@ -1098,16 +1098,20 @@
 			}
 			
 			function positionPopup() {
-				var top = element.offset().top - $(window).scrollTop() + element.outerHeight();
-				if (top + popup.outerHeight() > window.innerHeight) {
-					var newTop = element.offset().top - $(window).scrollTop() - popup.outerHeight();
-					if (newTop < 0) {
-						newTop = 0;
+				// Get element's vertical offset position relative to the viewport
+				var elementTop = element.offset().top;
+				var elementBottom = elementTop + element.outerHeight();
+				var popupHeight = popup.outerHeight();
+				var newTop = elementBottom;
+			
+				if (newTop + popupHeight > $(window).scrollTop() + window.innerHeight) {
+					newTop = elementTop - popupHeight;
+					if (newTop < $(window).scrollTop()) {
+						newTop = $(window).scrollTop();
 					}
-					top = newTop;
 				}
 				var left = element.offset().left - $(window).scrollLeft() - parseInt((popup.outerWidth() - element.outerWidth()) / 2);
-				popup.css('left', left + 'px').css('top', top + 'px');
+				popup.css('left', left + 'px').css('top', newTop + 'px');
 			}
 
 
