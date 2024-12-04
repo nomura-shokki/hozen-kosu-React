@@ -1012,6 +1012,7 @@
 			  ADJUST POPUP DIMENSION AND POSITION (FOR MOBILE PHONES)
 			 ************************************************************************************************/
 			function adjustMobilePopupDimensionAndPosition() {
+				var marginFromEdge = 10; // ここで上下のマージンを設定
 				var popupHeight;
 			
 				// Landscape mode
@@ -1043,8 +1044,9 @@
 			
 				// Adjust top based on visibility within the viewport
 				var top = window.innerHeight / 2 - popupHeight / 2;
-			
-				if (top < 0) top = 0;
+				
+				if (top < marginFromEdge) top = marginFromEdge;
+				if (top + popupHeight > window.innerHeight - marginFromEdge) top = window.innerHeight - popupHeight - marginFromEdge;
 			
 				popup.css('top', top + 'px');
 			
@@ -1098,18 +1100,21 @@
 			}
 			
 			function positionPopup() {
-				// Get element's vertical offset position relative to the viewport
+				// 上下の端からポップアップまでの距離（ピクセル単位）
+				var marginFromEdge = 40; // ここで上下のマージンを設定
+				
 				var elementTop = element.offset().top;
 				var elementBottom = elementTop + element.outerHeight();
 				var popupHeight = popup.outerHeight();
 				var newTop = elementBottom;
 			
-				if (newTop + popupHeight > $(window).scrollTop() + window.innerHeight) {
+				if (newTop + popupHeight > $(window).scrollTop() + window.innerHeight - marginFromEdge) {
 					newTop = elementTop - popupHeight;
-					if (newTop < $(window).scrollTop()) {
-						newTop = $(window).scrollTop();
+					if (newTop < $(window).scrollTop() + marginFromEdge) {
+						newTop = $(window).scrollTop() + marginFromEdge;
 					}
 				}
+			
 				var left = element.offset().left - $(window).scrollLeft() - parseInt((popup.outerWidth() - element.outerWidth()) / 2);
 				popup.css('left', left + 'px').css('top', newTop + 'px');
 			}
