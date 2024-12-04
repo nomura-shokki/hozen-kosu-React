@@ -13,7 +13,7 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
 </head>
 <body class="container">
-  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}</h1>
+  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}2</h1>
   <div class="number-input-group">
     <p class="h6 no-wrap">
       <a href="{% url 'kosu_main' %}">工数MENUへ</a>　　
@@ -204,21 +204,21 @@
       $('.your-time-field').on('focus', function() {
         setTimeout(function() {
           var clockPicker = $('.ctp-clockTimePicker .ctp-popup');
-          var screenWidth = $(window).width();
-          var screenHeight = $(window).height();
-          var clockWidth = clockPicker.outerWidth();
-          var clockHeight = clockPicker.outerHeight();
-
-          var leftPosition = (screenWidth - clockWidth) / 2;
-          var topPosition = (screenHeight - clockHeight) / 2;
-
+          
+          // 見切れ防止および中央配置のためのスタイル設定
           clockPicker.css({
-            'left': leftPosition + 'px',
-            'top': topPosition + 'px',
-            'transform': 'translateX(0) translateY(0)',
-            'position': 'fixed'
+            'left': '50%',
+            'top': '50%',
+            'transform': 'translate(-50%, -50%)',
+            'position': 'fixed', // スクロールの影響を受けないように固定位置に
+            'z-index': 9999 // 他の要素より前面に表示
           });
-        }, 0);
+        }, 0); // 若干の遅延を追加してポップアップが完全に表示されるのを待つ
+      }).on('blur', function() {
+        setTimeout(function() {
+          var clockPicker = $('.ctp-clockTimePicker .ctp-popup');
+          clockPicker.hide();
+        }, 200);
       });
     });
   </script>
