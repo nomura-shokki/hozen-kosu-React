@@ -1010,7 +1010,7 @@
 			function adjustMobilePopupDimensionAndPosition() {
 				var popupHeight;
 			
-				//Landscape mode
+				// Landscape mode
 				if (window.innerHeight < 400) {
 					popupWidth = window.innerHeight - 60;
 					popup.css('width', popupWidth + 200 + 'px');
@@ -1022,7 +1022,7 @@
 					canvasHolder.css('margin', '10px 25px 0px 230px');
 					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom'));
 				}
-				//Normal mode (enough space for normal popup)
+				// Normal mode (enough space for normal popup)
 				else {
 					popupWidth = window.innerWidth - 80;
 					if (popupWidth > 300) popupWidth = 300;
@@ -1034,10 +1034,13 @@
 					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom')) + 65;
 				}
 			
-				//Align popup in the middle of the screen regardless of input element position
-				popup.css('left', '50%');
-				popup.css('top', '50%');
-				popup.css('transform', 'translate(-50%, -50%)');
+				// Align popup in the middle of the screen regardless of input element position and scrolling
+				popup.css({
+					'position': 'fixed',
+					'left': '50%',
+					'top': '50%',
+					'transform': 'translate(-50%, -50%)'
+				});
 			
 				canvasSize = popupWidth - 50;
 				clockRadius = parseInt(canvasSize / 2);
