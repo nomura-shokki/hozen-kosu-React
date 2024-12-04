@@ -1101,7 +1101,7 @@
 			
 			function positionPopup() {
 				// 上下の端からポップアップまでの距離（ピクセル単位）
-				var marginFromEdge = 400; // ここで上下のマージンを設定
+				var marginFromEdge = 50; // ここで上下のマージンを設定
 				
 				var elementTop = element.offset().top;
 				var elementBottom = elementTop + element.outerHeight();
