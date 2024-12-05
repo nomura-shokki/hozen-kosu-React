@@ -33,70 +33,114 @@
         </p>
       </div>
     {% endfor %}
-    <div class="mb-3">
-      <div class="d-flex justify-content-between">
-        <b>就業日・勤務・直</b>
-        {% if OK_NG == True %}
-          <b class="text-primary h4">OK</b>
-        {% else %}
-          <b class="text-danger h4">NG</b>
-        {% endif %}
-      </div>
-      <div class="input-group">
-        <input type="date" class="form-control custom-border" style="width: 210px;" name="work_day" id="work_day" value={{new_day}}>
-        <div class="d-none d-md-inline">
-          <div class="input-group">{{form.work}} {{form.tyoku}}</div>
+    <div style="overflow-x: auto; white-space: nowrap;">
+      <div style="display: flex; justify-content: center; align-items: center;">
+        <div>
+          <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #dee2e6;">
+            <div style="width: 150px; text-align: center;">
+              就業日
+            </div>
+            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-start;">
+              <input type="date" class="form-control custom-border" style="width: 210px;" name="work_day" id="work_day" value={{new_day}}>
+              <div class="d-none d-md-flex align-items-center" style="margin-left: 10px;">
+                {% if OK_NG == True %}
+                  <b class="text-primary h4" style="margin-left: 10px;">OK</b>
+                {% else %}
+                  <b class="text-danger h4" style="margin-left: 10px;">NG</b>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        
+          <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #dee2e6;">
+            <div style="width: 150px; text-align: center;">
+              勤務
+            </div>
+            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-start;">
+              {{form.work2}}
+            </div>
+          </div>
+        
+          <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #dee2e6;">
+            <div style="width: 150px; text-align: center;">
+              勤務直
+            </div>
+            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-start;">
+              {{form.tyoku2}}
+            </div>
+          </div>
+        
+          <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #dee2e6;">
+            <div style="width: 150px; text-align: center;">
+              作業時間<br>
+              <input type="submit" value="現在時刻" name="now_time" class="btn btn-blue7 mt-2 d-md-none">
+            </div>
+            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-start;">
+              <input class="your-time-field form-control custom-border" style="width: 90px;" type="text" id="start_time" name="start_time" data-precision="5" value={{default_start_time}}>
+              ～
+              <input class="your-time-field form-control custom-border" style="width: 90px;" type="text" id="end_time" name="end_time" data-precision="5" value={{default_end_time}} style="margin-left: 10px;">
+              <div class="form-check form-check-inline custom-checkbox" style="margin-left: 10px;">
+                {{form.tomorrow_check.label}}{{form.tomorrow_check}}
+              </div>
+              <input type="submit" value="現在時刻" name="now_time" class="btn btn-blue7 mt-2 d-none d-md-block" style="margin-left: 10px;">
+            </div>
+          </div>
+        
+          <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #dee2e6;">
+            <div style="width: 150px; text-align: center;">
+              作業詳細
+            </div>
+            <div style="flex: 1; text-align: left;">
+              {{form.work_detail}}
+            </div>
+          </div>
+        
+          <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #dee2e6;">
+            <div style="width: 150px; text-align: center;">
+              業務区分
+            </div>
+            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-start;">
+              {{form.kosu_def_list}}
+              <input type="submit" value="定義確認" name="def_find" class="btn btn-green4 mt-2 btn-sm" style="margin-left: 10px;">
+            </div>
+          </div>
+        
+          <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #dee2e6;">
+            <div style="width: 150px; text-align: center;">
+              残業
+            </div>
+            <div style="flex: 1; display: flex; align-items: center; justify-content: flex-start;">
+              <button type="button" class="custom-button" onclick="decrement(this)">-</button>
+              {{ form.over_work }}
+              <button type="button" class="custom-button" onclick="increment(this)" style="margin-left: 10px;">+</button>　　
+              <input type="submit" value="残業のみ修正" name="over_time_correction" class="btn btn-blue7 mt-2 btn-sm" style="margin-left: 10px;">
+            </div>
+          </div>
+        
+          <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #dee2e6;">
+            <div style="width: 150px; text-align: center;">
+              休憩変更
+            </div>
+            <div style="flex: 1; text-align: left;">
+              <div class="form-check form-check-inline custom-checkbox">
+                {{form.break_change}}
+                (休憩時間工数入力可)
+              </div>
+            </div>
+          </div>
+        
+          <div style="display: flex; justify-content: center; align-items: center; padding: 8px; border-bottom: 1px solid #dee2e6;">
+            <div style="text-align: center;">
+              <div class="number-input-group">
+                <input type="submit" value="工数登録" name="Registration" class="btn btn-blue8 mt-2">
+                <input type="submit" value="休憩変更登録" name="change_display" class="btn btn-blue7 mt-2" style="margin-left: 10px;">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="mb-3 d-md-none">
-      <b>勤務</b>{{form.work2}}
-    </div>
-    <div class="mb-3 d-md-none">
-      <b>勤務直</b>{{form.tyoku2}}
-    </div>
-    <div class="mb-3">
-      <div>
-        <b>作業時間</b>
-        <button type="submit" name="now_time" class="btn btn-blue7 mt-2 d-md-none">現在時刻</button>
-      </div>
-      <div class="input-group">
-        <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="start_time" name="start_time" data-precision="5" value={{default_start_time}}>
-        <span>～</span>
-        <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="end_time" name="end_time" data-precision="5" value={{default_end_time}}>
-        <div class="form-check form-check-inline custom-checkbox">{{form.tomorrow_check.label}}{{form.tomorrow_check}}</div>
-        <button type="submit" name="now_time" class="btn btn-blue7 mt-2 d-none d-md-inline">現在時刻</button>
-      </div>
-    </div>
-    <div class="mb-3">
-      <b>作業詳細</b>{{form.work_detail}}
-    </div>
-    <div class="mb-3">
-      <b>業務区分</b>
-      <div class="input-group">
-        {{form.kosu_def_list}}
-        <button type="submit" name="def_find" class="btn btn-green4 mt-2 btn-sm">定義確認</button>
-      </div>
-    </div>
-    <div class="mb-3">
-      <b>残業</b>
-      <div class="input-group">
-        <button type="button" class="custom-button" onclick="decrement(this)">-</button>
-        {{ form.over_work }}
-        <button type="button" class="custom-button" onclick="increment(this)">+</button>
-        <button type="submit" name="over_time_correction" class="btn btn-blue7 mt-2 btn-sm">残業のみ修正</button>
-      </div>
-    </div>
-    <div class="mb-3">
-      <b>休憩変更</b>
-      <div class="form-check form-check-inline custom-checkbox">
-        {{form.break_change}}(休憩時間工数入力可)
-      </div>
-    </div>
-    <div class="mb-3">
-      <button type="submit" name="Registration" class="btn btn-blue8 mt-2">工数登録</button>　
-      <button type="submit" name="change_display" class="btn btn-blue7 mt-2">休憩変更登録</button>
-    </div>
+    
     <button id="update" name="update" class="btn btn-link"></button>
     {% if obj_link != '' %}
       <table class="table no-wrap">
