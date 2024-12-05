@@ -24,16 +24,26 @@
       <a href="{% url 'main' %}">メインMENUへ</a>
     </p>
   </div>
+  {% for message in messages %}
+    <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
+      <p class="text-danger">
+        {{ message }}
+      </p>
+    </div>
+  {% endfor %}
   <form action="{% url 'input' %}" method="post">
     {% csrf_token %}
-    {% for message in messages %}
-      <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
-        <p class="text-danger">
-          {{ message }}
-        </p>
-      </div>
-    {% endfor %}
     <table class="table table-bordered border-dark table-custom">
+      <tr>
+        <th>昼休憩</th>
+        <td>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time1" name="start_time1" data-precision="5" value={{default_start_time1}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time1" name="end_time1" data-precision="5" value={{default_end_time1}}>
+        </td>
+      </tr>
+    </table>
+    <table class="table table-custom no-wrap">
       <tr>
         <th class="d-none d-md-table-cell" style="text-align:center;">
           就業日・勤務・直
@@ -79,7 +89,6 @@
             <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="start_time" name="start_time" data-precision="5" value={{default_start_time}}>
             ～
             <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="end_time" name="end_time" data-precision="5" value={{default_end_time}}>　
-            <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time2" name="start_time2" data-precision="5">
             <div class="form-check form-check-inline custom-checkbox">
               {{form.tomorrow_check.label}}{{form.tomorrow_check}}
             </div>
