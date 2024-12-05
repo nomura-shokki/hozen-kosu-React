@@ -13,21 +13,26 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
 </head>
 <body class="container">
-  <h1 class="display-1 text-primary">{{title}}</h1>
-  <p class="h6 no-wrap">
-    <a href="{% url 'kosu_main' %}" >工数MENUへ</a>　　
-    <a href="{% url 'main' %}">メインMENUへ</a>
-  </p>
-  {% for message in messages %}
-  <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
-    <p  class="text-danger">
-      {{ message }}
+  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}</h1>
+  <div class="number-input-group">
+    <p class="h6 no-wrap">
+      <a href="{% url 'kosu_main' %}">工数MENUへ</a>　　
+      <a href="{% url 'kosu_list' 1 %}">履歴へ</a>　　
+      {% if obj_link == True %}
+        <a href="{% url 'detail' obj_get.id %}">工数編集</a>　　
+      {% endif %}
+      <a href="{% url 'main' %}">メインMENUへ</a>
     </p>
   </div>
-  {% endfor %}
-  <p class="small">※毎日の休憩時間が変更されます。</p>
-  <p class="small">1日のみの休憩変更は工数入力画面の休憩変更釦から実施</p>
-  <form action="{% url 'break_time' %}" method="post">
+  <form action="{% url 'input' %}" method="post">
+    {% csrf_token %}
+    {% for message in messages %}
+      <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
+        <p class="text-danger">
+          {{ message }}
+        </p>
+      </div>
+    {% endfor %}
     <table class="table table-bordered border-dark table-custom">
       <tr>
         <th>昼休憩</th>
