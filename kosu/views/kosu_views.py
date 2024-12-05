@@ -3561,7 +3561,7 @@ def detail(request, num):
       obj_check = Business_Time_graph.objects.filter(work_day2 = request.POST['kosu_day'])
 
       # 指定日に工数データがある場合の処理
-      if obj_check.count() != 0:
+      if obj_check.exists():
         # エラーメッセージ出力
         messages.error(request, '指定された日は既に工数データが存在します。指定日のデータを削除してから再度実行下さい。ERROR095')
         # このページをリダイレクト
@@ -3601,10 +3601,6 @@ def detail(request, num):
         request.POST['work'] == 'シフト休' or request.POST['work'] == '代休') and kosu_total == 0:
       # 工数入力OK_NGをOKに切り替え
       judgement = True
-
-
-    # ログイン者の人員データ取得
-    member_obj = member.objects.get(employee_no = request.session['login_No'])
 
 
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
@@ -3834,10 +3830,6 @@ def detail(request, num):
       judgement = True
 
 
-    # ログイン者の人員データ取得
-    member_obj = member.objects.get(employee_no = request.session['login_No'])
-
-
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
     if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
       member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
@@ -4010,10 +4002,6 @@ def detail(request, num):
     if obj_get.work_time == '早退・遅刻' and kosu_total != 0:
       # 工数入力OK_NGをOKに切り替え
       judgement = True
-
-
-    # ログイン者の人員データ取得
-    member_obj = member.objects.get(employee_no = request.session['login_No'])
 
 
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
@@ -4317,10 +4305,6 @@ def detail(request, num):
     if obj_get.work_time == '早退・遅刻' and kosu_total != 0:
       # 工数入力OK_NGをOKに切り替え
       judgement = True
-
-
-    # ログイン者の人員データ取得
-    member_obj = member.objects.get(employee_no = request.session['login_No'])
 
 
     # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理

@@ -15,7 +15,11 @@
 <body class="container">
   <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}</h1>
   <p class="h6 no-wrap">
-    <a href="{% url 'kosu_main' %}" >工数MENUへ</a>　　
+    <a href="{% url 'kosu_main' %}">工数MENUへ</a>　　
+    <a href="{% url 'kosu_list' 1 %}">履歴へ</a>　　
+    {% if obj_link == True %}
+    <a href="{% url 'detail' obj_get.id %}">工数編集</a>　　
+    {% endif %}
     <a href="{% url 'main' %}">メインMENUへ</a>
   </p>
   {% for message in messages %}
