@@ -1079,31 +1079,17 @@
 				else setInputElementValue(formatTime(element.val()));
 				if (!isMobile() && settings.onlyShowClockOnMobile) popup.css('visibility', 'hidden');
 				if (isMobile()) adjustMobilePopupDimensionAndPosition();
-				positionPopupCenter(); // 追加: ポップアップを中央に配置する関数の呼び出し
 				popup.css('display', 'block');
 				repaintClock();
 				if (isMobile()) {
-				  if (background) background.stop().css('opacity', 0).css('display', 'block').animate({opacity: 1}, 300);
+					if (background) background.stop().css('opacity', 0).css('display', 'block').animate({opacity: 1}, 300);
 				} else {
-				  $(window).on('scroll.clockTimePicker', _ => {
-					positionPopupCenter();
-				  });
+					positionPopup();
+					$(window).on('scroll.clockTimePicker', _ => {
+						positionPopup();
+					});
 				}
 				settings.onOpen.call(element.get(0));
-			}
-			
-			function positionPopupCenter() {
-				var scrollTop = $(window).scrollTop();
-				var scrollLeft = $(window).scrollLeft();
-				var windowWidth = $(window).width();
-				var windowHeight = $(window).height();
-			  
-			popup.css({
-				'left': (windowWidth / 2) + scrollLeft + 'px',
-				'top': (windowHeight / 2) + scrollTop + 'px',
-				'transform': 'translate(-50%, -50%)', // 中央に配置するためのトランスフォーム
-				'position': 'fixed' // スクロール情報を考慮して中央に配置
-			    });
 			}
 			
 			function positionPopup() {
