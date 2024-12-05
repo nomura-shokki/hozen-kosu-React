@@ -24,15 +24,16 @@
       <a href="{% url 'main' %}">メインMENUへ</a>
     </p>
   </div>
-  <form action="{% url 'input' %}" method="post">
-    {% csrf_token %}
-    {% for message in messages %}
-      <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
-        <p class="text-danger">
-          {{ message }}
-        </p>
-      </div>
-    {% endfor %}
+  {% for message in messages %}
+  <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
+    <p  class="text-danger">
+      {{ message }}
+    </p>
+  </div>
+  {% endfor %}
+  <p class="small">※毎日の休憩時間が変更されます。</p>
+  <p class="small">1日のみの休憩変更は工数入力画面の休憩変更釦から実施</p>
+  <form action="{% url 'break_time' %}" method="post">
     <table class="table table-bordered border-dark table-custom">
       <tr>
         <th>昼休憩</th>
