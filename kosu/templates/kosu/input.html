@@ -18,8 +18,7 @@
   </style>
 </head>
 <body class="container">
-  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}1</h1>
-  <div class="number-input-group">
+  <h1 class="display-1 text-primary">{{title}}</h1>
     <p class="h6 no-wrap">
       <a href="{% url 'kosu_main' %}">工数MENUへ</a>　　
       <a href="{% url 'kosu_list' 1 %}">履歴へ</a>　　
@@ -28,7 +27,6 @@
       {% endif %}
       <a href="{% url 'main' %}">メインMENUへ</a>
     </p>
-  </div>
   {% for message in messages %}
     <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
       <p class="text-danger">
