@@ -187,6 +187,21 @@
   </div>
 
   <script>
+    $(document).ready(function() {
+        $('.your-time-field').clockTimePicker({
+            duration: true,
+            durationNegative: true,
+      alwaysSelectHoursFirst: true,
+            precision: 5,
+            i18n: {
+                cancelButton: 'キャンセル'
+            },
+            onAdjust: function(newVal, oldVal) {}
+        });
+    });
+  </script>
+
+  <script>
     function increment(element) {
       var input = element.parentNode.querySelector('input[type=number]');
       input.value = parseInt(input.value) + 15 || 0; 
@@ -196,20 +211,6 @@
       var input = element.parentNode.querySelector('input[type=number]');
       input.value = parseInt(input.value) - 15 || 0;
     }
-  </script>
-
-  <script>
-    $(document).ready(function() {
-        $('.your-time-field').clockTimePicker({
-            duration: true,
-            alwaysSelectHoursFirst: true,
-            precision: 5,
-            i18n: {
-                cancelButton: 'キャンセル'
-            },
-            onAdjust: function(newVal, oldVal) {}
-        });
-    });
   </script>
 
   <script>
