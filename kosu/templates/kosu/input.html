@@ -13,8 +13,7 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
 </head>
 <body class="container">
-  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}33</h1>
-  <input class="your-time-field" type="text" id="start_time" name="start_time">
+  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}</h1>
   <div class="number-input-group">
     <p class="h6 no-wrap">
       <a href="{% url 'kosu_main' %}">工数MENUへ</a>　　
@@ -77,9 +76,9 @@
         </th>
         <td>
           <div class="number-input-group">
-            <input class="your-time-field" style="width : 90px;" type="text" id="start_time" name="start_time" data-precision="5" value={{default_start_time}}>
+            <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="start_time" name="start_time" data-precision="5" value={{default_start_time}}>
             ～
-            <input class="your-time-field" style="width : 90px;" type="text" id="end_time" name="end_time" data-precision="5" value={{default_end_time}}>　
+            <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="end_time" name="end_time" data-precision="5" value={{default_end_time}}>　
             <div class="form-check form-check-inline custom-checkbox">
               {{form.tomorrow_check.label}}{{form.tomorrow_check}}
             </div>
@@ -190,15 +189,14 @@
   </script>
 
   <script>
-    $(document).ready(function() {
-      $('.your-time-field').clockTimePicker({
-        alwaysSelectHoursFirst: true,
-        precision: 5,
-        i18n: {
-          cancelButton: 'キャンセル'
-        },
-        onAdjust: function(newVal, oldVal) {}
-      });
+    $('.your-time-field').clockTimePicker({
+      duration: true,
+      durationNegative: true,
+      precision: 5,
+      i18n: {
+        cancelButton: 'Abbrechen'
+      },
+      onAdjust: function(newVal, oldVal) {}
     });
   </script>
 
