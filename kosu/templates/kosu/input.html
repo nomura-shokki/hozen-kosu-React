@@ -189,14 +189,16 @@
   </script>
 
   <script>
-    $('.your-time-field').clockTimePicker({
-      duration: true,
-      durationNegative: true,
-      precision: 5,
-      i18n: {
-        cancelButton: 'Abbrechen'
-      },
-      onAdjust: function(newVal, oldVal) {}
+    $(document).ready(function() {
+      $('.your-time-field').clockTimePicker({
+        alwaysSelectHoursFirst: true,
+        precision: 5,
+        autosize: true,
+        i18n: {
+          cancelButton: 'キャンセル'
+        },
+        onAdjust: function(newVal, oldVal) {}
+      });
     });
   </script>
 
