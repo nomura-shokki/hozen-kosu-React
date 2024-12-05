@@ -34,145 +34,140 @@
   <p class="small">※毎日の休憩時間が変更されます。</p>
   <p class="small">1日のみの休憩変更は工数入力画面の休憩変更釦から実施</p>
   <form action="{% url 'break_time' %}" method="post">
-    {% csrf_token %}
-    <table class="table table-custom no-wrap">
+    <table class="table table-bordered border-dark table-custom">
       <tr>
-        <th class="d-none d-md-table-cell" style="text-align:center;">
-          就業日・勤務・直
-        </th>
-        <th style="text-align:center;" class="d-table-cell d-md-none">
-          就業日
-        </th>
+        <th rowspan="4">1直</th>
+        <th>昼休憩</th>
         <td>
-          <div class="number-input-group">
-            <input type="date" class="form-control custom-border" style="width: 210px;" name="work_day" id="work_day" value={{new_day}}>　
-            <div class="d-none d-md-table-cell"><div class="number-input-group">{{form.work}}　{{form.tyoku}}　</div></div>
-            {% if OK_NG == True %}
-              <b class="text-primary h4">OK</b>
-            {% else %}
-              <b class="text-danger h4">NG</b>
-            {% endif %}
-          </div>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time1" name="start_time1" data-precision="5" value={{default_start_time1}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time1" name="end_time1" data-precision="5" value={{default_end_time1}}>
         </td>
       </tr>
       <tr>
-        <th class="d-table-cell d-md-none" style="text-align:center;">
-          勤務
-        </th>
-        <td class="d-table-cell d-md-none">
-          {{form.work2}}
-        </td>
-      </tr>
-      <tr>
-        <th class="d-table-cell d-md-none" style="text-align:center;">
-          勤務直
-        </th>
-        <td class="d-table-cell d-md-none">
-          {{form.tyoku2}}
-        </td>
-      </tr>
-      <tr>
-        <th style="text-align:center;">
-          作業時間<br>
-          <input type="submit" value="現在時刻"  name="now_time" class="btn btn-blue7 mt-2 d-table-cell d-md-none">
-        </th>
+        <th>残業休憩1</th>
         <td>
-          <div class="number-input-group">
-            <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="start_time" name="start_time" data-precision="5" value={{default_start_time}}>
-            ～
-            <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="end_time" name="end_time" data-precision="5" value={{default_end_time}}>　
-            <div class="form-check form-check-inline custom-checkbox">
-              {{form.tomorrow_check.label}}{{form.tomorrow_check}}
-            </div>
-            <p class="d-none d-md-table-cell">　　　　</p>
-            <input type="submit" value="現在時刻"  name="now_time" class="btn btn-blue7 mt-2 d-none d-md-table-cell">
-          </div>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time2" name="start_time2" data-precision="5" value={{default_start_time2}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time2" name="end_time2" data-precision="5" value={{default_end_time2}}>
         </td>
       </tr>
       <tr>
-        <th style="text-align:center;">
-          作業詳細
-        </th>
+        <th>残業休憩2</th>
         <td>
-          {{form.work_detail}}
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time3" name="start_time3" data-precision="5" value={{default_start_time3}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time3" name="end_time3" data-precision="5" value={{default_end_time3}}>
         </td>
       </tr>
       <tr>
-        <th style="text-align:center;">
-          業務区分
-        </th>
+        <th>残業休憩3</th>
         <td>
-          <div class="number-input-group">
-            {{form.kosu_def_list}}
-            <input type="submit" value="定義確認"  name="def_find" class="btn btn-green4 mt-2 btn-sm">
-          </div>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time4" name="start_time4" data-precision="5" value={{default_start_time4}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time4" name="end_time4" data-precision="5" value={{default_end_time4}}>
         </td>
       </tr>
       <tr>
-        <th style="text-align:center;">
-          残業
-        </th>
+        <th rowspan="4">2直</th>
+        <th>昼休憩</th>
         <td>
-          <div class="number-input-group">
-            <button type="button" class="custom-button" onclick="decrement(this)">-</button>
-            {{ form.over_work }}
-            <button type="button" class="custom-button" onclick="increment(this)">+</button>　　
-            <input type="submit" value="残業のみ修正"  name="over_time_correction" class="btn btn-blue7 mt-2 btn-sm">
-          </div>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time5" name="start_time5" data-precision="5" value={{default_start_time5}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time5" name="end_time5" data-precision="5" value={{default_end_time5}}>
         </td>
       </tr>
       <tr>
-        <th style="text-align:center;">
-          休憩変更
-        </th>
+        <th>残業休憩1</th>
         <td>
-          <div class="form-check form-check-inline custom-checkbox">
-            {{form.break_change}}
-            (休憩時間工数入力可)
-          </div>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time6" name="start_time6" data-precision="5" value={{default_start_time6}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time6" name="end_time6" data-precision="5" value={{default_end_time6}}>
         </td>
       </tr>
-      <tr><th><td>
-        <div class="number-input-group">
-          <input type="submit" value="工数登録"  name="Registration" class="btn btn-blue8 mt-2">　　　
-          <input type="submit" value="休憩変更登録"  name="change_display" class="btn btn-blue7 mt-2">
-        </div>
-      </td></th></tr>
-      <button id="update" name="update" class="btn btn-link"></button>
+      <tr>
+        <th>残業休憩2</th>
+        <td>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time7" name="start_time7" data-precision="5" value={{default_start_time7}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time7" name="end_time7" data-precision="5" value={{default_end_time7}}>
+        </td>
+      </tr>
+      <tr>
+        <th>残業休憩3</th>
+        <td>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time8" name="start_time8" data-precision="5" value={{default_start_time8}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time8" name="end_time8" data-precision="5" value={{default_end_time8}}>
+        </td>
+      </tr>
+      <tr>
+        <th rowspan="4">3直</th>
+        <th>昼休憩</th>
+        <td>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time9" name="start_time9" data-precision="5" value={{default_start_time9}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time9" name="end_time9" data-precision="5" value={{default_end_time9}}>
+        </td>
+      </tr>
+      <tr>
+        <th>残業休憩1</th>
+        <td>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time10" name="start_time10" data-precision="5" value={{default_start_time10}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time10" name="end_time10" data-precision="5" value={{default_end_time10}}>
+        </td>
+      </tr>
+      <tr>
+        <th>残業休憩2</th>
+        <td>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time11" name="start_time11" data-precision="5" value={{default_start_time11}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time11" name="end_time11" data-precision="5" value={{default_end_time11}}>
+        </td>
+      </tr>
+      <tr>
+        <th>残業休憩3</th>
+        <td>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time12" name="start_time12" data-precision="5" value={{default_start_time12}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time12" name="end_time12" data-precision="5" value={{default_end_time12}}>
+        </td>
+      </tr>
+      <tr>
+        <th rowspan="4">常勤</th>
+        <th>昼休憩</th>
+        <td>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time13" name="start_time13" data-precision="5" value={{default_start_time13}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time13" name="end_time13" data-precision="5" value={{default_end_time13}}>
+        </td>
+      </tr>
+      <tr>
+        <th>残業休憩1</th>
+        <td>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time14" name="start_time14" data-precision="5" value={{default_start_time14}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time14" name="end_time14" data-precision="5" value={{default_end_time14}}>
+        </td>
+      </tr>
+      <tr>
+        <th>残業休憩2</th>
+        <td>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time15" name="start_time15" data-precision="5" value={{default_start_time15}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time15" name="end_time15" data-precision="5" value={{default_end_time15}}>
+        </td>
+      </tr>
+      <tr>
+        <th>残業休憩3</th>
+        <td>
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time16" name="start_time16" data-precision="5" value={{default_start_time16}}>
+          ～
+          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time16" name="end_time16" data-precision="5" value={{default_end_time16}}>
+        </td>
+      </tr>
     </table>
-    {% if obj_link != '' %}
-      <table class="table no-wrap">
-        <tr>
-          <th style="text-align:center;">
-            工数詳細
-          </th>
-          <th style="text-align:center;">
-            工数区分
-          </th>
-        </tr>
-        {% for i in time_display_list %}
-          <tr>
-            {% for k in i %}
-              <div class="number-input-group">
-                <td style="text-align:center;">
-                  {{k}}
-                </td>
-              </div>
-            {% endfor %}
-          </tr>
-        {% endfor %}
-        <tr>
-          <div class="number-input-group">
-            <td style="text-align:center;">
-              工数合計(基準時間)
-            </td>
-            <td style="text-align:center;">
-              {{time_total}}分({{default_total}}分)
-            </td>
-          </div>
-        </tr>
-      </table>
-    {% endif %}
   </form>
   <div style="width:100%">
     <canvas id="chart" height="100pt"></canvas>
@@ -192,14 +187,14 @@
 
   <script>
     $(document).ready(function() {
-      $('.your-time-field').clockTimePicker({
-        alwaysSelectHoursFirst: true,
-        precision: 5,
-        i18n: {
-          cancelButton: 'キャンセル'
-        },
-        onAdjust: function(newVal, oldVal) {}
-      });
+        $('.your-time-field').clockTimePicker({
+            alwaysSelectHoursFirst: true,
+            precision: 5,
+            i18n: {
+                cancelButton: 'キャンセル'
+            },
+            onAdjust: function(newVal, oldVal) {}
+        });
     });
   </script>
 
