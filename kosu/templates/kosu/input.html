@@ -14,6 +14,7 @@
 </head>
 <body class="container">
   <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}</h1>
+  <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="start_time" name="start_time" data-precision="5" value={{default_start_time}}>
   <div class="number-input-group">
     <p class="h6 no-wrap">
       <a href="{% url 'kosu_main' %}">工数MENUへ</a>　　
@@ -33,7 +34,7 @@
         </p>
       </div>
     {% endfor %}
-    <table>
+    <table class="table table-custom no-wrap">
       <tr>
         <th class="d-none d-md-table-cell" style="text-align:center;">
           就業日・勤務・直
@@ -75,7 +76,7 @@
           <input type="submit" value="現在時刻"  name="now_time" class="btn btn-blue7 mt-2 d-table-cell d-md-none">
         </th>
         <td>
-          <div class="number-input-group">
+          <div>
             <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="start_time" name="start_time" data-precision="5" value={{default_start_time}}>
             ～
             <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="end_time" name="end_time" data-precision="5" value={{default_end_time}}>　
