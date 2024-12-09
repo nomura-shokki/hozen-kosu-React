@@ -13,7 +13,7 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
 </head>
 <body class="container">
-  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}34</h1>
+  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}12</h1>
   <div class="number-input-group">
     <p class="h6 no-wrap">
       <a href="{% url 'kosu_main' %}">工数MENUへ</a>　　
@@ -33,10 +33,7 @@
     {% endfor %}
     <table class="table table-custom no-wrap">
       <tr>
-        <th style="text-align:center;">
-          作業時間<br>
-          <input type="submit" value="現在時刻"  name="now_time" class="btn btn-blue7 mt-2 d-table-cell d-md-none">
-        </th>
+
         <td>
 
             <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="start_time" name="start_time" data-precision="5" value={{default_start_time}}>
@@ -45,7 +42,14 @@
 
         </td>
       </tr>
-
+      <tr>
+        <th style="text-align:center;">
+          作業詳細
+        </th>
+        <td>
+          {{form.work_detail}}
+        </td>
+      </tr>
     </table>
     {% if obj_link != '' %}
       <table class="table no-wrap">
