@@ -38,11 +38,11 @@
           <input type="submit" value="現在時刻"  name="now_time" class="btn btn-blue7 mt-2 d-table-cell d-md-none">
         </th>
         <td>
-          <div class="number-input-group">
+
             <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="start_time" name="start_time" data-precision="5" value={{default_start_time}}>
             ～
             <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="end_time" name="end_time" data-precision="5" value={{default_end_time}}>　
-          </div>
+
         </td>
       </tr>
       <tr>
@@ -51,17 +51,6 @@
         </th>
         <td>
           {{form.work_detail}}
-        </td>
-      </tr>
-      <tr>
-        <th style="text-align:center;">
-          業務区分
-        </th>
-        <td>
-          <div class="number-input-group">
-            {{form.kosu_def_list}}
-            <input type="submit" value="定義確認"  name="def_find" class="btn btn-green4 mt-2 btn-sm">
-          </div>
         </td>
       </tr>
     </table>
