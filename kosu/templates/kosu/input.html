@@ -13,7 +13,7 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
 </head>
 <body class="container">
-  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}</h1>
+  <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}12</h1>
   <div class="number-input-group">
     <p class="h6 no-wrap">
       <a href="{% url 'kosu_main' %}">工数MENUへ</a>　　
@@ -32,25 +32,6 @@
       </div>
     {% endfor %}
     <table class="table table-custom no-wrap">
-      <tr>
-        <th class="d-none d-md-table-cell" style="text-align:center;">
-          就業日・勤務・直
-        </th>
-        <th style="text-align:center;" class="d-table-cell d-md-none">
-          就業日
-        </th>
-        <td>
-          <div class="number-input-group">
-            <input type="date" class="form-control custom-border" style="width: 210px;" name="work_day" id="work_day" value={{new_day}}>　
-            <div class="d-none d-md-table-cell"><div class="number-input-group">{{form.work}}　{{form.tyoku}}　</div></div>
-            {% if OK_NG == True %}
-              <b class="text-primary h4">OK</b>
-            {% else %}
-              <b class="text-danger h4">NG</b>
-            {% endif %}
-          </div>
-        </td>
-      </tr>
       <tr>
         <th class="d-table-cell d-md-none" style="text-align:center;">
           勤務
