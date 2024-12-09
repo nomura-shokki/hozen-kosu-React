@@ -12,15 +12,19 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
   <style>
+    /* ポップアップを画面中央に固定する */
     .clock-timepicker-popup {
         position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 99999;
+        width: 300px; /* 幅を固定 */
+        height: 350px; /* 高さを固定 */
         /* その他のスタイルは既存のものを適用 */
     }
 
+    /* 背景を固定する */
     .clock-timepicker-background {
         position: fixed;
         top: 0;

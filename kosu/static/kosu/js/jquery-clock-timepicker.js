@@ -1012,42 +1012,26 @@
 			  ADJUST POPUP DIMENSION AND POSITION (FOR MOBILE PHONES)
 			 ************************************************************************************************/
 			function adjustMobilePopupDimensionAndPosition() {
-				var popupHeight;
-			
-				// Landscape mode
-				if (window.innerHeight < 400) {
-					popupWidth = window.innerHeight - 60;
-					popup.css('width', popupWidth + 200 + 'px');
-					inputElement.css('position', 'absolute')
-								.css('left', '0px')
-								.css('top', '0px')
-								.css('width', '200px')
-								.css('height', popupWidth + 20 + 'px');
-					canvasHolder.css('margin', '10px 25px 0px 230px');
-					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom'));
-				}
-				// Normal mode (enough space for normal popup)
-				else {
-					popupWidth = window.innerWidth - 80;
-					if (popupWidth > 300) popupWidth = 300;
-					popup.css('width', popupWidth + 'px');
-					inputElement.css('position', 'static')
-								.css('width', '100%')
-								.css('height', 'auto');
-					canvasHolder.css('margin', '10px 25px 10px 25px');
-					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom')) + 65;
-				}
-			
-				// Align popup in the middle of the screen
-				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
-				popup.css('top', parseInt((window.innerHeight - popupHeight) / 2) + 'px');
-			
-				canvasSize = popupWidth - 50;
-				clockRadius = parseInt(canvasSize / 2);
-				clockCenterX = parseInt(canvasSize / 2);
-				clockCenterY = parseInt(canvasSize / 2);
-				clockOuterRadius = clockRadius - 16;
-				clockInnerRadius = clockOuterRadius - 29;
+				// ポップアップの固定サイズを設定
+				var popupWidth = 300;
+				var popupHeight = 350;
+				
+				// UIの各コンポーネント（キャンバスなど）のサイズを設定
+				var canvasSize = popupWidth - 50;
+				var clockRadius = parseInt(canvasSize / 2);
+				var clockCenterX = parseInt(canvasSize / 2);
+				var clockCenterY = parseInt(canvasSize / 2);
+				var clockOuterRadius = clockRadius - 16;
+				var clockInnerRadius = clockOuterRadius - 29;
+				
+				// ポップアップのスタイルを設定
+				popup.css('width', popupWidth + 'px');
+				popup.css('height', popupHeight + 'px');
+				popup.css('left', '50%');
+				popup.css('top', '50%');
+				popup.css('transform', 'translate(-50%, -50%)');
+				
+				// キャンバスサイズを設定
 				canvasHolder.css('width', canvasSize + 'px');
 				canvasHolder.css('height', canvasSize + 'px');
 				
@@ -1058,12 +1042,17 @@
 				hourCanvas.height = canvasSize * dpr;
 				minuteCanvas.width = canvasSize * dpr;
 				minuteCanvas.height = canvasSize * dpr;
+			
 				var hourCtx = hourCanvas.getContext('2d');
 				var minuteCtx = minuteCanvas.getContext('2d');
 				hourCtx.scale(dpr, dpr);
 				minuteCtx.scale(dpr, dpr);
+			
+				clockHourCanvas.css('width', canvasSize);
+				clockHourCanvas.css('height', canvasSize);
+				clockMinuteCanvas.css('width', canvasSize);
+				clockMinuteCanvas.css('height', canvasSize);
 			}
-
 
 			/************************************************************************************************
 			  SHOWS THE TIME PICKER
