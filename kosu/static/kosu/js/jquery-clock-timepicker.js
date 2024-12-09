@@ -194,15 +194,14 @@
 					.css('width', '100%')
 					.css('height', '100%')
 					.css('backgroundColor', 'rgba(0,0,0,0.6)')
-					.css('overflow', 'auto') // このCSSを追加
-					.css('-webkit-overflow-scrolling', 'touch'); // このCSSを追加
+					.css('overflow', 'hidden'); // ここを 'hidden' に
 				element.parent().append(background);
 			
+				function onBackgroundTouchMove(event) {
+					event.preventDefault();
+				}
 				background.off('touchmove', onBackgroundTouchMove);
-				background.on('touchmove', function(event) {
-					// event.preventDefault(); を削除
-					event.stopPropagation();
-				});
+				background.on('touchmove', onBackgroundTouchMove);
 			
 				function onBackgroundClick(event) {
 					event.preventDefault();
@@ -214,6 +213,34 @@
 				background.off('click', onBackgroundClick);
 				background.on('click', onBackgroundClick);
 			}
+			
+			// モバイル用ポップアップのCSS調整
+			popup.css('left', '40px')
+				.css('top', '40px');
+			
+			window.addEventListener("orientationchange", function() {
+				setTimeout(function() {
+					adjustMobilePopupDimensionAndPosition();
+					repaintClock();
+				}, 500);
+			});
+			
+			function onPopupTouchMove(event) {
+				// event.preventDefaultを削除しない
+				event.preventDefault();
+			}
+			popup.off('touchmove', onPopupTouchMove);
+			popup.on('touchmove', onPopupTouchMove);
+			
+			function onPopupClick(event) {
+				event.stopImmediatePropagation();
+				if (selectionMode == 'HOUR') selectHourOnInputElement();
+				else selectMinuteOnInputElement();
+				return false;
+			}
+			popup.off('click', onPopupClick);
+			popup.on('click', onPopupClick);
+			
 
 
 
