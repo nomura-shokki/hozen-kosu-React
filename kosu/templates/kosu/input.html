@@ -64,31 +64,6 @@
           </div>
         </td>
       </tr>
-      <tr>
-        <th style="text-align:center;">
-          残業
-        </th>
-        <td>
-          <div class="number-input-group">
-            <button type="button" class="custom-button" onclick="decrement(this)">-</button>
-            {{ form.over_work }}
-            <button type="button" class="custom-button" onclick="increment(this)">+</button>　　
-            <input type="submit" value="残業のみ修正"  name="over_time_correction" class="btn btn-blue7 mt-2 btn-sm">
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <th style="text-align:center;">
-          休憩変更
-        </th>
-        <td>
-          <div class="form-check form-check-inline custom-checkbox">
-            {{form.break_change}}
-            (休憩時間工数入力可)
-          </div>
-        </td>
-      </tr>
-      <button id="update" name="update" class="btn btn-link"></button>
     </table>
     {% if obj_link != '' %}
       <table class="table no-wrap">
