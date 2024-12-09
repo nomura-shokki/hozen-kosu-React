@@ -184,100 +184,70 @@
 			  INITIALIZE THE DIV TO DARKEN THE WEBSITE WHILE CHOOSING A TIME
 			 ************************************************************************************************/
 			var background;
-			if (isMobile()) {
-				background = $('<div class="clock-timepicker-background">');
-				background.css('zIndex', 99998)
-					.css('display', 'none')
-					.css('position', 'fixed')
-					.css('top', '0px')
-					.css('left', '0px')
-					.css('width', '100%')
-					.css('height', '100%')
-					.css('backgroundColor', 'rgba(0,0,0,0.6)')
-					.css('overflow', 'hidden'); // ここを 'hidden' に
-				element.parent().append(background);
-			
-				function onBackgroundTouchMove(event) {
-					event.preventDefault();
-				}
-				background.off('touchmove', onBackgroundTouchMove);
-				background.on('touchmove', onBackgroundTouchMove);
-			
-				function onBackgroundClick(event) {
-					event.preventDefault();
-					event.stopImmediatePropagation();
-					if (selectionMode == 'HOUR') selectHourOnInputElement();
-					else selectMinuteOnInputElement();
-					return false;
-				}
-				background.off('click', onBackgroundClick);
-				background.on('click', onBackgroundClick);
-			}
-			
-			// モバイル用ポップアップのCSS調整
-			popup.css('left', '40px')
-				.css('top', '40px');
-			
-			window.addEventListener("orientationchange", function() {
-				setTimeout(function() {
-					adjustMobilePopupDimensionAndPosition();
-					repaintClock();
-				}, 500);
-			});
-			
-			function onPopupTouchMove(event) {
-				// event.preventDefaultを削除しない
-				event.preventDefault();
-			}
-			popup.off('touchmove', onPopupTouchMove);
-			popup.on('touchmove', onPopupTouchMove);
-			
-			function onPopupClick(event) {
-				event.stopImmediatePropagation();
-				if (selectionMode == 'HOUR') selectHourOnInputElement();
-				else selectMinuteOnInputElement();
-				return false;
-			}
-			popup.off('click', onPopupClick);
-			popup.on('click', onPopupClick);
-			
+            if (isMobile()) {
+                background = $('<div class="clock-timepicker-background">');
+                background.css('zIndex', 99998)
+                         .css('display', 'none')
+                         .css('position', 'fixed')
+                         .css('top', '0px')
+                         .css('left', '0px')
+                         .css('width', '100%')
+                         .css('height', '100%')
+                         .css('backgroundColor', 'rgba(0,0,0,0.6)')
+                         .css('touch-action', 'none'); // 修正: touch-action プロパティの追加
+                element.parent().append(background);
+
+                function onBackgroundTouchMove(event) {
+                    event.preventDefault();
+                }
+                background.off('touchmove', onBackgroundTouchMove);
+                background.on('touchmove', onBackgroundTouchMove);
+
+                function onBackgroundClick(event) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    if (selectionMode == 'HOUR') selectHourOnInputElement();
+                    else selectMinuteOnInputElement();
+                    return false;
+                }
+                background.off('click', onBackgroundClick);
+                background.on('click', onBackgroundClick);
+            }
 
 
 
 			/************************************************************************************************
 			  INITIALIZE POPUP
 			 ************************************************************************************************/
-			var popup = $('<div class="clock-timepicker-popup">');
-			popup.css('display', 'none')
-				 .css('zIndex', 99999)
-				 .css('cursor', 'default')
-				 .css('position', 'fixed')
-				 .css('width', popupWidth + 'px')
-				 .css('backgroundColor', settings.colors.popupBackgroundColor)
-				 .css('box-shadow', '0 4px 20px 0px rgba(0, 0, 0, 0.14)')
-				 .css('border-radius', '5px')
-				 .css('overflow', 'hidden')
-				 .css('user-select', 'none');
-			popup.on('contextmenu', function() { return false; });
+            var popup = $('<div class="clock-timepicker-popup">');
+            popup.css('display', 'none')
+                 .css('zIndex', 99999)
+                 .css('cursor', 'default')
+                 .css('position', 'fixed')
+                 .css('width', popupWidth + 'px')
+                 .css('backgroundColor', settings.colors.popupBackgroundColor)
+                 .css('box-shadow', '0 4px 20px 0px rgba(0, 0, 0, 0.14)')
+                 .css('border-radius', '5px')
+                 .css('overflow', 'hidden auto') // 修正: overflow プロパティの追加
+                 .css('user-select', 'none');
+            popup.on('contextmenu', function() { return false; });
 			if (isMobile()) {
 				popup.css('left', '40px')
-					.css('top', '40px')
-					.css('overflow', 'auto') // このCSSを追加
-					.css('-webkit-overflow-scrolling', 'touch'); // このCSSを追加
-			
+					 .css('top', '40px');
+
 				window.addEventListener("orientationchange", function() {
 					setTimeout(function() {
 						adjustMobilePopupDimensionAndPosition();
 						repaintClock();
 					}, 500);
 				});
-			
+
+				function onPopupTouchMove(event) {
+					event.preventDefault();
+				}
 				popup.off('touchmove', onPopupTouchMove);
-				popup.on('touchmove', function(event) {
-					// event.preventDefault(); を削除
-					event.stopPropagation();
-				});
-			
+				popup.on('touchmove', onPopupTouchMove);
+
 				function onPopupClick(event) {
 					event.stopImmediatePropagation();
 					if (selectionMode == 'HOUR') selectHourOnInputElement();
@@ -1082,6 +1052,7 @@
 				clockInnerRadius = clockOuterRadius - 29;
 				canvasHolder.css('width', canvasSize + 'px');
 				canvasHolder.css('height', canvasSize + 'px');
+				popup.css('overflow', 'auto');
 				
 				var dpr = window.devicePixelRatio || 1;
 				var hourCanvas = clockHourCanvas.get(0);
