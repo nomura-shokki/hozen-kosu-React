@@ -70,3 +70,9 @@
   display: flex;
   justify-content: center;
 }
+
+.clock-timepicker-background,
+.clock-timepicker-popup {
+	overflow: auto;
+	-webkit-overflow-scrolling: touch; /* 特にiOSデバイスのため */
+}

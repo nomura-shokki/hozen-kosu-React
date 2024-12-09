@@ -187,21 +187,23 @@
 			if (isMobile()) {
 				background = $('<div class="clock-timepicker-background">');
 				background.css('zIndex', 99998)
-							.css('display', 'none')
-							.css('position', 'fixed')
-							.css('top', '0px')
-							.css('left', '0px')
-							.css('width', '100%')
-							.css('height', '100%')
-							.css('backgroundColor', 'rgba(0,0,0,0.6)');
+					.css('display', 'none')
+					.css('position', 'fixed')
+					.css('top', '0px')
+					.css('left', '0px')
+					.css('width', '100%')
+					.css('height', '100%')
+					.css('backgroundColor', 'rgba(0,0,0,0.6)')
+					.css('overflow', 'auto') // このCSSを追加
+					.css('-webkit-overflow-scrolling', 'touch'); // このCSSを追加
 				element.parent().append(background);
-
-				function onBackgroundTouchMove(event) {
-					event.preventDefault();
-				}
+			
 				background.off('touchmove', onBackgroundTouchMove);
-				background.on('touchmove', onBackgroundTouchMove);
-
+				background.on('touchmove', function(event) {
+					// event.preventDefault(); を削除
+					event.stopPropagation();
+				});
+			
 				function onBackgroundClick(event) {
 					event.preventDefault();
 					event.stopImmediatePropagation();
@@ -232,21 +234,23 @@
 			popup.on('contextmenu', function() { return false; });
 			if (isMobile()) {
 				popup.css('left', '40px')
-					 .css('top', '40px');
-
+					.css('top', '40px')
+					.css('overflow', 'auto') // このCSSを追加
+					.css('-webkit-overflow-scrolling', 'touch'); // このCSSを追加
+			
 				window.addEventListener("orientationchange", function() {
 					setTimeout(function() {
 						adjustMobilePopupDimensionAndPosition();
 						repaintClock();
 					}, 500);
 				});
-
-				function onPopupTouchMove(event) {
-					event.preventDefault();
-				}
+			
 				popup.off('touchmove', onPopupTouchMove);
-				popup.on('touchmove', onPopupTouchMove);
-
+				popup.on('touchmove', function(event) {
+					// event.preventDefault(); を削除
+					event.stopPropagation();
+				});
+			
 				function onPopupClick(event) {
 					event.stopImmediatePropagation();
 					if (selectionMode == 'HOUR') selectHourOnInputElement();
@@ -1012,26 +1016,43 @@
 			  ADJUST POPUP DIMENSION AND POSITION (FOR MOBILE PHONES)
 			 ************************************************************************************************/
 			function adjustMobilePopupDimensionAndPosition() {
-				// ポップアップの固定サイズを設定
-				var popupWidth = 300;
-				var popupHeight = 350;
-				
-				// UIの各コンポーネント（キャンバスなど）のサイズを設定
-				var canvasSize = popupWidth - 50;
-				var clockRadius = parseInt(canvasSize / 2);
-				var clockCenterX = parseInt(canvasSize / 2);
-				var clockCenterY = parseInt(canvasSize / 2);
-				var clockOuterRadius = clockRadius - 16;
-				var clockInnerRadius = clockOuterRadius - 29;
-				
-				// ポップアップのスタイルを設定
-				popup.css('width', popupWidth + 'px');
-				popup.css('height', popupHeight + 'px');
-				popup.css('left', '50%');
-				popup.css('top', '50%');
-				popup.css('transform', 'translate(-50%, -50%)');
-				
-				// キャンバスサイズを設定
+
+				var popupHeight;
+
+				//Landscape mode
+				if (window.innerHeight < 400) {
+					popupWidth = window.innerHeight - 60;
+					popup.css('width', popupWidth + 200 + 'px');
+					inputElement.css('position', 'absolute')
+								.css('left', '0px')
+								.css('top', '0px')
+								.css('width', '200px')
+								.css('height', popupWidth + 20 + 'px');
+					canvasHolder.css('margin', '10px 25px 0px 230px');
+					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom'));
+				}
+				//Normal mode (enough space for normal popup)
+				else {
+					popupWidth = window.innerWidth - 80;
+					if (popupWidth > 300) popupWidth = 300;
+					popup.css('width', popupWidth + 'px');
+					inputElement.css('position', 'static')
+								.css('width', '100%')
+								.css('height', 'auto');
+					canvasHolder.css('margin', '10px 25px 10px 25px');
+					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom')) + 65;
+				}
+
+				//Align popup in the middle of the screen
+				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
+				popup.css('top', parseInt((window.innerHeight - popupHeight) / 2) + 'px');
+
+				canvasSize = popupWidth - 50;
+				clockRadius = parseInt(canvasSize / 2);
+				clockCenterX = parseInt(canvasSize / 2);
+				clockCenterY = parseInt(canvasSize / 2);
+				clockOuterRadius = clockRadius - 16;
+				clockInnerRadius = clockOuterRadius - 29;
 				canvasHolder.css('width', canvasSize + 'px');
 				canvasHolder.css('height', canvasSize + 'px');
 				
@@ -1042,17 +1063,17 @@
 				hourCanvas.height = canvasSize * dpr;
 				minuteCanvas.width = canvasSize * dpr;
 				minuteCanvas.height = canvasSize * dpr;
-			
 				var hourCtx = hourCanvas.getContext('2d');
 				var minuteCtx = minuteCanvas.getContext('2d');
 				hourCtx.scale(dpr, dpr);
 				minuteCtx.scale(dpr, dpr);
-			
+
 				clockHourCanvas.css('width', canvasSize);
 				clockHourCanvas.css('height', canvasSize);
 				clockMinuteCanvas.css('width', canvasSize);
 				clockMinuteCanvas.css('height', canvasSize);
 			}
+
 
 			/************************************************************************************************
 			  SHOWS THE TIME PICKER
@@ -1067,33 +1088,22 @@
 				if (isMobile()) {
 					if (background) background.stop().css('opacity', 0).css('display', 'block').animate({opacity: 1}, 300);
 				} else {
+					positionPopup();
 					$(window).on('scroll.clockTimePicker', _ => {
 						positionPopup();
 					});
 				}
-				positionPopup(); // 常にポップアップの位置を調整
 				settings.onOpen.call(element.get(0));
 			}
 			
 			function positionPopup() {
-				if (isMobile()) {
-					// スマホ画面の場合はポップアップを常に中央に表示
-					var popupHeight = popup.outerHeight();
-					popup.css({
-						'left': '50%',
-						'top': '50%',
-						'transform': 'translate(-50%, -50%)'
-					});
-				} else {
-					// デスクトップの場合は既存の位置ロジックを使用
-					var top = element.offset().top - $(window).scrollTop() + element.outerHeight();
-					if (top + popup.outerHeight() > window.innerHeight) {
-						var newTop = element.offset().top - $(window).scrollTop() - popup.outerHeight();
-						if (newTop >= 0) top = newTop;
-					}
-					var left = element.offset().left - $(window).scrollLeft() - parseInt((popup.outerWidth() - element.outerWidth()) / 2);
-					popup.css('left', left + 'px').css('top', top + 'px');
+				var top = element.offset().top - $(window).scrollTop() + element.outerHeight();
+				if (top + popup.outerHeight() > window.innerHeight) {
+					var newTop = element.offset().top - $(window).scrollTop() - popup.outerHeight();
+					if (newTop >= 0) top = newTop;
 				}
+				var left = element.offset().left - $(window).scrollLeft() - parseInt((popup.outerWidth() - element.outerWidth()) / 2);
+				popup.css('left', left + 'px').css('top', top + 'px');
 			}
 
 
