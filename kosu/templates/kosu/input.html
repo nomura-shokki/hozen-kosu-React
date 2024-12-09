@@ -32,10 +32,10 @@
     {% endfor %}
     <table class="table table-custom">
       <tr>
-        <th class="d-none d-md-table-cell" style="text-align:center;">
+        <th class="d-none d-md-table-cell">
           就業日・勤務・直
         </th>
-        <th style="text-align:center;" class="d-table-cell d-md-none">
+        <th class="d-table-cell d-md-none">
           就業日
         </th>
         <td>
@@ -51,7 +51,7 @@
         </td>
       </tr>
       <tr>
-        <th class="d-table-cell d-md-none" style="text-align:center;">
+        <th class="d-table-cell d-md-none">
           勤務
         </th>
         <td class="d-table-cell d-md-none">
@@ -59,7 +59,7 @@
         </td>
       </tr>
       <tr>
-        <th class="d-table-cell d-md-none" style="text-align:center;">
+        <th class="d-table-cell d-md-none">
           勤務直
         </th>
         <td class="d-table-cell d-md-none">
@@ -67,7 +67,7 @@
         </td>
       </tr>
       <tr>
-        <th style="text-align:center;">
+        <th>
           作業時間<br>
           <input type="submit" value="現在時刻"  name="now_time" class="btn btn-blue7 mt-2 d-table-cell d-md-none">
         </th>
@@ -85,7 +85,7 @@
         </td>
       </tr>
       <tr>
-        <th style="text-align:center;">
+        <th>
           作業詳細
         </th>
         <td>
@@ -93,7 +93,7 @@
         </td>
       </tr>
       <tr>
-        <th style="text-align:center;">
+        <th>
           業務区分
         </th>
         <td>
@@ -104,7 +104,7 @@
         </td>
       </tr>
       <tr>
-        <th style="text-align:center;">
+        <th>
           残業
         </th>
         <td>
@@ -117,7 +117,7 @@
         </td>
       </tr>
       <tr>
-        <th style="text-align:center;">
+        <th>
           休憩変更
         </th>
         <td>
@@ -138,10 +138,10 @@
     {% if obj_link != '' %}
       <table class="table no-wrap">
         <tr>
-          <th style="text-align:center;">
+          <th>
             工数詳細
           </th>
-          <th style="text-align:center;">
+          <th>
             工数区分
           </th>
         </tr>
@@ -149,7 +149,7 @@
           <tr>
             {% for k in i %}
               <div class="number-input-group">
-                <td style="text-align:center;">
+                <td>
                   {{k}}
                 </td>
               </div>
@@ -158,10 +158,10 @@
         {% endfor %}
         <tr>
           <div class="number-input-group">
-            <td style="text-align:center;">
+            <td>
               工数合計(基準時間)
             </td>
-            <td style="text-align:center;">
+            <td>
               {{time_total}}分({{default_total}}分)
             </td>
           </div>
