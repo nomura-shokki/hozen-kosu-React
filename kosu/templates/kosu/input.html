@@ -18,6 +18,7 @@
     <p class="h6 no-wrap">
       <a href="{% url 'kosu_main' %}">工数MENUへ</a>　　
       <a href="{% url 'kosu_list' 1 %}">履歴へ</a>　　
+
       <a href="{% url 'main' %}">メインMENUへ</a>
     </p>
   </div>
@@ -30,7 +31,111 @@
         </p>
       </div>
     {% endfor %}
-    <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time1" name="end_time1" data-precision="5" value={{default_end_time1}}>
+    <table class="table table-custom no-wrap">
+      <tr>
+        <th class="d-none d-md-table-cell" style="text-align:center;">
+          就業日・勤務・直
+        </th>
+        <th style="text-align:center;" class="d-table-cell d-md-none">
+          就業日
+        </th>
+        <td>
+          <div class="number-input-group">
+            <input type="date" class="form-control custom-border" style="width: 210px;" name="work_day" id="work_day" value={{new_day}}>　
+            <div class="d-none d-md-table-cell"><div class="number-input-group">{{form.work}}　{{form.tyoku}}　</div></div>
+            {% if OK_NG == True %}
+              <b class="text-primary h4">OK</b>
+            {% else %}
+              <b class="text-danger h4">NG</b>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <th class="d-table-cell d-md-none" style="text-align:center;">
+          勤務
+        </th>
+        <td class="d-table-cell d-md-none">
+          {{form.work2}}
+        </td>
+      </tr>
+      <tr>
+        <th class="d-table-cell d-md-none" style="text-align:center;">
+          勤務直
+        </th>
+        <td class="d-table-cell d-md-none">
+          {{form.tyoku2}}
+        </td>
+      </tr>
+      <tr>
+        <th style="text-align:center;">
+          作業時間<br>
+          <input type="submit" value="現在時刻"  name="now_time" class="btn btn-blue7 mt-2 d-table-cell d-md-none">
+        </th>
+        <td>
+          <div class="number-input-group">
+            <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="start_time" name="start_time" data-precision="5" value={{default_start_time}}>
+            ～
+            <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="end_time" name="end_time" data-precision="5" value={{default_end_time}}>　
+            <div class="form-check form-check-inline custom-checkbox">
+              {{form.tomorrow_check.label}}{{form.tomorrow_check}}
+            </div>
+            <p class="d-none d-md-table-cell">　　　　</p>
+            <input type="submit" value="現在時刻"  name="now_time" class="btn btn-blue7 mt-2 d-none d-md-table-cell">
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <th style="text-align:center;">
+          作業詳細
+        </th>
+        <td>
+          {{form.work_detail}}
+        </td>
+      </tr>
+      <tr>
+        <th style="text-align:center;">
+          業務区分
+        </th>
+        <td>
+          <div class="number-input-group">
+            {{form.kosu_def_list}}
+            <input type="submit" value="定義確認"  name="def_find" class="btn btn-green4 mt-2 btn-sm">
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <th style="text-align:center;">
+          残業
+        </th>
+        <td>
+          <div class="number-input-group">
+            <button type="button" class="custom-button" onclick="decrement(this)">-</button>
+            {{ form.over_work }}
+            <button type="button" class="custom-button" onclick="increment(this)">+</button>　　
+            <input type="submit" value="残業のみ修正"  name="over_time_correction" class="btn btn-blue7 mt-2 btn-sm">
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <th style="text-align:center;">
+          休憩変更
+        </th>
+        <td>
+          <div class="form-check form-check-inline custom-checkbox">
+            {{form.break_change}}
+            (休憩時間工数入力可)
+          </div>
+        </td>
+      </tr>
+      <tr><th><td>
+        <div class="number-input-group">
+          <input type="submit" value="工数登録"  name="Registration" class="btn btn-blue8 mt-2">　　　
+          <input type="submit" value="休憩変更登録"  name="change_display" class="btn btn-blue7 mt-2">
+        </div>
+      </td></th></tr>
+      <button id="update" name="update" class="btn btn-link"></button>
+    </table>
     {% if obj_link != '' %}
       <table class="table no-wrap">
         <tr>
