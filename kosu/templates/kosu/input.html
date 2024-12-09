@@ -42,11 +42,6 @@
             <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="start_time" name="start_time" data-precision="5" value={{default_start_time}}>
             ～
             <input class="your-time-field form-control custom-border" style="width : 90px;" type="text" id="end_time" name="end_time" data-precision="5" value={{default_end_time}}>　
-            <div class="form-check form-check-inline custom-checkbox">
-              {{form.tomorrow_check.label}}{{form.tomorrow_check}}
-            </div>
-            <p class="d-none d-md-table-cell">　　　　</p>
-            <input type="submit" value="現在時刻"  name="now_time" class="btn btn-blue7 mt-2 d-none d-md-table-cell">
 
         </td>
       </tr>
@@ -83,10 +78,9 @@
           休憩変更
         </th>
         <td>
-          <div class="form-check form-check-inline custom-checkbox">
+
             {{form.break_change}}
-            (休憩時間工数入力可)
-          </div>
+
         </td>
       </tr>
       <tr><th><td>
