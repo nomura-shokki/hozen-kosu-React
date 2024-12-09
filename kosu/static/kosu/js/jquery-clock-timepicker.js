@@ -1011,40 +1011,38 @@
 			/************************************************************************************************
 			  ADJUST POPUP DIMENSION AND POSITION (FOR MOBILE PHONES)
 			 ************************************************************************************************/
-		    function adjustMobilePopupDimensionAndPosition() {
+			function adjustMobilePopupDimensionAndPosition() {
+
 				var popupHeight;
-			
-				// Landscape mode
+
+				//Landscape mode
 				if (window.innerHeight < 400) {
 					popupWidth = window.innerHeight - 60;
 					popup.css('width', popupWidth + 200 + 'px');
 					inputElement.css('position', 'absolute')
-						.css('left', '0px')
-						.css('top', '0px')
-						.css('width', '200px')
-						.css('height', popupWidth + 20 + 'px');
+								.css('left', '0px')
+								.css('top', '0px')
+								.css('width', '200px')
+								.css('height', popupWidth + 20 + 'px');
 					canvasHolder.css('margin', '10px 25px 0px 230px');
 					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom'));
 				}
-				// Normal mode (enough space for normal popup)
+				//Normal mode (enough space for normal popup)
 				else {
 					popupWidth = window.innerWidth - 80;
 					if (popupWidth > 300) popupWidth = 300;
 					popup.css('width', popupWidth + 'px');
 					inputElement.css('position', 'static')
-						.css('width', '100%')
-						.css('height', 'auto');
+								.css('width', '100%')
+								.css('height', 'auto');
 					canvasHolder.css('margin', '10px 25px 10px 25px');
 					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom')) + 65;
 				}
-			
-				// Align popup in the middle of the screen
-				var scrollTop = $(window).scrollTop();
-				var scrollLeft = $(window).scrollLeft();
-			
-				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + scrollLeft + 'px');
-				popup.css('top', parseInt((window.innerHeight - popupHeight) / 2) + scrollTop + 'px');
-			
+
+				//Align popup in the middle of the screen
+				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
+				popup.css('top', parseInt((window.innerHeight - popupHeight) / 2) + 'px');
+
 				canvasSize = popupWidth - 50;
 				clockRadius = parseInt(canvasSize / 2);
 				clockCenterX = parseInt(canvasSize / 2);
@@ -1065,14 +1063,13 @@
 				var minuteCtx = minuteCanvas.getContext('2d');
 				hourCtx.scale(dpr, dpr);
 				minuteCtx.scale(dpr, dpr);
-			
+
 				clockHourCanvas.css('width', canvasSize);
 				clockHourCanvas.css('height', canvasSize);
 				clockMinuteCanvas.css('width', canvasSize);
 				clockMinuteCanvas.css('height', canvasSize);
 			}
 
-			$(window).on('resize scroll', adjustMobilePopupDimensionAndPosition);
 
 			/************************************************************************************************
 			  SHOWS THE TIME PICKER
@@ -1087,22 +1084,33 @@
 				if (isMobile()) {
 					if (background) background.stop().css('opacity', 0).css('display', 'block').animate({opacity: 1}, 300);
 				} else {
-					positionPopup();
 					$(window).on('scroll.clockTimePicker', _ => {
 						positionPopup();
 					});
 				}
+				positionPopup(); // 常にポップアップの位置を調整
 				settings.onOpen.call(element.get(0));
 			}
 			
 			function positionPopup() {
-				var top = element.offset().top - $(window).scrollTop() + element.outerHeight();
-				if (top + popup.outerHeight() > window.innerHeight) {
-					var newTop = element.offset().top - $(window).scrollTop() - popup.outerHeight();
-					if (newTop >= 0) top = newTop;
+				if (isMobile()) {
+					// スマホ画面の場合はポップアップを常に中央に表示
+					var popupHeight = popup.outerHeight();
+					popup.css({
+						'left': '50%',
+						'top': '50%',
+						'transform': 'translate(-50%, -50%)'
+					});
+				} else {
+					// デスクトップの場合は既存の位置ロジックを使用
+					var top = element.offset().top - $(window).scrollTop() + element.outerHeight();
+					if (top + popup.outerHeight() > window.innerHeight) {
+						var newTop = element.offset().top - $(window).scrollTop() - popup.outerHeight();
+						if (newTop >= 0) top = newTop;
+					}
+					var left = element.offset().left - $(window).scrollLeft() - parseInt((popup.outerWidth() - element.outerWidth()) / 2);
+					popup.css('left', left + 'px').css('top', top + 'px');
 				}
-				var left = element.offset().left - $(window).scrollLeft() - parseInt((popup.outerWidth() - element.outerWidth()) / 2);
-				popup.css('left', left + 'px').css('top', top + 'px');
 			}
 
 
