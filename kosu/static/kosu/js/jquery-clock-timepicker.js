@@ -189,16 +189,16 @@
                 background.css('zIndex', 99998)
                          .css('display', 'none')
                          .css('position', 'fixed')
-                         .css('top', '0px')
-                         .css('left', '0px')
+                         .css('top', '0')
+                         .css('left', '0')
                          .css('width', '100%')
                          .css('height', '100%')
                          .css('backgroundColor', 'rgba(0,0,0,0.6)')
-                         .css('touch-action', 'none'); // 修正: touch-action プロパティの追加
-                element.parent().append(background);
+                         .css('overflow', 'auto'); // 修正: overflow プロパティの設定
+                $('body').append(background); // 修正: 親要素を body に追加する
 
                 function onBackgroundTouchMove(event) {
-                    event.preventDefault();
+                    // `event.preventDefault();` は削除
                 }
                 background.off('touchmove', onBackgroundTouchMove);
                 background.on('touchmove', onBackgroundTouchMove);
@@ -219,18 +219,19 @@
 			/************************************************************************************************
 			  INITIALIZE POPUP
 			 ************************************************************************************************/
-            var popup = $('<div class="clock-timepicker-popup">');
-            popup.css('display', 'none')
-                 .css('zIndex', 99999)
-                 .css('cursor', 'default')
-                 .css('position', 'fixed')
-                 .css('width', popupWidth + 'px')
-                 .css('backgroundColor', settings.colors.popupBackgroundColor)
-                 .css('box-shadow', '0 4px 20px 0px rgba(0, 0, 0, 0.14)')
-                 .css('border-radius', '5px')
-                 .css('overflow', 'hidden auto') // 修正: overflow プロパティの追加
-                 .css('user-select', 'none');
-            popup.on('contextmenu', function() { return false; });
+			var popup = $('<div class="clock-timepicker-popup">');
+			popup.css('display', 'none')
+				.css('zIndex', 99999)
+				.css('cursor', 'default')
+				.css('position', 'fixed')
+				.css('width', popupWidth + 'px')
+				.css('backgroundColor', settings.colors.popupBackgroundColor)
+				.css('box-shadow', '0 4px 20px 0px rgba(0, 0, 0, 0.14)')
+				.css('border-radius', '5px')
+				.css('overflow', 'auto') // 修正: overflow プロパティの設定
+				.css('user-select', 'none')
+				.css('max-height', '100vh'); // 修正: max-height プロパティの設定
+			popup.on('contextmenu', function() { return false; });
 			if (isMobile()) {
 				popup.css('left', '40px')
 					 .css('top', '40px');
@@ -1014,7 +1015,9 @@
 			 ************************************************************************************************/
 			function adjustMobilePopupDimensionAndPosition() {
 
-				var popupHeight;
+                var popupHeight = popup.outerHeight();
+                popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
+                popup.css('top', parseInt((window.innerHeight - popupHeight) / 2) + 'px');
 
 				//Landscape mode
 				if (window.innerHeight < 400) {
