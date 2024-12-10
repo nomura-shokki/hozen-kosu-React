@@ -25,7 +25,7 @@
   </style>
 </head>
 <body class="container">
-    <h1 class="display-1 text-dark">{{title}}</h1>
+    <h1 class="display-1 text-dark no-wrap">{{title}}</h1>
     <p class="h6"><a href="{% url 'main' %}" class="text-dark no-wrap">メインMENUへ</a></p>
     <p>　</p>
     <p class="no-wrap">スマホにストップウォッチないためトライで追加</p>
@@ -35,7 +35,7 @@
         <div class="timeDisplayContainer">
             <div class="display-1 mb-2" id="timeDisplay">00:00:00.00</div>
         </div>
-        <div class="button-group  no-wrap">
+        <div class="button-group no-wrap">
             <button class="btn btn-blue1 mt-2 btn-sm" id="startStopButton" onclick="startStop()">Start</button>　　
             <button class="btn btn-green1 mt-2 btn-sm" id="resetButton" onclick="reset()">Reset</button>　　
             <button class="btn btn-yellow1 mt-2 btn-sm" id="lapButton" onclick="lap()">Lap</button>
