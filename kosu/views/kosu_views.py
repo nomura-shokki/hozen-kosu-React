@@ -1212,6 +1212,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
@@ -1223,6 +1226,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
@@ -1235,6 +1241,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
@@ -1246,6 +1255,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
@@ -1258,6 +1270,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
@@ -1269,6 +1284,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
@@ -1281,6 +1299,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
@@ -1292,6 +1313,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
@@ -1321,6 +1345,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
@@ -1332,6 +1359,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
@@ -1344,6 +1374,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
@@ -1355,6 +1388,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
@@ -1367,6 +1403,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
@@ -1378,6 +1417,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
@@ -1390,6 +1432,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
@@ -1401,6 +1446,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
@@ -1485,6 +1533,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
@@ -1511,6 +1562,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
@@ -1522,6 +1576,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
@@ -1534,6 +1591,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
@@ -1545,6 +1605,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
@@ -1557,6 +1620,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
@@ -1568,6 +1634,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
@@ -1588,6 +1657,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
@@ -1599,6 +1671,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
@@ -1611,6 +1686,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
@@ -1622,6 +1700,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end2)] != '#':
@@ -1634,6 +1715,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
@@ -1645,6 +1729,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
@@ -1657,6 +1744,9 @@ def input(request):
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
             kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end4)] != '#':
@@ -1668,6 +1758,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end3)] != '#':
@@ -3022,6 +3115,9 @@ def today_break_time(request):
         # 休憩時間内の工数データを削除
         kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
         kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
+        # エラー発生の場合リダイレクト
+        if messages.get_messages(request)._queued_messages:
+          return redirect(to='/today_break_time')
 
         # 休憩時間直後の時間に工数入力がある場合の処理
         if kosu_def[int(break_end1)] != '#':
@@ -3033,6 +3129,9 @@ def today_break_time(request):
       else:
         # 休憩時間内の工数データを削除
         kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
+        # エラー発生の場合リダイレクト
+        if messages.get_messages(request)._queued_messages:
+          return redirect(to='/today_break_time')
 
         # 休憩時間直後の時間に工数入力がある場合の処理
         if kosu_def[int(break_end1)] != '#':
@@ -3045,6 +3144,9 @@ def today_break_time(request):
         # 休憩時間内の工数データを削除
         kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
         kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
+        # エラー発生の場合リダイレクト
+        if messages.get_messages(request)._queued_messages:
+          return redirect(to='/today_break_time')
 
         # 休憩時間直後の時間に工数入力がある場合の処理
         if kosu_def[int(break_end2)] != '#':
@@ -3056,6 +3158,9 @@ def today_break_time(request):
       else:
         # 休憩時間内の工数データを削除
         kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
+        # エラー発生の場合リダイレクト
+        if messages.get_messages(request)._queued_messages:
+          return redirect(to='/today_break_time')
 
         # 休憩時間直後の時間に工数入力がある場合の処理
         if kosu_def[int(break_end2)] != '#':
@@ -3068,6 +3173,9 @@ def today_break_time(request):
         # 休憩時間内の工数データを削除
         kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
         kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
+        # エラー発生の場合リダイレクト
+        if messages.get_messages(request)._queued_messages:
+          return redirect(to='/today_break_time')
 
         # 休憩時間直後の時間に工数入力がある場合の処理
         if kosu_def[int(break_end3)] != '#':
@@ -3079,6 +3187,9 @@ def today_break_time(request):
       else:
         # 休憩時間内の工数データを削除
         kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
+        # エラー発生の場合リダイレクト
+        if messages.get_messages(request)._queued_messages:
+          return redirect(to='/today_break_time')
 
         # 休憩時間直後の時間に工数入力がある場合の処理
         if kosu_def[int(break_end3)] != '#':
@@ -3091,6 +3202,9 @@ def today_break_time(request):
         # 休憩時間内の工数データを削除
         kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
         kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
+        # エラー発生の場合リダイレクト
+        if messages.get_messages(request)._queued_messages:
+          return redirect(to='/today_break_time')
 
         # 休憩時間直後の時間に工数入力がある場合の処理
         if kosu_def[int(break_end4)] != '#':
@@ -3102,6 +3216,9 @@ def today_break_time(request):
       else:
         # 休憩時間内の工数データを削除
         kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
+        # エラー発生の場合リダイレクト
+        if messages.get_messages(request)._queued_messages:
+          return redirect(to='/today_break_time')
 
         # 休憩時間直後の時間に工数入力がある場合の処理
         if kosu_def[int(break_end4)] != '#':
