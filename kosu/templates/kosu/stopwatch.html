@@ -26,16 +26,16 @@
 </head>
 <body class="container">
     <h1 class="display-1 text-dark">{{title}}</h1>
-    <p class="h6"><a href="{% url 'main' %}" class="text-dark">メインMENUへ</a></p>
+    <p class="h6"><a href="{% url 'main' %}" class="text-dark no-wrap">メインMENUへ</a></p>
     <p>　</p>
-    <p>スマホにストップウォッチないためトライで追加</p>
-    <p>タクト測定などに使用下さい(不要なら消します)</p>
+    <p class="no-wrap">スマホにストップウォッチないためトライで追加</p>
+    <p class="no-wrap">タクト測定などに使用下さい(不要なら消します)</p>
     
     <div class="container text-center mt-5">
         <div class="timeDisplayContainer">
             <div class="display-1 mb-2" id="timeDisplay">00:00:00.00</div>
         </div>
-        <div class="button-group">
+        <div class="button-group  no-wrap">
             <button class="btn btn-blue1 mt-2 btn-sm" id="startStopButton" onclick="startStop()">Start</button>　　
             <button class="btn btn-green1 mt-2 btn-sm" id="resetButton" onclick="reset()">Reset</button>　　
             <button class="btn btn-yellow1 mt-2 btn-sm" id="lapButton" onclick="lap()">Lap</button>
