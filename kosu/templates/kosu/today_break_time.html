@@ -15,7 +15,7 @@
 <body class="container">
   <h1 class="display-6 text-primary">{{data.work_day2}}の{{title}}</h1>
   <p class="h6"><a href="{% url 'input' %}">工数入力へ</a></p>
-  <p>※毎日の休憩変更は工数MENUの休憩時間登録で実施</p>
+  <p class="no-wrap">※毎日の休憩変更は工数MENUの休憩時間登録で実施</p>
   {% for message in messages %}
   <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
     <p  class="text-danger">

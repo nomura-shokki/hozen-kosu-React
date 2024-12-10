@@ -30,8 +30,8 @@
     </p>
   </div>
   {% endfor %}
-  <p class="small">※毎日の休憩時間が変更されます。</p>
-  <p class="small">1日のみの休憩変更は工数入力画面の休憩変更釦から実施</p>
+  <p class="small no-wrap">※毎日の休憩時間が変更されます。</p>
+  <p class="small no-wrap">1日のみの休憩変更は工数入力画面の休憩変更釦から実施</p>
   <form action="{% url 'break_time' %}" method="post">
     {% csrf_token %}
     <table class="table table-bordered border-dark table-custom">
@@ -162,10 +162,11 @@
         <th class="no-wrap" rowspan="4">常勤</th>
         <th class="no-wrap">昼休憩</th>
         <td>
-          <div class="number-input-group"></div>
-          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time13" name="start_time13" data-precision="5" value={{default_start_time13}}>
-          ～
-          <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time13" name="end_time13" data-precision="5" value={{default_end_time13}}>
+          <div class="number-input-group">
+            <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="start_time13" name="start_time13" data-precision="5" value={{default_start_time13}}>
+            ～
+            <input class="your-time-field form-control custom-border" style="width: 80px;" type="text" id="end_time13" name="end_time13" data-precision="5" value={{default_end_time13}}>
+          </div>
         </td>
       </tr>
       <tr>
@@ -199,7 +200,7 @@
         </td>
       </tr>
     </table>
-    <p>
+    <p class="no-wrap">
       <input type="checkbox" id="break_check" name="break_check" class="big" {% if initial_checkbox %}checked{% endif %}>　
       休憩時間に工数入力不可(エラー出力)
     </p>
