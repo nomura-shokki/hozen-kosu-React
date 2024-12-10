@@ -511,7 +511,7 @@ def break_time_delete(break_start_ind, break_end_ind, kosu_def, detail_list, mem
           # エラーメッセージ出力
           messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR158')
           # このページをリダイレクト
-          return redirect(to = '/input')
+          return kosu_def, detail_list
 
     # ユーザーが休憩エラー有効チェックOFFの場合の処理   
     else:
@@ -1496,6 +1496,9 @@ def input(request):
           else:
             # 休憩時間内の工数データを削除
             kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
+            # エラー発生の場合リダイレクト
+            if messages.get_messages(request)._queued_messages:
+              return redirect(to='/input')
 
             # 休憩時間直後の時間に工数入力がある場合の処理
             if kosu_def[int(break_end1)] != '#':
