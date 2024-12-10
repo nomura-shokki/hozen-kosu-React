@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 import datetime
 import itertools
 import re
+from ..utils import round_time
 from django.db.models import Q
 from ..models import member
 from ..models import Business_Time_graph
@@ -900,24 +901,6 @@ def default_work_time(obj_get, member_obj):
     default_total = 240
 
   return default_total
-
-
-
-
-
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
-# 指定された分単位で時間を丸める関数
-def round_time(dt=None, round_to=5):
-
-  if dt is None:
-    dt = datetime.datetime.now().time()
-  minute = (dt.minute // round_to) * round_to
-
-  return dt.replace(minute=minute, second=0, microsecond=0)
 
 
 
