@@ -154,6 +154,7 @@ def get_graph_start_index(graph_list):
       # iが0であればそのまま返す
       # iが0以外なら前のインデックスを返す
       return i if i == 0 else i - 1
+
   # 工数データが空であれば0を返す
   return 0
 
@@ -419,12 +420,12 @@ def time_index(post_time):
 
 
 
-# 休憩時間のインデント日またぎチェック関数
+# 休憩時間のインデックス日またぎチェック関数
 def break_time_process(breaktime_str):
 
-  # 休憩開始時間のインデント取得
+  # 休憩開始時間のインデックス取得
   break_start = int(breaktime_str[1 : 3])*12 + int(breaktime_str[3 : 5])/5
-  # 休憩終了時間のインデント取得
+  # 休憩終了時間のインデックス取得
   break_end = int(breaktime_str[5 : 7])*12 + int(breaktime_str[7 :])/5
 
   # 休憩の日またぎ変数リセット
@@ -1100,9 +1101,9 @@ def input(request):
     # 作業終了の時と分取得
     end_time_hour, end_time_min = time_index(end_time)
 
-    # 作業開始時間のインデント取得
+    # 作業開始時間のインデックス取得
     start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
-    # 作業終了時間のインデント取得
+    # 作業終了時間のインデックス取得
     end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
 
 
@@ -1413,8 +1414,8 @@ def input(request):
 
 
       # 作業内容データの内容を上書きして更新
-      Business_Time_graph.objects.update_or_create(employee_no3 = request.session.get('login_No', None), \
-        work_day2 = work_day, defaults = {'def_ver2' : request.session.get('input_def', None), \
+      Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
+        work_day2 = work_day, defaults = {'def_ver2' : request.session['input_def'], \
                                           'work_time' : work, \
                                           'tyoku2' : tyoku, \
                                           'time_work' : ''.join(kosu_def), \
@@ -1814,7 +1815,7 @@ def input(request):
       judgement = judgement_check(list(obj_get.time_work), work, tyoku, member_obj, request.POST['over_work'])
 
       # 残業を上書きして更新
-      Business_Time_graph.objects.update_or_create(employee_no3 = request.session.get('login_No', None), \
+      Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
                                                    work_day2 = request.POST['work_day'], \
                                                    defaults = {'over_time' : request.POST['over_work'], \
                                                                'judgement' : judgement})
@@ -1825,7 +1826,7 @@ def input(request):
       member_instance = member.objects.get(employee_no = request.session['login_No'])
 
       # 工数データ作成し残業書き込み
-      Business_Time_graph.objects.update_or_create(employee_no3 = request.session.get('login_No', ''), \
+      Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
                                                    work_day2 = request.POST['work_day'], \
                                                    defaults = {'name' : member_instance, \
                                                                'time_work' : '#'*288, \
@@ -1930,7 +1931,7 @@ def input(request):
     request.session['break_today'] = request.POST['work_day']
 
     # 休憩変更したい日に休憩データがあるか確認
-    obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None),\
+    obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'],\
                                                     work_day2 = request.POST['work_day'])
 
     #工数データがある場合の処理
@@ -2037,7 +2038,7 @@ def input(request):
 
 
   # 残業データあるか確認
-  obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None),\
+  obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
                                                work_day2 = request.session.get('day', kosu_today))
 
   # 残業データある場合の処理
@@ -2896,7 +2897,7 @@ def today_break_time(request):
 
 
   # セッションに工数入力日がない場合の処理
-  if request.session.get('break_today', None) == None:
+  if not request.session.get('break_today'):
     # 工数入力画面に飛ぶ
     return redirect(to = '/input')
   
@@ -3000,13 +3001,13 @@ def today_break_time(request):
       kosu_def = list(kosu_data_get.time_work)
       detail_list = kosu_data_get.detail_work.split('$')
 
-      # 休憩1のインデント取得
+      # 休憩1のインデックス取得
       break_start1, break_end1, break_next_day1 = break_time_process(break_time1)
-      # 休憩2のインデント取得
+      # 休憩2のインデックス取得
       break_start2, break_end2, break_next_day2 = break_time_process(break_time2)
-      # 休憩3のインデント取得
+      # 休憩3のインデックス取得
       break_start3, break_end3, break_next_day3 = break_time_process(break_time3)
-      # 休憩4のインデント取得
+      # 休憩4のインデックス取得
       break_start4, break_end4, break_next_day4 = break_time_process(break_time4)
 
 
@@ -3110,8 +3111,8 @@ def today_break_time(request):
 
 
       # 作業内容データの内容を上書きして更新
-      Business_Time_graph.objects.update_or_create(employee_no3 = request.session.get('login_No', None), \
-                                                  work_day2 = request.session.get('break_today', None), \
+      Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
+                                                  work_day2 = request.session['break_today'], \
                                                   defaults = {'time_work' : ''.join(kosu_def), \
                                                               'detail_work' : detail_list_str, \
                                                               'breaktime' : break_time1, \
@@ -3126,8 +3127,8 @@ def today_break_time(request):
       member_instance = member.objects.get(employee_no = request.session['login_No'])
 
       # 作業内容データの内容を上書きして更新
-      Business_Time_graph.objects.update_or_create(employee_no3 = request.session.get('login_No', None), \
-                                                  work_day2 = request.session.get('break_today', None), \
+      Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
+                                                  work_day2 = request.session['break_today'], \
                                                   defaults = {'name' : member_instance, \
                                                               'time_work' : '#'*288, \
                                                               'detail_work' : '$'*287, \
@@ -3410,65 +3411,26 @@ def detail(request, num):
         time_list_start.append(time_obj_start)
         time_list_end.append(time_obj_end)
 
-
-  # 現在使用している工数区分のオブジェクトを取得
-  kosu_obj = kosu_division.objects.get(kosu_name = request.session.get('input_def', None))
-
-  # 工数区分登録カウンターリセット
-  n = 0
-  # 工数区分登録数カウント
-  for kosu_num in range(1, 50):
-    if eval('kosu_obj.kosu_title_{}'.format(kosu_num)) != None:
-      n = kosu_num
-
-  # 工数区分処理用記号リスト用意
-  str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-              'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                    'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
-  # リストの長さを工数区分の登録数に応じて調整
-  del str_list[n:]
-
-  # 工数区分の選択リスト作成
-  for i, m in enumerate(str_list):
-    # 工数区分定義要素を追加
-    def_list.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
-
-  # 作業なし追加
-  def_list.append('-')
-  # 休憩追加
-  def_list.append('休憩')
-
-  # 作業無し記号追加
-  str_list.append('#')
-  # 休憩記号追加
-  str_list.append('$')
-
-  # 工数区分辞書作成
-  def_library = dict(zip(str_list, def_list))
-
+  # 工数区分定義リスト作成
+  def_library, n = kosu_division_dictionary(request)
+  def_library.append(['#', '-'])
+  def_library.append(['$', '休憩'])
 
   # 作業内容と作業詳細リスト作成
   for ind, t in enumerate(find_list):
-
     # 最後以外のループ処理
     if len(find_list) - 1 != ind:
+      for d in def_library:
+        if work_list[t] == d[0]:
+          def_time.append(d[1])
+          break
 
-      def_time.append(def_library[work_list[t]])
       detail_time.append(detail_list[t])
   
   # 工数データに工数定義区分Verがある場合の処理
   if obj_get.def_ver2 not in [None, '']:
     # 現在使用している工数区分のオブジェクトを取得
     kosu_obj = kosu_division.objects.get(kosu_name = obj_get.def_ver2)
-
-    # 工数区分登録カウンターリセット
-    n = 0
-
-    # 工数区分登録数カウント
-    for kosu_num in range(1, 50):
-      if eval('kosu_obj.kosu_title_{}'.format(kosu_num)) not in [None, '']:
-        n = kosu_num
 
     # 工数区分処理用記号リスト用意
     str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
@@ -3602,23 +3564,14 @@ def detail(request, num):
       # このページをリダイレクト
       return redirect(to = '/detail/{}'.format(num))
     
+    # 作業開始の時と分取得
+    start_time_hour, start_time_min = time_index(start_time)
+    # 作業終了の時と分取得
+    end_time_hour, end_time_min = time_index(end_time)
 
-    # 作業開始時間の区切りのインデックス取得
-    start_time_index = start_time.index(':')
-    # 作業開始時取得
-    start_time_hour = start_time[ : start_time_index]
-    # 作業開始分取得
-    start_time_min = start_time[start_time_index + 1 : ]
-    # 作業終了時間の区切りのインデックス取得
-    end_time_index = end_time.index(':')
-    # 作業終了時取得
-    end_time_hour = end_time[ : end_time_index]
-    # 作業終了分取得
-    end_time_min = end_time[end_time_index + 1 : ]
-
-    # 作業開始時間のインデント取得
+    # 作業開始時間のインデックス取得
     start_indent = int(int(start_time_hour)*12 + int(start_time_min)/5)
-    # 作業終了時間のインデント取得
+    # 作業終了時間のインデックス取得
     end_indent = int(int(end_time_hour)*12 + int(end_time_min)/5)
 
 
@@ -3658,147 +3611,13 @@ def detail(request, num):
         work_list[i] = '#'
         detail_list[i] = ''
 
-    # 作業詳細リストを文字列に変更
-    detail_list_str = ''
-    for i, e in enumerate(detail_list):
-      if i == len(detail_list) - 1:
-        detail_list_str = detail_list_str + detail_list[i]
-      else:
-        detail_list_str = detail_list_str + detail_list[i] + '$'
-
-
     # 工数合計取得
     kosu_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
 
-    # 工数入力OK_NGリセット
-    judgement = False
-
-    # 出勤、休出時、工数合計と残業に整合性がある場合の処理
-    if (obj_get.work_time == '出勤' or obj_get.work_time == 'シフト出') and \
-      kosu_total - int(obj_get.over_time) == 470:
-      # 工数入力OK_NGをOKに切り替え
-      judgement = True
-
-
-    # 休出時、工数合計と残業に整合性がある場合の処理
-    if obj_get.work_time == '休出' and kosu_total == int(obj_get.over_time):
-      # 工数入力OK_NGをOKに切り替え
-      judgement = True
-
-
-    # 早退・遅刻時、工数合計と残業に整合性がある場合の処理
-    if obj_get.work_time == '早退・遅刻' and kosu_total != 0:
-      # 工数入力OK_NGをOKに切り替え
-      judgement = True
-
-
-    # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
-    if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)') and \
-        obj_get.tyoku2 == '1':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 240:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-
-    # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
-    if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)') and \
-        obj_get.tyoku2 == '2':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 290:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 180:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-
-    # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
-    if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)') and \
-        obj_get.tyoku2 == '3':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 240:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-
-    # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
-    if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-      member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-        obj_get.tyoku2 == '1':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 220:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 250:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-
-    # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
-    if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-      member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-        obj_get.tyoku2 == '2':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 240:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-
-    # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
-    if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-      member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-        obj_get.tyoku2 == '3':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 275:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 195:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-
-    # 常昼の場合の処理
-    if obj_get.tyoku2 == '4':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 240:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
+    # 工数整合性取得
+    judgement = judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)
+    # 作業詳細リストを文字列に変更
+    detail_list_str = detail_list_summarize(detail_list)
 
 
     # 作業内容データの内容を上書きして更新
@@ -3844,144 +3663,10 @@ def detail(request, num):
     # 工数合計取得
     kosu_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
 
-    # 工数入力OK_NGリセット
-    judgement = False
-
-    # 出勤、休出時、工数合計と残業に整合性がある場合の処理
-    if (obj_get.work_time == '出勤' or obj_get.work_time == 'シフト出') and \
-      kosu_total - int(obj_get.over_time) == 470:
-      # 工数入力OK_NGをOKに切り替え
-      judgement = True
-
-
-    # 休出時、工数合計と残業に整合性がある場合の処理
-    if obj_get.work_time == '休出' and kosu_total == int(obj_get.over_time):
-      # 工数入力OK_NGをOKに切り替え
-      judgement = True
-
-
-    # 早退・遅刻時、工数合計と残業に整合性がある場合の処理
-    if obj_get.work_time == '早退・遅刻' and kosu_total != 0:
-      # 工数入力OK_NGをOKに切り替え
-      judgement = True
-
-
-    # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
-    if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)') and \
-        obj_get.tyoku2 == '1':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 240:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-
-    # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
-    if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)') and \
-        obj_get.tyoku2 == '2':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 290:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 180:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-
-    # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
-    if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-      member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)') and \
-        obj_get.tyoku2 == '3':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 240:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-
-    # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
-    if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-      member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-        obj_get.tyoku2 == '1':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 220:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 250:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-
-    # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
-    if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-      member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-        obj_get.tyoku2 == '2':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 240:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-
-    # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
-    if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-      member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-        member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-        obj_get.tyoku2 == '3':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 275:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 195:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-
-    # 常昼の場合の処理
-    if obj_get.tyoku2 == '4':
-      # 半前年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半前年休' and kosu_total - int(obj_get.over_time) == 230:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-      # 半後年休時、工数合計と残業に整合性がある場合の処理
-      if obj_get.work_time == '半後年休' and kosu_total - int(obj_get.over_time) == 240:
-        # 工数入力OK_NGをOKに切り替え
-        judgement = True
-
-
-    # 作業詳細リストを文字列に変更
-    detail_list_str = ''
-    for i, e in enumerate(detail_list):
-      if i == len(detail_list) - 1:
-        detail_list_str = detail_list_str + detail_list[i]
-      else:
-        detail_list_str = detail_list_str + detail_list[i] + '$'
+    # 工数整合性取得
+    judgement = judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)
+    # 作業詳細を文字列に変換
+    detail_list_str = detail_list_summarize(detail_list)
 
 
     # 作業内容データの内容を上書きして更新
@@ -4035,22 +3720,14 @@ def detail(request, num):
       return redirect(to = '/detail/{}'.format(num))
   
   
-    # 作業開始時間の区切りのインデックス取得
-    start_time_index = start_time.index(':')
-    # 作業開始時取得
-    start_time_hour = start_time[ : start_time_index]
-    # 作業開始分取得
-    start_time_min = start_time[start_time_index + 1 : ]
-    # 作業終了時間の区切りのインデックス取得
-    end_time_index = end_time.index(':')
-    # 作業終了時取得
-    end_time_hour = end_time[ : end_time_index]
-    # 作業終了分取得
-    end_time_min = end_time[end_time_index + 1 : ]
+    # 作業開始の時と分取得
+    start_time_hour, start_time_min = time_index(start_time)
+    # 作業終了の時と分取得
+    end_time_hour, end_time_min = time_index(end_time)
 
-    # 作業開始時間のインデント取得
+    # 作業開始時間のインデックス取得
     start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
-    # 作業終了時間のインデント取得
+    # 作業終了時間のインデックス取得
     end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
 
 
@@ -4210,84 +3887,27 @@ def detail(request, num):
 # 工数削除画面定義
 def delete(request, num):
 
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
-  
+  # セッションにログインした従業員番号がない場合の処理
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
+
   try:
     # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
-
+    member_obj = member.objects.get(employee_no=request.session['login_No'])
   # セッション値から人員情報取得できない場合の処理
   except member.DoesNotExist:
     # セッション削除
     request.session.clear()
     # ログインページに戻る
-    return redirect(to = '/login')
+    return redirect('/login')
+
 
   # 指定IDの工数履歴のレコードのオブジェクトを変数に入れる
   obj_get = Business_Time_graph.objects.get(id = num)
 
-  # 作業内容と作業詳細を取得しリストに解凍
-  work_list = list(obj_get.time_work)
-  detail_list = obj_get.detail_work.split('$')
-
-  # 作業内容と作業詳細のリストを2個連結
-  work_list = work_list*2
-  detail_list = detail_list*2
-
-  # 1直の時の処理
-  if obj_get.tyoku2 == '1':
-    # 作業内容と作業詳細のリストを4時半からの表示に変える
-    del work_list[:54]
-    del detail_list[:54]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
-  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
-    # 作業内容と作業詳細のリストを12時からの表示に変える
-    del work_list[:144]
-    del detail_list[:144]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 2直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
-        and obj_get.tyoku2 == '2':
-    # 作業内容と作業詳細のリストを9時からの表示に変える
-    del work_list[:108]
-    del detail_list[:108]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
-  elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-        data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
-    # 作業内容と作業詳細のリストを20時半からの表示に変える
-    del work_list[:246]
-    del detail_list[:246]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 3直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
-        and obj_get.tyoku2 == '3':
-    # 作業内容と作業詳細のリストを18時からの表示に変える
-    del work_list[:216]
-    del detail_list[:216]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 常昼の時の処理
-  elif obj_get.tyoku2 == '4':
-    # 作業内容と作業詳細のリストを6時からの表示に変える
-    del work_list[:72]
-    del detail_list[:72]
-    del work_list[288:]
-    del detail_list[288:]
-
+  # 作業内容と作業詳細を直に合わせて調整
+  work_list, detail_list = kosu_sort(obj_get, member_obj)
 
   # 作業時間リストリセット
   kosu_list = []
@@ -4314,8 +3934,8 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 54)
 
-      elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
+      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 144)
@@ -4323,7 +3943,7 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 144)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -4332,8 +3952,8 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 108)
 
-      elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
+      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 42)
@@ -4341,7 +3961,7 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 246)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -4371,8 +3991,8 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 54)
 
-      elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
+      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 144)
@@ -4380,7 +4000,7 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 144)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -4389,8 +4009,8 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 108)
 
-      elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
+      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 42)
@@ -4398,7 +4018,7 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 246)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -4428,8 +4048,8 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 55)
 
-      elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
+      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
         if i >= 144:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 143)
@@ -4437,7 +4057,7 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 145)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '2':
         if i >= 180:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -4446,8 +4066,8 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 109)
 
-      elif (data.shop == 'P' or data.shop == 'R' or data.shop == 'T1' or data.shop == 'T2' or \
-          data.shop == 'その他' or data.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
+      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
+          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
         if i >= 42:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 41)
@@ -4455,7 +4075,7 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 247)
 
-      elif (data.shop == 'W1' or data.shop == 'W2' or data.shop == 'A1' or data.shop == 'A2' or data.shop == '組長以上(W,A)') \
+      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
             and obj_get.tyoku2 == '3':
         if i >= 72:
           # 作業時間インデックスに作業時間のインデックス記録
@@ -4497,7 +4117,7 @@ def delete(request, num):
 
 
   # 現在使用している工数区分のオブジェクトを取得
-  kosu_obj = kosu_division.objects.get(kosu_name = request.session.get('input_def', None))
+  kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
 
   # 工数区分登録カウンターリセット
   n = 0
@@ -4588,21 +4208,20 @@ def delete(request, num):
 # 工数集計画面定義
 def total(request): 
 
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
+  # セッションにログインした従業員番号がない場合の処理
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
 
   try:
     # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
-
+    member_obj = member.objects.get(employee_no=request.session['login_No'])
   # セッション値から人員情報取得できない場合の処理
   except member.DoesNotExist:
     # セッション削除
     request.session.clear()
     # ログインページに戻る
-    return redirect(to = '/login')
-
+    return redirect('/login')
 
 
   # GET時の処理
@@ -4617,12 +4236,10 @@ def total(request):
     form = kosu_dayForm()
 
     # ログイン者の工数集計データ取得
-    kosu_total = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None), \
-                                                    work_day2 = today)
+    kosu_total = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], work_day2 = today)
     
     # ログイン者の本日の工数集計データがない場合の処理
-    if kosu_total.count() == 0:
-
+    if not kosu_total.exists():
       # 工数区分定義データ取得
       kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
     
@@ -4643,8 +4260,7 @@ def total(request):
     # ログイン者の本日の工数集計データがある場合の処理
     else:
       # ログイン者の工数集計データ取得
-      graph_data = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                   work_day2 = today)
+      graph_data = kosu_total.first()
 
       # 工数データに工数区分定義の値がある場合の処理
       if graph_data.def_ver2 not in ('', None):
@@ -4715,7 +4331,7 @@ def total(request):
 
 
       # 指定年に工数入力がない場合の処理
-      if kosu_total.count() == 0:
+      if not kosu_total.exists():
         # 工数区分定義データ取得
         kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
       
@@ -4808,11 +4424,10 @@ def total(request):
       kosu_month = post_day[: 7]
 
       # 指定月の工数取得
-      kosu_total = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                      work_day2__startswith = kosu_month)
+      kosu_total = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], work_day2__startswith = kosu_month)
 
       #指定月に工数入力がない場合の処理
-      if kosu_total.count() == 0:
+      if not kosu_total.exists():
         # 工数区分定義データ取得
         kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
       
@@ -5005,7 +4620,7 @@ def total(request):
   # HTMLに渡す辞書
   context = {
     'title' : '工数集計',
-    'data' : data,
+    'data' : member_obj,
     'form' : form,
     'default_day' : default_day,
     'graph_list' : graph_list,
@@ -5029,12 +4644,102 @@ def total(request):
 
 
 
+# カレンダー日付作成関数
+def calendar_day(year, month):
+
+  # 月の初日取得
+  select_month = datetime.date(year, month, 1)
+  # 月の初日の曜日取得
+  week_day = select_month.weekday()
+
+  # 月の最終日取得
+  if month == 12:
+    month_end = 1
+    year_end = year + 1
+  else:
+    month_end = month + 1
+    year_end = year
+
+  select_month = datetime.date(year_end, month_end, 1)
+  month_day_end = select_month - datetime.timedelta(days = 1)
+  day_end = month_day_end.day
+
+  # カレンダー表示日付変数リセット
+  day_list = list(itertools.repeat('', 37))
+
+  # 1週目の日付設定
+  if week_day == 6:
+    day_list[0] = 1
+    day_list[1] = 2
+    day_list[2] = 3
+    day_list[3] = 4
+    day_list[4] = 5
+    day_list[5] = 6
+    day_list[6] = 7
+
+  if week_day == 0:
+    day_list[1] = 1
+    day_list[2] = 2
+    day_list[3] = 3
+    day_list[4] = 4
+    day_list[5] = 5
+    day_list[6] = 6
+
+  if week_day == 1:
+    day_list[2] = 1
+    day_list[3] = 2
+    day_list[4] = 3
+    day_list[5] = 4
+    day_list[6] = 5
+
+  if week_day == 2:
+    day_list[3] = 1
+    day_list[4] = 2
+    day_list[5] = 3
+    day_list[6] = 4
+
+  if week_day == 3:
+    day_list[4] = 1
+    day_list[5] = 2
+    day_list[6] = 3
+
+  if week_day == 4:
+    day_list[5] = 1
+    day_list[6] = 2
+
+  if week_day == 5:
+    day_list[6] = 1
+
+  # 基準日指定
+  start_day = day_list[6]
+
+  # 2～5週目の日付設定
+  for i in range(7, 37):
+    day_list[i] = start_day + 1
+    start_day += 1
+    if start_day == day_end:
+      break
+
+  # 日付リストを返す
+  return day_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
 # カレンダー画面定義
 def schedule(request): 
 
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
+  # セッションにログインした従業員番号がない場合の処理
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
   
   try:
     # ログイン者の情報取得
@@ -5069,78 +4774,8 @@ def schedule(request):
     # GET時のカレンダー設定フォーム定義
     form2 = schedule_timeForm(default_list)
 
-    # GETされた月の初日取得
-    select_month = datetime.date(year, month, 1)
-    # GETされた月の初日の曜日取得
-    week_day = select_month.weekday()
-
-    # GETされた月の最終日取得
-    if month == 12:
-      month_end = 1
-      year_end = year + 1
-    else:
-      month_end = month + 1
-      year_end = year
-
-    select_month = datetime.date(year_end, month_end, 1)
-    month_day_end = select_month - datetime.timedelta(days = 1)
-    day_end = month_day_end.day
-
-    # カレンダー表示日付変数リセット
-    day_list = list(itertools.repeat('', 37))
-
-    # 1週目の日付設定
-    if week_day == 6:
-      day_list[0] = 1
-      day_list[1] = 2
-      day_list[2] = 3
-      day_list[3] = 4
-      day_list[4] = 5
-      day_list[5] = 6
-      day_list[6] = 7
-
-    if week_day == 0:
-      day_list[1] = 1
-      day_list[2] = 2
-      day_list[3] = 3
-      day_list[4] = 4
-      day_list[5] = 5
-      day_list[6] = 6
-
-    if week_day == 1:
-      day_list[2] = 1
-      day_list[3] = 2
-      day_list[4] = 3
-      day_list[5] = 4
-      day_list[6] = 5
-
-    if week_day == 2:
-      day_list[3] = 1
-      day_list[4] = 2
-      day_list[5] = 3
-      day_list[6] = 4
-
-    if week_day == 3:
-      day_list[4] = 1
-      day_list[5] = 2
-      day_list[6] = 3
-
-    if week_day == 4:
-      day_list[5] = 1
-      day_list[6] = 2
-
-    if week_day == 5:
-      day_list[6] = 1
-
-    # 基準日指定
-    start_day = day_list[6]
-
-    # 2～5週目の日付設定
-    for i in range(7, 37):
-      day_list[i] = start_day + 1
-      start_day += 1
-      if start_day == day_end:
-        break
+    # 日付リスト作成
+    day_list = calendar_day(year, month)
 
     # 勤務フォーム初期値定義
     form_default_list = {}
@@ -5148,9 +4783,8 @@ def schedule(request):
       if day_list[i] != '':
         day_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
                                                         work_day2 = datetime.date(year, month, day_list[i]))
-        if day_filter.count() > 0:
-          day_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                    work_day2 = datetime.date(year, month, day_list[i]))
+        if day_filter.exists():
+          day_get = day_filter.first()
           form_default_list[('day{}'.format(i + 1))] = day_get.work_time
           form_default_list[('tyoku{}'.format(i + 1))] = day_get.tyoku2
 
@@ -5176,88 +4810,17 @@ def schedule(request):
     # POST後のカレンダー設定フォーム定義
     form2 = schedule_timeForm(default_list)
 
-    # POSTされた月の初日取得
-    select_month = datetime.date(year, month, 1)
-    # POSTされた月の初日の曜日取得
-    week_day = select_month.weekday()
-
-    # POSTされた月の最終日取得
-    if month == 12:
-      month_end = 1
-      year_end = year + 1
-    else:
-      month_end = month + 1
-      year_end = year
-
-    select_month = datetime.date(year_end, month_end, 1)
-    month_day_end = select_month - datetime.timedelta(days = 1)
-    day_end = month_day_end.day
-
-    # カレンダー表示日付リセット
-    day_list = list(itertools.repeat('', 37))
-
-    # 1週目の日付設定
-    if week_day == 6:
-      day_list[0] = 1
-      day_list[1] = 2
-      day_list[2] = 3
-      day_list[3] = 4
-      day_list[4] = 5
-      day_list[5] = 6
-      day_list[6] = 7
-
-    if week_day == 0:
-      day_list[1] = 1
-      day_list[2] = 2
-      day_list[3] = 3
-      day_list[4] = 4
-      day_list[5] = 5
-      day_list[6] = 6
-
-    if week_day == 1:
-      day_list[2] = 1
-      day_list[3] = 2
-      day_list[4] = 3
-      day_list[5] = 4
-      day_list[6] = 5
-
-    if week_day == 2:
-      day_list[3] = 1
-      day_list[4] = 2
-      day_list[5] = 3
-      day_list[6] = 4
-
-    if week_day == 3:
-      day_list[4] = 1
-      day_list[5] = 2
-      day_list[6] = 3
-
-    if week_day == 4:
-      day_list[5] = 1
-      day_list[6] = 2
-
-    if week_day == 5:
-      day_list[6] = 1
-
-    # 基準日指定
-    start_day = day_list[6]
-
-    # 2～5週目の日付設定
-    for i in range(7, 37):
-      day_list[i] = start_day + 1
-      start_day += 1
-      if start_day == day_end:
-        break
+    # 日付リスト作成
+    day_list = calendar_day(year, month)
 
     # 勤務フォーム初期値定義
     form_default_list = {}
     for i in range(37):
       if day_list[i] != '':
-        day_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None), \
+        day_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
                                                         work_day2 = datetime.date(year, month, day_list[i]))
-        if day_filter.count() != 0:
-          day_get = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None), \
-                                                    work_day2 = datetime.date(year, month, day_list[i]))
+        if day_filter.exists():
+          day_get = day_filter.first()
           form_default_list[('day{}'.format(i + 1))] = day_get.work_time
           form_default_list[('tyoku{}'.format(i + 1))] = day_get.tyoku2
 
@@ -5276,78 +4839,8 @@ def schedule(request):
     year = request.session.get('update_year', '')
     month = request.session.get('update_month', '')
     
-    # 月の初日取得
-    select_month = datetime.date(year, month, 1)
-    # 月の初日の曜日取得
-    week_day = select_month.weekday()
-
-    # 月の最終日取得
-    if month == 12:
-      month_end = 1
-      year_end = year + 1
-    else:
-      month_end = month + 1
-      year_end = year
-
-    select_month = datetime.date(year_end, month_end, 1)
-    month_day_end = select_month - datetime.timedelta(days = 1)
-    day_end = month_day_end.day
-
-    # カレンダー表示日付リセット
-    day_list = list(itertools.repeat('', 37))
-
-    # 1週目の日付設定
-    if week_day == 6:
-      day_list[0] = 1
-      day_list[1] = 2
-      day_list[2] = 3
-      day_list[3] = 4
-      day_list[4] = 5
-      day_list[5] = 6
-      day_list[6] = 7
-
-    if week_day == 0:
-      day_list[1] = 1
-      day_list[2] = 2
-      day_list[3] = 3
-      day_list[4] = 4
-      day_list[5] = 5
-      day_list[6] = 6
-
-    if week_day == 1:
-      day_list[2] = 1
-      day_list[3] = 2
-      day_list[4] = 3
-      day_list[5] = 4
-      day_list[6] = 5
-
-    if week_day == 2:
-      day_list[3] = 1
-      day_list[4] = 2
-      day_list[5] = 3
-      day_list[6] = 4
-
-    if week_day == 3:
-      day_list[4] = 1
-      day_list[5] = 2
-      day_list[6] = 3
-
-    if week_day == 4:
-      day_list[5] = 1
-      day_list[6] = 2
-
-    if week_day == 5:
-      day_list[6] = 1
-
-    # 基準日指定
-    start_day = day_list[6]
-
-    # 2～5週目の日付設定
-    for i in range(7, 37):
-      day_list[i] = start_day + 1
-      start_day += 1
-      if start_day == day_end:
-        break
+    # 日付リスト作成
+    day_list = calendar_day(year, month)
 
     # 直を一括書き込み
     for ind, dd in enumerate([range(1, 6), range(8, 13), range(15, 20), range(22, 27), range(29, 34), range(36, 37)]):
@@ -5358,10 +4851,9 @@ def schedule(request):
                                                             work_day2 = datetime.date(year, month, day_list[i]))
 
           # 工数データがある場合の処理
-          if work_filter.count() != 0:
+          if work_filter.exists():
             # 工数データ取得
-            work_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                        work_day2 = datetime.date(year, month, day_list[i]))
+            work_get = work_filter.first()
             # ログイン者の情報取得
             member_obj = member.objects.get(employee_no = request.session['login_No'])
 
@@ -5398,10 +4890,9 @@ def schedule(request):
                                                         work_day2 = datetime.date(year, month, day_list[i]))
 
         # 対応する日付に工数データがある場合の処理
-        if day_filter.count() != 0:
+        if day_filter.exists():
           # 対応する日付の工数データを取得
-          day_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                    work_day2 = datetime.date(year, month, day_list[i]))
+          day_get = day_filter.first()
           
           # 就業データを初期値リストに入れる
           form_default_list[('day{}'.format(i + 1))] = day_get.work_time
@@ -5421,91 +4912,20 @@ def schedule(request):
     year = request.session.get('update_year', '')
     month = request.session.get('update_month', '')
     
-    # 月の初日取得
-    select_month = datetime.date(year, month, 1)
-    # 月の初日の曜日取得
-    week_day = select_month.weekday()
-
-    # 月の最終日取得
-    if month == 12:
-      month_end = 1
-      year_end = year + 1
-    else:
-      month_end = month + 1
-      year_end = year
-
-    select_month = datetime.date(year_end, month_end, 1)
-    month_day_end = select_month - datetime.timedelta(days = 1)
-    day_end = month_day_end.day
-
-    # カレンダー表示日付リセット
-    day_list = list(itertools.repeat('', 37))
-
-    # 1週目の日付設定
-    if week_day == 6:
-      day_list[0] = 1
-      day_list[1] = 2
-      day_list[2] = 3
-      day_list[3] = 4
-      day_list[4] = 5
-      day_list[5] = 6
-      day_list[6] = 7
-
-    if week_day == 0:
-      day_list[1] = 1
-      day_list[2] = 2
-      day_list[3] = 3
-      day_list[4] = 4
-      day_list[5] = 5
-      day_list[6] = 6
-
-    if week_day == 1:
-      day_list[2] = 1
-      day_list[3] = 2
-      day_list[4] = 3
-      day_list[5] = 4
-      day_list[6] = 5
-
-    if week_day == 2:
-      day_list[3] = 1
-      day_list[4] = 2
-      day_list[5] = 3
-      day_list[6] = 4
-
-    if week_day == 3:
-      day_list[4] = 1
-      day_list[5] = 2
-      day_list[6] = 3
-
-    if week_day == 4:
-      day_list[5] = 1
-      day_list[6] = 2
-
-    if week_day == 5:
-      day_list[6] = 1
-
-    # 基準日指定
-    start_day = day_list[6]
-
-    # 2～5週目の日付設定
-    for i in range(7, 37):
-      day_list[i] = start_day + 1
-      start_day += 1
-      if start_day == day_end:
-        break
+    # 日付リスト作成
+    day_list = calendar_day(year, month)
 
     # デフォルトの就業書き込み
     for i in range(37):
       if day_list[i] != '':
         # 工数データがあるか確認
-        work_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None), \
+        work_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
                                                          work_day2 = datetime.date(year, month, day_list[i]))
 
         # 工数データがある場合の処理
-        if work_filter.count() != 0:
+        if work_filter.exists():
           # 工数データ取得
-          work_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                     work_day2 = datetime.date(year, month, day_list[i]))
+          work_get = work_filter.first()
           # ログイン者の情報取得
           member_obj = member.objects.get(employee_no = request.session['login_No'])
 
@@ -5565,10 +4985,9 @@ def schedule(request):
                                                         work_day2 = datetime.date(year, month, day_list[i]))
 
         # 対応する日付に工数データがある場合の処理
-        if day_filter.count() != 0:
+        if day_filter.exists():
           # 対応する日付の工数データを取得
-          day_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                    work_day2 = datetime.date(year, month, day_list[i]))
+          day_get = day_filter.first()
           
           # 就業データを初期値リストに入れる
           form_default_list[('day{}'.format(i + 1))] = day_get.work_time
@@ -5591,78 +5010,8 @@ def schedule(request):
     year = request.session.get('update_year', '')
     month = request.session.get('update_month', '')
     
-    # 月の初日取得
-    select_month = datetime.date(year, month, 1)
-    # 月の初日の曜日取得
-    week_day = select_month.weekday()
-
-    # 月の最終日取得
-    if month == 12:
-      month_end = 1
-      year_end = year + 1
-    else:
-      month_end = month + 1
-      year_end = year
-
-    select_month = datetime.date(year_end, month_end, 1)
-    month_day_end = select_month - datetime.timedelta(days = 1)
-    day_end = month_day_end.day
-
-    # カレンダー表示日付リセット
-    day_list = list(itertools.repeat('', 37))
-
-    # 1週目の日付設定
-    if week_day == 6:
-      day_list[0] = 1
-      day_list[1] = 2
-      day_list[2] = 3
-      day_list[3] = 4
-      day_list[4] = 5
-      day_list[5] = 6
-      day_list[6] = 7
-
-    if week_day == 0:
-      day_list[1] = 1
-      day_list[2] = 2
-      day_list[3] = 3
-      day_list[4] = 4
-      day_list[5] = 5
-      day_list[6] = 6
-
-    if week_day == 1:
-      day_list[2] = 1
-      day_list[3] = 2
-      day_list[4] = 3
-      day_list[5] = 4
-      day_list[6] = 5
-
-    if week_day == 2:
-      day_list[3] = 1
-      day_list[4] = 2
-      day_list[5] = 3
-      day_list[6] = 4
-
-    if week_day == 3:
-      day_list[4] = 1
-      day_list[5] = 2
-      day_list[6] = 3
-
-    if week_day == 4:
-      day_list[5] = 1
-      day_list[6] = 2
-
-    if week_day == 5:
-      day_list[6] = 1
-
-    # 基準日指定
-    start_day = day_list[6]
-
-    # 2～5週目の日付設定
-    for i in range(7, 37):
-      day_list[i] = start_day + 1
-      start_day += 1
-      if start_day == day_end:
-        break
+    # 日付リスト作成
+    day_list = calendar_day(year, month)
 
     # 就業を上書き
     for i in range(37):
@@ -5672,186 +5021,17 @@ def schedule(request):
                                                          work_day2 = datetime.date(year, month, day_list[i]))
 
         # 工数データがある場合の処理
-        if work_filter.count() != 0:
+        if work_filter.exists():
           # 工数データ取得
-          work_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                     work_day2 = datetime.date(year, month, day_list[i]))
+          work_get = work_filter.first()
           # ログイン者の情報取得
           member_obj = member.objects.get(employee_no = request.session['login_No'])
 
           # 工数合計取得
           kosu_total = 1440 - (work_get.time_work.count('#')*5) - (work_get.time_work.count('$')*5)
 
-          # 工数入力OK_NGリセット
-          judgement = False
-
-          if (eval('request.POST["day{}"]'.format(i + 1)) == '休日' or \
-            eval('request.POST["day{}"]'.format(i + 1)) == '年休' or \
-            eval('request.POST["day{}"]'.format(i + 1)) == '代休' or \
-            eval('request.POST["day{}"]'.format(i + 1)) == 'シフト休' or \
-            eval('request.POST["day{}"]'.format(i + 1)) == '公休') and kosu_total == 0:
-            # 工数入力OK_NGをOKに切り替え
-            judgement = True
-
-          # 出勤、休出時、工数合計と残業に整合性がある場合の処理
-          if (eval('request.POST["day{}"]'.format(i + 1)) == '出勤' or \
-              eval('request.POST["day{}"]'.format(i + 1)) == 'シフト出') and \
-              kosu_total - int(work_get.over_time) == 470:
-            # 工数入力OK_NGをOKに切り替え
-            judgement = True
-
-
-          # 休出時、工数合計と残業に整合性がある場合の処理
-          if eval('request.POST["day{}"]'.format(i + 1)) == '休出' and kosu_total == int(work_get.over_time):
-            # 工数入力OK_NGをOKに切り替え
-            judgement = True
-
-
-          # 早退・遅刻時、工数合計と残業に整合性がある場合の処理
-          if eval('request.POST["day{}"]'.format(i + 1)) == '早退・遅刻' and kosu_total != 0:
-            # 工数入力OK_NGをOKに切り替え
-            judgement = True
-
-
-          # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
-          if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-            member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-              member_obj.shop == '組長以上(W,A)') and \
-             eval('request.POST["tyoku{}"]'.format(i + 1)) == '1':
-            # 半前年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半前年休' and \
-              kosu_total - int(work_get.over_time) == 230:
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
-
-            # 半後年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半後年休' and \
-              kosu_total - int(work_get.over_time) == 240:
-
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
-
-
-          # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
-          if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-            member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-              member_obj.shop == '組長以上(W,A)') and \
-              eval('request.POST["tyoku{}"]'.format(i + 1)) == '2':
-
-            # 半前年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半前年休' and \
-              kosu_total - int(work_get.over_time) == 290:
-
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
-
-            # 半後年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半後年休' and \
-              kosu_total - int(work_get.over_time) == 180:
-
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
-
-
-          # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
-          if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
-            member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-              member_obj.shop == '組長以上(W,A)') and \
-              eval('request.POST["tyoku{}"]'.format(i + 1)) == '3':
-
-            # 半前年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半前年休' and \
-              kosu_total - int(work_get.over_time) == 230:
-
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
-
-            # 半後年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半後年休' and \
-              kosu_total - int(work_get.over_time) == 240:
-
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
-
-
-          # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで1直の場合の処理
-          if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-            member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-              member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-              eval('request.POST["tyoku{}"]'.format(i + 1)) == '1':
-
-            # 半前年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半前年休' and \
-              kosu_total - int(work_get.over_time) == 220:
-
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
-
-            # 半後年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半後年休' and \
-              kosu_total - int(work_get.over_time) == 250:
-
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
-
-
-          # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで2直の場合の処理
-          if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-            member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-              member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-              eval('request.POST["tyoku{}"]'.format(i + 1)) == '2':
-
-            # 半前年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半前年休' and \
-              kosu_total - int(work_get.over_time) == 230:
-
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
-
-            # 半後年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半後年休' and \
-              kosu_total - int(work_get.over_time) == 240:
-
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
-
-
-          # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Bで3直の場合の処理
-          if (member_obj.shop == 'P' or member_obj.shop == 'R' or \
-            member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-              member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and \
-              eval('request.POST["tyoku{}"]'.format(i + 1)) == '3':
-
-            # 半前年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半前年休' and \
-              kosu_total - int(work_get.over_time) == 275:
-
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
-
-            # 半後年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半後年休' and \
-              kosu_total - int(work_get.over_time) == 195:
-
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
-
-
-          # 常昼の場合の処理
-          if eval('request.POST["tyoku{}"]'.format(i + 1)) == '4':
-            # 半前年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半前年休' and \
-              kosu_total - int(work_get.over_time) == 230:
-
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
-
-            # 半後年休時、工数合計と残業に整合性がある場合の処理
-            if eval('request.POST["day{}"]'.format(i + 1)) == '半後年休' and \
-              kosu_total - int(work_get.over_time) == 240:
-
-              # 工数入力OK_NGをOKに切り替え
-              judgement = True
+          # 工数整合性取得
+          judgement = judgement_check(list(work_get.time_work), eval('request.POST["day{}"]'.format(i + 1)), eval('request.POST["tyoku{}"]'.format(i + 1)), member_obj, work_get.over_time)
 
 
           # 就業を上書き
@@ -5913,15 +5093,13 @@ def schedule(request):
       if day_list[i] != '':
 
         # 対応する日付に工数データがあるか確認
-        day_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None), \
+        day_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
                                                         work_day2 = datetime.date(year, month, day_list[i]))
 
         # 対応する日付に工数データがある場合の処理
-        if day_filter.count() != 0:
-
+        if day_filter.exists():
           # 対応する日付の工数データを取得
-          day_get = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None), \
-                                                    work_day2 = datetime.date(year, month, day_list[i]))
+          day_get = day_filter.first()
           
           # 就業データを初期値リストに入れる
           form_default_list[('day{}'.format(i + 1))] = day_get.work_time
@@ -5988,23 +5166,19 @@ def schedule(request):
     # 日付リストの該当要素が空でない場合の処理
     if day_list[i] != '':
       # ログイン者の工数データを該当日でフィルター 
-      graph_data_filter = Business_Time_graph.objects.filter(employee_no3 = \
-                          request.session['login_No'], \
+      graph_data_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
                           work_day2 = datetime.date(year, month, day_list[i]))
 
       # 工数データがない場合の処理
-      if graph_data_filter.count() == 0:
-
+      if not graph_data_filter.exists():
         # カレンダー工数表示リストに空の値を入れる
         for p in range(4):
           eval(k).append('　')
 
       # 工数データがある場合の処理
-      if graph_data_filter.count() != 0:
-
+      else:
         # ログイン者の該当日の工数データ取得
-        graph_data_get = Business_Time_graph.objects.get(employee_no3 = \
-                        request.session['login_No'], \
+        graph_data_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
                           work_day2 =datetime.date(year, month, day_list[i]))
         # 作業内容リストに解凍
         data_list = list(graph_data_get.time_work)
@@ -6135,10 +5309,8 @@ def schedule(request):
     if day_list[ok_ng] != '':
       OK_NG_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
                                                        work_day2 = datetime.date(year, month, day_list[ok_ng]))
-      if OK_NG_filter.count() != 0:
-        
-        OK_NG_obj = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                    work_day2 = datetime.date(year, month, day_list[ok_ng]))
+      if OK_NG_filter.exists():
+        OK_NG_obj = OK_NG_filter.first()
         if OK_NG_obj.judgement == True:
           OK_NG_list.append(OK_NG_obj.judgement)
         else:
@@ -6214,9 +5386,10 @@ def schedule(request):
 # 残業管理画面定義
 def over_time(request):
 
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
+  # セッションにログインした従業員番号がない場合の処理
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
   
   try:
     # ログイン者の情報取得
@@ -6251,78 +5424,8 @@ def over_time(request):
     # GET時のカレンダー設定フォーム定義
     form = schedule_timeForm(default_list)
 
-    # GETされた月の初日取得
-    select_month = datetime.date(year, month, 1)
-    # GETされた月の初日の曜日取得
-    week_day = select_month.weekday()
-
-    # GETされた月の最終日取得
-    if month == 12:
-      month_end = 1
-      year_end = year + 1
-    else:
-      month_end = month + 1
-      year_end = year
-
-    select_month = datetime.date(year_end, month_end, 1)
-    month_day_end = select_month - datetime.timedelta(days = 1)
-    day_end = month_day_end.day
-
-    # カレンダー表示日付変数リセット
-    day_list = list(itertools.repeat('', 37))
-
-    # 1週目の日付設定
-    if week_day == 6:
-      day_list[0] = 1
-      day_list[1] = 2
-      day_list[2] = 3
-      day_list[3] = 4
-      day_list[4] = 5
-      day_list[5] = 6
-      day_list[6] = 7
-
-    if week_day == 0:
-      day_list[1] = 1
-      day_list[2] = 2
-      day_list[3] = 3
-      day_list[4] = 4
-      day_list[5] = 5
-      day_list[6] = 6
-
-    if week_day == 1:
-      day_list[2] = 1
-      day_list[3] = 2
-      day_list[4] = 3
-      day_list[5] = 4
-      day_list[6] = 5
-
-    if week_day == 2:
-      day_list[3] = 1
-      day_list[4] = 2
-      day_list[5] = 3
-      day_list[6] = 4
-
-    if week_day == 3:
-      day_list[4] = 1
-      day_list[5] = 2
-      day_list[6] = 3
-
-    if week_day == 4:
-      day_list[5] = 1
-      day_list[6] = 2
-
-    if week_day == 5:
-      day_list[6] = 1
-
-    # 基準日指定
-    start_day = day_list[6]
-
-    # 2～5週目の日付設定
-    for i in range(7, 37):
-      day_list[i] = start_day + 1
-      start_day += 1
-      if start_day == day_end:
-        break
+    # 日付リスト作成
+    day_list = calendar_day(year, month)
 
 
 
@@ -6342,78 +5445,8 @@ def over_time(request):
     # POST時のカレンダー設定フォーム定義
     form = schedule_timeForm(default_list)
 
-    # POSTされた月の初日取得
-    select_month = datetime.date(year, month, 1)
-    # POSTされた月の初日の曜日取得
-    week_day = select_month.weekday()
-
-    # POSTされた月の最終日取得
-    if month == 12:
-      month_end = 1
-      year_end = year + 1
-    else:
-      month_end = month + 1
-      year_end = year
-
-    select_month = datetime.date(year_end, month_end, 1)
-    month_day_end = select_month - datetime.timedelta(days = 1)
-    day_end = month_day_end.day
-
-    # カレンダー表示日付変数リセット
-    day_list = list(itertools.repeat('', 37))
-
-    # 1週目の日付設定
-    if week_day == 6:
-      day_list[0] = 1
-      day_list[1] = 2
-      day_list[2] = 3
-      day_list[3] = 4
-      day_list[4] = 5
-      day_list[5] = 6
-      day_list[6] = 7
-
-    if week_day == 0:
-      day_list[1] = 1
-      day_list[2] = 2
-      day_list[3] = 3
-      day_list[4] = 4
-      day_list[5] = 5
-      day_list[6] = 6
-
-    if week_day == 1:
-      day_list[2] = 1
-      day_list[3] = 2
-      day_list[4] = 3
-      day_list[5] = 4
-      day_list[6] = 5
-
-    if week_day == 2:
-      day_list[3] = 1
-      day_list[4] = 2
-      day_list[5] = 3
-      day_list[6] = 4
-
-    if week_day == 3:
-      day_list[4] = 1
-      day_list[5] = 2
-      day_list[6] = 3
-
-    if week_day == 4:
-      day_list[5] = 1
-      day_list[6] = 2
-
-    if week_day == 5:
-      day_list[6] = 1
-
-    # 基準日指定
-    start_day = day_list[6]
-
-    # 2～5週目の日付設定
-    for i in range(7, 37):
-      day_list[i] = start_day + 1
-      start_day += 1
-      if start_day == day_end:
-        break
+    # 日付リスト作成
+    day_list = calendar_day(year, month)
 
 
 
@@ -6431,15 +5464,14 @@ def over_time(request):
                                                              work_day2 = datetime.date(year, month, i))
 
       # 工数データがない場合の処理
-      if over_time_filter.count() == 0:
+      if not over_time_filter.exists():
         # 残業リストに0を追加
         over_time_list.append('0')
 
       # 工数データある場合の処理
       else:
         # 工数データ取得
-        over_time_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                        work_day2 = datetime.date(year, month, i))
+        over_time_get = over_time_filter.first()
 
         # 残業データを分から時に変換
         over_time_get.over_time = int(over_time_get.over_time)/60
@@ -6458,12 +5490,11 @@ def over_time(request):
   OK_NG_list = []
   for ok_ng in range(37):
     if day_list[ok_ng] != '':
-      OK_NG_filter = Business_Time_graph.objects.filter(employee_no3 = request.session.get('login_No', None), \
+      OK_NG_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
                                                        work_day2 = datetime.date(year, month, day_list[ok_ng]))
-      if OK_NG_filter.count() != 0:
-        
-        OK_NG_obj = Business_Time_graph.objects.get(employee_no3 = request.session.get('login_No', None), \
-                                                    work_day2 = datetime.date(year, month, day_list[ok_ng]))
+      if OK_NG_filter.exists():
+        OK_NG_obj = OK_NG_filter.first()
+
         if OK_NG_obj.judgement == True:
           OK_NG_list.append(OK_NG_obj.judgement)
         else:
@@ -6508,9 +5539,9 @@ def all_kosu(request, num):
   page_num = administrator_data.objects.order_by("id").last()
 
   # セッションにログインした従業員番号がない場合の処理
-  if request.session.get('login_No', None) == None:
-    # 未ログインならログインページに飛ぶ
-    return redirect(to = '/login')
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
 
   # ログイン者が問い合わせ担当者でない場合の処理
   if request.session['login_No'] not in [page_num.administrator_employee_no1, page_num.administrator_employee_no2, page_num.administrator_employee_no3]:
@@ -6774,9 +5805,9 @@ def all_kosu_detail(request, num):
   page_num = administrator_data.objects.order_by("id").last()
 
   # セッションにログインした従業員番号がない場合の処理
-  if request.session.get('login_No', None) == None:
-    # 未ログインならログインページに飛ぶ
-    return redirect(to = '/login')
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
 
   # ログイン者が問い合わせ担当者でない場合の処理
   if request.session['login_No'] not in (page_num.administrator_employee_no1, page_num.administrator_employee_no2, page_num.administrator_employee_no3):
@@ -6879,7 +5910,7 @@ def all_kosu_detail(request, num):
     member_filter = member.objects.filter(employee_no = request.POST['employee_no'])
 
     # 従業員番号がない場合の処理
-    if member_filter.count() == 0:
+    if not member_filter.exists():
       # エラーメッセージ出力
       messages.error(request, 'その従業員番号は人員データにありません。ERROR092')
       # このページをリダイレクト
@@ -7334,8 +6365,7 @@ def all_kosu_detail(request, num):
       obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.POST['employee_no'], \
                                                       work_day2 = request.POST['work_day'])
       
-      # 工数データがある場合の処理
-      if obj_filter.count() != 0:
+      if obj_filter.exists():
         # エラーメッセージ出力
         messages.error(request, 'その日付には既に工数データがあります。ERROR091')
         # このページをリダイレクト
@@ -7434,175 +6464,31 @@ def all_kosu_detail(request, num):
     detail_list23 = detail_list[276 : ]
 
     # 作業詳細リストを文字列に変更
-    detail_list_str0 = ''
-    detail_list_str1 = ''
-    detail_list_str2 = ''
-    detail_list_str3 = ''
-    detail_list_str4 = ''
-    detail_list_str5 = ''
-    detail_list_str6 = ''
-    detail_list_str7 = ''
-    detail_list_str8 = ''
-    detail_list_str9 = ''
-    detail_list_str10 = ''
-    detail_list_str11 = ''
-    detail_list_str12 = ''
-    detail_list_str13 = ''
-    detail_list_str14 = ''
-    detail_list_str15 = ''
-    detail_list_str16 = ''
-    detail_list_str17 = ''
-    detail_list_str18 = ''
-    detail_list_str19 = ''
-    detail_list_str20 = ''
-    detail_list_str21 = ''
-    detail_list_str22 = ''
-    detail_list_str23 = ''
+    detail_list_str0 = detail_list_summarize(detail_list0)
+    detail_list_str1 = detail_list_summarize(detail_list1)
+    detail_list_str2 = detail_list_summarize(detail_list2)
+    detail_list_str3 = detail_list_summarize(detail_list3)
+    detail_list_str4 = detail_list_summarize(detail_list4)
+    detail_list_str5 = detail_list_summarize(detail_list5)
+    detail_list_str6 = detail_list_summarize(detail_list6)
+    detail_list_str7 = detail_list_summarize(detail_list7)
+    detail_list_str8 = detail_list_summarize(detail_list8)
+    detail_list_str9 = detail_list_summarize(detail_list9)
+    detail_list_str10 = detail_list_summarize(detail_list10)
+    detail_list_str11 = detail_list_summarize(detail_list11)
+    detail_list_str12 = detail_list_summarize(detail_list12)
+    detail_list_str13 = detail_list_summarize(detail_list13)
+    detail_list_str14 = detail_list_summarize(detail_list14)
+    detail_list_str15 = detail_list_summarize(detail_list15)
+    detail_list_str16 = detail_list_summarize(detail_list16)
+    detail_list_str17 = detail_list_summarize(detail_list17)
+    detail_list_str18 = detail_list_summarize(detail_list18)
+    detail_list_str19 = detail_list_summarize(detail_list19)
+    detail_list_str20 = detail_list_summarize(detail_list20)
+    detail_list_str21 = detail_list_summarize(detail_list21)
+    detail_list_str22 = detail_list_summarize(detail_list22)
+    detail_list_str23 = detail_list_summarize(detail_list23)
 
-    # 作業詳細リストSTRに変換
-    for i, e in enumerate(detail_list0):
-      if i == len(detail_list0) - 1:
-        detail_list_str0 = detail_list_str0 + detail_list0[i]
-      else:
-        detail_list_str0 = detail_list_str0 + detail_list0[i] + '$'
-
-    for i, e in enumerate(detail_list1):
-      if i == len(detail_list1) - 1:
-        detail_list_str1 = detail_list_str1 + detail_list1[i]
-      else:
-        detail_list_str1 = detail_list_str1 + detail_list1[i] + '$'
-
-    for i, e in enumerate(detail_list2):
-      if i == len(detail_list2) - 1:
-        detail_list_str2 = detail_list_str2 + detail_list2[i]
-      else:
-        detail_list_str2 = detail_list_str2 + detail_list2[i] + '$'
-
-    for i, e in enumerate(detail_list3):
-      if i == len(detail_list3) - 1:
-        detail_list_str3 = detail_list_str3 + detail_list3[i]
-      else:
-        detail_list_str3 = detail_list_str3 + detail_list3[i] + '$'
-
-    for i, e in enumerate(detail_list4):
-      if i == len(detail_list4) - 1:
-        detail_list_str4 = detail_list_str4 + detail_list4[i]
-      else:
-        detail_list_str4 = detail_list_str4 + detail_list4[i] + '$'
-
-    for i, e in enumerate(detail_list5):
-      if i == len(detail_list5) - 1:
-        detail_list_str5 = detail_list_str5 + detail_list5[i]
-      else:
-        detail_list_str5 = detail_list_str5 + detail_list5[i] + '$'
-
-    for i, e in enumerate(detail_list6):
-      if i == len(detail_list6) - 1:
-        detail_list_str6 = detail_list_str6 + detail_list6[i]
-      else:
-        detail_list_str6 = detail_list_str6 + detail_list6[i] + '$'
-
-    for i, e in enumerate(detail_list7):
-      if i == len(detail_list7) - 1:
-        detail_list_str7 = detail_list_str7 + detail_list7[i]
-      else:
-        detail_list_str7 = detail_list_str7 + detail_list7[i] + '$'
-
-    for i, e in enumerate(detail_list8):
-      if i == len(detail_list8) - 1:
-        detail_list_str8 = detail_list_str8 + detail_list8[i]
-      else:
-        detail_list_str8 = detail_list_str8 + detail_list8[i] + '$'
-
-    for i, e in enumerate(detail_list9):
-      if i == len(detail_list9) - 1:
-        detail_list_str9 = detail_list_str9 + detail_list9[i]
-      else:
-        detail_list_str9 = detail_list_str9 + detail_list9[i] + '$'
-
-    for i, e in enumerate(detail_list10):
-      if i == len(detail_list10) - 1:
-        detail_list_str10 = detail_list_str10 + detail_list10[i]
-      else:
-        detail_list_str10 = detail_list_str10 + detail_list10[i] + '$'
-
-    for i, e in enumerate(detail_list11):
-      if i == len(detail_list11) - 1:
-        detail_list_str11 = detail_list_str11 + detail_list11[i]
-      else:
-        detail_list_str11 = detail_list_str11 + detail_list11[i] + '$'
-
-    for i, e in enumerate(detail_list12):
-      if i == len(detail_list12) - 1:
-        detail_list_str12 = detail_list_str12 + detail_list12[i]
-      else:
-        detail_list_str12 = detail_list_str12 + detail_list12[i] + '$'
-
-    for i, e in enumerate(detail_list13):
-      if i == len(detail_list13) - 1:
-        detail_list_str13 = detail_list_str13 + detail_list13[i]
-      else:
-        detail_list_str13 = detail_list_str13 + detail_list13[i] + '$'
-
-    for i, e in enumerate(detail_list14):
-      if i == len(detail_list14) - 1:
-        detail_list_str14 = detail_list_str14 + detail_list14[i]
-      else:
-        detail_list_str14 = detail_list_str14 + detail_list14[i] + '$'
-
-    for i, e in enumerate(detail_list15):
-      if i == len(detail_list15) - 1:
-        detail_list_str15 = detail_list_str15 + detail_list15[i]
-      else:
-        detail_list_str15 = detail_list_str15 + detail_list15[i] + '$'
-
-    for i, e in enumerate(detail_list16):
-      if i == len(detail_list16) - 1:
-        detail_list_str16 = detail_list_str16 + detail_list16[i]
-      else:
-        detail_list_str16 = detail_list_str16 + detail_list16[i] + '$'
-
-    for i, e in enumerate(detail_list17):
-      if i == len(detail_list17) - 1:
-        detail_list_str17 = detail_list_str17 + detail_list17[i]
-      else:
-        detail_list_str17 = detail_list_str17 + detail_list17[i] + '$'
-
-    for i, e in enumerate(detail_list18):
-      if i == len(detail_list18) - 1:
-        detail_list_str18 = detail_list_str18 + detail_list18[i]
-      else:
-        detail_list_str18 = detail_list_str18 + detail_list18[i] + '$'
-
-    for i, e in enumerate(detail_list19):
-      if i == len(detail_list19) - 1:
-        detail_list_str19 = detail_list_str19 + detail_list19[i]
-      else:
-        detail_list_str19 = detail_list_str19 + detail_list19[i] + '$'
-
-    for i, e in enumerate(detail_list20):
-      if i == len(detail_list20) - 1:
-        detail_list_str20 = detail_list_str20 + detail_list20[i]
-      else:
-        detail_list_str20 = detail_list_str20 + detail_list20[i] + '$'
-
-    for i, e in enumerate(detail_list21):
-      if i == len(detail_list21) - 1:
-        detail_list_str21 = detail_list_str21 + detail_list21[i]
-      else:
-        detail_list_str21 = detail_list_str21 + detail_list21[i] + '$'
-
-    for i, e in enumerate(detail_list22):
-      if i == len(detail_list22) - 1:
-        detail_list_str22 = detail_list_str22 + detail_list22[i]
-      else:
-        detail_list_str22 = detail_list_str22 + detail_list22[i] + '$'
-
-    for i, e in enumerate(detail_list23):
-      if i == len(detail_list23) - 1:
-        detail_list_str23 = detail_list_str23 + detail_list23[i]
-      else:
-        detail_list_str23 = detail_list_str23 + detail_list23[i] + '$'
 
 
     form_default = {
@@ -7704,9 +6590,9 @@ def all_kosu_delete(request, num):
   page_num = administrator_data.objects.order_by("id").last()
 
   # セッションにログインした従業員番号がない場合の処理
-  if request.session.get('login_No', None) == None:
-    # 未ログインならログインページに飛ぶ
-    return redirect(to = '/login')
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
 
   # ログイン者が問い合わせ担当者でない場合の処理
   if request.session['login_No'] not in (page_num.administrator_employee_no1, page_num.administrator_employee_no2, page_num.administrator_employee_no3):
