@@ -5150,9 +5150,25 @@ def schedule(request):
           # 工数合計取得
           kosu_total = 1440 - (work_get.time_work.count('#')*5) - (work_get.time_work.count('$')*5)
 
-          # 工数整合性取得
-          judgement = judgement_check(list(work_get.time_work), eval('request.POST["day{}"]'.format(i + 1)), eval('request.POST["tyoku{}"]'.format(i + 1)), member_obj, work_get.over_time)
+          # POST値が休日の場合の処理
+          if eval('request.POST["day{}"]'.format(i + 1)) == '年休' or \
+            eval('request.POST["day{}"]'.format(i + 1)) == '休日' or \
+              eval('request.POST["day{}"]'.format(i + 1)) == '公休' or \
+                eval('request.POST["day{}"]'.format(i + 1)) == 'シフト休' or \
+                  eval('request.POST["day{}"]'.format(i + 1)) == '代休':
+            # 工数入力がない場合の処理
+            if kosu_total == 0:
+              # 整合性OK
+              judgement = True
+            # 工数入力がある場合の処理
+            else:
+              # 整合性NG
+              judgement = False
 
+          # POST値が休日でない場合の処理
+          else:
+            # 整合性取得
+            judgement = judgement_check(list(work_get.time_work), eval('request.POST["day{}"]'.format(i + 1)), eval('request.POST["tyoku{}"]'.format(i + 1)), member_obj, work_get.over_time)
 
           # 就業を上書き
           Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
