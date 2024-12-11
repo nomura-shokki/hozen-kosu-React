@@ -25,7 +25,7 @@
   {% csrf_token %}
      {{form.as_table}}
   <tr><th><td>
-    <input type="submit" value="登録" name=registration class="btn btn-gray2 mt-2">
+    <input type="submit" value="登録" name=registration onclick="return confirm_edit();" class="btn btn-gray2 mt-2">
   </td></th></tr>
   <tr><th><td>
     　
@@ -42,7 +42,7 @@
       <input type="date" class="form-control custom-border" style="width: 200px;" name="data_day" id="data_day">
       以前のデータを<br>
       <input type="submit" value="バックアップ" name=kosu_backup class="btn btn-gray2 mt-2">
-      <input type="submit" value="削除" name=kosu_delete class="btn btn-gray2 mt-2">
+      <input type="submit" value="削除" name=kosu_delete onclick="return confirmDelete();" class="btn btn-gray2 mt-2">
     </td>
   </tr>
   <tr>
@@ -176,5 +176,9 @@
   </tr>
   </form>
   </table>
+  <script>
+    function confirmDelete() {return confirm('全人員の期間内の業務工数データが消えます。本当に実行しますか？');}
+    function confirm_edit() {return confirm('アプリ設定を変更します。全ユーザーの表示及び管理者を更新しますがよろしいですか？');}
+  </script>
 </body>
 </html>

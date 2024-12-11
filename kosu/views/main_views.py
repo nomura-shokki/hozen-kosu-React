@@ -468,9 +468,7 @@ def administrator_menu(request):
 
   # 未ログインならログインページに飛ぶ
   if request.session.get('login_No', None) == None:
-
     return redirect(to = '/login')
-
 
   try:
     # ログイン者の情報取得
@@ -486,7 +484,6 @@ def administrator_menu(request):
 
   # ログイン者が管理者でなければメインページに戻る
   if data.administrator == False:
-
     return redirect(to = '/')
 
 
@@ -514,199 +511,141 @@ def administrator_menu(request):
 
   # 設定更新時の処理
   if 'registration' in request.POST:
-
     # 一覧表示項目数に文字が入っている場合の処理
     if not request.POST['menu_row'].isdigit():
-
       # エラーメッセージ出力
       messages.error(request, '一覧表示項目数は数字で入力して下さい。ERROR056')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
-
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no1'] != '':
-
       # 問い合わせ担当者従業員番号に文字が入っている場合の処理
       if not request.POST['administrator_employee_no1'].isdigit():
-
         # エラーメッセージ出力
         messages.error(request, '問い合わせ担当者従業員番号は数字で入力して下さい。ERROR077')
-
         # このページをリダイレクト
         return redirect(to = '/administrator')
-
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no2'] != '':
-
       # 問い合わせ担当者従業員番号に文字が入っている場合の処理
       if not request.POST['administrator_employee_no2'].isdigit():
-
         # エラーメッセージ出力
         messages.error(request, '問い合わせ担当者従業員番号は数字で入力して下さい。ERROR078')
-
         # このページをリダイレクト
         return redirect(to = '/administrator')
-
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no3'] != '':
-
       # 問い合わせ担当者従業員番号に文字が入っている場合の処理
       if not request.POST['administrator_employee_no3'].isdigit():
-
         # エラーメッセージ出力
         messages.error(request, '問い合わせ担当者従業員番号は数字で入力して下さい。ERROR079')
-
         # このページをリダイレクト
         return redirect(to = '/administrator')
-
 
     # 一覧表示項目数が自然数でない場合の処理
     if math.floor(float(request.POST['menu_row'])) != float(request.POST['menu_row']) or \
       float(request.POST['menu_row']) <= 0:
-
       # エラーメッセージ出力
       messages.error(request, '一覧表示項目数は自然数で入力して下さい。ERROR029')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
     
-
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no1'] != '':
-
       # 問い合わせ担当者従業員番号が自然数でない場合の処理
       if math.floor(float(request.POST['administrator_employee_no1'])) != \
         float(request.POST['administrator_employee_no1']) or \
         float(request.POST['administrator_employee_no1']) <= 0:
-
         # エラーメッセージ出力
         messages.error(request, '問い合わせ担当者従業員番号は自然数で入力して下さい。ERROR033')
-
         # このページをリダイレクト
         return redirect(to = '/administrator')
 
-
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no2'] != '':
-      
       # 問い合わせ担当者従業員番号が自然数でない場合の処理
       if math.floor(float(request.POST['administrator_employee_no2'])) != \
         float(request.POST['administrator_employee_no2']) or \
         float(request.POST['administrator_employee_no2']) <= 0:
-
         # エラーメッセージ出力
         messages.error(request, '問い合わせ担当者従業員番号は自然数で入力して下さい。ERROR034')
-
         # このページをリダイレクト
         return redirect(to = '/administrator')
 
-
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no3'] != '':
-      
       # 問い合わせ担当者従業員番号が自然数でない場合の処理
       if math.floor(float(request.POST['administrator_employee_no3'])) != \
         float(request.POST['administrator_employee_no3']) or \
         float(request.POST['administrator_employee_no3']) <= 0:
-
         # エラーメッセージ出力
         messages.error(request, '問い合わせ担当者従業員番号は自然数で入力して下さい。ERROR035')
-
         # このページをリダイレクト
         return redirect(to = '/administrator')
-
 
     # 一覧表示項目数が半角でない場合の処理
     if has_non_halfwidth_characters(request.POST['menu_row']):
-
       # エラーメッセージ出力
       messages.error(request, '一覧表示項目数は半角で入力して下さい。ERROR053')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
-
 
     # 問い合わせ担当者従業員番号が半角でない場合の処理
     if has_non_halfwidth_characters(request.POST['administrator_employee_no1']):
-
       # エラーメッセージ出力
       messages.error(request, '問い合わせ担当者従業員番号は半角で入力して下さい。ERROR036')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
-    
 
     # 問い合わせ担当者従業員番号が半角でない場合の処理
     if has_non_halfwidth_characters(request.POST['administrator_employee_no2']):
-
       # エラーメッセージ出力
       messages.error(request, '問い合わせ担当者従業員番号は半角で入力して下さい。ERROR037')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
-    
 
     # 問い合わせ担当者従業員番号が半角でない場合の処理
     if has_non_halfwidth_characters(request.POST['administrator_employee_no3']):
-
       # エラーメッセージ出力
       messages.error(request, '問い合わせ担当者従業員番号は半角で入力して下さい。ERROR038')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
-
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no1'] != '':
-
       # 送信された問い合わせ担当者従業員番号の人員データあるか確認
       member_obj_filter = member.objects.filter(employee_no = request.POST['administrator_employee_no1'])
-
       # 人員データ無い場合の処理
       if member_obj_filter.count() == 0:
-
         # エラーメッセージ出力
         messages.error(request, '入力された問い合わせ担当者従業員番号は登録されていません。ERROR055')
-
         # このページをリダイレクト
         return redirect(to = '/administrator')
-
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no2'] != '':
-
       # 送信された問い合わせ担当者従業員番号の人員データあるか確認
       member_obj_filter = member.objects.filter(employee_no = request.POST['administrator_employee_no2'])
-
       # 人員データ無い場合の処理
       if member_obj_filter.count() == 0:
-
         # エラーメッセージ出力
         messages.error(request, '入力された問い合わせ担当者従業員番号は登録されていません。ERROR080')
-
         # このページをリダイレクト
         return redirect(to = '/administrator')
-
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no3'] != '':
-
       # 送信された問い合わせ担当者従業員番号の人員データあるか確認
       member_obj_filter = member.objects.filter(employee_no = request.POST['administrator_employee_no3'])
-
       # 人員データ無い場合の処理
       if member_obj_filter.count() == 0:
-
         # エラーメッセージ出力
         messages.error(request, '入力された問い合わせ担当者従業員番号は登録されていません。ERROR081')
-
         # このページをリダイレクト
         return redirect(to = '/administrator')
-
 
     # レコードにPOST送信された値を上書きする
     administrator_data.objects.update_or_create(id = record_id, \
@@ -722,26 +661,20 @@ def administrator_menu(request):
 
   # 工数情報バックアップ処理
   if 'kosu_backup' in request.POST:
-
     # 日付指定空の場合の処理
     if request.POST['data_day'] == '':
-
       # エラーメッセージ出力
       messages.error(request, 'バックアップする日付を指定してください。ERROR022')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
 
     # 新しいExcelブック作成
     wb = openpyxl.Workbook()
-
     # 書き込みシート選択
     ws = wb.active
-
     # 工数データ取得
     kosu_data = Business_Time_graph.objects.filter(work_day2__lte = request.POST['data_day'])
-
 
     # Excelに書き込み(項目名)
     headers = [
@@ -761,7 +694,6 @@ def administrator_menu(request):
       '工数入力OK_NG'
       ]
     ws.append(headers)
-
 
     # Excelに書き込み(データ)
     for item in kosu_data:
@@ -783,7 +715,6 @@ def administrator_menu(request):
         item.judgement
         ]
       ws.append(row)
-
 
     # メモリ上にExcelファイルを作成し、BytesIOオブジェクトに保存
     excel_file = BytesIO()
@@ -811,16 +742,12 @@ def administrator_menu(request):
 
   # 工数データ読み込み
   if 'kosu_load' in request.POST:
-
     # 工数データファイルが未選択時の処理
     if 'kosu_file' not in request.FILES:
-
       # エラーメッセージ出力
       messages.error(request, '工数データファイルが選択されていません。ERROR040')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
-
 
     # POSTされたファイルパスを変数に入れる
     file_path = request.FILES['kosu_file']
@@ -828,7 +755,6 @@ def administrator_menu(request):
 
     # 一時的なファイルをサーバー上に作成
     with open('kosu_file_path.xlsx', 'wb+') as destination:
-
       # アップロードしたファイルを一時ファイルに書き込み
       for chunk in file_path.chunks():
         destination.write(chunk)
@@ -837,8 +763,6 @@ def administrator_menu(request):
     wb = openpyxl.load_workbook('kosu_file_path.xlsx')
     # 書き込みシート選択
     ws = wb.worksheets[0]
-
-
 
     # 読み込むファイルが正しいファイルでない場合の処理
     if ws.cell(1, 1).value != '従業員番号' or ws.cell(1, 2).value != '氏名' or \
@@ -851,29 +775,22 @@ def administrator_menu(request):
 
       # エラーメッセージ出力
       messages.error(request, 'ロードしようとしたファイルは工数データバックアップではありません。ERROR048')
-  
       # このページをリダイレクト
       return redirect(to = '/administrator')
-
 
     # レコード数取得
     data_num = ws.max_row
 
-
     # Excelからデータを読み込こむループ
     for i in range(1, data_num):
-
       # 読み込み予定データと同一の日のデータが存在するか確認
       kosu_data_filter = Business_Time_graph.objects.filter(employee_no3 = ws.cell(row = i + 1, column = 1).value, \
                                                            work_day2 = ws.cell(row = i + 1, column = 4).value)
-
       # 読み込み予定データと同一の日のデータが存在する場合の処理
       if kosu_data_filter.count() != 0:
-
         # 読み込み予定データと同一の日のデータを取得
         kosu_data_get = Business_Time_graph.objects.get(employee_no3 = ws.cell(row = i + 1, column = 1).value, \
                                                        work_day2 = ws.cell(row = i + 1, column = 4).value)
-        
         # 読み込み予定データと同一の日のデータを削除
         kosu_data_get.delete()
 
@@ -899,7 +816,6 @@ def administrator_menu(request):
       # レコードセーブ
       new_data.save()
 
-
     # 一時ファイル削除
     os.remove('kosu_file_path.xlsx')
 
@@ -907,20 +823,16 @@ def administrator_menu(request):
 
   # 工数データ削除
   if 'kosu_delete' in request.POST:
-
     # 日付指定空の場合の処理
     if request.POST['data_day'] == '':
-
       # エラーメッセージ出力
       messages.error(request, '削除する日付を指定してください。ERROR023')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
 
     # 工数データ取得
     kosu_obj = Business_Time_graph.objects.filter(work_day2__lte = request.POST['data_day'])
-
     # 取得した工数データを削除
     kosu_obj.delete()
 
@@ -928,19 +840,14 @@ def administrator_menu(request):
 
   # 人員情報バックアップ処理
   if 'member_backup' in request.POST:
-
     # 今日の日付取得
     today = datetime.date.today().strftime('%Y%m%d')
-
     # 新しいExcelブック作成
     wb = openpyxl.Workbook()
-
     # 書き込みシート選択
     ws = wb.active
-
     # 人員データ取得
     member_data = member.objects.all()
-
 
     # Excelに書き込み(項目名)
     headers = [
@@ -968,10 +875,8 @@ def administrator_menu(request):
         ]
     ws.append(headers)
 
-
     # Excelに書き込み(データ)
     for item in member_data:
-
       row = [
         item.employee_no, 
         item.name, 
@@ -1009,7 +914,6 @@ def administrator_menu(request):
     # URLエンコーディングされたファイル名を生成
     quoted_filename = urllib.parse.quote(filename)
     
-
     # HttpResponseを作成してファイルをダウンロードさせる
     response = HttpResponse(
         excel_file.read(),
@@ -1024,13 +928,10 @@ def administrator_menu(request):
 
   # 人員情報読み込み
   if 'member_load' in request.POST:
-
     # 人員データファイルが未選択時の処理
     if 'member_file' not in request.FILES:
-
       # エラーメッセージ出力
       messages.error(request, '人員ファイルが選択されていません。ERROR044')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -1041,7 +942,6 @@ def administrator_menu(request):
 
     # 一時的なファイルをサーバー上に作成
     with open('member_file_path.xlsx', 'wb+') as destination:
-
       # アップロードしたファイルを一時ファイルに書き込み
       for chunk in file_path.chunks():
         destination.write(chunk)
@@ -1050,7 +950,6 @@ def administrator_menu(request):
     wb = openpyxl.load_workbook('member_file_path.xlsx')
     # 書き込みシート選択
     ws = wb.worksheets[0]
-
 
 
     # 読み込むファイルが正しいファイルでない場合の処理
@@ -1065,7 +964,6 @@ def administrator_menu(request):
       ws.cell(1, 17).value != '3直残業休憩時間3' or ws.cell(1, 18).value != '常昼昼休憩時間' or \
       ws.cell(1, 19).value != '常昼残業休憩時間1' or ws.cell(1, 20).value != '常昼残業休憩時間2' or \
       ws.cell(1, 21).value != '常昼残業休憩時間3':
-
       # エラーメッセージ出力
       messages.error(request, 'ロードしようとしたファイルは人員情報バックアップではありません。ERROR049')
       # このページをリダイレクト
@@ -1077,7 +975,6 @@ def administrator_menu(request):
 
     # Excelからデータを読み込むループ
     for i in range(1, data_num):
-
       # 読み込み予定データと同一の従業員番号のデータが存在するか確認
       member_data_filter = member.objects.filter(employee_no = ws.cell(row = i + 1, column = 1).value)
 
@@ -1141,8 +1038,6 @@ def administrator_menu(request):
                             break_time4_over2 = ws.cell(row = i + 1, column = 20).value, \
                             break_time4_over3 = ws.cell(row = i + 1, column = 21).value)
           new_data.save()
-      
-
 
     # 一時ファイル削除
     os.remove('member_file_path.xlsx')
@@ -1151,16 +1046,12 @@ def administrator_menu(request):
 
   # 班員情報バックアップ処理
   if 'team_backup' in request.POST:
-
     # 今日の日付取得
     today = datetime.date.today().strftime('%Y%m%d')
-
     # 新しいExcelブック作成
     wb = openpyxl.Workbook()
-
     # 書き込みシート選択
     ws = wb.active
-
     # 班員データ取得
     team_data = team_member.objects.all()
 
@@ -1180,10 +1071,8 @@ def administrator_menu(request):
         ]
     ws.append(headers)
 
-
     # Excelに書き込み(データ)
     for item in team_data:
-
       row = [
         item.employee_no5, 
         item.member1, 
@@ -1199,19 +1088,15 @@ def administrator_menu(request):
         ]
       ws.append(row)
 
-
     # メモリ上にExcelファイルを作成
     excel_file = BytesIO()
     wb.save(excel_file)
     excel_file.seek(0)
-
     # ファイル名を設定
     filename = f'班員データバックアップ_{today}.xlsx'
-
     # URLエンコーディングされたファイル名を生成
     quoted_filename = urllib.parse.quote(filename)
     
-
     # HttpResponseを作成してファイルをダウンロードさせる
     response = HttpResponse(
         excel_file.read(),
@@ -1226,20 +1111,16 @@ def administrator_menu(request):
 
   # 班員情報読み込み
   if 'team_load' in request.POST:
-
     # 工数データファイルが未選択時の処理
     if 'team_file' not in request.FILES:
-
       # エラーメッセージ出力
       messages.error(request, '班員ファイルが選択されていません。ERROR045')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
 
     # POSTされたファイルパスを変数に入れる
     file_path = request.FILES['team_file']
-
 
     # 一時的なファイルをサーバー上に作成
     with open('team_file_path.xlsx', 'wb+') as destination:
@@ -1248,12 +1129,10 @@ def administrator_menu(request):
       for chunk in file_path.chunks():
         destination.write(chunk)
 
-
     # 指定Excelを開く
     wb = openpyxl.load_workbook('team_file_path.xlsx')
     # 書き込みシート選択
     ws = wb.worksheets[0]
-
 
     # 読み込むファイルが正しいファイルでない場合の処理
     if ws.cell(1, 1).value != '従業員番号' or ws.cell(1, 2).value != '班員1' or \
@@ -1262,32 +1141,25 @@ def administrator_menu(request):
       ws.cell(1, 7).value != '班員6' or ws.cell(1, 8).value != '班員7' or \
       ws.cell(1, 9).value != '班員8' or ws.cell(1, 10).value != '班員9' or \
       ws.cell(1, 11).value != '班員10':
-
       # エラーメッセージ出力
       messages.error(request, 'ロードしようとしたファイルは班員情報バックアップではありません。ERROR050')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
-
     # レコード数取得
     data_num = ws.max_row
 
-
     # Excelからデータを読み込むループ
     for i in range(1, data_num):
-
       # 読み込み予定データと同一の従業員番号のデータが存在するか確認
       team_data_filter = team_member.objects.filter(employee_no5 = ws.cell(row = i + 1, column = 1).value)
 
       # 読み込み予定データと同一の従業員番号のデータが存在する場合の処理
       if team_data_filter.count() != 0:
-
         # 読み込み予定データと同一の従業員番号のデータを取得
         team_data_get = team_member.objects.get(employee_no5 = ws.cell(row = i + 1, column = 1).value)
-        
         # 読み込み予定データと同一の従業員番号のデータを削除
         team_data_get.delete()
-
 
       # Excelからデータ読み込み
       new_data = team_member(employee_no5 = ws.cell(row = i + 1, column = 1).value, \
@@ -1304,7 +1176,6 @@ def administrator_menu(request):
 
       new_data.save()
  
-
     # 一時ファイル削除
     os.remove('team_file_path.xlsx')
 
@@ -1312,13 +1183,10 @@ def administrator_menu(request):
 
   # 工数区分定義バックアップ処理
   if 'def_backup' in request.POST:
-
     # 今日の日付取得
     today = datetime.date.today().strftime('%Y%m%d')
-
     # 新しいExcelブック作成
     wb = openpyxl.Workbook()
-
     # 書き込みシート選択
     ws = wb.active
 
@@ -1359,7 +1227,6 @@ def administrator_menu(request):
 
     # Excelに書き込み(データ)
     for item in def_data:
-
       row = [
         item.kosu_name, item.kosu_title_1, item.kosu_division_1_1, item.kosu_division_2_1,  
         item.kosu_title_2, item.kosu_division_1_2, item.kosu_division_2_2, 
@@ -1425,7 +1292,6 @@ def administrator_menu(request):
 
     # URLエンコーディングされたファイル名を生成
     quoted_filename = urllib.parse.quote(filename)
-    
 
     # HttpResponseを作成してファイルをダウンロードさせる
     response = HttpResponse(
@@ -1434,20 +1300,17 @@ def administrator_menu(request):
     )
     # Content-Dispositionヘッダーを設定
     response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{quoted_filename}'
-    
+
     return response
 
 
 
   # 工数区分定義読み込み
   if 'def_load' in request.POST:
-
     # 工数データファイルが未選択時の処理
     if 'def_file' not in request.FILES:
-
       # エラーメッセージ出力
       messages.error(request, '工数区分定義ファイルが選択されていません。ERROR046')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -1545,7 +1408,6 @@ def administrator_menu(request):
       ws.cell(1, 147).value != '定義49' or ws.cell(1, 148).value != '作業内容49' or \
       ws.cell(1, 149).value != '工数区分名50' or ws.cell(1, 150).value != '定義50' or \
       ws.cell(1, 151).value != '作業内容50':
-      
       # エラーメッセージ出力
       messages.error(request, 'ロードしようとしたファイルは工数区分定義情報バックアップではありません。ERROR051')
       # このページをリダイレクト
@@ -1558,18 +1420,14 @@ def administrator_menu(request):
 
     # Excelからデータを読み込むループ
     for i in range(1, data_num):
-
       # 読み込み予定データと同一の定義の名前のデータが存在するか確認
       def_data_filter = kosu_division.objects.filter(kosu_name = ws.cell(row = i + 1, column = 1).value)
       # 読み込み予定データと同一の定義の名前のデータが存在する場合の処理
       if def_data_filter.count() != 0:
-
         # 読み込み予定データと同一の定義の名前のデータを取得
         def_data_get = kosu_division.objects.get(kosu_name = ws.cell(row = i + 1, column = 1).value)
-        
         # 読み込み予定データと同一の定義の名前のデータを削除
         def_data_get.delete()
-
 
       # Excelからデータを読み込む
       new_data = kosu_division(kosu_name = ws.cell(row = i + 1, column = 1).value, \
@@ -1726,7 +1584,6 @@ def administrator_menu(request):
 
       new_data.save()
 
-
     # 一時ファイル削除
     os.remove('def_file_path.xlsx')
 
@@ -1734,19 +1591,14 @@ def administrator_menu(request):
 
   # お問い合わせバックアップ処理
   if 'inquiry_backup' in request.POST:
-
     # 今日の日付取得
     today = datetime.date.today().strftime('%Y%m%d')
-
     # 新しいExcelブック作成
     wb = openpyxl.Workbook()
-
     # 書き込みシート選択
     ws = wb.active
-
     # お問い合わせデータ取得
     data = inquiry_data.objects.all()
-
 
     # Excelに書き込み(項目名)
     headers = [
@@ -1761,7 +1613,6 @@ def administrator_menu(request):
 
     # Excelに書き込み(データ)
     for item in data:
-
       row = [
         item.employee_no2, 
         str(item.name), 
@@ -1769,7 +1620,6 @@ def administrator_menu(request):
         item.inquiry, item.answer
         ]
       ws.append(row)
-
 
     # メモリ上にExcelファイルを作成
     excel_file = BytesIO()
@@ -1781,7 +1631,6 @@ def administrator_menu(request):
 
     # URLエンコーディングされたファイル名を生成
     quoted_filename = urllib.parse.quote(filename)
-    
 
     # HttpResponseを作成してファイルをダウンロードさせる
     response = HttpResponse(
@@ -1797,27 +1646,22 @@ def administrator_menu(request):
 
   # お問い合わせ読み込み
   if 'inquiry_load' in request.POST:
-
     # 工数データファイルが未選択時の処理
     if 'inquiry_file' not in request.FILES:
-
       # エラーメッセージ出力
       messages.error(request, 'お問い合わせファイルが選択されていません。ERROR043')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
 
     # POSTされたファイルパスを変数に入れる
     file_path = request.FILES['inquiry_file']
-
     # 一時的なファイルをサーバー上に作成
     with open('inquiry_file_path.xlsx', 'wb+') as destination:
-
       # アップロードしたファイルを一時ファイルに書き込み
       for chunk in file_path.chunks():
         destination.write(chunk)
-
+  
     # 指定Excelを開く
     wb = openpyxl.load_workbook('inquiry_file_path.xlsx')
     # 書き込みシート選択
@@ -1828,7 +1672,6 @@ def administrator_menu(request):
     if ws.cell(1, 1).value != '従業員番号' or ws.cell(1, 2).value != '氏名' or \
       ws.cell(1, 3).value != '内容選択' or ws.cell(1, 4).value != '問い合わせ' or \
       ws.cell(1, 5).value != '回答':
-      
       # エラーメッセージ出力
       messages.error(request, 'ロードしようとしたファイルはお問い合わせ情報バックアップではありません。ERROR030')
       # このページをリダイレクト
@@ -1837,17 +1680,14 @@ def administrator_menu(request):
 
     # レコード数取得
     data_num = ws.max_row
-
     # 全てのお問い合わせデータを取得
     inquiry_data_get = inquiry_data.objects.all()
-    
     # 読お問い合わせデータを削除
     inquiry_data_get.delete()
 
 
     # Excelからデータを読み込むループ
     for i in range(1, data_num):
-      
       # 人員データインスタンス取得
       member_instance = member.objects.get(name = ws.cell(row = i + 1, column = 2).value)
       # Excelからデータを読み込む
@@ -1859,7 +1699,6 @@ def administrator_menu(request):
 
       new_data.save()
 
-
     # 一時ファイル削除
     os.remove('inquiry_file_path.xlsx')
 
@@ -1867,13 +1706,10 @@ def administrator_menu(request):
 
   # 設定情報バックアップ処理
   if 'setting_backup' in request.POST:
-
     # 今日の日付取得
     today = today = datetime.date.today().strftime('%Y%m%d')
-
     # 新しいExcelブック作成
     wb = openpyxl.Workbook()
-
     # 書き込みシート選択
     ws = wb.active
 
@@ -1892,7 +1728,6 @@ def administrator_menu(request):
 
     # Excelに書き込み(データ)
     for item in setting_data:
-
       row = [
         item.menu_row,
         item.administrator_employee_no1,
@@ -1913,7 +1748,6 @@ def administrator_menu(request):
     # URLエンコーディングされたファイル名を生成
     quoted_filename = urllib.parse.quote(filename)
     
-
     # HttpResponseを作成してファイルをダウンロードさせる
     response = HttpResponse(
         excel_file.read(),
@@ -1928,13 +1762,10 @@ def administrator_menu(request):
 
   # 設定情報読み込み
   if 'setting_load' in request.POST:
-
     # 工数データファイルが未選択時の処理
     if 'setting_file' not in request.FILES:
-
       # エラーメッセージ出力
       messages.error(request, '管理者設定ファイルが選択されていません。ERROR047')
-
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -1959,7 +1790,6 @@ def administrator_menu(request):
     # 読み込むファイルが正しいファイルでない場合の処理
     if ws.cell(1, 1).value != '一覧表示項目数' or ws.cell(1, 2).value != '問い合わせ担当者従業員番号1' or \
       ws.cell(1, 3).value != '問い合わせ担当者従業員番号2' or ws.cell(1, 4).value != '問い合わせ担当者従業員番号4':
-
       # エラーメッセージ出力
       messages.error(request, 'ロードしようとしたファイルは設定情報バックアップではありません。ERROR052')
       # このページをリダイレクト
@@ -1972,7 +1802,6 @@ def administrator_menu(request):
 
     # 管理者設定データにレコードがある場合の処理
     if administrator_data.objects.exists():
-
       # 管理者設定データ取得
       setting_obj_get = administrator_data.objects.all()
       # 取得した管理者設定データを消す
@@ -1981,14 +1810,12 @@ def administrator_menu(request):
 
     # Excelからデータを読み込むループ
     for i in range(1, data_num):
-
       # Excelからデータを読み込み
       new_data = administrator_data(menu_row = ws.cell(row = i + 1, column = 1).value, \
                                     administrator_employee_no1 = ws.cell(row = i + 1, column = 2).value, \
                                     administrator_employee_no2 = ws.cell(row = i + 1, column = 3).value, \
                                     administrator_employee_no3 = ws.cell(row = i + 1, column = 4).value)
       new_data.save()
-
 
     # 一時ファイル削除
     os.remove('member_file_path.xlsx')
