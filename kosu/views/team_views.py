@@ -6,6 +6,7 @@ from django.db.models import Q
 from dateutil.relativedelta import relativedelta
 from io import BytesIO
 from django.http import HttpResponse
+from ..kosu_utils import handle_get_request
 import datetime
 import openpyxl
 import itertools
@@ -287,23 +288,23 @@ def team(request):
 # 班員工数グラフ確認画面定義
 def team_graph(request):
   
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
-  
+  # セッションにログインした従業員番号がない場合の処理
+  if not request.session.get('login_No'):
+    # 未ログインならログインページへ飛ぶ
+    return redirect('/login')
+
   try:
     # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
-
+    member_obj = member.objects.get(employee_no=request.session['login_No'])
   # セッション値から人員情報取得できない場合の処理
   except member.DoesNotExist:
     # セッション削除
     request.session.clear()
     # ログインページに戻る
-    return redirect(to = '/login') 
+    return redirect('/login')
 
   # ログイン者に権限がなければメインページに戻る
-  if data.authority == False:
+  if member_obj.authority == False:
     return redirect(to = '/')
 
   # ログイン者の班員登録情報取得
@@ -362,7 +363,7 @@ def team_graph(request):
     if member_filter.count() != 0:
       member_data = member.objects.get(employee_no = eval('obj_member{}'.format(i)))
       name_list.append(member_data.name)
-      employee_no_list.append(member_data.employee_no)
+      employee_no_list.append(member_data)
   n = len(name_list)
 
 
@@ -382,13 +383,13 @@ def team_graph(request):
       # グラフラベルデータ
       graph_item = []
       for i in range(24):
-          for k in range(0, 60, 5):
-              t = k
-              if k == 0:
-                t = '00'
-              if k == 5:
-                t = '05'
-              graph_item.append('{}:{}'.format(i, t))
+        for k in range(0, 60, 5):
+          t = k
+          if k == 0:
+            t = '00'
+          if k == 5:
+            t = '05'
+          graph_item.append('{}:{}'.format(i, t))
 
     # グラフデータある場合の処理
     else:
@@ -403,14 +404,14 @@ def team_graph(request):
         # グラフラベルデータ
         graph_item = []
         for i in range(24):
-            for k in range(0, 60, 5):
-                if k == 0:
-                  t = '00'
-                if k == 5:
-                  t = '05'
-                else:
-                  t = k
-                graph_item.append('{}:{}'.format(i, t))
+          for k in range(0, 60, 5):
+            if k == 0:
+              t = '00'
+            if k == 5:
+              t = '05'
+            else:
+              t = k
+            graph_item.append('{}:{}'.format(i, t))
 
         # グラフデータリスト内の各文字を数値に変更
         str_list = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
@@ -557,9 +558,9 @@ def team_graph(request):
   graph_item14 = []
   graph_list15 = []
   graph_item15 = []
-  
+
   if n >= 1:
-    graph_list1, graph_item1 = graph_function(employee_no_list[0])
+    graph_item1, graph_list1 = handle_get_request(dt, employee_no_list[0])
   if n >= 2:
     graph_list2, graph_item2 = graph_function(employee_no_list[1])
   if n >= 3:
@@ -3952,8 +3953,3 @@ def class_detail(request, num):
 
 
 #--------------------------------------------------------------------------------------------------------
-
-
-
-
-

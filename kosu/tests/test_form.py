@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from django.test import TestCase, Client
 from django.urls import reverse
 from kosu.models import member, kosu_division, Business_Time_graph, team_member, administrator_data, inquiry_data
-from ..utils import round_time
+from ..kosu_utils import round_time
 
 
 
