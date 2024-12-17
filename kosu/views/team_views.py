@@ -562,33 +562,33 @@ def team_graph(request):
   if n >= 1:
     graph_item1, graph_list1 = handle_get_request(dt, employee_no_list[0])
   if n >= 2:
-    graph_list2, graph_item2 = graph_function(employee_no_list[1])
+    graph_item2, graph_list2 = handle_get_request(dt, employee_no_list[1])
   if n >= 3:
-    graph_list3, graph_item3 = graph_function(employee_no_list[2])
+    graph_item3, graph_list3 = handle_get_request(dt, employee_no_list[2])
   if n >= 4:
-    graph_list4, graph_item4 = graph_function(employee_no_list[3])
+    graph_item4, graph_list4 = handle_get_request(dt, employee_no_list[3])
   if n >= 5:
-    graph_list5, graph_item5 = graph_function(employee_no_list[4])
+    graph_item5, graph_list5 = handle_get_request(dt, employee_no_list[4])
   if n >= 6:
-    graph_list6, graph_item6 = graph_function(employee_no_list[5])
+    graph_item6, graph_list6 = handle_get_request(dt, employee_no_list[5])
   if n >= 7:
-    graph_list7, graph_item7 = graph_function(employee_no_list[6])
+    graph_item7, graph_list7 = handle_get_request(dt, employee_no_list[6])
   if n >= 8:
-    graph_list8, graph_item8 = graph_function(employee_no_list[7])
+    graph_item8, graph_list8 = handle_get_request(dt, employee_no_list[7])
   if n >= 9:
-    graph_list9, graph_item9 = graph_function(employee_no_list[8])
+    graph_item9, graph_list9 = handle_get_request(dt, employee_no_list[8])
   if n >= 10:
-    graph_list10, graph_item10 = graph_function(employee_no_list[9])
+    graph_item10, graph_list10 = handle_get_request(dt, employee_no_list[9])
   if n >= 11:
-    graph_list11, graph_item11 = graph_function(employee_no_list[10])
+    graph_item11, graph_list11 = handle_get_request(dt, employee_no_list[10])
   if n >= 12:
-    graph_list12, graph_item12 = graph_function(employee_no_list[11])
+    graph_item12, graph_list12 = handle_get_request(dt, employee_no_list[11])
   if n >= 13:
-    graph_list13, graph_item13 = graph_function(employee_no_list[12])
+    graph_item13, graph_list13 = handle_get_request(dt, employee_no_list[12])
   if n >= 14:
-    graph_list14, graph_item14 = graph_function(employee_no_list[13])
+    graph_item14, graph_list14 = handle_get_request(dt, employee_no_list[13])
   if n >= 15:
-    graph_list15, graph_item15 = graph_function(employee_no_list[14])
+    graph_item15, graph_list15 = handle_get_request(dt, employee_no_list[14])
 
   # 現在使用している工数区分のオブジェクトを取得
   kosu_obj = kosu_division.objects.get(kosu_name = request.session.get('input_def', None))
