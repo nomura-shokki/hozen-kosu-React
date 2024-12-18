@@ -20,6 +20,7 @@ from ..kosu_utils import kosu_division_dictionary
 from ..kosu_utils import kosu_sort
 from ..kosu_utils import default_work_time
 from ..kosu_utils import calendar_day
+from ..kosu_utils import OK_NF_check
 from django.db.models import Q
 from ..models import member
 from ..models import Business_Time_graph
@@ -4012,17 +4013,16 @@ def schedule(request):
   if not request.session.get('login_No'):
     # 未ログインならログインページへ飛ぶ
     return redirect('/login')
-  
+
   try:
     # ログイン者の情報取得
-    member_data = member.objects.get(employee_no = request.session['login_No'])
-
+    member_obj = member.objects.get(employee_no=request.session['login_No'])
   # セッション値から人員情報取得できない場合の処理
   except member.DoesNotExist:
     # セッション削除
     request.session.clear()
     # ログインページに戻る
-    return redirect(to = '/login')
+    return redirect('/login')
 
 
   # 本日の日付取得
@@ -4590,23 +4590,8 @@ def schedule(request):
         else:
           eval(k).append('　')
 
-
   # 工数入力OKリスト作成
-  OK_NG_list = []
-  for ok_ng in range(37):
-    if day_list[ok_ng] != '':
-      OK_NG_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                       work_day2 = datetime.date(year, month, day_list[ok_ng]))
-      if OK_NG_filter.exists():
-        OK_NG_obj = OK_NG_filter.first()
-        if OK_NG_obj.judgement == True:
-          OK_NG_list.append(OK_NG_obj.judgement)
-        else:
-          OK_NG_list.append(False)
-      else:
-        OK_NG_list.append(False)
-    else:
-      OK_NG_list.append(False)
+  OK_NG_list = OK_NF_check(year, month, day_list, member_obj)
 
 
   
@@ -4674,21 +4659,20 @@ def schedule(request):
 # 残業管理画面定義
 def over_time(request):
 
-  # セッションにログインした従業員番号がない場合の処理
+   # セッションにログインした従業員番号がない場合の処理
   if not request.session.get('login_No'):
     # 未ログインならログインページへ飛ぶ
     return redirect('/login')
-  
+
   try:
     # ログイン者の情報取得
-    member_data = member.objects.get(employee_no = request.session['login_No'])
-
+    member_obj = member.objects.get(employee_no=request.session['login_No'])
   # セッション値から人員情報取得できない場合の処理
   except member.DoesNotExist:
     # セッション削除
     request.session.clear()
     # ログインページに戻る
-    return redirect(to = '/login')
+    return redirect('/login')
 
 
   # 本日の日付取得
@@ -4775,23 +4759,7 @@ def over_time(request):
 
 
   # 工数入力OKリスト作成
-  OK_NG_list = []
-  for ok_ng in range(37):
-    if day_list[ok_ng] != '':
-      OK_NG_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                       work_day2 = datetime.date(year, month, day_list[ok_ng]))
-      if OK_NG_filter.exists():
-        OK_NG_obj = OK_NG_filter.first()
-
-        if OK_NG_obj.judgement == True:
-          OK_NG_list.append(OK_NG_obj.judgement)
-        else:
-          OK_NG_list.append(False)
-      else:
-        OK_NG_list.append(False)
-    else:
-      OK_NG_list.append(False)
-  OK_NG_list.reverse()
+  OK_NG_list = OK_NF_check(year, month, day_list, member_obj)
 
 
 

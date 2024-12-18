@@ -1,17 +1,28 @@
 {
+    // 仮想環境のパスを指定
+    // "${workspaceFolder}"は現在のプロジェクトのルートディレクトリ
     "python.venvPath": "${workspaceFolder}/../venv",
+
+    // デフォルトのPythonインタープリターのパスを指定
     "python.defaultInterpreterPath": "${workspaceFolder}/../venv/Scripts/python.exe",
+
+    // この設定がtrueの場合、VSCodeのターミナルでPythonスクリプトを実行するときに自動的に仮想環境を有効にする
     "python.terminal.activateEnvironment": true,
+
+    // ターミナルのプロファイル設定
+    // Windows環境でPowerShellをカスタマイズ
     "terminal.integrated.profiles.windows": {
         "PowerShell": {
-            "source": "PowerShell",
-            "icon": "terminal-powershell",
-            "args": [
-                "-NoExit",
-                "-Command",
-                "& {Set-Location -Path \"${workspaceFolder}\"; ..\\venv\\Scripts\\Activate.ps1}"
+            "source": "PowerShell",                 // PowerShellを使用す
+            "icon": "terminal-powershell",          // ターミナルアイコンを設定
+            "args": [                               // PowerShellの起動時に指定する引数
+                "-NoExit",                          // 起動後に終了しないよう
+                "-Command",                         // コマンドを指定
+                "& {Set-Location -Path \"${workspaceFolder}\"; ../venv/Scripts/Activate.ps1}" // 仮想環境を有効にする
             ]
         }
     },
+
+    // デフォルトのターミナルプロファイルをPowerShellに設定
     "terminal.integrated.defaultProfile.windows": "PowerShell"
 }

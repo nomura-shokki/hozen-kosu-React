@@ -1,16 +1,20 @@
 {
-    "version": "2.0.0",
+    "version": "2.0.0",                // タスクのバージョンを指定
     "tasks": [
         {
-            "label": "Activate Venv",
-            "type": "shell",
-            "command": "${workspaceFolder}/../venv/Scripts/Activate.ps1",
+            "label": "Activate Venv",  // タスクラベル
+            "type": "shell",           // タスクタイプをシェルコマンドに設定
+            "command": "${workspaceFolder}/../venv/Scripts/Activate.ps1", // 仮想環境の有効化スクリプトを実行
+
+            // 問題マッチャー(不使用)
             "problemMatcher": [],
+
+            // ターミナルでタスクを実行する際の表示設定
             "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
+                "echo": true,         // コマンドをターミナルに表示
+                "reveal": "always",   // ターミナルを常に表示
+                "focus": false,       // ターミナルにフォーカスを移さない
+                "panel": "shared"     // ターミナルパネルを共有
             }
         }
     ]

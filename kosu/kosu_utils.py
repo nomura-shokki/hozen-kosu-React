@@ -893,3 +893,53 @@ def calendar_day(year, month):
 
 
 
+
+
+# 整合性リスト作成関数
+def OK_NF_check(year, month, day_list, member_obj):
+
+  # 整合性リスト定義
+  OK_NG_list = []
+  # 指定月の工数データ取得しリスト作成するループ
+  for ok_ng in range(37):
+    # 日付リストが空でない場合の処理
+    if day_list[ok_ng] != '':
+      # 指定日に工数データあるか確認
+      OK_NG_filter = Business_Time_graph.objects.filter(employee_no3 = member_obj.employee_no, \
+                                                       work_day2 = datetime.date(year, month, day_list[ok_ng]))
+      
+      # 工数データある場合の処理
+      if OK_NG_filter.exists():
+        # 工数データ取得
+        OK_NG_obj = OK_NG_filter.first()
+        # 整合性有だった場合の処理
+        if OK_NG_obj.judgement == True:
+          #リストに整合性有追加
+          OK_NG_list.append(OK_NG_obj.judgement)
+
+        # 整合性無しだった場合
+        else:
+          # リストに整合性無しを追加
+          OK_NG_list.append(False)
+      
+      # 工数データ無い場合の処理
+      else:
+        # リストに整合性無しを追加
+        OK_NG_list.append(False)
+
+    # 日付リストが空欄の場合
+    else:
+      # リストに整合性無しを追加
+      OK_NG_list.append(False)
+
+  # 日付リストを返す
+  return OK_NG_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
