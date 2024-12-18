@@ -1,5 +1,5 @@
-from .models import Business_Time_graph
-from .models import kosu_division
+from ..models import Business_Time_graph
+from ..models import kosu_division
 from django.contrib import messages
 from django.shortcuts import redirect
 import datetime

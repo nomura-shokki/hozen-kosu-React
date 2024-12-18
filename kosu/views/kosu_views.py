@@ -5,22 +5,22 @@ from django.core.paginator import Paginator
 import datetime
 import itertools
 import re
-from ..kosu_utils import round_time
-from ..kosu_utils import handle_get_request
-from ..kosu_utils import handle_work_shift
-from ..kosu_utils import time_index
-from ..kosu_utils import break_time_process
-from ..kosu_utils import kosu_duplication_check
-from ..kosu_utils import kosu_write
-from ..kosu_utils import break_time_delete
-from ..kosu_utils import break_time_write
-from ..kosu_utils import detail_list_summarize
-from ..kosu_utils import judgement_check
-from ..kosu_utils import kosu_division_dictionary
-from ..kosu_utils import kosu_sort
-from ..kosu_utils import default_work_time
-from ..kosu_utils import calendar_day
-from ..kosu_utils import OK_NF_check
+from ..utils.kosu_utils import round_time
+from ..utils.kosu_utils import handle_get_request
+from ..utils.kosu_utils import handle_work_shift
+from ..utils.kosu_utils import time_index
+from ..utils.kosu_utils import break_time_process
+from ..utils.kosu_utils import kosu_duplication_check
+from ..utils.kosu_utils import kosu_write
+from ..utils.kosu_utils import break_time_delete
+from ..utils.kosu_utils import break_time_write
+from ..utils.kosu_utils import detail_list_summarize
+from ..utils.kosu_utils import judgement_check
+from ..utils.kosu_utils import kosu_division_dictionary
+from ..utils.kosu_utils import kosu_sort
+from ..utils.kosu_utils import default_work_time
+from ..utils.kosu_utils import calendar_day
+from ..utils.kosu_utils import OK_NF_check
 from django.db.models import Q
 from ..models import member
 from ..models import Business_Time_graph

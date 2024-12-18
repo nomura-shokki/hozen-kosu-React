@@ -6,8 +6,9 @@ from django.db.models import Q
 from dateutil.relativedelta import relativedelta
 from io import BytesIO
 from django.http import HttpResponse
-from ..kosu_utils import handle_get_request
-from ..team_utils import excel_function
+from ..utils.kosu_utils import handle_get_request
+from ..utils.team_utils import excel_function
+from ..utils.team_utils import team_member_name_get
 import datetime
 import openpyxl
 import itertools
@@ -1480,337 +1481,22 @@ def team_calendar(request):
   # ログイン者の班員取得
   obj_get = team_member.objects.get(employee_no5 = request.session['login_No'])
 
-  # 班員1人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member1 != '':
-    # 班員1人目の従業員番号の人員がいるか確認
-    member1_obj_filter = member.objects.filter(employee_no__contains = obj_get.member1)
-
-    # 班員1人目の従業員番号の人員がいる場合の処理
-    if member1_obj_filter.count() == 1:
-      # 班員1人目の名前取得
-      member1_obj_get = member.objects.get(employee_no = obj_get.member1)
-
-    # 班員1人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員1人目の名前に空を入れる
-      member1_obj_get = ''
-
-  # 班員1人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員1人目の名前に空を入れる
-    member1_obj_get = ''
-
-
-  # 班員2人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member2 != '':
-    # 班員2人目の従業員番号の人員がいるか確認
-    member2_obj_filter = member.objects.filter(employee_no__contains = obj_get.member2)
-
-    # 班員2人目の従業員番号の人員がいる場合の処理
-    if member2_obj_filter.count() == 1:
-      # 班員2人目の名前取得
-      member2_obj_get = member.objects.get(employee_no = obj_get.member2)
-
-    # 班員2人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員2人目の名前に空を入れる
-      member2_obj_get = ''
-
-  # 班員2人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員2人目の名前に空を入れる
-    member2_obj_get = ''
-
-
-  # 班員3人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member3 != '':
-    # 班員3人目の従業員番号の人員がいるか確認
-    member3_obj_filter = member.objects.filter(employee_no__contains = obj_get.member3)
-
-    # 班員3人目の従業員番号の人員がいる場合の処理
-    if member3_obj_filter.count() == 1:
-      # 班員3人目の名前取得
-      member3_obj_get = member.objects.get(employee_no = obj_get.member3)
-
-    # 班員3人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員3人目の名前に空を入れる
-      member3_obj_get = ''
-
-  # 班員3人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員3人目の名前に空を入れる
-    member3_obj_get = ''
-
-
-  # 班員4人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member4 != '':
-    # 班員4人目の従業員番号の人員がいるか確認
-    member4_obj_filter = member.objects.filter(employee_no__contains = obj_get.member4)
-
-    # 班員4人目の従業員番号の人員がいる場合の処理
-    if member4_obj_filter.count() == 1:
-      # 班員4人目の名前取得
-      member4_obj_get = member.objects.get(employee_no = obj_get.member4)
-
-    # 班員4人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員4人目の名前に空を入れる
-      member4_obj_get = ''
-
-  # 班員4人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員4人目の名前に空を入れる
-    member4_obj_get = ''
-
-
-  # 班員5人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member5 != '':
-    # 班員5人目の従業員番号の人員がいるか確認
-    member5_obj_filter = member.objects.filter(employee_no__contains = obj_get.member5)
-
-    # 班員5人目の従業員番号の人員がいる場合の処理
-    if member5_obj_filter.count() == 1:
-      # 班員5人目の名前取得
-      member5_obj_get = member.objects.get(employee_no = obj_get.member5)
-
-    # 班員5人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員5人目の名前に空を入れる
-      member5_obj_get = ''
-
-  # 班員5人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員5人目の名前に空を入れる
-    member5_obj_get = ''
-
-
-  # 班員6人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member6 != '':
-    # 班員6人目の従業員番号の人員がいるか確認
-    member6_obj_filter = member.objects.filter(employee_no__contains = obj_get.member6)
-
-    # 班員6人目の従業員番号の人員がいる場合の処理
-    if member6_obj_filter.count() == 1:
-      # 班員6人目の名前取得
-      member6_obj_get = member.objects.get(employee_no = obj_get.member6)
-
-    # 班員6人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員6人目の名前に空を入れる
-      member6_obj_get = ''
-
-  # 班員6人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員6人目の名前に空を入れる
-    member6_obj_get = ''
-
-
-  # 班員7人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member7 != '':
-    # 班員7人目の従業員番号の人員がいるか確認
-    member7_obj_filter = member.objects.filter(employee_no__contains = obj_get.member7)
-
-    # 班員7人目の従業員番号の人員がいる場合の処理
-    if member7_obj_filter.count() == 1:
-      # 班員7人目の名前取得
-      member7_obj_get = member.objects.get(employee_no = obj_get.member7)
-
-    # 班員7人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員7人目の名前に空を入れる
-      member7_obj_get = ''
-
-  # 班員7人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員7人目の名前に空を入れる
-    member7_obj_get = ''
-
-
-  # 班員8人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member8 != '':
-    # 班員8人目の従業員番号の人員がいるか確認
-    member8_obj_filter = member.objects.filter(employee_no__contains = obj_get.member8)
-
-    # 班員8人目の従業員番号の人員がいる場合の処理
-    if member8_obj_filter.count() == 1:
-      # 班員8人目の名前取得
-      member8_obj_get = member.objects.get(employee_no = obj_get.member8)
-
-    # 班員8人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員8人目の名前に空を入れる
-      member8_obj_get = ''
-
-  # 班員8人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員8人目の名前に空を入れる
-    member8_obj_get = ''
-
-
-  # 班員9人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member9 != '':
-    # 班員9人目の従業員番号の人員がいるか確認
-    member9_obj_filter = member.objects.filter(employee_no__contains = obj_get.member9)
-
-    # 班員9人目の従業員番号の人員がいる場合の処理
-    if member9_obj_filter.count() == 1:
-      # 班員9人目の名前取得
-      member9_obj_get = member.objects.get(employee_no = obj_get.member9)
-
-    # 班員9人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員9人目の名前に空を入れる
-      member9_obj_get = ''
-
-  # 班員9人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員9人目の名前に空を入れる
-    member9_obj_get = ''
-
-
-  # 班員10人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member10 != '':
-    # 班員10人目の従業員番号の人員がいるか確認
-    member10_obj_filter = member.objects.filter(employee_no__contains = obj_get.member10)
-
-    # 班員10人目の従業員番号の人員がいる場合の処理
-    if member10_obj_filter.count() == 1:
-      # 班員10人目の名前取得
-      member10_obj_get = member.objects.get(employee_no = obj_get.member10)
-
-    # 班員10人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員10人目の名前に空を入れる
-      member10_obj_get = ''
-
-  # 班員10人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員10人目の名前に空を入れる
-    member10_obj_get = ''
-
-
-  # 班員11人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member11 != '':
-    # 班員11人目の従業員番号の人員がいるか確認
-    member11_obj_filter = member.objects.filter(employee_no__contains = obj_get.member11)
-
-    # 班員11人目の従業員番号の人員がいる場合の処理
-    if member11_obj_filter.count() == 1:
-      # 班員11人目の名前取得
-      member11_obj_get = member.objects.get(employee_no = obj_get.member11)
-
-    # 班員11人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員11人目の名前に空を入れる
-      member11_obj_get = ''
-
-  # 班員11人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員11人目の名前に空を入れる
-    member11_obj_get = ''
-
-
-  # 班員12人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member12 != '':
-    # 班員12人目の従業員番号の人員がいるか確認
-    member12_obj_filter = member.objects.filter(employee_no__contains = obj_get.member12)
-
-    # 班員12人目の従業員番号の人員がいる場合の処理
-    if member12_obj_filter.count() == 1:
-      # 班員12人目の名前取得
-      member12_obj_get = member.objects.get(employee_no = obj_get.member12)
-
-    # 班員12人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員12人目の名前に空を入れる
-      member12_obj_get = ''
-
-  # 班員12人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員12人目の名前に空を入れる
-    member12_obj_get = ''
-
-
-  # 班員13人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member13 != '':
-    # 班員13人目の従業員番号の人員がいるか確認
-    member13_obj_filter = member.objects.filter(employee_no__contains = obj_get.member13)
-
-    # 班員13人目の従業員番号の人員がいる場合の処理
-    if member13_obj_filter.count() == 1:
-      # 班員13人目の名前取得
-      member13_obj_get = member.objects.get(employee_no = obj_get.member13)
-
-    # 班員13人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員13人目の名前に空を入れる
-      member13_obj_get = ''
-
-  # 班員13人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員13人目の名前に空を入れる
-    member13_obj_get = ''
-
-
-  # 班員14人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member14 != '':
-    # 班員14人目の従業員番号の人員がいるか確認
-    member14_obj_filter = member.objects.filter(employee_no__contains = obj_get.member14)
-
-    # 班員14人目の従業員番号の人員がいる場合の処理
-    if member14_obj_filter.count() == 1:
-      # 班員14人目の名前取得
-      member14_obj_get = member.objects.get(employee_no = obj_get.member14)
-
-    # 班員14人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員14人目の名前に空を入れる
-      member14_obj_get = ''
-
-  # 班員14人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員14人目の名前に空を入れる
-    member14_obj_get = ''
-
-
-  # 班員15人目の従業員番号の人員が空でない場合の処理
-  if  obj_get.member15 != '':
-    # 班員15人目の従業員番号の人員がいるか確認
-    member15_obj_filter = member.objects.filter(employee_no__contains = obj_get.member15)
-
-    # 班員15人目の従業員番号の人員がいる場合の処理
-    if member15_obj_filter.count() == 1:
-      # 班員15人目の名前取得
-      member15_obj_get = member.objects.get(employee_no = obj_get.member15)
-
-    # 班員15人目の従業員番号の人員がいない場合の処理
-    else:
-      # 班員15人目の名前に空を入れる
-      member15_obj_get = ''
-
-  # 班員15人目の従業員番号の人員が空の場合の処理
-  else:
-    # 班員15人目の名前に空を入れる
-    member15_obj_get = ''
-
-
-  # 取得した班員の名前をHTML送信用の変数に入れる
-  member_name1 = member1_obj_get
-  member_name2 = member2_obj_get
-  member_name3 = member3_obj_get
-  member_name4 = member4_obj_get
-  member_name5 = member5_obj_get
-  member_name6 = member6_obj_get
-  member_name7 = member7_obj_get
-  member_name8 = member8_obj_get
-  member_name9 = member9_obj_get
-  member_name10 = member10_obj_get
-  member_name11 = member11_obj_get
-  member_name12 = member12_obj_get
-  member_name13 = member13_obj_get
-  member_name14 = member14_obj_get
-  member_name15 = member15_obj_get
+  # 班員の人員情報取得
+  member1_obj_get = team_member_name_get(obj_get.member1)
+  member2_obj_get = team_member_name_get(obj_get.member2)
+  member3_obj_get = team_member_name_get(obj_get.member3)
+  member4_obj_get = team_member_name_get(obj_get.member4)
+  member5_obj_get = team_member_name_get(obj_get.member5)
+  member6_obj_get = team_member_name_get(obj_get.member6)
+  member7_obj_get = team_member_name_get(obj_get.member7)
+  member8_obj_get = team_member_name_get(obj_get.member8)
+  member9_obj_get = team_member_name_get(obj_get.member9)
+  member10_obj_get = team_member_name_get(obj_get.member10)
+  member11_obj_get = team_member_name_get(obj_get.member11)
+  member12_obj_get = team_member_name_get(obj_get.member12)
+  member13_obj_get = team_member_name_get(obj_get.member13)
+  member14_obj_get = team_member_name_get(obj_get.member14)
+  member15_obj_get = team_member_name_get(obj_get.member15)
 
 
   # 班員(従業員番号)リストリセット
@@ -2064,7 +1750,6 @@ def team_calendar(request):
 
             # 空の工数入力リストを作成
             for k in range(4):
-
               # 工数入力リストに空を入れる
               kosu_list.append('　　　　　')
 
@@ -2129,77 +1814,77 @@ def team_calendar(request):
     'default_day' : default_day,
     'member_num' : member_num,
     'day_list' : day_list,
-    'member_name1' : member_name1,
+    'member_name1' : member1_obj_get,
     'work_list1' : work_list1,
     'over_time_list1' : over_time_list1,
     'kosu_list1' : kosu_list1,
     'ok_ng_list1' : ok_ng_list1,
-    'member_name2' : member_name2,
+    'member_name2' : member2_obj_get,
     'work_list2' : work_list2,
     'over_time_list2' : over_time_list2,
     'kosu_list2' : kosu_list2,
     'ok_ng_list2' : ok_ng_list2,
-    'member_name3' : member_name3,
+    'member_name3' : member3_obj_get,
     'work_list3' : work_list3,
     'over_time_list3' : over_time_list3,
     'kosu_list3' : kosu_list3,
     'ok_ng_list3' : ok_ng_list3,
-    'member_name4' : member_name4,
+    'member_name4' : member4_obj_get,
     'work_list4' : work_list4,
     'over_time_list4' : over_time_list4,
     'kosu_list4' : kosu_list4,
     'ok_ng_list4' : ok_ng_list4,
-    'member_name5' : member_name5,
+    'member_name5' : member5_obj_get,
     'work_list5' : work_list5,
     'over_time_list5' : over_time_list5,
     'kosu_list5' : kosu_list5,
     'ok_ng_list5' : ok_ng_list5,
-    'member_name6' : member_name6,
+    'member_name6' : member6_obj_get,
     'work_list6' : work_list6,
     'over_time_list6' : over_time_list6,
     'kosu_list6' : kosu_list6,
     'ok_ng_list6' : ok_ng_list6,
-    'member_name7' : member_name7,
+    'member_name7' : member7_obj_get,
     'work_list7' : work_list7,
     'over_time_list7' : over_time_list7,
     'kosu_list7' : kosu_list7,
     'ok_ng_list7' : ok_ng_list7,
-    'member_name8' : member_name8,
+    'member_name8' : member8_obj_get,
     'work_list8' : work_list8,
     'over_time_list8' : over_time_list8,
     'kosu_list8' : kosu_list8,
     'ok_ng_list8' : ok_ng_list8,
-    'member_name9' : member_name9,
+    'member_name9' : member9_obj_get,
     'work_list9' : work_list9,
     'over_time_list9' : over_time_list9,
     'kosu_list9' : kosu_list9,
     'ok_ng_list9' : ok_ng_list9,
-    'member_name10' : member_name10,
+    'member_name10' : member10_obj_get,
     'work_list10' : work_list10,
     'over_time_list10' : over_time_list10,
     'kosu_list10' : kosu_list10,
     'ok_ng_list10' : ok_ng_list10,
-    'member_name11' : member_name11,
+    'member_name11' : member11_obj_get,
     'work_list11' : work_list11,
     'over_time_list11' : over_time_list11,
     'kosu_list11' : kosu_list11,
     'ok_ng_list11' : ok_ng_list11,
-    'member_name12' : member_name12,
+    'member_name12' : member12_obj_get,
     'work_list12' : work_list12,
     'over_time_list12' : over_time_list12,
     'kosu_list12' : kosu_list12,
     'ok_ng_list12' : ok_ng_list12,
-    'member_name13' : member_name13,
+    'member_name13' : member13_obj_get,
     'work_list13' : work_list13,
     'over_time_list13' : over_time_list13,
     'kosu_list13' : kosu_list13,
     'ok_ng_list13' : ok_ng_list13,
-    'member_name14' : member_name14,
+    'member_name14' : member14_obj_get,
     'work_list14' : work_list14,
     'over_time_list14' : over_time_list14,
     'kosu_list14' : kosu_list14,
     'ok_ng_list14' : ok_ng_list14,
-    'member_name15' : member_name15,
+    'member_name15' : member15_obj_get,
     'work_list15' : work_list15,
     'over_time_list15' : over_time_list15,
     'kosu_list15' : kosu_list15,

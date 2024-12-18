@@ -1,6 +1,6 @@
-from .models import member
-from .models import Business_Time_graph
-from .models import kosu_division
+from ..models import member
+from ..models import Business_Time_graph
+from ..models import kosu_division
 import datetime
 
 
@@ -438,3 +438,30 @@ def excel_function(employee_no_data, wb, request):
 #--------------------------------------------------------------------------------------------------------
 
 
+
+
+
+# 班員情報取得関数
+def team_member_name_get(member_no):
+
+  # 班員の従業員番号が空でない場合の処理
+  if member_no != '':
+    # 従業員番号の人員がいるか確認
+    member_obj_filter = member.objects.filter(employee_no__contains = member_no)
+
+    # 従業員番号の人員がいる場合の処理
+    if member_obj_filter.count() == 1:
+      # 班員の人員情報取得
+      member_obj_get = obj_filter.first()
+
+    # 班員の従業員番号の人員がいない場合の処理
+    else:
+      # 班員情報に空を入れる
+      member_obj_get = ''
+
+  # 従業員番号が空の場合の処理
+  else:
+    # 班員情報に空を入れる
+    member_obj_get = ''
+
+  return member_obj_get
