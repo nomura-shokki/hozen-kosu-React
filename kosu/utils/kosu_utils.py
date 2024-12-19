@@ -943,3 +943,39 @@ def OK_NF_check(year, month, day_list, member_obj):
 
 
 
+
+
+# インデックスを時間表示に変換
+def index_change(start_index, end_index, time_list):
+
+  # 作業時間のインデックスがある場合の処理
+  if start_index != 0 or end_index != 0:
+    # 作業開始時取得
+    start_hour = start_index//12
+    # 作業開始分取得
+    start_min = (start_index%12)*5
+    # 作業終了時取得
+    end_hour =end_index//12
+    # 作業終了分取得
+    end_min = (end_index%12)*5
+    # 作業時間のSTR表記作成しリストに追加
+    time_list.append('{}:{}～{}:{}'.format(str(start_hour), str(start_min).zfill(2), \
+                                           str(end_hour), str(end_min).zfill(2)))
+  
+  # 作業時間のインデックスがない場合の処理
+  else:
+    # 空をリストに追加
+    time_list.append('　　　　　')
+
+  return time_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+

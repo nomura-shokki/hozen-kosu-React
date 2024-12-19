@@ -452,7 +452,7 @@ def team_member_name_get(member_no):
     # 従業員番号の人員がいる場合の処理
     if member_obj_filter.count() == 1:
       # 班員の人員情報取得
-      member_obj_get = obj_filter.first()
+      member_obj_get = member_obj_filter.first()
 
     # 班員の従業員番号の人員がいない場合の処理
     else:
@@ -465,3 +465,18 @@ def team_member_name_get(member_no):
     member_obj_get = ''
 
   return member_obj_get
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+

@@ -21,6 +21,7 @@ from ..utils.kosu_utils import kosu_sort
 from ..utils.kosu_utils import default_work_time
 from ..utils.kosu_utils import calendar_day
 from ..utils.kosu_utils import OK_NF_check
+from ..utils.kosu_utils import index_change
 from django.db.models import Q
 from ..models import member
 from ..models import Business_Time_graph
@@ -4548,47 +4549,13 @@ def schedule(request):
                           break
                         if t == 287 and data_list[t] != '#':
                           end_index4 = 288
-
+        # ローカルの変数取得
+        ns = locals()
         # 取得したインデックスを時間表示に変換
-        if start_index1 != 0 or end_index1 != 0:
-          start_hour1 = start_index1//12
-          start_min1 = (start_index1%12)*5
-          end_hour1 =end_index1//12
-          end_min1 = (end_index1%12)*5
-          eval(k).append('{}:{}～{}:{}'.format(start_hour1, str(start_min1).zfill(2), \
-                                              end_hour1, str(end_min1).zfill(2)))
-        else:
-          eval(k).append('　')
-          
-        if start_index2 != 0 or end_index2 != 0:
-          start_hour2 = start_index2//12
-          start_min2 = (start_index2%12)*5
-          end_hour2 =end_index2//12
-          end_min2 = (end_index2%12)*5
-          eval(k).append('{}:{}～{}:{}'.format(start_hour2, str(start_min2).zfill(2), \
-                                              end_hour2, str(end_min2).zfill(2)))
-        else:
-          eval(k).append('　')
-
-        if start_index3 != 0 or end_index3 != 0:
-          start_hour3 = start_index3//12
-          start_min3 = (start_index3%12)*5
-          end_hour3 =end_index3//12
-          end_min3 = (end_index3%12)*5
-          eval(k).append('{}:{}～{}:{}'.format(start_hour3, str(start_min3).zfill(2), \
-                                              end_hour3, str(end_min3).zfill(2)))
-        else:
-          eval(k).append('　')
-          
-        if start_index4 != 0 or end_index4 != 0:
-          start_hour4 = start_index4//12
-          start_min4 = (start_index4%12)*5
-          end_hour4 =end_index4//12
-          end_min4 = (end_index4%12)*5
-          eval(k).append('{}:{}～{}:{}'.format(start_hour4, str(start_min4).zfill(2), \
-                                              end_hour4, str(end_min4).zfill(2)))
-        else:
-          eval(k).append('　')
+        ns[k] = index_change(start_index1, end_index1, ns[k])
+        ns[k] = index_change(start_index2, end_index2, ns[k])
+        ns[k] = index_change(start_index3, end_index3, ns[k])
+        ns[k] = index_change(start_index4, end_index4, ns[k])
 
   # 工数入力OKリスト作成
   OK_NG_list = OK_NF_check(year, month, day_list, member_obj)
