@@ -5,12 +5,14 @@ from django.http import HttpResponse
 from pathlib import Path
 from io import BytesIO
 import openpyxl
+import pandas as pd
 import datetime
 import math
 import os
 import environ
 import urllib.parse
 import unicodedata
+from ..utils.kosu_utils import kosu_division_dictionary
 from ..models import member
 from ..models import Business_Time_graph
 from ..models import kosu_division
@@ -662,9 +664,16 @@ def administrator_menu(request):
   # 工数情報バックアップ処理
   if 'kosu_backup' in request.POST:
     # 日付指定空の場合の処理
-    if request.POST['data_day'] == '':
+    if request.POST['data_day'] == '' or request.POST['data_day2'] == '':
       # エラーメッセージ出力
       messages.error(request, 'バックアップする日付を指定してください。ERROR022')
+      # このページをリダイレクト
+      return redirect(to = '/administrator')
+
+    # 読み込み開始日が終了日を超えている場合の処理
+    if request.POST['data_day'] > request.POST['data_day2'] :
+      # エラーメッセージ出力
+      messages.error(request, '読み込み開始日が終了日を超えています。ERROR010')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -674,7 +683,7 @@ def administrator_menu(request):
     # 書き込みシート選択
     ws = wb.active
     # 工数データ取得
-    kosu_data = Business_Time_graph.objects.filter(work_day2__lte = request.POST['data_day'])
+    kosu_data = Business_Time_graph.objects.filter(work_day2__gte = request.POST['data_day'], work_day2__lte = request.POST['data_day2'])
 
     # Excelに書き込み(項目名)
     headers = [
@@ -821,18 +830,120 @@ def administrator_menu(request):
 
 
 
+  # 工数定義区分予測データ出力
+  if 'prediction_data' in request.POST:
+    # 日付指定空の場合の処理
+    if request.POST['data_day'] == '' or request.POST['data_day2'] == '':
+      # エラーメッセージ出力
+      messages.error(request, '日付を指定してください。ERROR159')
+      # このページをリダイレクト
+      return redirect('/administrator')
+
+    # 削除開始日が終了日を超えている場合の処理
+    if request.POST['data_day'] > request.POST['data_day2']:
+      # エラーメッセージ出力
+      messages.error(request, '開始日が終了日を超えています。ERROR160')
+      # このページをリダイレクト
+      return redirect('/administrator')
+
+    
+    # 期間内の工数データ取得
+    kosu_filter = Business_Time_graph.objects.filter(
+        work_day2__gte=request.POST['data_day'], 
+        work_day2__lte=request.POST['data_day2']
+    )
+
+    # 工数区分処理用記号リスト用意
+    str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+                'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b',
+                'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+                'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
+
+    # Excelに書き出すためのデータを準備
+    data = []
+    # 取得した工数データを処理
+    for kosu in kosu_filter:
+      # 作業内容をリストに解凍
+      kosu_list = list(kosu.time_work)
+      # 作業詳細をリストに解凍
+      detail_list = kosu.detail_work.split('$')
+      # 工数定義区分取得
+      def_filter = kosu_division.objects.filter(kosu_name=kosu.def_ver2)
+      
+      # リストの長さ取得
+      max_length = max(len(kosu_list), len(detail_list))
+      # 1要素ごとにExcelに書き込み
+      for i in range(max_length):
+        # 工数定義区分がある場合の処理
+        if def_filter.exists():
+          # 工数定義区分リスト作成
+          choices_list, def_n = kosu_division_dictionary(kosu.def_ver2)
+          # 作業内容を工数区分定義に変換
+          for k in choices_list:
+            # 工数区分定義の記号と作業内容が同じ場合の処理
+            if k[0] == kosu_list[i]:
+              # 作業内容と作業詳細をセットで定義
+              row = [
+                  k[1] if i < len(kosu_list) else '',
+                  detail_list[i] if i < len(detail_list) else '',
+              ]
+              # 作業内容と作業詳細を書き込み
+              data.append(row)
+              #ループから抜ける
+              break
+
+    # DataFrameに変換
+    df = pd.DataFrame(data, columns=['工数定義区分', '作業詳細'])
+
+    # フィルタリング条件に基づいて不要な行を削除
+    df = df[~df['工数定義区分'].isin(['', '#', '$'])]
+    df = df[df['作業詳細'] != '']
+
+    # 工数定義区分と作業詳細の重複行を削除
+    df = df.drop_duplicates(subset=['工数定義区分', '作業詳細'], keep='first')
+
+    # メモリ上にExcelファイルを作成
+    excel_file = BytesIO()
+    with pd.ExcelWriter(excel_file, engine='openpyxl') as writer:
+      df.to_excel(writer, index=False)
+
+    # バッファの位置を先頭に戻す
+    excel_file.seek(0)
+
+    # ファイル名を設定
+    filename = "data.xlsx"
+    quoted_filename = urllib.parse.quote(filename)
+
+    # HttpResponseを作成してファイルをダウンロードさせる
+    response = HttpResponse(
+        excel_file.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{quoted_filename}'
+
+    return response
+
+
+
   # 工数データ削除
   if 'kosu_delete' in request.POST:
     # 日付指定空の場合の処理
-    if request.POST['data_day'] == '':
+    if request.POST['data_day'] == '' or request.POST['data_day2'] == '':
       # エラーメッセージ出力
       messages.error(request, '削除する日付を指定してください。ERROR023')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
+    # 削除開始日が終了日を超えている場合の処理
+    if request.POST['data_day'] > request.POST['data_day2'] :
+      # エラーメッセージ出力
+      messages.error(request, '削除開始日が終了日を超えています。ERROR158')
+      # このページをリダイレクト
+      return redirect(to = '/administrator')
+
 
     # 工数データ取得
-    kosu_obj = Business_Time_graph.objects.filter(work_day2__lte = request.POST['data_day'])
+    kosu_obj = Business_Time_graph.objects.filter(work_day2__gte = request.POST['data_day'], work_day2__lte = request.POST['data_day2'])
     # 取得した工数データを削除
     kosu_obj.delete()
 
@@ -2500,12 +2611,4 @@ def has_non_halfwidth_characters(input_string):
 
 
 #--------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
 

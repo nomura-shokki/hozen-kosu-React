@@ -9,6 +9,8 @@ from .views import inquiry_views
 
 
 urlpatterns = [
+    path('dynamic-choices/', kosu_views.dynamic_choices, name='dynamic_choices'),
+    path('all-choices/', kosu_views.all_choices, name='all_choices'),
     path('help', main_views.help, name = 'help'),
     path('login', main_views.login, name = 'login'),
     path('', main_views.main, name = 'main'),

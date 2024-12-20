@@ -16,3 +16,5 @@ python-json-logger==2.0.7
 xlwings==0.30.13
 whitenoise==6.6.0
 beautifulsoup4==4.12.2
+pandas==2.1.2
+python-Levenshtein==0.26.1

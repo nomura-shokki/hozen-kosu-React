@@ -617,10 +617,10 @@ def judgement_check(kosu_def, work, tyoku, member_obj, over_work):
 
 
 # 工数区分定義辞書作成関数
-def kosu_division_dictionary(request):
+def kosu_division_dictionary(def_name):
 
   # 現在使用している工数区分のオブジェクトを取得
-  kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
+  kosu_obj = kosu_division.objects.get(kosu_name = def_name)
 
   # 工数区分登録カウンターリセット
   n = 0

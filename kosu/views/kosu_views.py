@@ -2,9 +2,16 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 import datetime
 import itertools
 import re
+import os
+import json
+import pandas as pd
+import Levenshtein
 from ..utils.kosu_utils import round_time
 from ..utils.kosu_utils import handle_get_request
 from ..utils.kosu_utils import handle_work_shift
@@ -33,6 +40,98 @@ from ..forms import schedule_timeForm
 from ..forms import scheduleForm
 from ..forms import all_kosu_findForm
 from ..forms import all_kosuForm
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+#CSRF無効
+@csrf_exempt
+# 作業詳細入力時の工数定義区分変更
+def dynamic_choices(request):
+
+  # POST時の処理
+  if request.method == "POST":
+    try:
+      # リクエストのボディを読み込んで、JSONデータを解析
+      data = json.loads(request.body)
+      # JSONデータからdetailの値を取得、無ければ空文字を取得
+      detail = data.get("detail", "")
+
+      # プロジェクトのパスを取得
+      base_dir = settings.BASE_DIR
+      # データファイルへのパスを作成
+      data_file_path = os.path.join(base_dir, 'data.xlsx')
+      # データファイルを読み込む
+      df = pd.read_excel(data_file_path)
+
+      # すべての選択肢（B列の各値）との距離を計算し、新しいカラム 'distance' に保存
+      df['distance'] = df['B'].apply(lambda x: Levenshtein.distance(detail, x))
+      
+      # 距離が最も近い行を取得
+      min_distance_row = df.loc[df['distance'].idxmin()]
+      # 最も距離が近い行のA列の値を取得
+      closest_option = min_distance_row['A']
+
+      # 現在使用している工数定義区分のオブジェクトを取得
+      kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
+
+      # 工数定義区分インデックス取得
+      for kosu_num in range(1, 50):
+        # A列の値と工数定義区分が一致した場合の処理
+        if eval('kosu_obj.kosu_title_{}'.format(kosu_num)) == closest_option:
+          # インデックス取得
+          n = kosu_num
+          # ループから抜ける
+          break
+
+      # 工数区分処理用記号リスト用意
+      str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
+                  'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
+                    'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
+                        'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
+
+      # 選択肢をリスト形式で準備
+      choices = [[str_list[n], closest_option]]
+
+      # choicesを含むJSONをレスポンスとして返す
+      return JsonResponse({"choices": choices})
+    # エラーが発生した場合の処理
+    except Exception as e:
+      # 空の選択肢リストを返す
+      return JsonResponse({"choices": []})
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+#CSRF無効
+@csrf_exempt
+def all_choices(request):
+  try:
+    # 工数区分定義リスト作成
+    choices_list, def_n = kosu_division_dictionary(request.session['input_def'])
+    choices_list.insert(0, ['', ''])
+    choices_list.append(['$', '休憩'])
+
+    # choicesを含むJSONをレスポンスとして返す
+    return JsonResponse({"choices": choices_list})
+  # エラーが発生した場合の処理
+  except Exception as e:
+    # 空の選択肢とエラーを出力
+    return JsonResponse({"choices": [], "error": str(e)})
 
 
 
@@ -1452,7 +1551,7 @@ def input(request):
     kosu_list.update(def_default)
 
   # 工数区分定義リスト作成
-  choices_list, def_n = kosu_division_dictionary(request)
+  choices_list, def_n = kosu_division_dictionary(request.session['input_def'])
   choices_list.insert(0, ['', ''])
   choices_list.append(['$', '休憩'])
 
@@ -1663,7 +1762,7 @@ def input(request):
           time_list_end.append(time_obj_end)
 
     # 工数区分定義リスト作成
-    def_library, def_n = kosu_division_dictionary(request)
+    def_library, def_n = kosu_division_dictionary(request.session['input_def'])
     def_library.append(['#', '-'])
     def_library.append(['$', '休憩'])
 
@@ -2775,7 +2874,7 @@ def detail(request, num):
         time_list_end.append(time_obj_end)
 
   # 工数区分定義リスト作成
-  def_library, n = kosu_division_dictionary(request)
+  def_library, n = kosu_division_dictionary(request.session['input_def'])
   def_library.append(['#', '-'])
   def_library.append(['$', '休憩'])
 

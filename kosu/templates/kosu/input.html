@@ -220,6 +220,49 @@
   </script>
 
   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const work_detail_input = $('#id_work_detail');
+      const kosu_def_list_select = $('#id_kosu_def_list');
+
+      work_detail_input.on('input', function() {
+        const detail = $(this).val();
+        $.ajax({
+          url: "{% url 'dynamic_choices' %}",
+          method: "POST",
+          headers: {'X-CSRFToken': '{{ csrf_token }}'},
+          data: JSON.stringify({ detail: detail }),
+          contentType: "application/json",
+          success: function(data) {
+            kosu_def_list_select.empty();
+            $.each(data.choices, function(index, value) {
+              kosu_def_list_select.append($('<option></option>').val(value[0]).text(value[1]));
+            });
+          },
+          error: function(xhr, status, error) {
+            console.error('Error:', error);
+          }
+        });
+      });
+
+      kosu_def_list_select.on('focus', function() {
+        $.ajax({
+          url: "{% url 'all_choices' %}",
+          method: "GET",
+          success: function(data) {
+            kosu_def_list_select.empty();
+            $.each(data.choices, function(index, value) {
+              kosu_def_list_select.append($('<option></option>').val(value[0]).text(value[1]));
+            });
+          },
+          error: function(xhr, status, error) {
+            console.error('Error:', error);
+          }
+        });
+      });
+    });
+  </script>
+
+  <script>
     var label_list = [];
     var data_list = [];
   </script>

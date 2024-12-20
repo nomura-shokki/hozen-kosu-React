@@ -39,9 +39,13 @@
       工数データバックアップ
     </th>
     <td>
-      <input type="date" class="form-control custom-border" style="width: 200px;" name="data_day" id="data_day">
-      以前のデータを<br>
+      <div class="number-input-group">
+        <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day" id="data_day">～
+        <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day2" id="data_day2">
+      </div>
+      <br>
       <input type="submit" value="バックアップ" name=kosu_backup class="btn btn-gray2 mt-2">
+      <input type="submit" value="工数定義区分予測データ出力" name=prediction_data class="btn btn-gray2 mt-2">
       <input type="submit" value="削除" name=kosu_delete onclick="return confirmDelete();" class="btn btn-gray2 mt-2">
     </td>
   </tr>
@@ -79,6 +83,11 @@
     <td>
       同一従業員番号があった場合上書きする　　
       <input type="checkbox" id="overwrite_check" name="overwrite_check" class="big">
+      <style>
+        input.big {
+          transform: scale(1.5);
+        }
+      </style>
     </td>
   </tr>
   <tr>
