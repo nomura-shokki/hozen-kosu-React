@@ -869,7 +869,7 @@ def administrator_menu(request):
       detail_list = kosu.detail_work.split('$')
       # 工数定義区分取得
       def_filter = kosu_division.objects.filter(kosu_name=kosu.def_ver2)
-      
+      print(kosu.id)
       # リストの長さ取得
       max_length = max(len(kosu_list), len(detail_list))
       # 1要素ごとにExcelに書き込み
@@ -878,7 +878,7 @@ def administrator_menu(request):
         if def_filter.exists():
           # 工数定義区分リスト作成
           choices_list, def_n = kosu_division_dictionary(kosu.def_ver2)
-          print(kosu.id)
+
           # 作業内容を工数区分定義に変換
           for k in choices_list:
             # 工数区分定義の記号と作業内容が同じ場合の処理
