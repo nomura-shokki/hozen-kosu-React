@@ -878,19 +878,22 @@ def administrator_menu(request):
         if def_filter.exists():
           # 工数定義区分リスト作成
           choices_list, def_n = kosu_division_dictionary(kosu.def_ver2)
+          print(kosu.id)
           # 作業内容を工数区分定義に変換
           for k in choices_list:
             # 工数区分定義の記号と作業内容が同じ場合の処理
             if k[0] == kosu_list[i]:
-              # 作業内容と作業詳細をセットで定義
-              row = [
-                  k[1] if i < len(kosu_list) else '',
-                  detail_list[i] if i < len(detail_list) else '',
-              ]
-              # 作業内容と作業詳細を書き込み
-              data.append(row)
-              #ループから抜ける
-              break
+              # 作業詳細が空欄でない場合の処理
+              if detail_list[i] != '':
+                # 作業内容と作業詳細をセットで定義
+                row = [
+                    k[1] if i < len(kosu_list) else '',
+                    detail_list[i] if i < len(detail_list) else '',
+                ]
+                # 作業内容と作業詳細を書き込み
+                data.append(row)
+                #ループから抜ける
+                break
 
     # DataFrameに変換
     df = pd.DataFrame(data, columns=['工数定義区分', '作業詳細'])
