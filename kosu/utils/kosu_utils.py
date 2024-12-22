@@ -139,7 +139,7 @@ def adjust_end_index_for_night_shift(graph_end_index, work_shift, shop):
   # 2直(連2)の場合の処理
   elif work_shift == '6':
     # 工数が入力され終わりのインデックスと106で大きい方を返す(1:50以降の場合そこまで表示)
-    return max(graph_end_index, 106)
+    return max(graph_end_index, 118)
 
 
 
