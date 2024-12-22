@@ -908,7 +908,7 @@ def administrator_menu(request):
     # メモリ上にExcelファイルを作成
     excel_file = BytesIO()
     with pd.ExcelWriter(excel_file, engine='openpyxl') as writer:
-      df.to_excel(writer, index=False)
+      df.to_excel(writer, index=False, header=False)
 
     # バッファの位置を先頭に戻す
     excel_file.seek(0)

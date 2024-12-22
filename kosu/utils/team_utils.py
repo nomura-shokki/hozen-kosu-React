@@ -87,12 +87,16 @@ def excel_function(employee_no_data, wb, request):
       if kosu_obj_get.tyoku2 not in ('', None):
         if kosu_obj_get.tyoku2 == '1':
           tyoku = '1直'
-        if kosu_obj_get.tyoku2 == '2':
+        elif kosu_obj_get.tyoku2 == '2':
           tyoku = '2直'
-        if kosu_obj_get.tyoku2 == '3':
+        elif kosu_obj_get.tyoku2 == '3':
           tyoku = '3直'
-        if kosu_obj_get.tyoku2 == '4':
+        elif kosu_obj_get.tyoku2 == '4':
           tyoku = '常昼'
+        elif kosu_obj_get.tyoku2 == '5':
+          tyoku = '1直(連2)'
+        elif kosu_obj_get.tyoku2 == '6':
+          tyoku = '2直(連2)'
 
       # 直書き換え
       if kosu_obj_get.over_time not in ('', None):
@@ -107,7 +111,7 @@ def excel_function(employee_no_data, wb, request):
         work_list = work_list*2
 
         # 1直の時の処理
-        if kosu_obj_get.tyoku2 == '1':
+        if kosu_obj_get.tyoku2 == '1' or kosu_obj_get.tyoku2 == '5':
           # 作業内容のリストを4時半からの表示に変える
           del work_list[:54]
           del work_list[288:]
@@ -146,6 +150,12 @@ def excel_function(employee_no_data, wb, request):
           del work_list[:72]
           del work_list[288:]
 
+        # 2直(連2)の時の処理
+        elif kosu_obj_get.tyoku2 == '6':
+          # 作業内容のリストを15時からの表示に変える
+          del work_list[:180]
+          del work_list[288:]
+
         # 直入力ない時の処理
         else:
           del work_list[288:]
@@ -165,7 +175,7 @@ def excel_function(employee_no_data, wb, request):
             # 検索用リストにインデックス記憶
             find_list.append(i)
 
-            if kosu_obj_get.tyoku2 == '1':
+            if kosu_obj_get.tyoku2 == '1' or kosu_obj_get.tyoku2 == '5':
               kosu_list.append(i + 54)
 
             elif (member_obj_get.shop == 'P' or member_obj_get.shop == 'R' or member_obj_get.shop == 'T1' or member_obj_get.shop == 'T2' or \
@@ -192,12 +202,16 @@ def excel_function(employee_no_data, wb, request):
               # 作業時間インデックスに作業時間のインデックス記録
               kosu_list.append(i + 72)
 
+            elif kosu_obj_get.tyoku2 == '6':
+              # 作業時間インデックスに作業時間のインデックス記録
+              kosu_list.append(i + 180)
+
           # 時間区分毎に前の作業との差異がある場合の処理
           if i != 0 and work_list[i] != work_list[i - 1]:
             # 検索用リストにインデックス記憶
             find_list.append(i)
 
-            if kosu_obj_get.tyoku2 == '1':
+            if kosu_obj_get.tyoku2 == '1' or kosu_obj_get.tyoku2 == '5':
               if i >= 234:
                 # 作業時間インデックスに作業時間のインデックス記録
                 kosu_list.append(i - 234)
@@ -254,12 +268,21 @@ def excel_function(employee_no_data, wb, request):
                 # 作業時間インデックスに作業時間のインデックス記録
                 kosu_list.append(i + 72)
 
+            elif kosu_obj_get.tyoku2 == '6':
+              if i >= 108:
+                # 作業時間インデックスに作業時間のインデックス記録
+                kosu_list.append(i - 108)
+
+              else:
+                # 作業時間インデックスに作業時間のインデックス記録
+                kosu_list.append(i + 180)
+
           # 最後の要素に作業が入っている場合の処理
           if i == 287 and work_list[i] != '#':
             # 検索用リストにインデックス記憶
             find_list.append(i)
 
-            if kosu_obj_get.tyoku2 == '1':
+            if kosu_obj_get.tyoku2 == '1' or kosu_obj_get.tyoku2 == '5':
               if i >= 234:
                 # 作業時間インデックスに作業時間のインデックス記録
                 kosu_list.append(i - 233)
@@ -316,6 +339,15 @@ def excel_function(employee_no_data, wb, request):
               else:
                 # 作業時間インデックスに作業時間のインデックス記録
                 kosu_list.append(i + 73)
+
+            elif kosu_obj_get.tyoku2 == '6':
+              if i >= 108:
+                # 作業時間インデックスに作業時間のインデックス記録
+                kosu_list.append(i - 107)
+
+              else:
+                # 作業時間インデックスに作業時間のインデックス記録
+                kosu_list.append(i + 181)
 
 
         # 作業時間インデックスに要素がある場合の処理
