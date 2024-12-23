@@ -89,7 +89,7 @@ def get_graph_end_index(graph_list):
 def adjust_end_index_for_work_shift(graph_end_index, work_shift, shop):
     
   # 入力直が1直で工数が入力され終わりのインデックスが184以下である場合の処理(工数入力が15:20以前の場合)
-  if work_shift == '1' and graph_end_index <= 184:
+  if (work_shift == '1' or work_shift =='5') and graph_end_index <= 184:
     # 工数の入力され終わりのインデックスで184を返す(15:20を返す)
     return 184
   
@@ -124,18 +124,22 @@ def adjust_end_index_for_work_shift(graph_end_index, work_shift, shop):
 
 
 # 工数データの表示調整関数(3直の場合)
-def adjust_end_index_for_night_shift(graph_end_index, shop):
+def adjust_end_index_for_night_shift(graph_end_index, work_shift, shop):
 
-  # ログイン者のショップがボデーか組立の場合の処理
-  if shop in ['W1', 'W2', 'A1', 'A2', '組長以上(W,A)']:
-    # 工数が入力され終わりのインデックスと140で大きい方を返す(4:40以降の場合そこまで表示)
-    return max(graph_end_index, 140)
+  # ログイン者のショップがボデーか組立で3直の場合の処理
+  if shop in ['W1', 'W2', 'A1', 'A2', '組長以上(W,A)'] and work_shift == '3':
+    # 工数が入力され終わりのインデックスと152で大きい方を返す(4:40以降の場合そこまで表示)
+    return max(graph_end_index, 152)
   
-  # ログイン者のショップがプレスか成形か塗装の場合の処理
-  else:
-    # 工数が入力され終わりのインデックスと169で大きい方を返す(7:05以降の場合そこまで表示)
-    return max(graph_end_index, 169)
-
+  # ログイン者のショップがプレスか成形か塗装で3直の場合の処理
+  elif shop in ['P', 'R', 'T1', 'T2', 'その他', '組長以上(P,R,T,その他)'] and work_shift == '3':
+    # 工数が入力され終わりのインデックスと181で大きい方を返す(7:05以降の場合そこまで表示)
+    return max(graph_end_index, 181)
+  
+  # 2直(連2)の場合の処理
+  elif work_shift == '6':
+    # 工数が入力され終わりのインデックスと106で大きい方を返す(1:50以降の場合そこまで表示)
+    return max(graph_end_index, 118)
 
 
 
@@ -169,8 +173,8 @@ def handle_get_request(new_work_day, member_obj):
 
     # グラフリストが空でない場合の処理
     if graph_list != [0] * 288:
-      #　入力直が3直でない場合の処理
-      if obj_get.tyoku2 != '3':
+      #　入力直が3直or2直(連2)でない場合の処理
+      if obj_get.tyoku2 not in ['3', '6']:
         # グラフデータの始まりのインデックス取得
         graph_start_index = get_graph_start_index(graph_list)
         # グラフデータの終わりのインデックス取得
@@ -184,17 +188,17 @@ def handle_get_request(new_work_day, member_obj):
         del graph_item[graph_end_index:]
         del graph_item[:graph_start_index]
 
-      #　入力直が3直である場合の処理
+      #　入力直が3直or2直(連2)である場合の処理
       else:
-        # 17:00～のグラフ表示に変更
-        graph_list = (graph_list * 2)[204:492]
-        graph_item = (graph_item * 2)[204:492]
+        # 16:00～のグラフ表示に変更
+        graph_list = (graph_list * 2)[192:480]
+        graph_item = (graph_item * 2)[192:480]
         # グラフデータの始まりのインデックス取得
         graph_start_index = get_graph_start_index(graph_list)
         # グラフデータの終わりのインデックス取得
         graph_end_index = get_graph_end_index(graph_list)
         # グラフデータの表示を定時前の場合定時まで表示させる
-        graph_end_index = adjust_end_index_for_night_shift(graph_end_index, member_obj.shop)
+        graph_end_index = adjust_end_index_for_night_shift(graph_end_index, obj_get.tyoku2, member_obj.shop)
 
         # グラフ表示のリストを工数データが空の部分を削除する
         del graph_list[graph_end_index:]
@@ -232,8 +236,8 @@ def handle_work_shift(request, member_obj, new_work_day):
     obj_get = obj_filter.first()
 
 
-    # 1直がPOSTされた場合の処理
-    if obj_get.tyoku2 == '1':
+    # 1直 or 1直(連2)がPOSTされた場合の処理
+    if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
       # 作業開始時間更新
       request.session['start_time'] = '06:30'
       # 作業終了時間更新
@@ -282,7 +286,12 @@ def handle_work_shift(request, member_obj, new_work_day):
       # 作業終了時間更新
       request.session['end_time'] = '08:00'
 
-
+    # 2直(連2)がPOSTされた場合の処理
+    elif obj_get.tyoku2 == '6':
+      # 作業開始時間更新
+      request.session['start_time'] = '17:10'
+      # 作業終了時間更新
+      request.session['end_time'] = '17:10'
 
 
 
@@ -514,6 +523,18 @@ def judgement_check(kosu_def, work, tyoku, member_obj, over_work):
       # 工数入力OK_NGをOKに切り替え
       judgement = True
 
+  # 連2の場合の処理
+  if tyoku == '5' or tyoku == '6':
+    # 半前年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半前年休' and kosu_total - int(over_work) == 220:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
+    # 半後年休時、工数合計と残業に整合性がある場合の処理
+    if work == '半後年休' and kosu_total - int(over_work) == 250:
+      # 工数入力OK_NGをOKに切り替え
+      judgement = True
+
   # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
   if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
     member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
@@ -667,7 +688,7 @@ def kosu_sort(obj_get, member_obj):
   detail_list = detail_list*2
 
   # 1直の時の処理
-  if obj_get.tyoku2 == '1':
+  if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
     # 作業内容と作業詳細のリストを4時半からの表示に変える
     del kosu_def[:54]
     del detail_list[:54]
@@ -715,6 +736,14 @@ def kosu_sort(obj_get, member_obj):
     # 作業内容と作業詳細のリストを6時からの表示に変える
     del kosu_def[:72]
     del detail_list[:72]
+    del kosu_def[288:]
+    del detail_list[288:]
+
+  # 2直(連2)の時の処理
+  elif obj_get.tyoku2 == '6':
+    # 作業内容と作業詳細のリストを15時からの表示に変える
+    del kosu_def[:180]
+    del detail_list[:180]
     del kosu_def[288:]
     del detail_list[288:]
 
@@ -793,6 +822,10 @@ def default_work_time(obj_get, member_obj):
     default_total = 230
   elif obj_get.tyoku2 == '4' and obj_get.work_time == '半後年休':
     default_total = 240
+  elif (obj_get.tyoku2 == '5' or obj_get.tyoku2 == '6') and obj_get.work_time == '半前年休':
+    default_total = 220
+  elif (obj_get.tyoku2 == '5' or obj_get.tyoku2 == '6') and obj_get.work_time == '半後年休':
+    default_total = 250
 
   return default_total
 

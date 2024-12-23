@@ -72,12 +72,12 @@ def dynamic_choices(request):
       df = pd.read_excel(data_file_path)
 
       # すべての選択肢（B列の各値）との距離を計算し、新しいカラム 'distance' に保存
-      df['distance'] = df['B'].apply(lambda x: Levenshtein.distance(detail, x))
+      df['distance'] = df['作業詳細'].apply(lambda x: Levenshtein.distance(detail, x))
       
       # 距離が最も近い行を取得
       min_distance_row = df.loc[df['distance'].idxmin()]
       # 最も距離が近い行のA列の値を取得
-      closest_option = min_distance_row['A']
+      closest_option = min_distance_row['工数定義区分']
 
       # 現在使用している工数定義区分のオブジェクトを取得
       kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
@@ -501,14 +501,14 @@ def input(request):
         break_time_obj = member.objects.get(employee_no = request.session['login_No'])
  
         # 1直の場合の休憩時間取得
-        if tyoku == '1':
+        if tyoku == '1' or tyoku == '5':
           breaktime = break_time_obj.break_time1
           breaktime_over1 = break_time_obj.break_time1_over1
           breaktime_over2 = break_time_obj.break_time1_over2
           breaktime_over3 = break_time_obj.break_time1_over3
 
         # 2直の場合の休憩時間取得
-        if tyoku == '2':
+        if tyoku == '2' or tyoku == '6':
           breaktime = break_time_obj.break_time2
           breaktime_over1 = break_time_obj.break_time2_over1
           breaktime_over2 = break_time_obj.break_time2_over2
@@ -835,14 +835,14 @@ def input(request):
       break_time_obj = member.objects.get(employee_no = request.session['login_No'])
 
       # 1直の場合の休憩時間取得
-      if tyoku == '1':
+      if tyoku == '1' or tyoku == '5':
         breaktime = break_time_obj.break_time1
         breaktime_over1 = break_time_obj.break_time1_over1
         breaktime_over2 = break_time_obj.break_time1_over2
         breaktime_over3 = break_time_obj.break_time1_over3
 
       # 2直の場合の休憩時間取得
-      if tyoku == '2':
+      if tyoku == '2' or tyoku == '6':
         breaktime = break_time_obj.break_time2
         breaktime_over1 = break_time_obj.break_time2_over1
         breaktime_over2 = break_time_obj.break_time2_over2
@@ -1402,6 +1402,7 @@ def input(request):
       return redirect(to = '/input')
 
 
+
   # 定義確認処理
   elif "def_find" in request.POST:
     # 指定日に工数データが既にあるか確認
@@ -1534,21 +1535,21 @@ def input(request):
 
 
   # 初期値を設定するリスト作成
-  kosu_list = {'work' : work_default,
-               'work2' : work_default,
-               'tyoku' : tyoku_default,
-               'tyoku2' : tyoku_default, 
-               'tomorrow_check' : request.session.get('tomorrow_check', False),
-               'kosu_def_list': request.session.get('error_def', ''),
-               'work_detail' : request.session.get('error_detail', ''),
-               'over_work' : over_work_default,
-               'break_change' : break_change_default,}
+  default_list = {'work' : work_default,
+                 'work2' : work_default,
+                 'tyoku' : tyoku_default,
+                 'tyoku2' : tyoku_default, 
+                 'tomorrow_check' : request.session.get('tomorrow_check', False),
+                 'kosu_def_list': request.session.get('error_def', ''),
+                 'work_detail' : request.session.get('error_detail', ''),
+                 'over_work' : over_work_default,
+                 'break_change' : break_change_default,}
   
   default_start_time = request.session.get('start_time', '')  
 
   # 時刻取得時の初期値の定義追加あれば追加
   if 'def_default' in locals():
-    kosu_list.update(def_default)
+    default_list.update(def_default)
 
   # 工数区分定義リスト作成
   choices_list, def_n = kosu_division_dictionary(request.session['input_def'])
@@ -1556,7 +1557,7 @@ def input(request):
   choices_list.append(['$', '休憩'])
 
   # フォームの初期状態定義
-  form = input_kosuForm(kosu_list)
+  form = input_kosuForm(default_list)
 
   # フォームの選択肢定義
   form.fields['kosu_def_list'].choices = choices_list
@@ -1592,7 +1593,7 @@ def input(request):
         # 検索用リストにインデックス記憶
         find_list.append(i)
 
-        if obj_get.tyoku2 == '1':
+        if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
           kosu_list.append(i + 54)
 
         elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
@@ -1619,12 +1620,16 @@ def input(request):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 72)
 
+        elif obj_get.tyoku2 == '6':
+          # 作業時間インデックスに作業時間のインデックス記録
+          kosu_list.append(i + 180)
+
       # 時間区分毎に前の作業との差異がある場合の処理
       if i != 0 and (work_list[i] != work_list[i - 1] or detail_list[i] != detail_list[i - 1]):
         # 検索用リストにインデックス記憶
         find_list.append(i)
 
-        if obj_get.tyoku2 == '1':
+        if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
           if i >= 234:
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i - 234)
@@ -1681,12 +1686,21 @@ def input(request):
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 72)
 
+        elif obj_get.tyoku2 == '6':
+          if i >= 108:
+            # 作業時間インデックスに作業時間のインデックス記録
+            kosu_list.append(i - 108)
+
+          else:
+            # 作業時間インデックスに作業時間のインデックス記録
+            kosu_list.append(i + 180)
+
       # 最後の要素に作業が入っている場合の処理
       if i == 287 and work_list[i] != '#':
         # 検索用リストにインデックス記憶
         find_list.append(i)
 
-        if obj_get.tyoku2 == '1':
+        if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
           if i >= 234:
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i - 233)
@@ -1744,6 +1758,14 @@ def input(request):
             # 作業時間インデックスに作業時間のインデックス記録
             kosu_list.append(i + 73)
 
+        elif obj_get.tyoku2 == '6':
+          if i >= 108:
+            # 作業時間インデックスに作業時間のインデックス記録
+            kosu_list.append(i - 107)
+
+          else:
+            # 作業時間インデックスに作業時間のインデックス記録
+            kosu_list.append(i + 181)
 
     # 作業時間インデックスに要素がある場合の処理
     if len(kosu_list) != 0:
@@ -2714,7 +2736,7 @@ def detail(request, num):
       # 検索用リストにインデックス記憶
       find_list.append(i)
 
-      if obj_get.tyoku2 == '1':
+      if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 54)
 
@@ -2742,12 +2764,16 @@ def detail(request, num):
         # 作業時間インデックスに作業時間のインデックス記録
         kosu_list.append(i + 72)
 
+      elif obj_get.tyoku2 == '6':
+        # 作業時間インデックスに作業時間のインデックス記録
+        kosu_list.append(i + 180)
+
     # 時間区分毎に前の作業との差異がある場合の処理
     if i != 0 and (work_list[i] != work_list[i - 1] or detail_list[i] != detail_list[i - 1]):
       # 検索用リストにインデックス記憶
       find_list.append(i)
 
-      if obj_get.tyoku2 == '1':
+      if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
         if i >= 234:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 234)
@@ -2799,12 +2825,20 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 72)
 
+      elif obj_get.tyoku2 == '6':
+        if i >= 108:
+          # 作業時間インデックスに作業時間のインデックス記録
+          kosu_list.append(i - 108)
+        else:
+          # 作業時間インデックスに作業時間のインデックス記録
+          kosu_list.append(i + 180)
+
     # 最後の要素に作業が入っている場合の処理
     if i == 287 and work_list[i] != '#':
       # 検索用リストにインデックス記憶
       find_list.append(i)
 
-      if obj_get.tyoku2 == '1':
+      if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
         if i >= 234:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 233)
@@ -2856,6 +2890,13 @@ def detail(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 73)
 
+      elif obj_get.tyoku2 == '6':
+        if i >= 108:
+          # 作業時間インデックスに作業時間のインデックス記録
+          kosu_list.append(i - 107)
+        else:
+          # 作業時間インデックスに作業時間のインデックス記録
+          kosu_list.append(i + 181)
 
   # 作業時間インデックスに要素がある場合の処理
   if len(kosu_list) != 0:
@@ -3388,7 +3429,7 @@ def delete(request, num):
       # 検索用リストにインデックス記憶
       find_list.append(i)
 
-      if obj_get.tyoku2 == '1':
+      if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
         if i >= 234:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 234)
@@ -3439,13 +3480,21 @@ def delete(request, num):
         else:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 72)
+
+      elif obj_get.tyoku2 == '6':
+        if i >= 108:
+          # 作業時間インデックスに作業時間のインデックス記録
+          kosu_list.append(i - 108)
+        else:
+          # 作業時間インデックスに作業時間のインデックス記録
+          kosu_list.append(i + 180)
 
     # 時間区分毎に前の作業との差異がある場合の処理
     if i != 0 and (work_list[i] != work_list[i - 1] or detail_list[i] != detail_list[i - 1]):
       # 検索用リストにインデックス記憶
       find_list.append(i)
 
-      if obj_get.tyoku2 == '1':
+      if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
         if i >= 234:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 234)
@@ -3497,12 +3546,20 @@ def delete(request, num):
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 72)
 
+      elif obj_get.tyoku2 == '6':
+        if i >= 108:
+          # 作業時間インデックスに作業時間のインデックス記録
+          kosu_list.append(i - 108)
+        else:
+          # 作業時間インデックスに作業時間のインデックス記録
+          kosu_list.append(i + 180)
+
     # 最後の要素に作業が入っている場合の処理
     if i == 287 and work_list[i] != '#':
       # 検索用リストにインデックス記憶
       find_list.append(i)
 
-      if obj_get.tyoku2 == '1':
+      if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
         if i >= 234:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i - 233)
@@ -3553,6 +3610,14 @@ def delete(request, num):
         else:
           # 作業時間インデックスに作業時間のインデックス記録
           kosu_list.append(i + 73)
+
+      elif obj_get.tyoku2 == '6':
+        if i >= 108:
+          # 作業時間インデックスに作業時間のインデックス記録
+          kosu_list.append(i - 107)
+        else:
+          # 作業時間インデックスに作業時間のインデックス記録
+          kosu_list.append(i + 181)
 
 
   # 作業時間インデックスに要素がある場合の処理

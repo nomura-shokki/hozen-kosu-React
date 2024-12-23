@@ -31,7 +31,9 @@ class input_kosuForm(forms.Form):
     ('1', '1直'), 
     ('2', '2直'), 
     ('3', '3直'), 
-    ('4', '常昼')]
+    ('4', '常昼'),
+    ('5', '1直(連2)'),
+    ('6', '2直(連2)')]
 
   employment_list = [
     ('', ''),
@@ -399,7 +401,9 @@ class scheduleForm(forms.Form):
     ('1', '1直'), 
     ('2', '2直'), 
     ('3', '3直'), 
-    ('4', '常昼')]
+    ('4', '常昼'),
+    ('5', '1直(連2)'),
+    ('6', '2直(連2)')]
 
   day1 = forms.ChoiceField(label = '日1', choices=employment_list, required = False)
   day2 = forms.ChoiceField(label = '月1', choices=employment_list, required = False)
@@ -595,8 +599,9 @@ class all_kosu_findForm(forms.Form):
     ('1', '1直'), 
     ('2', '2直'), 
     ('3', '3直'), 
-    ('4', '常昼')
-    ]
+    ('4', '常昼'),
+    ('5', '1直(連2)'),
+    ('6', '2直(連2)')]
 
   work_list = [
     ('', ''),
@@ -637,8 +642,9 @@ class all_kosuForm(forms.Form):
     ('1', '1直'), 
     ('2', '2直'), 
     ('3', '3直'), 
-    ('4', '常昼')
-    ]
+    ('4', '常昼'),
+    ('5', '1直(連2)'),
+    ('6', '2直(連2)')]
   
   work_list = [
     ('', ''),
