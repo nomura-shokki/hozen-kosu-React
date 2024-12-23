@@ -72,12 +72,12 @@ def dynamic_choices(request):
       df = pd.read_excel(data_file_path)
 
       # すべての選択肢（B列の各値）との距離を計算し、新しいカラム 'distance' に保存
-      df['distance'] = df['B'].apply(lambda x: Levenshtein.distance(detail, x))
+      df['distance'] = df['作業詳細'].apply(lambda x: Levenshtein.distance(detail, x))
       
       # 距離が最も近い行を取得
       min_distance_row = df.loc[df['distance'].idxmin()]
       # 最も距離が近い行のA列の値を取得
-      closest_option = min_distance_row['A']
+      closest_option = min_distance_row['工数定義区分']
 
       # 現在使用している工数定義区分のオブジェクトを取得
       kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
