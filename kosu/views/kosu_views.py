@@ -71,6 +71,8 @@ def dynamic_choices(request):
       # データファイルを読み込む
       df = pd.read_excel(data_file_path)
 
+      # 作業詳細をSTR型に変換
+      df['作業詳細'] = df['作業詳細'].astype(str)
       # すべての選択肢（B列の各値）との距離を計算し、新しいカラム 'distance' に保存
       df['distance'] = df['作業詳細'].apply(lambda x: Levenshtein.distance(detail, x))
       
@@ -119,7 +121,9 @@ def dynamic_choices(request):
 
 #CSRF無効
 @csrf_exempt
+# 工数区分定義選択時の選択肢生成
 def all_choices(request):
+
   try:
     # 工数区分定義リスト作成
     choices_list, def_n = kosu_division_dictionary(request.session['input_def'])
