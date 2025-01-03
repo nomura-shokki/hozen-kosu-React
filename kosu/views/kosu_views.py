@@ -1,10 +1,10 @@
-from django.shortcuts import render
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.views.generic import ListView
 import datetime
 import itertools
 import re
@@ -148,110 +148,112 @@ def all_choices(request):
 
 
 # 工数履歴画面定義
-def kosu_list(request, num):
-
-  # セッションにログインした従業員番号がない場合の処理
-  if not request.session.get('login_No'):
-    # 未ログインならログインページへ飛ぶ
-    return redirect('/login')
-  
-  try:
-    # ログイン者の情報取得
-    member_data = member.objects.get(employee_no=request.session['login_No'])
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect('/login')
-  
-  # 今日の日時取得
-  kosu_today = datetime.date.today()
-  # 設定データ取得
-  page_num = administrator_data.objects.order_by("id").last()
-  # 全データ確認表示変数
-  display_open = request.session['login_No'] in (
-      page_num.administrator_employee_no1,
-      page_num.administrator_employee_no2,
-      page_num.administrator_employee_no3
-  )
+class KosuListView(ListView):
+  # テンプレート定義
+  template_name = 'kosu/kosu_list.html'
+  # オブジェクト名定義
+  context_object_name = 'data'
 
 
+  # 画面処理前の初期設定
+  def dispatch(self, request, *args, **kwargs):
+    # ログインしていない場合ログイン画面へ
+    if not request.session.get('login_No'):
+      return redirect('/login')
 
-  # 日付指定検索時の処理
-  if "kosu_find" in request.POST:
-    # 指定日セッションに登録
-    request.session['find_day'] = request.POST['kosu_day']
-    # 指定月のセッション削除
-    request.session.pop('kosu_month', None)
+    # 人員情報取得(取得できない場合セッション削除しログイン画面へ)
+    try:
+      self.member_data = member.objects.get(employee_no=request.session['login_No'])
+    except member.DoesNotExist:
+      request.session.clear()
+      return redirect('/login')
 
-    # フィルター内容定義
-    filter_kwargs = {
-        'work_day2__contains': request.POST['kosu_day'],
-        'employee_no3': request.session['login_No']
-    }
+    # 今日の日付を取得
+    self.kosu_today = datetime.date.today()
+    # 設定情報取得
+    self.page_num = administrator_data.objects.order_by("id").last()
+    # 全データ確認表示フラグを設定
+    self.display_open = request.session['login_No'] in (
+        self.page_num.administrator_employee_no1,
+        self.page_num.administrator_employee_no2,
+        self.page_num.administrator_employee_no3
+        )
+    # 親クラスへ情報送信
+    return super().dispatch(request, *args, **kwargs)
 
 
+  # フィルタリングキーワード生成
+  def get_filter_kwargs(self, request):
+    # 日付指定検索時の処理
+    if "kosu_find" in request.POST:
+      # 指定日セッションに登録
+      request.session['find_day'] = request.POST['kosu_day']
+      # 指定月のセッション削除
+      request.session.pop('kosu_month', None)
+      # フィルタリング内容を返す
+      return {'work_day2__contains': request.POST['kosu_day'], 'employee_no3': request.session['login_No']}
 
-  # 月指定検索時の処理
-  elif "kosu_find_month" in request.POST:
-    # POST送信された就業日の年、月部分抜き出し
-    kosu_month = request.POST['kosu_day'][:7]
-    # 指定月セッションに登録
-    request.session['kosu_month'] = kosu_month
-    # 指定日セッションに登録
-    request.session['find_day'] = request.POST['kosu_day']
+    # 月指定検索時の処理
+    elif "kosu_find_month" in request.POST:
+      # POST送信された就業日の年、月部分抜き出し
+      kosu_month = request.POST['kosu_day'][:7]
+      # 指定月セッションに登録
+      request.session['kosu_month'] = kosu_month
+      # 指定日セッションに登録
+      request.session['find_day'] = request.POST['kosu_day']
+      # フィルタリング内容を返す
+      return {'employee_no3': request.session['login_No'], 'work_day2__startswith': kosu_month}
 
-    # フィルター内容定義
-    filter_kwargs = {
-        'employee_no3': request.session['login_No'],
-        'work_day2__startswith': kosu_month
-    }
+    # GET時の処理
+    # 従業員番号でフィルタリング
+    filter_kwargs = {'employee_no3': request.session['login_No']}
+    # 指定月セッションに値がある場合、月で絞り込み
+    if 'kosu_month' in request.session:
+      filter_kwargs['work_day2__startswith'] = request.session['kosu_month']
+    else:
+      filter_kwargs['work_day2__startswith'] = request.session.get('find_day', '')
+    # フィルタリング内容を返す
+    return filter_kwargs
 
+
+  # フィルタリングされたデータ取得
+  def get_queryset(self):
+    return Business_Time_graph.objects.filter(**self.get_filter_kwargs(self.request)).order_by('work_day2').reverse()
+
+
+  # HTMLに送る辞書定義
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context.update({
+        'title': '工数履歴',
+        'member_data': self.member_data,
+        'default_day': self.request.session.get('find_day', str(self.kosu_today)),
+        'display_open': self.display_open,
+        'num': self.kwargs.get('num')
+        })
+    return context
 
 
   # GET時の処理
-  elif request.method == 'GET':
-    # フィルター内容定義
-    filter_kwargs = {
-        'employee_no3': request.session['login_No']
-    }
-
-    # 指定月のセッションある場合の処理
-    if 'kosu_month' in request.session:
-      # フィルター内容定義
-      filter_kwargs['work_day2__startswith'] = request.session['kosu_month']
-
-    # 指定月のセッションない場合の処理
-    else:
-      # フィルター内容定義
-      filter_kwargs['work_day2__startswith'] = request.session.get('find_day', '')
-  
+  def get(self, request, *args, **kwargs):
+    # フィルタリングしたデータをページネーションで絞り込み
+    paginator = Paginator(self.get_queryset(), self.page_num.menu_row)
+    self.object_list = paginator.get_page(kwargs.get('num'))
+    # HTMLに送るデータに追加
+    context = self.get_context_data(object_list=paginator.get_page(kwargs.get('num')))
+    # HTMLにデータ送信
+    return self.render_to_response(context)
 
 
-  # フィルターをかけて一致した工数データを取得
-  obj_filter = Business_Time_graph.objects.filter(**filter_kwargs).order_by('work_day2').reverse()
-
-  # 取得した工数データを1ページあたりの件数分取得
-  data = Paginator(obj_filter, page_num.menu_row)
-
-  # フォーム初期値定義
-  default_day = request.session.get('find_day', str(kosu_today))
-
-
-
-  # HTMLに渡す辞書
-  context = {
-      'title': '工数履歴',
-      'member_data': member_data,
-      'data': data.get_page(num),
-      'default_day': default_day,
-      'display_open': display_open,
-      'num': num,
-  }
-
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/kosu_list.html', context)
+  # POST時の処理
+  def post(self, request, *args, **kwargs):
+    # フィルタリングしたデータをページネーションで絞り込み
+    paginator = Paginator(self.get_queryset(), self.page_num.menu_row)
+    self.object_list = paginator.get_page(kwargs.get('num'))
+    # HTMLに送るデータに追加
+    context = self.get_context_data(object_list=paginator.get_page(kwargs.get('num')))
+    # HTMLにデータ送信
+    return self.render_to_response(context)
 
 
 
