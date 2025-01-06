@@ -17,7 +17,6 @@ import itertools
 
 # 現在時刻取得関数
 def round_time(dt=None, round_to=5):
-
   # 時刻の指定がない場合現在時刻取得
   if dt is None:
     dt = datetime.datetime.now().time()
@@ -40,7 +39,6 @@ def round_time(dt=None, round_to=5):
 
 # 工数データの始まり検索関数
 def get_graph_start_index(graph_list):
-
   # 工数データの始まり検索ループ
   for i in range(288):
     # グラフデータが0でない場合の処理
@@ -64,7 +62,6 @@ def get_graph_start_index(graph_list):
 
 # 工数データの終わり検索関数
 def get_graph_end_index(graph_list):
-
   # 工数データの終わり検索ループ
   for i in range(1, 289):
     # グラフデータが0でない場合の処理
@@ -86,8 +83,7 @@ def get_graph_end_index(graph_list):
 
 
 # 工数データの表示調整関数
-def adjust_end_index_for_work_shift(graph_end_index, work_shift, shop):
-    
+def adjust_end_index_for_work_shift(graph_end_index, work_shift, shop): 
   # 入力直が1直で工数が入力され終わりのインデックスが184以下である場合の処理(工数入力が15:20以前の場合)
   if (work_shift == '1' or work_shift =='5') and graph_end_index <= 184:
     # 工数の入力され終わりのインデックスで184を返す(15:20を返す)
@@ -125,7 +121,6 @@ def adjust_end_index_for_work_shift(graph_end_index, work_shift, shop):
 
 # 工数データの表示調整関数(3直の場合)
 def adjust_end_index_for_night_shift(graph_end_index, work_shift, shop):
-
   # ログイン者のショップがボデーか組立で3直の場合の処理
   if shop in ['W1', 'W2', 'A1', 'A2', '組長以上(W,A)'] and work_shift == '3':
     # 工数が入力され終わりのインデックスと152で大きい方を返す(4:40以降の場合そこまで表示)
@@ -226,7 +221,6 @@ def handle_get_request(new_work_day, member_obj):
 
 # 日付変更時の作業時間フォーム変更関数
 def handle_work_shift(request, member_obj, new_work_day):
-
   # 該当日に工数データがあるか確認
   obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=new_work_day)
 
@@ -303,7 +297,6 @@ def handle_work_shift(request, member_obj, new_work_day):
 
 # 時＆分　分離関数
 def time_index(post_time):
-
   # 時間の区切りのインデックス取得
   post_index = post_time.index(':')
   # 時取得
@@ -326,7 +319,6 @@ def time_index(post_time):
 
 # 休憩時間のインデックス日またぎチェック関数
 def break_time_process(breaktime_str):
-
   # 休憩開始時間のインデックス取得
   break_start = int(breaktime_str[1 : 3])*12 + int(breaktime_str[3 : 5])/5
   # 休憩終了時間のインデックス取得
@@ -358,7 +350,6 @@ def break_time_process(breaktime_str):
 
 # 工数に被りチェック関数
 def kosu_duplication_check(start_ind, end_ind, kosu_def, request):
-
   # 工数に被りがないかチェックするループ
   for kosu in range(start_ind, end_ind):
     # 工数データの要素が空でない場合の処理
@@ -381,7 +372,6 @@ def kosu_duplication_check(start_ind, end_ind, kosu_def, request):
 
 # 工数書き込み関数
 def kosu_write(start_ind, end_ind, kosu_def, detail_list, request):
-
   # 作業内容と作業詳細を書き込むループ
   for kosu in range(start_ind, end_ind):
     # 作業内容リストに入力された工数定義区分の対応する記号を入れる
@@ -403,7 +393,6 @@ def kosu_write(start_ind, end_ind, kosu_def, detail_list, request):
 
 # 休憩範囲工数削除関数
 def break_time_delete(break_start_ind, break_end_ind, kosu_def, detail_list, member_obj, request):
-
   # 休憩時間ループ
   for bt in range(int(break_start_ind), int(break_end_ind)):
     # ユーザーが休憩エラー有効チェックONの場合の処理
@@ -437,7 +426,6 @@ def break_time_delete(break_start_ind, break_end_ind, kosu_def, detail_list, mem
 
 # 休憩書き込み関数
 def break_time_write(break_start_ind, break_end_ind, kosu_def, detail_list):
-
   # 休憩時間内の工数データを休憩に書き換えるループ
   for bt in range(int(break_start_ind), int(break_end_ind)):
     # 作業内容リストの要素を休憩に書き換え
@@ -458,7 +446,6 @@ def break_time_write(break_start_ind, break_end_ind, kosu_def, detail_list):
 
 # 作業詳細リスト文字列変換関数
 def detail_list_summarize(detail_list):
-
   # 作業詳細str型定義
   detail_list_str = ''
 
@@ -488,7 +475,6 @@ def detail_list_summarize(detail_list):
 
 # 工数データ整合性判断関数
 def judgement_check(kosu_def, work, tyoku, member_obj, over_work):
-
   # 工数合計取得
   kosu_total = 1440 - (kosu_def.count('#')*5) - (kosu_def.count('$')*5)
 
@@ -625,6 +611,12 @@ def judgement_check(kosu_def, work, tyoku, member_obj, over_work):
       # 工数入力OK_NGをOKに切り替え
       judgement = True
 
+  # 出勤、休出時、工数合計と残業に整合性がある場合の処理
+  if (work == '休日' or work == 'シフト休' or work == '年休' or work == '代休' or work == '公休') and \
+    kosu_total == 0:
+    # 工数入力OK_NGをOKに切り替え
+    judgement = True
+
   return judgement
 
 
@@ -639,7 +631,6 @@ def judgement_check(kosu_def, work, tyoku, member_obj, over_work):
 
 # 工数区分定義辞書作成関数
 def kosu_division_dictionary(def_name):
-
   # 現在使用している工数区分のオブジェクトを取得
   kosu_obj = kosu_division.objects.get(kosu_name = def_name)
 
@@ -678,7 +669,6 @@ def kosu_division_dictionary(def_name):
 
 # 工数データを直に合わせて並び替えする関数
 def kosu_sort(obj_get, member_obj):
-
   # 作業内容と作業詳細を取得しリストに解凍
   kosu_def = list(obj_get.time_work)
   detail_list = obj_get.detail_work.split('$')
@@ -765,7 +755,6 @@ def kosu_sort(obj_get, member_obj):
 
 # 基準合計工数作成関数
 def default_work_time(obj_get, member_obj):
-
   # 基準合計工数定義
   default_total = 0
   if obj_get.work_time == '出勤':
@@ -841,7 +830,6 @@ def default_work_time(obj_get, member_obj):
 
 # カレンダー日付作成関数
 def calendar_day(year, month):
-
   # 月の初日取得
   select_month = datetime.date(year, month, 1)
   # 月の初日の曜日取得
@@ -930,7 +918,6 @@ def calendar_day(year, month):
 
 # 整合性リスト作成関数
 def OK_NF_check(year, month, day_list, member_obj):
-
   # 整合性リスト定義
   OK_NG_list = []
   # 指定月の工数データ取得しリスト作成するループ
@@ -980,7 +967,6 @@ def OK_NF_check(year, month, day_list, member_obj):
 
 # インデックスを時間表示に変換
 def index_change(start_index, end_index, time_list):
-
   # 作業時間のインデックスがある場合の処理
   if start_index != 0 or end_index != 0:
     # 作業開始時取得
@@ -1007,6 +993,34 @@ def index_change(start_index, end_index, time_list):
 
 
 #--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 休憩時間オーバー検出関数
+def break_time_over(start_hour, start_min, end_hour, end_min, limit_tome,comment, request):
+  # 昼休憩時間に長すぎる時間を登録しようとした時の処理
+  if (int(end_hour)*60 + int(end_min)) - \
+    (int(start_hour)*60 + int(start_min)) > limit_tome or \
+    (((int(end_hour)*60 + int(end_min)) < \
+    (int(start_hour)*60 + int(start_min))) and \
+    (int(end_hour)*60 + int(end_min) + 1440) - \
+    (int(start_hour)*60 + int(start_min)) > limit_tome):
+    # エラーメッセージ出力
+    messages.error(request, '{}が{}分を超えています。正しい休憩時間を登録して下さい。ERROR061'.format(comment, limit_tome))
+    # このページをリダイレクト
+    return redirect(to = '/break_time')
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
 
 
 

@@ -209,7 +209,7 @@
       {% for i in time_display_list %}
         <tr class="form-group">
           <td class="text-center">
-            <input type="checkbox" class="controlled-checkbox big">
+            <input type="checkbox" class="controlled-checkbox big" name="opperable" value="操作可{{forloop.counter}}">
           </td>
           <td class="text-center">
             <input type="submit" value="{{forloop.counter}}" name="item_delete" class="btn btn-blue7 mt-2 controlled-input" onclick="return confirmDelete();" disabled>
@@ -224,6 +224,18 @@
           </td>
         </tr>
       {% endfor %}
+      {% if time_display_list %}
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td class="text-center">
+            <input type="submit" value="一括編集" name="all_edit" onclick="return confirm_edit();" class="btn btn-blue7 mt-2 controlled-input">
+          </td>
+        </tr>
+      {% endif %}
     </table>
   </div>
 </form>

@@ -29,6 +29,7 @@ from ..utils.kosu_utils import default_work_time
 from ..utils.kosu_utils import calendar_day
 from ..utils.kosu_utils import OK_NF_check
 from ..utils.kosu_utils import index_change
+from ..utils.kosu_utils import break_time_over
 from django.db.models import Q
 from ..models import member
 from ..models import Business_Time_graph
@@ -40,6 +41,7 @@ from ..forms import schedule_timeForm
 from ..forms import scheduleForm
 from ..forms import all_kosu_findForm
 from ..forms import all_kosuForm
+from django.http import HttpResponse
 
 
 
@@ -2008,199 +2010,85 @@ def break_time(request):
                    break_time16_end_hour.zfill(2) + break_time16_end_min
 
 
-
     # 1直昼休憩時間に長すぎる時間を登録しようとした時の処理
-    if (int(break_time1_end_hour)*60 + int(break_time1_end_min)) - \
-      (int(break_time1_start_hour)*60 + int(break_time1_start_min)) > 60 or \
-      (((int(break_time1_end_hour)*60 + int(break_time1_end_min)) < \
-      (int(break_time1_start_hour)*60 + int(break_time1_start_min))) and \
-      (int(break_time1_end_hour)*60 + int(break_time1_end_min) + 1440) - \
-      (int(break_time1_start_hour)*60 + int(break_time1_start_min)) > 60):
-      # エラーメッセージ出力
-      messages.error(request, '1直の昼休憩時間が60分を超えています。正しい休憩時間を登録して下さい。ERROR061')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time1_start_hour, break_time1_start_min, break_time1_end_hour, break_time1_end_min, 60, '1直の昼休憩時間', request)     
+    if response:
+      return response
 
     # 2直昼休憩時間に長すぎる時間を登録しようとした時の処理
-    if (int(break_time5_end_hour)*60 + int(break_time5_end_min)) - \
-      (int(break_time5_start_hour)*60 + int(break_time5_start_min)) > 60 or \
-      (((int(break_time5_end_hour)*60 + int(break_time5_end_min)) < \
-      (int(break_time5_start_hour)*60 + int(break_time5_start_min))) and \
-      (int(break_time5_end_hour)*60 + int(break_time5_end_min) + 1440) - \
-      (int(break_time5_start_hour)*60 + int(break_time5_start_min)) > 60):
-      # エラーメッセージ出力
-      messages.error(request, '2直の昼休憩時間が60分を超えています。正しい休憩時間を登録して下さい。ERROR062')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time5_start_hour, break_time5_start_min, break_time5_end_hour, break_time5_end_min, 60, '2直の昼休憩時間', request)     
+    if response:
+      return response
 
     # 3直昼休憩時間に長すぎる時間を登録しようとした時の処理
-    if (int(break_time9_end_hour)*60 + int(break_time9_end_min)) - \
-      (int(break_time9_start_hour)*60 + int(break_time9_start_min)) > 60 or \
-      (((int(break_time9_end_hour)*60 + int(break_time9_end_min)) < \
-      (int(break_time9_start_hour)*60 + int(break_time9_start_min))) and \
-      (int(break_time9_end_hour)*60 + int(break_time9_end_min) + 1440) - \
-      (int(break_time9_start_hour)*60 + int(break_time9_start_min)) > 60):
-      # エラーメッセージ出力
-      messages.error(request, '3直の昼休憩時間が60分を超えています。正しい休憩時間を登録して下さい。ERROR063')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time9_start_hour, break_time9_start_min, break_time9_end_hour, break_time9_end_min, 60, '3直の昼休憩時間', request)     
+    if response:
+      return response
 
     # 常昼昼休憩時間に長すぎる時間を登録しようとした時の処理
-    if (int(break_time13_end_hour)*60 + int(break_time13_end_min)) - \
-      (int(break_time13_start_hour)*60 + int(break_time13_start_min)) > 60 or \
-      (((int(break_time13_end_hour)*60 + int(break_time13_end_min)) < \
-      (int(break_time13_start_hour)*60 + int(break_time13_start_min))) and \
-      (int(break_time13_end_hour)*60 + int(break_time13_end_min) + 1440) - \
-      (int(break_time13_start_hour)*60 + int(break_time13_start_min)) > 60):
-      # エラーメッセージ出力
-      messages.error(request, '常昼の昼休憩時間が60分を超えています。正しい休憩時間を登録して下さい。ERROR064')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time13_start_hour, break_time13_start_min, break_time13_end_hour, break_time13_end_min, 60, '常昼の昼休憩時間', request)     
+    if response:
+      return response
 
     # 1直残業休憩時間1に長すぎる時間を登録しようとした時の処理
-    if (int(break_time2_end_hour)*60 + int(break_time2_end_min)) - \
-      (int(break_time2_start_hour)*60 + int(break_time2_start_min)) > 15 or \
-      (((int(break_time2_end_hour)*60 + int(break_time2_end_min)) < \
-      (int(break_time2_start_hour)*60 + int(break_time2_start_min))) and \
-      (int(break_time2_end_hour)*60 + int(break_time2_end_min) + 1440) - \
-      (int(break_time2_start_hour)*60 + int(break_time2_start_min)) > 15):
-      # エラーメッセージ出力
-      messages.error(request, '1直残業時間中の休憩時間1が15分を超えています。正しい休憩時間を登録して下さい。ERROR065')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time2_start_hour, break_time2_start_min, break_time2_end_hour, break_time2_end_min, 15, '1直残業時間中の休憩時間1', request)     
+    if response:
+      return response
 
     # 1直残業休憩時間2に長すぎる時間を登録しようとした時の処理
-    if (int(break_time3_end_hour)*60 + int(break_time3_end_min)) - \
-      (int(break_time3_start_hour)*60 + int(break_time3_start_min)) > 60 or \
-      (((int(break_time3_end_hour)*60 + int(break_time3_end_min)) < \
-      (int(break_time3_start_hour)*60 + int(break_time3_start_min))) and \
-      (int(break_time3_end_hour)*60 + int(break_time3_end_min) + 1440) - \
-      (int(break_time3_start_hour)*60 + int(break_time3_start_min)) > 60):
-      # エラーメッセージ出力
-      messages.error(request, '1直残業時間中の休憩時間2が60分を超えています。正しい休憩時間を登録して下さい。ERROR066')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time3_start_hour, break_time3_start_min, break_time3_end_hour, break_time3_end_min, 60, '1直残業時間中の休憩時間2', request)     
+    if response:
+      return response
 
     # 1直残業休憩時間3に長すぎる時間を登録しようとした時の処理
-    if (int(break_time4_end_hour)*60 + int(break_time4_end_min)) - \
-      (int(break_time4_start_hour)*60 + int(break_time4_start_min)) > 15 or \
-      (((int(break_time4_end_hour)*60 + int(break_time4_end_min)) < \
-      (int(break_time4_start_hour)*60 + int(break_time4_start_min))) and \
-      (int(break_time4_end_hour)*60 + int(break_time4_end_min) + 1440) - \
-      (int(break_time4_start_hour)*60 + int(break_time4_start_min)) > 15):
-      # エラーメッセージ出力
-      messages.error(request, '1直残業時間中の休憩時間3が15分を超えています。正しい休憩時間を登録して下さい。ERROR067')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time4_start_hour, break_time4_start_min, break_time4_end_hour, break_time4_end_min, 15, '1直残業時間中の休憩時間3', request)     
+    if response:
+      return response
 
     # 2直残業休憩時間1に長すぎる時間を登録しようとした時の処理
-    if (int(break_time6_end_hour)*60 + int(break_time6_end_min)) - \
-      (int(break_time6_start_hour)*60 + int(break_time6_start_min)) > 15 or \
-      (((int(break_time6_end_hour)*60 + int(break_time6_end_min)) < \
-      (int(break_time6_start_hour)*60 + int(break_time6_start_min))) and \
-      (int(break_time6_end_hour)*60 + int(break_time6_end_min) + 1440) - \
-      (int(break_time6_start_hour)*60 + int(break_time6_start_min)) > 15):
-      # エラーメッセージ出力
-      messages.error(request, '2直残業時間中の休憩時間1が15分を超えています。正しい休憩時間を登録して下さい。ERROR068')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time6_start_hour, break_time6_start_min, break_time6_end_hour, break_time6_end_min, 15, '2直残業時間中の休憩時間1', request)     
+    if response:
+      return response
 
     # 2直残業休憩時間2に長すぎる時間を登録しようとした時の処理
-    if (int(break_time7_end_hour)*60 + int(break_time7_end_min)) - \
-      (int(break_time7_start_hour)*60 + int(break_time7_start_min)) > 60 or \
-      (((int(break_time7_end_hour)*60 + int(break_time7_end_min)) < \
-      (int(break_time7_start_hour)*60 + int(break_time7_start_min))) and \
-      (int(break_time7_end_hour)*60 + int(break_time7_end_min) + 1440) - \
-      (int(break_time7_start_hour)*60 + int(break_time7_start_min)) > 60):
-      # エラーメッセージ出力
-      messages.error(request, '2直残業時間中の休憩時間2が60分を超えています。正しい休憩時間を登録して下さい。ERROR069')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time7_start_hour, break_time7_start_min, break_time7_end_hour, break_time7_end_min, 60, '2直残業時間中の休憩時間2', request)     
+    if response:
+      return response
 
     # 2直残業休憩時間3に長すぎる時間を登録しようとした時の処理
-    if (int(break_time8_end_hour)*60 + int(break_time8_end_min)) - \
-      (int(break_time8_start_hour)*60 + int(break_time8_start_min)) > 15 or \
-      (((int(break_time8_end_hour)*60 + int(break_time8_end_min)) < \
-      (int(break_time8_start_hour)*60 + int(break_time8_start_min))) and \
-      (int(break_time8_end_hour)*60 + int(break_time8_end_min) + 1440) - \
-      (int(break_time8_start_hour)*60 + int(break_time8_start_min)) > 15):
-      # エラーメッセージ出力
-      messages.error(request, '2直残業時間中の休憩時間3が15分を超えています。正しい休憩時間を登録して下さい。ERROR070')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time8_start_hour, break_time8_start_min, break_time8_end_hour, break_time8_end_min, 15, '2直残業時間中の休憩時間3', request)     
+    if response:
+      return response
 
     # 3直残業休憩時間1に長すぎる時間を登録しようとした時の処理
-    if (int(break_time10_end_hour)*60 + int(break_time10_end_min)) - \
-      (int(break_time10_start_hour)*60 + int(break_time10_start_min)) > 15 or \
-      (((int(break_time10_end_hour)*60 + int(break_time10_end_min)) < \
-      (int(break_time10_start_hour)*60 + int(break_time10_start_min))) and \
-      (int(break_time10_end_hour)*60 + int(break_time10_end_min) + 1440) - \
-      (int(break_time10_start_hour)*60 + int(break_time10_start_min)) > 15):
-      # エラーメッセージ出力
-      messages.error(request, '3直残業時間中の休憩時間1が15分を超えています。正しい休憩時間を登録して下さい。ERROR071')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time10_start_hour, break_time10_start_min, break_time10_end_hour, break_time10_end_min, 15, '3直残業時間中の休憩時間1', request)     
+    if response:
+      return response
 
     # 3直残業休憩時間2に長すぎる時間を登録しようとした時の処理
-    if (int(break_time11_end_hour)*60 + int(break_time11_end_min)) - \
-      (int(break_time11_start_hour)*60 + int(break_time11_start_min)) > 60 or \
-      (((int(break_time11_end_hour)*60 + int(break_time11_end_min)) < \
-      (int(break_time11_start_hour)*60 + int(break_time11_start_min))) and \
-      (int(break_time11_end_hour)*60 + int(break_time11_end_min) + 1440) - \
-      (int(break_time11_start_hour)*60 + int(break_time11_start_min)) > 60):
-      # エラーメッセージ出力
-      messages.error(request, '3直残業時間中の休憩時間2が60分を超えています。正しい休憩時間を登録して下さい。ERROR072')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time11_start_hour, break_time11_start_min, break_time11_end_hour, break_time11_end_min, 60, '3直残業時間中の休憩時間2', request)     
+    if response:
+      return response
 
     # 3直残業休憩時間3に長すぎる時間を登録しようとした時の処理
-    if (int(break_time12_end_hour)*60 + int(break_time12_end_min)) - \
-      (int(break_time12_start_hour)*60 + int(break_time12_start_min)) > 15 or \
-      (((int(break_time12_end_hour)*60 + int(break_time12_end_min)) < \
-      (int(break_time12_start_hour)*60 + int(break_time12_start_min))) and \
-      (int(break_time12_end_hour)*60 + int(break_time12_end_min) + 1440) - \
-      (int(break_time12_start_hour)*60 + int(break_time12_start_min)) > 15):
-      # エラーメッセージ出力
-      messages.error(request, '3直残業時間中の休憩時間3が15分を超えています。正しい休憩時間を登録して下さい。ERROR073')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time12_start_hour, break_time12_start_min, break_time12_end_hour, break_time12_end_min, 15, '3直残業時間中の休憩時間3', request)     
+    if response:
+      return response
 
     # 常昼残業休憩時間1に長すぎる時間を登録しようとした時の処理
-    if (int(break_time14_end_hour)*60 + int(break_time14_end_min)) - \
-      (int(break_time14_start_hour)*60 + int(break_time14_start_min)) > 15 or \
-      (((int(break_time14_end_hour)*60 + int(break_time14_end_min)) < \
-      (int(break_time14_start_hour)*60 + int(break_time14_start_min))) and \
-      (int(break_time14_end_hour)*60 + int(break_time14_end_min) + 1440) - \
-      (int(break_time14_start_hour)*60 + int(break_time14_start_min)) > 15):
-      # エラーメッセージ出力
-      messages.error(request, '常昼残業時間中の休憩時間1が15分を超えています。正しい休憩時間を登録して下さい。ERROR074')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time14_start_hour, break_time14_start_min, break_time14_end_hour, break_time14_end_min, 15, '常昼残業時間中の休憩時間1', request)     
+    if response:
+      return response
 
     # 常昼残業休憩時間2に長すぎる時間を登録しようとした時の処理
-    if (int(break_time15_end_hour)*60 + int(break_time15_end_min)) - \
-      (int(break_time15_start_hour)*60 + int(break_time15_start_min)) > 60 or \
-      (((int(break_time15_end_hour)*60 + int(break_time15_end_min)) < \
-      (int(break_time15_start_hour)*60 + int(break_time15_start_min))) and \
-      (int(break_time15_end_hour)*60 + int(break_time15_end_min) + 1440) - \
-      (int(break_time15_start_hour)*60 + int(break_time15_start_min)) > 60):
-      # エラーメッセージ出力
-      messages.error(request, '常昼残業時間中の休憩時間2が60分を超えています。正しい休憩時間を登録して下さい。ERROR075')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
+    response = break_time_over(break_time15_start_hour, break_time15_start_min, break_time15_end_hour, break_time15_end_min, 60, '常昼残業時間中の休憩時間2', request)     
+    if response:
+      return response
 
     # 常昼残業休憩時間3に長すぎる時間を登録しようとした時の処理
-    if (int(break_time16_end_hour)*60 + int(break_time16_end_min)) - \
-      (int(break_time16_start_hour)*60 + int(break_time16_start_min)) > 15 or \
-      (((int(break_time16_end_hour)*60 + int(break_time16_end_min)) < \
-      (int(break_time16_start_hour)*60 + int(break_time16_start_min))) and \
-      (int(break_time16_end_hour)*60 + int(break_time16_end_min) + 1440) - \
-      (int(break_time16_start_hour)*60 + int(break_time16_start_min)) > 15):
-      # エラーメッセージ出力
-      messages.error(request, '常昼残業時間中の休憩時間3が15分を超えています。正しい休憩時間を登録して下さい。ERROR076')
-      # このページをリダイレクト
-      return redirect(to = '/break_time')
-
+    response = break_time_over(break_time16_start_hour, break_time16_start_min, break_time16_end_hour, break_time16_end_min, 15, '常昼残業時間中の休憩時間3', request)     
+    if response:
+      return response
 
     # POST送信された休憩時間を上書きする 
     member.objects.update_or_create(employee_no = request.session['login_No'], \
@@ -2410,52 +2298,24 @@ def today_break_time(request):
 
 
     # 昼休憩時間に長すぎる時間を登録しようとした時の処理
-    if (int(break_time1_end_hour)*60 + int(break_time1_end_min)) - \
-      (int(break_time1_start_hour)*60 + int(break_time1_start_min)) > 60 or \
-      (((int(break_time1_end_hour)*60 + int(break_time1_end_min)) < \
-      (int(break_time1_start_hour)*60 + int(break_time1_start_min))) and \
-      (int(break_time1_end_hour)*60 + int(break_time1_end_min) + 1440) - \
-      (int(break_time1_start_hour)*60 + int(break_time1_start_min)) > 60):
-      # エラーメッセージ出力
-      messages.error(request, '昼休憩時間が60分を超えています。正しい休憩時間を登録して下さい。ERROR012')
-      # このページをリダイレクト
-      return redirect(to = '/today_break_time')
+    response = break_time_over(break_time1_start_hour, break_time1_start_min, break_time1_end_hour, break_time1_end_min, 60, '昼休憩時間', request)
+    if response:
+      return response
 
     # 残業休憩時間1に長すぎる時間を登録しようとした時の処理
-    if (int(break_time2_end_hour)*60 + int(break_time2_end_min)) - \
-      (int(break_time2_start_hour)*60 + int(break_time2_start_min)) > 15 or \
-      (((int(break_time2_end_hour)*60 + int(break_time2_end_min)) < \
-      (int(break_time2_start_hour)*60 + int(break_time2_start_min))) and \
-      (int(break_time2_end_hour)*60 + int(break_time2_end_min) + 1440) - \
-      (int(break_time2_start_hour)*60 + int(break_time2_start_min)) > 15):
-      # エラーメッセージ出力
-      messages.error(request, '残業時間中の休憩時間1が15分を超えています。正しい休憩時間を登録して下さい。ERROR013')
-      # このページをリダイレクト
-      return redirect(to = '/today_break_time')
+    response = break_time_over(break_time2_start_hour, break_time2_start_min, break_time2_end_hour, break_time2_end_min, 15, '残業時間中の休憩時間1', request)
+    if response:
+      return response
 
     # 残業休憩時間2に長すぎる時間を登録しようとした時の処理
-    if (int(break_time3_end_hour)*60 + int(break_time3_end_min)) - \
-      (int(break_time3_start_hour)*60 + int(break_time3_start_min)) > 60 or \
-      (((int(break_time3_end_hour)*60 + int(break_time3_end_min)) < \
-      (int(break_time3_start_hour)*60 + int(break_time3_start_min))) and \
-      (int(break_time3_end_hour)*60 + int(break_time3_end_min) + 1440) - \
-      (int(break_time3_start_hour)*60 + int(break_time3_start_min)) > 60):
-      # エラーメッセージ出力
-      messages.error(request, '残業時間中の休憩時間2が60分を超えています。正しい休憩時間を登録して下さい。ERROR014')
-      # このページをリダイレクト
-      return redirect(to = '/today_break_time')
+    response = break_time_over(break_time3_start_hour, break_time3_start_min, break_time3_end_hour, break_time3_end_min, 60, '残業時間中の休憩時間2', request)
+    if response:
+      return response
 
     # 残業休憩時間3に長すぎる時間を登録しようとした時の処理
-    if (int(break_time4_end_hour)*60 + int(break_time4_end_min)) - \
-      (int(break_time4_start_hour)*60 + int(break_time4_start_min)) > 15 or \
-      (((int(break_time4_end_hour)*60 + int(break_time4_end_min)) < \
-      (int(break_time4_start_hour)*60 + int(break_time4_start_min))) and \
-      (int(break_time4_end_hour)*60 + int(break_time4_end_min) + 1440) - \
-      (int(break_time4_start_hour)*60 + int(break_time4_start_min)) > 15):
-      # エラーメッセージ出力
-      messages.error(request, '残業時間中の休憩時間3が15分を超えています。正しい休憩時間を登録して下さい。ERROR015')
-      # このページをリダイレクト
-      return redirect(to = '/today_break_time')
+    response = break_time_over(break_time4_start_hour, break_time4_start_min, break_time4_end_hour, break_time4_end_min, 15, '残業時間中の休憩時間3', request)
+    if response:
+      return response
 
 
     # 工数データあるか確認
@@ -3328,6 +3188,163 @@ def detail(request, num):
           # 作業内容、作業詳細書き込み
           work_list[k] = request.POST.get('def_time{}'.format(edit_id))
           detail_list[k] = request.POST.get('detail_time{}'.format(edit_id))
+
+    # 工数整合性取得
+    judgement = judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)
+    # 作業詳細リストを文字列に変更
+    detail_list_str = detail_list_summarize(detail_list)
+
+
+    # 作業内容データの内容を上書きして更新
+    Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
+      work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
+                                                 'detail_work' : detail_list_str, \
+                                                 'judgement' : judgement})
+
+    # このページ読み直し
+    return redirect(to = '/detail/{}'.format(num))
+
+
+
+  # 項目作業時間一括変更時の処理
+  if "all_edit" in request.POST:
+    # 選択したチェックBOXの値取得
+    selected_num = [int(k[3:]) for k in request.POST.getlist('opperable')]
+
+    for i in selected_num:
+      start_time = request.POST.get('start_time{}'.format(i))
+      end_time = request.POST.get('end_time{}'.format(i))
+
+
+      # 作業開始時間の指定がない場合の処理
+      if start_time in ('', None):
+        # エラーメッセージ出力
+        messages.error(request, '時間が入力されていません。ERROR089')
+        # このページをリダイレクト
+        return redirect(to = '/detail/{}'.format(num))
+      
+      # 作業終了時間の指定がない場合の処理
+      if end_time in ('', None):
+        # エラーメッセージ出力
+        messages.error(request, '時間が入力されていません。ERROR090')
+        # このページをリダイレクト
+        return redirect(to = '/detail/{}'.format(num))
+
+      # 作業詳細に'$'が含まれている場合の処理
+      if '$' in request.POST.get('detail_time{}'.format(i)):
+        # エラーメッセージ出力
+        messages.error(request, '作業詳細に『$』は使用できません。工数編集できませんでした。ERROR093')
+        # このページをリダイレクト
+        return redirect(to = '/detail/{}'.format(num))
+
+      # 作業詳細に文字数が100文字以上の場合の処理
+      if len(request.POST.get('detail_time{}'.format(i))) >= 100:
+        # エラーメッセージ出力
+        messages.error(request, '作業詳細は100文字以内で入力して下さい。工数編集できませんでした。ERROR094')
+        # このページをリダイレクト
+        return redirect(to = '/detail/{}'.format(num))
+
+
+      # 作業開始の時と分取得
+      start_time_hour, start_time_min = time_index(start_time)
+      # 作業終了の時と分取得
+      end_time_hour, end_time_min = time_index(end_time)
+
+      # 作業開始時間のインデックス取得
+      start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
+      # 作業終了時間のインデックス取得
+      end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
+
+
+      # 作業開始時間と終了時間が同じ場合の処理
+      if start_time_ind == end_time_ind:
+        # エラーメッセージ出力
+        messages.error(request, '入力された作業時間が正しくありません。ERROR088')
+        # このページをリダイレクト
+        return redirect(to = '/detail/{}'.format(num))
+
+
+      # 作業内容と作業詳細を取得しリストに解凍
+      work_list = list(obj_get.time_work)
+      detail_list = obj_get.detail_work.split('$')
+
+
+      # 変更前の作業時間が日を跨いでいない時の処理
+      if kosu_list[i - 1] < kosu_list[i]:
+        # 指定された時間の作業内容と作業詳細を消すループ
+        for i in range(kosu_list[i - 1], kosu_list[i]):        
+          # 作業内容、作業詳細削除
+          work_list[i] = '#'
+          detail_list[i] = ''
+          
+
+      # 変更前の作業時間が日を跨いでいる時の処理
+      else:
+        # 指定された時間の作業内容と作業詳細を消す
+        for i in range(kosu_list[i - 1] , 288):
+          # 作業内容、作業詳細削除
+          work_list[i] = '#'
+          detail_list[i] = ''
+
+
+        for i in range(kosu_list[i]):
+          # 作業内容、作業詳細削除
+          work_list[i] = '#'
+          detail_list[i] = ''
+
+
+      # 変更後の作業時間が日を跨いでいない時の処理
+      if start_time_ind < end_time_ind:
+        # 変更後の作業時間に工数データが入力されていないかチェック
+        for k in range(start_time_ind, end_time_ind):
+          # 変更後の作業時間に工数データが入力されている場合の処理
+          if work_list[k] != '#':
+            if work_list[k] != '$':
+              # エラーメッセージ出力
+              messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR085')
+              # このページをリダイレクト
+              return redirect(to = '/detail/{}'.format(num))
+
+          # 変更後の作業時間に工数データが入力されていない場合の処理
+          else:
+            # 作業内容、作業詳細書き込み
+            work_list[k] = request.POST.get('def_time{}'.format(i))
+            detail_list[k] = request.POST.get('detail_time{}'.format(i))
+            
+      # 変更後の作業時間が日を跨いでいる時の処理
+      else:
+        # 変更後の作業時間に工数データが入力されていないかチェック
+        for k in range(start_time_ind, 288):
+          # 変更後の作業時間に工数データが入力されている場合の処理
+          if work_list[k] != '#':
+            if work_list[k] != '$':
+              # エラーメッセージ出力
+              messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR086')
+              # このページをリダイレクト
+              return redirect(to = '/detail/{}'.format(num))
+
+          # 変更後の作業時間に工数データが入力されていない場合の処理
+          else:
+            # 作業内容、作業詳細書き込み
+            work_list[k] = request.POST.get('def_time{}'.format(i))
+            detail_list[k] = request.POST.get('detail_time{}'.format(i))
+
+        # 変更後の作業時間に工数データが入力されていないかチェック
+        for k in range(end_time_ind):
+          # 変更後の作業時間に工数データが入力されている場合の処理
+          if work_list[k] != '#':
+            if work_list[k] != '$':
+              # エラーメッセージ出力
+              messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR087')
+              # このページをリダイレクト
+              return redirect(to = '/detail/{}'.format(num))
+
+          # 変更後の作業時間に工数データが入力されていない場合の処理
+          else:
+            # 作業内容、作業詳細書き込み
+            work_list[k] = request.POST.get('def_time{}'.format(i))
+            detail_list[k] = request.POST.get('detail_time{}'.format(i))
+
 
     # 工数整合性取得
     judgement = judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)
