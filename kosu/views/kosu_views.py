@@ -102,7 +102,7 @@ def dynamic_choices(request):
                         'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
 
       # 選択肢をリスト形式で準備
-      choices = [[str_list[n], closest_option]]
+      choices = [[str_list[n-1], closest_option]]
 
       # choicesを含むJSONをレスポンスとして返す
       return JsonResponse({"choices": choices})
@@ -3211,10 +3211,74 @@ def detail(request, num):
     # 選択したチェックBOXの値取得
     selected_num = [int(k[3:]) for k in request.POST.getlist('opperable')]
 
-    for i in selected_num:
-      start_time = request.POST.get('start_time{}'.format(i))
-      end_time = request.POST.get('end_time{}'.format(i))
+    # 作業内容と作業詳細を取得しリストに解凍
+    work_list = list(obj_get.time_work)
+    detail_list = obj_get.detail_work.split('$')
 
+
+    # 工数入力インデックスリスト定義
+    index_list = []
+    break_index_list = []
+    # 工数入力インデックスリスト作成
+    for t in selected_num:
+      # 作業可部分の作業時間取得
+      start_time = request.POST.get('start_time{}'.format(t))
+      end_time = request.POST.get('end_time{}'.format(t))
+      # 作業時間の時と分取得
+      start_time_hour, start_time_min = time_index(start_time)
+      end_time_hour, end_time_min = time_index(end_time)
+      # 作業時間のインデックス取得
+      start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
+      end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
+      
+      # 作業可部分の作業時間インデックス格納
+      for tt in range(start_time_ind, end_time_ind):
+        index_list.append(tt)
+
+    # 作業可以外の部分の作業時間インデックス取得
+    for def_t in range(len(time_list_start)):
+      if def_t + 1 not in selected_num:
+        # 工数区分定義と作業詳細が空欄でない場合の処理
+        if not def_time[def_t] == '' and detail_time[def_t] == '':
+          # 休憩時間は作業時間被りから除外
+          if def_time[def_t] != '休憩':
+            # 作業時間の時と分取得 
+            start_time_hour, start_time_min = time_index(time_list_start[def_t])
+            end_time_hour, end_time_min = time_index(time_list_end[def_t])
+            # 作業時間のインデックス取得
+            start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
+            end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
+
+            # 作業可以外の作業時間インデックス格納
+            for def_tt in range(start_time_ind, end_time_ind):
+              index_list.append(def_tt)
+
+          # 休憩時間の処理
+          else:
+            # 作業時間の時と分取得 
+            start_time_hour, start_time_min = time_index(time_list_start[def_t])
+            end_time_hour, end_time_min = time_index(time_list_end[def_t])
+            # 作業時間のインデックス取得
+            start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
+            end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
+
+            # 休憩時間のインデックス取得
+            for def_tt in range(start_time_ind, end_time_ind):
+              break_index_list.append(def_tt)
+
+    # 工数入力時間に被りがある場合の処理
+    if len(index_list) != len(set(index_list)):
+      # エラーメッセージ出力
+      messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR085')
+      # このページをリダイレクト
+      return redirect(to = '/detail/{}'.format(num))
+
+
+    # 作業可部分の変更を書き込むループ
+    for d in selected_num:
+      # 作業時間取得
+      start_time = request.POST.get('start_time{}'.format(d))
+      end_time = request.POST.get('end_time{}'.format(d))
 
       # 作業開始時間の指定がない場合の処理
       if start_time in ('', None):
@@ -3231,20 +3295,20 @@ def detail(request, num):
         return redirect(to = '/detail/{}'.format(num))
 
       # 作業詳細に'$'が含まれている場合の処理
-      if '$' in request.POST.get('detail_time{}'.format(i)):
+      if '$' in request.POST.get('detail_time{}'.format(d)):
         # エラーメッセージ出力
         messages.error(request, '作業詳細に『$』は使用できません。工数編集できませんでした。ERROR093')
         # このページをリダイレクト
         return redirect(to = '/detail/{}'.format(num))
 
       # 作業詳細に文字数が100文字以上の場合の処理
-      if len(request.POST.get('detail_time{}'.format(i))) >= 100:
+      if len(request.POST.get('detail_time{}'.format(d))) >= 100:
         # エラーメッセージ出力
         messages.error(request, '作業詳細は100文字以内で入力して下さい。工数編集できませんでした。ERROR094')
         # このページをリダイレクト
         return redirect(to = '/detail/{}'.format(num))
-
-
+    
+    
       # 作業開始の時と分取得
       start_time_hour, start_time_min = time_index(start_time)
       # 作業終了の時と分取得
@@ -3264,87 +3328,35 @@ def detail(request, num):
         return redirect(to = '/detail/{}'.format(num))
 
 
-      # 作業内容と作業詳細を取得しリストに解凍
-      work_list = list(obj_get.time_work)
-      detail_list = obj_get.detail_work.split('$')
-
-
-      # 変更前の作業時間が日を跨いでいない時の処理
-      if kosu_list[i - 1] < kosu_list[i]:
-        # 指定された時間の作業内容と作業詳細を消すループ
-        for i in range(kosu_list[i - 1], kosu_list[i]):        
-          # 作業内容、作業詳細削除
-          work_list[i] = '#'
-          detail_list[i] = ''
-          
-
-      # 変更前の作業時間が日を跨いでいる時の処理
-      else:
-        # 指定された時間の作業内容と作業詳細を消す
-        for i in range(kosu_list[i - 1] , 288):
-          # 作業内容、作業詳細削除
-          work_list[i] = '#'
-          detail_list[i] = ''
-
-
-        for i in range(kosu_list[i]):
-          # 作業内容、作業詳細削除
-          work_list[i] = '#'
-          detail_list[i] = ''
-
-
       # 変更後の作業時間が日を跨いでいない時の処理
       if start_time_ind < end_time_ind:
         # 変更後の作業時間に工数データが入力されていないかチェック
         for k in range(start_time_ind, end_time_ind):
-          # 変更後の作業時間に工数データが入力されている場合の処理
-          if work_list[k] != '#':
-            if work_list[k] != '$':
-              # エラーメッセージ出力
-              messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR085')
-              # このページをリダイレクト
-              return redirect(to = '/detail/{}'.format(num))
-
-          # 変更後の作業時間に工数データが入力されていない場合の処理
-          else:
-            # 作業内容、作業詳細書き込み
-            work_list[k] = request.POST.get('def_time{}'.format(i))
-            detail_list[k] = request.POST.get('detail_time{}'.format(i))
+          # 作業内容、作業詳細書き込み
+          work_list[k] = request.POST.get('def_time{}'.format(d))
+          detail_list[k] = request.POST.get('detail_time{}'.format(d))
             
       # 変更後の作業時間が日を跨いでいる時の処理
       else:
         # 変更後の作業時間に工数データが入力されていないかチェック
         for k in range(start_time_ind, 288):
-          # 変更後の作業時間に工数データが入力されている場合の処理
-          if work_list[k] != '#':
-            if work_list[k] != '$':
-              # エラーメッセージ出力
-              messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR086')
-              # このページをリダイレクト
-              return redirect(to = '/detail/{}'.format(num))
-
-          # 変更後の作業時間に工数データが入力されていない場合の処理
-          else:
-            # 作業内容、作業詳細書き込み
-            work_list[k] = request.POST.get('def_time{}'.format(i))
-            detail_list[k] = request.POST.get('detail_time{}'.format(i))
+          # 作業内容、作業詳細書き込み
+          work_list[k] = request.POST.get('def_time{}'.format(d))
+          detail_list[k] = request.POST.get('detail_time{}'.format(d))
 
         # 変更後の作業時間に工数データが入力されていないかチェック
         for k in range(end_time_ind):
-          # 変更後の作業時間に工数データが入力されている場合の処理
-          if work_list[k] != '#':
-            if work_list[k] != '$':
-              # エラーメッセージ出力
-              messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR087')
-              # このページをリダイレクト
-              return redirect(to = '/detail/{}'.format(num))
+          # 作業内容、作業詳細書き込み
+          work_list[k] = request.POST.get('def_time{}'.format(d))
+          detail_list[k] = request.POST.get('detail_time{}'.format(d))
 
-          # 変更後の作業時間に工数データが入力されていない場合の処理
-          else:
-            # 作業内容、作業詳細書き込み
-            work_list[k] = request.POST.get('def_time{}'.format(i))
-            detail_list[k] = request.POST.get('detail_time{}'.format(i))
 
+    # 工数が入力されていないインデックス取得
+    index_list_another = [item for item in range(288) if item not in index_list + break_index_list]
+    # 工数が入力されていない部分を消す
+    for del_k in index_list_another:
+      work_list[del_k] = '#'
+      detail_list[del_k] = ''
 
     # 工数整合性取得
     judgement = judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)
