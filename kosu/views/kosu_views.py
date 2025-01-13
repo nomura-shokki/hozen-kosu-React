@@ -57,7 +57,6 @@ from django.http import HttpResponse
 @csrf_exempt
 # 作業詳細入力時の工数定義区分変更
 def dynamic_choices(request):
-
   # POST時の処理
   if request.method == "POST":
     try:
@@ -125,7 +124,6 @@ def dynamic_choices(request):
 @csrf_exempt
 # 工数区分定義選択時の選択肢生成
 def all_choices(request):
-
   try:
     # 工数区分定義リスト作成
     choices_list, def_n = kosu_division_dictionary(request.session['input_def'])
@@ -269,7 +267,6 @@ class KosuListView(ListView):
 
 # 工数入力画面定義
 def input(request):
-
   # セッションにログインした従業員番号がない場合の処理
   if not request.session.get('login_No'):
     # 未ログインならログインページへ飛ぶ
@@ -1872,7 +1869,6 @@ def input(request):
 
 # 休憩時間定義画面定義
 def break_time(request): 
-
   # セッションにログインした従業員番号がない場合の処理
   if not request.session.get('login_No'):
     # 未ログインならログインページへ飛ぶ
@@ -2232,7 +2228,6 @@ def break_time(request):
 
 # 当日休憩変更定義画面定義
 def today_break_time(request): 
-
   # セッションにログインした従業員番号がない場合の処理
   if not request.session.get('login_No'):
     # 未ログインならログインページへ飛ぶ
@@ -2564,7 +2559,6 @@ def today_break_time(request):
 
 # 工数詳細確認画面定義
 def detail(request, num):
-
   # セッションにログインした従業員番号がない場合の処理
   if not request.session.get('login_No'):
     # 未ログインならログインページへ飛ぶ
@@ -3424,7 +3418,6 @@ def detail(request, num):
 
 # 工数削除画面定義
 def delete(request, num):
-
   # セッションにログインした従業員番号がない場合の処理
   if not request.session.get('login_No'):
     # 未ログインならログインページへ飛ぶ
@@ -3769,7 +3762,6 @@ def delete(request, num):
 
 # 工数集計画面定義
 def total(request): 
-
   # セッションにログインした従業員番号がない場合の処理
   if not request.session.get('login_No'):
     # 未ログインならログインページへ飛ぶ
@@ -4208,7 +4200,6 @@ def total(request):
 
 # カレンダー画面定義
 def schedule(request): 
-
   # セッションにログインした従業員番号がない場合の処理
   if not request.session.get('login_No'):
     # 未ログインならログインページへ飛ぶ
