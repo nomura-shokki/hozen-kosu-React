@@ -5997,7 +5997,6 @@ def all_kosu_detail(request, num):
 
 # 工数削除画面定義
 def all_kosu_delete(request, num):
-
   # 設定データ取得
   page_num = administrator_data.objects.order_by("id").last()
 
