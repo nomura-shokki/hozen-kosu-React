@@ -66,4 +66,4 @@ jobs:
         with:
           app-name: 'hozen-kosu-another'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BE16664D6A734D0A883FECFC8501B9C3 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B607EA1D46CC4893B8592834111AA186 }}
