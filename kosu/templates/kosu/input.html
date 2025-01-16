@@ -178,12 +178,12 @@
 
   <script>
     function increment(element) {
-      var input = element.parentNode.querySelector('input[type=number]');
+      let input = element.parentNode.querySelector('input[type=number]');
       input.value = parseInt(input.value) + 15 || 0; 
     }
     
     function decrement(element) {
-      var input = element.parentNode.querySelector('input[type=number]');
+      let input = element.parentNode.querySelector('input[type=number]');
       input.value = parseInt(input.value) - 15 || 0;
     }
   </script>
@@ -204,7 +204,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       
-      var inputElements = document.querySelectorAll('input, textarea');
+      let inputElements = document.querySelectorAll('input, textarea');
       
       inputElements.forEach(function(inputElement) {
         inputElement.addEventListener('keydown', function(event) {
@@ -263,8 +263,8 @@
   </script>
 
   <script>
-    var label_list = [];
-    var data_list = [];
+    let label_list = [];
+    let data_list = [];
   </script>
     {% for i in graph_item %}
       <script>
@@ -277,7 +277,7 @@
     </script>
     {% endfor %}
   <script>
-    var datasets = [
+    let datasets = [
       {
         data: data_list,
         backgroundColor : ['#FFFFFF'],
@@ -286,7 +286,7 @@
       }
     ]
 
-    for (var i = 0; i < datasets[0].data.length; i++) {
+    for (let i = 0; i < datasets[0].data.length; i++) {
       if (datasets[0].data[i] == 1) {
         datasets[0].backgroundColor[i] = 'plum'
       } else {
