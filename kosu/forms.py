@@ -55,6 +55,7 @@ class input_kosuForm(forms.Form):
   work = forms.ChoiceField(label = '勤務', choices = employment_list, required = False, widget = forms.Select(attrs = {'class' : 'form-control custom-border', 'style' : 'width : 90px;'}))
   work2 = forms.ChoiceField(label = '勤務', choices = employment_list, required = False, widget = forms.Select(attrs = {'class' : 'form-control custom-border', 'style' : 'width : 90px;'}))
   break_change = forms.BooleanField(label = '休憩変更', required = False, widget = forms.CheckboxInput(attrs = {'class' : 'form-check-input'}))
+  def_prediction = forms.BooleanField(label = '工数定義区分予測無効', required = False, widget = forms.CheckboxInput(attrs = {'class' : 'form-check-input'}))
 
 
 

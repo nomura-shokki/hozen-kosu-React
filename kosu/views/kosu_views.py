@@ -1286,6 +1286,25 @@ def input(request):
 
 
 
+  # 残業登録時の処理
+  elif "def_check" in request.POST:
+    # 残業を上書きして更新
+    member.objects.update_or_create(employee_no = request.session['login_No'], \
+                                    defaults = {'def_prediction': 'def_prediction' in request.POST})
+
+    # このページをリダイレクトする
+    return redirect(to = '/input')
+
+
+
+
+
+
+
+
+
+
+
   # 現在時刻取得処理
   elif "now_time" in request.POST:
     # 指定日に工数データが既にあるか確認
@@ -1548,7 +1567,8 @@ def input(request):
                  'kosu_def_list': request.session.get('error_def', ''),
                  'work_detail' : request.session.get('error_detail', ''),
                  'over_work' : over_work_default,
-                 'break_change' : break_change_default,}
+                 'break_change' : break_change_default,
+                 'def_prediction' : member_obj.def_prediction}
   
   default_start_time = request.session.get('start_time', '')  
 
