@@ -4373,7 +4373,7 @@ def schedule(request):
     # カレンダーの年、月取得
     year = request.session.get('update_year', '')
     month = request.session.get('update_month', '')
-    
+
     # 日付リスト作成
     day_list = calendar_day(year, month)
 
@@ -4383,7 +4383,7 @@ def schedule(request):
         if day_list[i] != '':
           # 工数データがあるか確認
           work_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                            work_day2 = datetime.date(year, month, day_list[i]))
+                                                           work_day2 = datetime.date(year, month, day_list[i]))
 
           # 工数データがある場合の処理
           if work_filter.exists():
@@ -4446,7 +4446,7 @@ def schedule(request):
     # カレンダーの年、月取得
     year = request.session.get('update_year', '')
     month = request.session.get('update_month', '')
-    
+
     # 日付リスト作成
     day_list = calendar_day(year, month)
 
@@ -4472,7 +4472,7 @@ def schedule(request):
               Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
                 work_day2 = datetime.date(year, month, day_list[i]), \
                   defaults = {'work_time' : '出勤'})
-              
+
             else:
               # 就業を上書き
               Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
@@ -4494,7 +4494,7 @@ def schedule(request):
                             'detail_work' : '$'*287, \
                             'over_time' : 0, \
                             'judgement' : False})
-            
+
           # 休日の場合の処理
           else:
             # 就業データ作成(空の工数データも入れる)
@@ -4523,7 +4523,7 @@ def schedule(request):
         if day_filter.exists():
           # 対応する日付の工数データを取得
           day_get = day_filter.first()
-          
+
           # 就業データを初期値リストに入れる
           form_default_list[('day{}'.format(i + 1))] = day_get.work_time
           form_default_list[('tyoku{}'.format(i + 1))] = day_get.tyoku2
