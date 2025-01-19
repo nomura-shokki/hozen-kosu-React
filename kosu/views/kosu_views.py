@@ -1286,22 +1286,74 @@ def input(request):
 
 
 
-  # 残業登録時の処理
+  # 工数区分定義予測設定変更時の処理
   elif "def_check" in request.POST:
-    # 残業を上書きして更新
+    # 指定日に工数データが既にあるか確認
+    obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=request.POST['work_day'])
+
+    # 指定日に工数データがある場合の処理
+    if obj_filter.exists():
+      # 工数データ取得
+      obj_get = obj_filter.first()
+
+      # 直入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
+      if obj_get.tyoku2 != request.POST['tyoku'] and request.POST['tyoku'] not in (None, ''):
+        tyoku = request.POST['tyoku']
+      elif obj_get.tyoku2 != request.POST['tyoku2'] and request.POST['tyoku2'] not in (None, ''):
+        tyoku = request.POST['tyoku2']
+      else:
+        tyoku = obj_get.tyoku2
+
+      # 勤務入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
+      if obj_get.work_time != request.POST['work'] and request.POST['work'] not in (None, ''):
+        work = request.POST['work']
+      elif obj_get.work_time != request.POST['work2'] and request.POST['work2'] not in (None, ''):
+        work = request.POST['work2']
+      else:
+        work = obj_get.work_time
+
+    # 指定日に工数データがない場合の処理
+    else:
+      # 2つのフォームで入力のあった直を変数に入れる
+      if request.POST['tyoku'] not in (None, ''):
+        tyoku = request.POST['tyoku']
+      elif request.POST['tyoku2'] not in (None, '') != '':
+        tyoku = request.POST['tyoku2']
+      else:
+        tyoku = ''
+
+      # 2つのフォームで入力のあった勤務を変数に入れる
+      if request.POST['work'] != '':
+        work = request.POST['work']
+      elif request.POST['work2'] != '':
+        work = request.POST['work2']
+      else:
+        work = ''
+
+    # 直初期値設定保持
+    request.session['error_tyoku'] = tyoku
+    # 勤務初期値設定保持
+    request.session['error_work'] = work
+    # 工数区分定義初期値設定保持
+    request.session['error_def'] = request.POST['kosu_def_list']
+    # 作業詳細初期値設定保持
+    request.session['error_detail'] = request.POST['work_detail']
+    # 残業初期値設定保持
+    request.session['error_over_work'] = request.POST['over_work']
+    # 作業開始時間保持
+    request.session['start_time'] = request.POST['start_time']
+    # 作業終了時間保持
+    request.session['end_time'] = request.POST['end_time']
+    # 翌日チェック保持
+    request.session['tomorrow_check'] = 'tomorrow_check' in request.POST
+
+
+    # 工数区分定義予測設定を上書きして更新
     member.objects.update_or_create(employee_no = request.session['login_No'], \
                                     defaults = {'def_prediction': 'def_prediction' in request.POST})
 
     # このページをリダイレクトする
     return redirect(to = '/input')
-
-
-
-
-
-
-
-
 
 
 
