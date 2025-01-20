@@ -299,7 +299,6 @@ def input(request):
 
   # グラフ更新時の処理
   elif "update" in request.POST:
-
     if request.POST['work_day']:
       # 更新された就業日をセッションに登録
       request.session['day'] = request.POST['work_day']
@@ -4330,7 +4329,6 @@ def schedule(request):
 
   # カレンダー更新時の処理
   if "time_update" in request.POST:
-
     # 年取得
     year = int(request.POST['year'])
     # 月取得
@@ -4369,7 +4367,6 @@ def schedule(request):
 
   # 直一括入力の処理
   if "default_tyoku" in request.POST:
-
     # カレンダーの年、月取得
     year = request.session.get('update_year', '')
     month = request.session.get('update_month', '')
@@ -4442,7 +4439,6 @@ def schedule(request):
 
   # デフォルト勤務入力の処理
   if "default_work" in request.POST:
-
     # カレンダーの年、月取得
     year = request.session.get('update_year', '')
     month = request.session.get('update_month', '')
@@ -4537,7 +4533,6 @@ def schedule(request):
 
   # 勤務登録時の処理
   if "work_update" in request.POST:
-
     # カレンダー設定フォーム定義
     form2 = schedule_timeForm(request.POST)
 
@@ -4565,26 +4560,8 @@ def schedule(request):
           # 工数合計取得
           kosu_total = 1440 - (work_get.time_work.count('#')*5) - (work_get.time_work.count('$')*5)
 
-          # POST値が休日の場合の処理
-          if eval('request.POST["day{}"]'.format(i + 1)) == '年休' or \
-            eval('request.POST["day{}"]'.format(i + 1)) == '休日' or \
-              eval('request.POST["day{}"]'.format(i + 1)) == '公休' or \
-                eval('request.POST["day{}"]'.format(i + 1)) == 'シフト休' or \
-                  eval('request.POST["day{}"]'.format(i + 1)) == '代休' or \
-                    eval('request.POST["day{}"]'.format(i + 1)) == '欠勤':
-            # 工数入力がない場合の処理
-            if kosu_total == 0:
-              # 整合性OK
-              judgement = True
-            # 工数入力がある場合の処理
-            else:
-              # 整合性NG
-              judgement = False
-
-          # POST値が休日でない場合の処理
-          else:
-            # 整合性取得
-            judgement = judgement_check(list(work_get.time_work), eval('request.POST["day{}"]'.format(i + 1)), eval('request.POST["tyoku{}"]'.format(i + 1)), member_obj, work_get.over_time)
+          # 整合性取得
+          judgement = judgement_check(list(work_get.time_work), eval('request.POST["day{}"]'.format(i + 1)), eval('request.POST["tyoku{}"]'.format(i + 1)), member_obj, work_get.over_time)
 
           # 就業を上書き
           Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
@@ -4606,20 +4583,8 @@ def schedule(request):
 
         # 工数データがなくPOSTした値が空欄でない場合の処理
         if eval('request.POST["day{}"]'.format(i + 1)) != '' and work_filter.count() == 0:
-          # POST値が休日の場合の処理
-          if eval('request.POST["day{}"]'.format(i + 1)) == '年休' or \
-            eval('request.POST["day{}"]'.format(i + 1)) == '休日' or \
-              eval('request.POST["day{}"]'.format(i + 1)) == '公休' or \
-                eval('request.POST["day{}"]'.format(i + 1)) == 'シフト休' or \
-                  eval('request.POST["day{}"]'.format(i + 1)) == '代休' or \
-                    eval('request.POST["day{}"]'.format(i + 1)) == '欠勤':
-            # 整合性OK
-            judgement = True
-
-          # POST値が休日以外の場合の処理
-          else:
-            # 整合性NG
-            judgement = False
+          # 整合性取得
+          judgement = judgement_check(list(itertools.repeat('#', 288)), eval('request.POST["day{}"]'.format(i + 1)), eval('request.POST["tyoku{}"]'.format(i + 1)), member_obj, 0)
 
           # 従業員番号に該当するmemberインスタンスを取得
           member_instance = member.objects.get(employee_no = request.session['login_No'])
@@ -4889,7 +4854,6 @@ def schedule(request):
 
 # 残業管理画面定義
 def over_time(request):
-
    # セッションにログインした従業員番号がない場合の処理
   if not request.session.get('login_No'):
     # 未ログインならログインページへ飛ぶ
@@ -5021,7 +4985,6 @@ def over_time(request):
 
 # 全工数操作画面定義
 def all_kosu(request, num):
-
   # 設定データ取得
   page_num = administrator_data.objects.order_by("id").last()
 
@@ -5286,7 +5249,6 @@ def all_kosu(request, num):
 
 # 工数編集画面定義
 def all_kosu_detail(request, num):
-
   # 設定データ取得
   page_num = administrator_data.objects.order_by("id").last()
 
