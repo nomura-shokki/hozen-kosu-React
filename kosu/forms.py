@@ -395,6 +395,7 @@ class scheduleForm(forms.Form):
     ('シフト休', 'シフト休'),
     ('代休', '代休'),
     ('早退・遅刻', '早退・遅刻'),
+    ('欠勤', '欠勤'),
     ]
   
   tyoku_list = [
@@ -617,6 +618,7 @@ class all_kosu_findForm(forms.Form):
     ('シフト休', 'シフト休'),
     ('代休', '代休'),
     ('早退・遅刻', '早退・遅刻'),
+    ('欠勤', '欠勤'),
     ]
 
   OK_NG_list = [
@@ -660,6 +662,7 @@ class all_kosuForm(forms.Form):
     ('シフト休', 'シフト休'),
     ('代休', '代休'),
     ('早退・遅刻', '早退・遅刻'),
+    ('欠勤', '欠勤'),
     ]
   
   employee_no = forms.IntegerField(label = '従業員番号', widget = forms.NumberInput(attrs = {'class' : 'form-control custom-border', 'min' : 0, 'style' : 'width : 200px;'}), required = False)

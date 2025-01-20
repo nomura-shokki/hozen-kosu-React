@@ -4570,7 +4570,8 @@ def schedule(request):
             eval('request.POST["day{}"]'.format(i + 1)) == '休日' or \
               eval('request.POST["day{}"]'.format(i + 1)) == '公休' or \
                 eval('request.POST["day{}"]'.format(i + 1)) == 'シフト休' or \
-                  eval('request.POST["day{}"]'.format(i + 1)) == '代休':
+                  eval('request.POST["day{}"]'.format(i + 1)) == '代休' or \
+                    eval('request.POST["day{}"]'.format(i + 1)) == '欠勤':
             # 工数入力がない場合の処理
             if kosu_total == 0:
               # 整合性OK
@@ -4610,7 +4611,8 @@ def schedule(request):
             eval('request.POST["day{}"]'.format(i + 1)) == '休日' or \
               eval('request.POST["day{}"]'.format(i + 1)) == '公休' or \
                 eval('request.POST["day{}"]'.format(i + 1)) == 'シフト休' or \
-                  eval('request.POST["day{}"]'.format(i + 1)) == '代休':
+                  eval('request.POST["day{}"]'.format(i + 1)) == '代休' or \
+                    eval('request.POST["day{}"]'.format(i + 1)) == '欠勤':
             # 整合性OK
             judgement = True
 
