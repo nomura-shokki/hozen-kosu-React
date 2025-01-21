@@ -213,6 +213,7 @@ class MemberNewView(CreateView):
     context.update({
         'title': '人員登録',
         'data': self.data,
+        'form_link': reverse_lazy('member_new')
     })
     return context
 
@@ -271,8 +272,8 @@ class MemberEditView(UpdateView):
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
     context['title'] = '人員編集'
-    context['employee_no'] = self.object.employee_no
     context['data'] = self.login_user
+    context['form_link'] = reverse_lazy('member_edit', args=[self.object.employee_no])
     return context
 
 
