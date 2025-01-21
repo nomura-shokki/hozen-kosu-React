@@ -2,7 +2,8 @@ from django.shortcuts import redirect, render
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.views.generic import ListView
-from django.views import View
+from django.views.generic.edit import UpdateView, CreateView, DeleteView
+from django.urls import reverse_lazy
 from ..models import member, Business_Time_graph, administrator_data, inquiry_data
 from ..forms import memberForm, member_findForm
 
@@ -61,7 +62,7 @@ class MemberPageView(ListView):
     return member.objects.filter(shop__contains=shop, employee_no__contains=employee_no).order_by('employee_no')
 
 
-  # HTMLに送る辞書定義
+  # コンテキストデータを取得するメソッドをオーバーライド
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
     context.update({
@@ -111,80 +112,109 @@ class MemberPageView(ListView):
 
 
 # 人員登録画面定義
-class MemberNewView(View):
-  # テンプレート定義
+class MemberNewView(CreateView):
+  # テンプレート、フォーム定義
   template_name = 'kosu/member_new.html'
+  form_class = memberForm
 
 
-  # 画面処理前の初期設定
+  # リクエストを処理するメソッドをオーバーライド
   def dispatch(self, request, *args, **kwargs):
     # ログインしていない場合ログイン画面へ
     if not request.session.get('login_No'):
-      return redirect('/login')
+        return redirect('/login')
 
     # 人員情報取得(取得できない場合セッション削除しログイン画面へ)
     try:
-      self.data = member.objects.get(employee_no=request.session['login_No'])
+        self.data = member.objects.get(employee_no=request.session['login_No'])
     except member.DoesNotExist:
-      request.session.clear()
-      return redirect(to='/login')
-    
+        request.session.clear()
+        return redirect(to='/login')
+
     # 権限がないユーザーの場合ログイン画面へ
     if not self.data.authority:
-      return redirect(to='/')
+        return redirect(to='/')
+
     # 親クラスへ情報送信
     return super().dispatch(request, *args, **kwargs)
 
 
-  # GET時の処理
-  def get(self, request):
-    # HTMLに送る値定義
-    context = {
-        'title': '人員登録',
-        'data': self.data,
-        'form': memberForm(),
+  # フォームの初期値を設定するメソッド
+  def get_initial(self):
+    initial_values = {
+        'break_time1': '#00000000',
+        'break_time1_over1': '#00000000',
+        'break_time1_over2': '#00000000',
+        'break_time1_over3': '#00000000',
+        'break_time2': '#00000000',
+        'break_time2_over1': '#00000000',
+        'break_time2_over2': '#00000000',
+        'break_time2_over3': '#00000000',
+        'break_time3': '#00000000',
+        'break_time3_over1': '#00000000',
+        'break_time3_over2': '#00000000',
+        'break_time3_over3': '#00000000',
+        'break_time4': '#00000000',
+        'break_time4_over1': '#00000000',
+        'break_time4_over2': '#00000000',
+        'break_time4_over3': '#00000000',
     }
-    # 指定したHTMLに辞書を渡して表示を完成させる
-    return render(request, self.template_name, context)
+    return initial_values
 
 
-  # POST時の処理
-  def post(self, request):
+  # フォームバリデーションが成功した際の処理
+  def form_valid(self, form):
+    request = self.request
     # POSTした従業員番号が既に登録されている場合エラー出力
     if member.objects.filter(employee_no=request.POST['employee_no']).exists():
-      messages.error(request, '入力した従業員番号はすでに登録があるので登録できません。ERROR020')
-      return redirect(to='/new')
+        messages.error(request, '入力した従業員番号はすでに登録があるので登録できません。ERROR020')
+        return redirect(to='/new')
 
     # POSTしたショップがボデーか組立の場合の処理
     if request.POST['shop'] in ['W1', 'W2', 'A1', 'A2', '組長以上(W,A)']:
-      # 休憩時間用文字列定義
-      break_times = ['#11401240', '#17201735', '#23350035', '#04350450',
+        # 休憩時間用文字列定義
+        break_times = ['#11401240', '#17201735', '#23350035', '#04350450',
                       '#14101510', '#22002215', '#04150515', '#09150930',
                       '#23500050', '#06400655', '#12551355', '#17551810',
                       '#12001300', '#19001915', '#01150215', '#06150630']
-    # POSTしたショップがボデーと組立以外の場合の処理
     else:
-      # 休憩時間用文字列定義
-      break_times = ['#10401130', '#15101520', '#20202110', '#01400150',
+        # 休憩時間用文字列定義
+        break_times = ['#10401130', '#15101520', '#20202110', '#01400150',
                       '#17501840', '#22302240', '#03400430', '#09000910',
                       '#01400230', '#07050715', '#12151305', '#17351745',
                       '#12001300', '#19001915', '#01150215', '#06150630']
-
-    # 人員データのレコード作成
-    new_member = member(
-        employee_no=request.POST['employee_no'], name=request.POST['name'], shop=request.POST['shop'],
-        authority='authority' in request.POST, administrator='administrator' in request.POST,
-        break_time1=break_times[0], break_time1_over1=break_times[1], break_time1_over2=break_times[2],
-        break_time1_over3=break_times[3], break_time2=break_times[4], break_time2_over1=break_times[5],
-        break_time2_over2=break_times[6], break_time2_over3=break_times[7], break_time3=break_times[8],
-        break_time3_over1=break_times[9], break_time3_over2=break_times[10], break_time3_over3=break_times[11],
-        break_time4=break_times[12], break_time4_over1=break_times[13], break_time4_over2=break_times[14],
-        break_time4_over3=break_times[15]
-    )
-    # レコードセーブ
+    # 休憩時間設定
+    new_member = form.save(commit=False)
+    new_member.break_time1 = break_times[0]
+    new_member.break_time1_over1 = break_times[1]
+    new_member.break_time1_over2 = break_times[2]
+    new_member.break_time1_over3 = break_times[3]
+    new_member.break_time2 = break_times[4]
+    new_member.break_time2_over1 = break_times[5]
+    new_member.break_time2_over2 = break_times[6]
+    new_member.break_time2_over3 = break_times[7]
+    new_member.break_time3 = break_times[8]
+    new_member.break_time3_over1 = break_times[9]
+    new_member.break_time3_over2 = break_times[10]
+    new_member.break_time3_over3 = break_times[11]
+    new_member.break_time4 = break_times[12]
+    new_member.break_time4_over1 = break_times[13]
+    new_member.break_time4_over2 = break_times[14]
+    new_member.break_time4_over3 = break_times[15]
     new_member.save()
-    # 人員一覧をリダイレクト
+
+    # 人員一覧ページへ
     return redirect(to='/member/1')
+
+
+  # コンテキストデータを取得するメソッドをオーバーライド
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context.update({
+        'title': '人員登録',
+        'data': self.data,
+    })
+    return context
 
 
 
@@ -197,101 +227,118 @@ class MemberNewView(View):
 
 
 # 人員編集画面定義
-class MemberEditView(View):
-  # GET時の処理
-  def get(self, request, num):
-    # 未ログインならログインページに飛ぶ
-    if request.session.get('login_No', None) is None:
-      return redirect(to='/login')
+class MemberEditView(UpdateView):
+  # モデル、フォーム、テンプレート、データなどを指定
+  model = member
+  form_class = memberForm
+  template_name = 'kosu/member_edit.html'
+  context_object_name = 'data'
+  pk_url_kwarg = 'num'
 
+
+  # 人員データ取得
+  def get_object(self, queryset=None):
+    return member.objects.get(employee_no=self.kwargs['num'])
+
+
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # ログインしていない場合ログイン画面へ
+    if not request.session.get('login_No'):
+      return redirect('/login')
+
+    # 人員情報取得(取得できない場合セッション削除しログイン画面へ)
     try:
-      # ログイン者の情報取得
-      data = member.objects.get(employee_no=request.session['login_No'])
-
-    # セッション値から人員情報取得できない場合の処理
+      self.login_user = member.objects.get(employee_no=request.session['login_No'])
     except member.DoesNotExist:
-      # セッション削除
       request.session.clear()
-      # ログインページに戻る
       return redirect(to='/login')
 
-    # ログイン者に権限がなければメインページに戻る
-    if data.authority == False:
+    # 権限がないユーザーの場合ログイン画面へ
+    if not self.login_user.authority:
       return redirect(to='/')
 
-    # 編集前の従業員番号をセッションに記憶
-    obj = member.objects.get(employee_no=num)
-    request.session['edit_No'] = num
+    # 人員データ取得
+    self.object = self.get_object()
+    # 編集前従業員番号記憶
+    request.session['edit_No'] = self.object.employee_no
+
+    # 親クラスへ情報送信
+    return super().dispatch(request, *args, **kwargs)
 
 
-    # HTMLに渡す辞書
-    context = {
-        'title': '人員編集',
-        'employee_no': num,
-        'data': data,
-        'form': memberForm(instance=obj),
-    }
-    # 指定したHTMLに辞書を渡して表示を完成させる
-    return render(request, 'kosu/member_edit.html', context)
+  # コンテキストデータを取得するメソッドをオーバーライド
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context['title'] = '人員編集'
+    context['employee_no'] = self.object.employee_no
+    context['data'] = self.login_user
+    return context
 
 
-  # POST時の処理
-  def post(self, request, num):
-    # 人員登録データの内、従業員番号がPOST送信された値と等しいレコードのオブジェクトを取得
-    data = member.objects.filter(employee_no=request.POST['employee_no'])
+  # フォームが有効な場合に呼ばれるメソッドをオーバーライド 
+  def form_valid(self, form):
+    # 編集前の従業員番号を取得
+    original_employee_no = self.request.session['edit_No']
+    # フォームから新しい従業員番号を取得
+    new_employee_no = form.cleaned_data['employee_no']
+    # フォームからショップの値を取得
+    shop = form.cleaned_data['shop']
+
+    # 編集後の従業員番号が既存データと被った場合、エラー出力しリダイレクト
+    if int(original_employee_no) != int(new_employee_no) and member.objects.filter(employee_no=new_employee_no).exists():
+      messages.error(self.request, '入力した従業員番号はすでに登録があるので登録できません。ERROR021')
+      return redirect(to=f'/member_edit/{self.kwargs["num"]}')
     
-    # 編集した従業員番号の登録がすでにあるかチェック
-    if int(request.session['edit_No']) != int(request.POST['employee_no']) and data.count() >= 1:
-      messages.error(request, '入力した従業員番号はすでに登録があるので登録できません。ERROR021')
-      return redirect(to=f'/member_edit/{num}')
-
-    # POSTしたショップがボデーか組立の場合の処理
-    if request.POST['shop'] in ['W1', 'W2', 'A1', 'A2', '組長以上(W,A)']:
-      # 休憩時間用文字列定義
+    # デフォルトの休憩時間リスト指定
+    if shop in ['W1', 'W2', 'A1', 'A2', '組長以上(W,A)']:
       break_times = ['#11401240', '#17201735', '#23350035', '#04350450',
                       '#14101510', '#22002215', '#04150515', '#09150930',
                       '#23500050', '#06400655', '#12551355', '#17551810',
                       '#12001300', '#19001915', '#01150215', '#06150630']
-    # POSTしたショップがボデーと組立以外の場合の処理
+    
     else:
-      # 休憩時間用文字列定義
       break_times = ['#10401130', '#15101520', '#20202110', '#01400150',
                       '#17501840', '#22302240', '#03400430', '#09000910',
                       '#01400230', '#07050715', '#12151305', '#17351745',
                       '#12001300', '#19001915', '#01150215', '#06150630']
 
-    # 指定従業員番号のレコードにPOST送信された値を上書きする
-    member.objects.update_or_create(employee_no=request.POST['employee_no'],
-                                    defaults={'employee_no': request.POST['employee_no'],
-                                              'name': request.POST['name'],
-                                              'shop': request.POST['shop'],
-                                              'authority': 'authority' in request.POST,
-                                              'administrator': 'administrator' in request.POST,
-                                              'break_time1': break_times[0], 'break_time1_over1': break_times[1],
-                                              'break_time1_over2': break_times[2], 'break_time1_over3': break_times[3],
-                                              'break_time2': break_times[4], 'break_time2_over1': break_times[5],
-                                              'break_time2_over2': break_times[6], 'break_time2_over3': break_times[7],
-                                              'break_time3': break_times[8], 'break_time3_over1': break_times[9],
-                                              'break_time3_over2': break_times[10], 'break_time3_over3': break_times[11],
-                                              'break_time4': break_times[12], 'break_time4_over1': break_times[13],
-                                              'break_time4_over2': break_times[14], 'break_time4_over3': break_times[15]})
+    # フォームのインスタンスに休憩時間を設定
+    form.instance.break_time1 = break_times[0]
+    form.instance.break_time1_over1 = break_times[1]
+    form.instance.break_time1_over2 = break_times[2]
+    form.instance.break_time1_over3 = break_times[3]
+    form.instance.break_time2 = break_times[4]
+    form.instance.break_time2_over1 = break_times[5]
+    form.instance.break_time2_over2 = break_times[6]
+    form.instance.break_time2_over3 = break_times[7]
+    form.instance.break_time3 = break_times[8]
+    form.instance.break_time3_over1 = break_times[9]
+    form.instance.break_time3_over2 = break_times[10]
+    form.instance.break_time3_over3 = break_times[11]
+    form.instance.break_time4 = break_times[12]
+    form.instance.break_time4_over1 = break_times[13]
+    form.instance.break_time4_over2 = break_times[14]
+    form.instance.break_time4_over3 = break_times[15]
+    
+    # 親クラスの `form_valid` メソッドを実行し、そのレスポンスを保存
+    response = super().form_valid(form)
 
-    # 従業員番号を変更した場合の処理
-    if int(request.session['edit_No']) != int(request.POST['employee_no']):
-      # 元の人員データ削除
-      obj_get = member.objects.get(employee_no=request.session['edit_No'])
-      obj_get.delete()
+    # 従業員番号が変更された場合、古いデータを消す
+    if int(original_employee_no) != int(new_employee_no):
+      member.objects.filter(employee_no=original_employee_no).delete()
+      # 従業員番号変更に伴うデータ更新
+      kosu_obj = Business_Time_graph.objects.filter(employee_no3=original_employee_no)
+      inquiry_obj = inquiry_data.objects.filter(employee_no2=original_employee_no)
+      kosu_obj.update(employee_no3=new_employee_no, name=form.instance)
+      inquiry_obj.update(employee_no2=new_employee_no, name=form.instance)
 
-      # 人員名、問い合わせデータ更新
-      kosu_obj = Business_Time_graph.objects.filter(employee_no3=request.session['edit_No'])
-      inquiry_obj = inquiry_data.objects.filter(employee_no2=request.session['edit_No'])
-      member_instance = member.objects.get(employee_no=request.POST['employee_no'])
-      kosu_obj.update(employee_no3=request.POST['employee_no'], name=member_instance)
-      inquiry_obj.update(employee_no2=request.POST['employee_no'], name=member_instance)
+    return response
+  
 
-    # 人員一覧ページへ
-    return redirect(to='/member/1')
-
+  # 更新が成功した後のリダイレクトURLを指定
+  def get_success_url(self):
+    return '/member/1'
 
 
 
@@ -302,48 +349,50 @@ class MemberEditView(View):
 
 
 # 人員削除画面定義
-def member_delete(request, num):
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
+class MemberDeleteView(DeleteView):
+  # モデル、テンプレート、リダイレクト先などを指定
+  model = member
+  template_name = 'kosu/member_delete.html'
+  success_url = reverse_lazy('member', args = [1])
+
+
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 未ログインならログインページにリダイレクト
+    if not request.session.get('login_No'):
+      return redirect('/login')
+
+    try:
+      # ログイン者の情報取得
+      self.data = member.objects.get(employee_no=request.session['login_No'])
+    except member.DoesNotExist:
+      # セッション値から人員情報取得できない場合の処理
+      request.session.clear()
+      # ログインページにリダイレクト
+      return redirect(to='/login')
+
+    # ログイン者に権限がなければメインページにリダイレクト
+    if not self.data.authority:
+      return redirect(to='/')
+
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
+
   
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
-
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login')
-  
-  # ログイン者に権限がなければメインページに戻る
-  if data.authority == False:
-    return redirect(to = '/')
-
-  # 指定従業員番号のレコードのオブジェクトを変数に入れる
-  obj = member.objects.get(employee_no = num)
+  # 人員データ取得
+  def get_object(self, queryset=None):
+    return member.objects.get(employee_no=self.kwargs['num'])
 
 
-  # POST時の処理
-  if (request.method == 'POST'):
-
-    # 取得していた指定従業員番号のレコードを削除する
-    obj.delete()
-
-    # 工数履歴画面をリダイレクトする
-    return redirect(to = '/member/1')
-
-  # HTMLに渡す辞書
-  context = {
-    'title' : '人員削除',
-    'employee_no' : num,
-    'obj' : obj,
-    }
-
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/member_delete.html', context)
+  # コンテキストデータを取得するメソッドをオーバーライド
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context.update({
+        'title': '人員削除',
+        'employee_no': self.kwargs['num'],
+        'obj': self.get_object(),
+    })
+    return context
 
 
 
