@@ -1813,7 +1813,7 @@ class Page_form(TestCase):
             'break_time4_over1': '#00000000',
             'break_time4_over2': '#00000000',
             'break_time4_over3': '#00000000',
-            'member_new': '新規登録', 
+            'member_new': '登録', 
             }
         
         # URLに対してPOSTリクエスト送信

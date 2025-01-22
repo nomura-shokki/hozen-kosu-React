@@ -1487,6 +1487,23 @@ class Page_jump(TestCase):
 
 
 
+    # 人員編集から人員MENUへジャンプテスト
+    def test_member_edit_member_MENU_jump(self):
+        # 人員編集ページにアクセス
+        response = self.client.get(reverse('member_edit', args = [self.member.employee_no]))
+        self.assertEqual(response.status_code, 200)
+
+        # HTMLに含まれるボタンが正しく設定されているかを確認
+        self.assertContains(response, '<a href="' + reverse('member_main') + '" class="text-warning">人員MENUへ</a>', html=True)
+        # ボタンを押すシミュレーション
+        response = self.client.get(reverse('member_main'))
+        
+        # リダイレクトが成功し、ステータスコードが200であることを確認
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'kosu/member_main.html')
+
+
+
     # 人員編集から人員一覧へジャンプテスト
     def test_member_edit_member_list_jump(self):
         # 人員編集ページにアクセス
@@ -1494,7 +1511,7 @@ class Page_jump(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # HTMLに含まれるボタンが正しく設定されているかを確認
-        self.assertContains(response, '<a href="' + reverse('member', args = [1]) + '" class="text-warning">一覧へ戻る</a>', html=True)
+        self.assertContains(response, '<a href="' + reverse('member', args = [1]) + '" class="text-warning">人員一覧へ</a>', html=True)
         # ボタンを押すシミュレーション
         response = self.client.get(reverse('member', args = [1]))
 
