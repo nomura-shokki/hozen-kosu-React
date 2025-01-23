@@ -1381,7 +1381,7 @@ class Page_jump(TestCase):
 
         # リダイレクトが成功し、ステータスコードが200であることを確認
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'kosu/member_new.html')
+        self.assertTemplateUsed(response, 'kosu/member_edit.html')
 
 
 
@@ -1466,7 +1466,7 @@ class Page_jump(TestCase):
         
         # リダイレクトが成功し、ステータスコードが200であることを確認
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'kosu/member_new.html')
+        self.assertTemplateUsed(response, 'kosu/member_edit.html')
 
 
 

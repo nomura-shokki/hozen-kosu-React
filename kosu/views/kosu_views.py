@@ -5,6 +5,10 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.views.generic import ListView
+from django.views.generic.edit import UpdateView
+from django.db.models import Q
+from django.http import HttpResponse
+from django.urls import reverse_lazy
 import datetime
 import itertools
 import re
@@ -30,7 +34,6 @@ from ..utils.kosu_utils import calendar_day
 from ..utils.kosu_utils import OK_NF_check
 from ..utils.kosu_utils import index_change
 from ..utils.kosu_utils import break_time_over
-from django.db.models import Q
 from ..models import member
 from ..models import Business_Time_graph
 from ..models import kosu_division
@@ -41,7 +44,6 @@ from ..forms import schedule_timeForm
 from ..forms import scheduleForm
 from ..forms import all_kosu_findForm
 from ..forms import all_kosuForm
-from django.http import HttpResponse
 
 
 
@@ -288,6 +290,9 @@ def input(request):
   # フォーム初期値定義
   new_work_day = kosu_today if request.session.get('day') is None else request.session['day']
 
+  # グラフ関連リスト定義
+  graph_item = []
+  graph_list = []
 
 
   # GET時の処理
@@ -1939,353 +1944,168 @@ def input(request):
 
 
 # 休憩時間定義画面定義
-def break_time(request): 
-  # セッションにログインした従業員番号がない場合の処理
-  if not request.session.get('login_No'):
-    # 未ログインならログインページへ飛ぶ
-    return redirect('/login')
-
-  try:
-    # ログイン者の情報取得
-    member_obj = member.objects.get(employee_no=request.session['login_No'])
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect('/login')
-  
-  
-
-  # POST時の処理
-  if (request.method == 'POST'):
-    # POSTされた値を変数に入れる
-    break_time1_start = request.POST['start_time1']
-    break_time1_end = request.POST['end_time1']
-    break_time2_start = request.POST['start_time2']
-    break_time2_end = request.POST['end_time2']
-    break_time3_start = request.POST['start_time3']
-    break_time3_end = request.POST['end_time3']
-    break_time4_start = request.POST['start_time4']
-    break_time4_end = request.POST['end_time4']
-    break_time5_start = request.POST['start_time5']
-    break_time5_end = request.POST['end_time5']
-    break_time6_start = request.POST['start_time6']
-    break_time6_end = request.POST['end_time6']
-    break_time7_start = request.POST['start_time7']
-    break_time7_end = request.POST['end_time7']
-    break_time8_start = request.POST['start_time8']
-    break_time8_end = request.POST['end_time8']
-    break_time9_start = request.POST['start_time9']
-    break_time9_end = request.POST['end_time9']
-    break_time10_start = request.POST['start_time10']
-    break_time10_end = request.POST['end_time10']
-    break_time11_start = request.POST['start_time11']
-    break_time11_end = request.POST['end_time11']
-    break_time12_start = request.POST['start_time12']
-    break_time12_end = request.POST['end_time12']
-    break_time13_start = request.POST['start_time13']
-    break_time13_end = request.POST['end_time13']
-    break_time14_start = request.POST['start_time14']
-    break_time14_end = request.POST['end_time14']
-    break_time15_start = request.POST['start_time15']
-    break_time15_end = request.POST['end_time15']
-    break_time16_start = request.POST['start_time16']
-    break_time16_end = request.POST['end_time16']
-
-    # 休憩1開始時間の時と分取得
-    break_time1_start_hour, break_time1_start_min = time_index(break_time1_start)
-    break_time1_end_hour, break_time1_end_min = time_index(break_time1_end)
-    # 休憩2開始時間の時と分取得
-    break_time2_start_hour, break_time2_start_min = time_index(break_time2_start)
-    break_time2_end_hour, break_time2_end_min = time_index(break_time2_end)
-    # 休憩3開始時間の時と分取得
-    break_time3_start_hour, break_time3_start_min = time_index(break_time3_start)
-    break_time3_end_hour, break_time3_end_min = time_index(break_time3_end)
-    # 休憩4開始時間の時と分取得
-    break_time4_start_hour, break_time4_start_min = time_index(break_time4_start)
-    break_time4_end_hour, break_time4_end_min = time_index(break_time4_end)
-    # 休憩5開始時間の時と分取得
-    break_time5_start_hour, break_time5_start_min = time_index(break_time5_start)
-    break_time5_end_hour, break_time5_end_min = time_index(break_time5_end)
-    # 休憩6開始時間の時と分取得
-    break_time6_start_hour, break_time6_start_min = time_index(break_time6_start)
-    break_time6_end_hour, break_time6_end_min = time_index(break_time6_end)
-    # 休憩7開始時間の時と分取得
-    break_time7_start_hour, break_time7_start_min = time_index(break_time7_start)
-    break_time7_end_hour, break_time7_end_min = time_index(break_time7_end)
-    # 休憩8開始時間の時と分取得
-    break_time8_start_hour, break_time8_start_min = time_index(break_time8_start)
-    break_time8_end_hour, break_time8_end_min = time_index(break_time8_end)
-    # 休憩9開始時間の時と分取得
-    break_time9_start_hour, break_time9_start_min = time_index(break_time9_start)
-    break_time9_end_hour, break_time9_end_min = time_index(break_time9_end)
-    # 休憩10開始時間の時と分取得
-    break_time10_start_hour, break_time10_start_min = time_index(break_time10_start)
-    break_time10_end_hour, break_time10_end_min = time_index(break_time10_end)
-    # 休憩11開始時間の時と分取得
-    break_time11_start_hour, break_time11_start_min = time_index(break_time11_start)
-    break_time11_end_hour, break_time11_end_min = time_index(break_time11_end)
-    # 休憩12開始時間の時と分取得
-    break_time12_start_hour, break_time12_start_min = time_index(break_time12_start)
-    break_time12_end_hour, break_time12_end_min = time_index(break_time12_end)
-    # 休憩13開始時間の時と分取得
-    break_time13_start_hour, break_time13_start_min = time_index(break_time13_start)
-    break_time13_end_hour, break_time13_end_min = time_index(break_time13_end)
-    # 休憩14開始時間の時と分取得
-    break_time14_start_hour, break_time14_start_min = time_index(break_time14_start)
-    break_time14_end_hour, break_time14_end_min = time_index(break_time14_end)
-    # 休憩15開始時間の時と分取得
-    break_time15_start_hour, break_time15_start_min = time_index(break_time15_start)
-    break_time15_end_hour, break_time15_end_min = time_index(break_time15_end)
-    # 休憩16開始時間の時と分取得
-    break_time16_start_hour, break_time16_start_min = time_index(break_time16_start)
-    break_time16_end_hour, break_time16_end_min = time_index(break_time16_end)
-
-    # POSTされた値をまとめる
-    break_time1 = break_time1_start_hour.zfill(2) + break_time1_start_min + \
-                  break_time1_end_hour.zfill(2) + break_time1_end_min
-    break_time2 = break_time2_start_hour.zfill(2) + break_time2_start_min + \
-                  break_time2_end_hour.zfill(2) + break_time2_end_min
-    break_time3 = break_time3_start_hour.zfill(2) + break_time3_start_min + \
-                  break_time3_end_hour.zfill(2) + break_time3_end_min
-    break_time4 = break_time4_start_hour.zfill(2) + break_time4_start_min + \
-                  break_time4_end_hour.zfill(2) + break_time4_end_min
-    break_time5 = break_time5_start_hour.zfill(2) + break_time5_start_min + \
-                  break_time5_end_hour.zfill(2) + break_time5_end_min
-    break_time6 = break_time6_start_hour.zfill(2) + break_time6_start_min + \
-                  break_time6_end_hour.zfill(2) + break_time6_end_min
-    break_time7 = break_time7_start_hour.zfill(2) + break_time7_start_min + \
-                  break_time7_end_hour.zfill(2) + break_time7_end_min
-    break_time8 = break_time8_start_hour.zfill(2) + break_time8_start_min + \
-                  break_time8_end_hour.zfill(2) + break_time8_end_min
-    break_time9 = break_time9_start_hour.zfill(2) + break_time9_start_min + \
-                  break_time9_end_hour.zfill(2) + break_time9_end_min
-    break_time10 = break_time10_start_hour.zfill(2) + break_time10_start_min + \
-                   break_time10_end_hour.zfill(2) + break_time10_end_min
-    break_time11 = break_time11_start_hour.zfill(2) + break_time11_start_min + \
-                   break_time11_end_hour.zfill(2) + break_time11_end_min
-    break_time12 = break_time12_start_hour.zfill(2) + break_time12_start_min + \
-                   break_time12_end_hour.zfill(2) + break_time12_end_min
-    break_time13 = break_time13_start_hour.zfill(2) + break_time13_start_min + \
-                   break_time13_end_hour.zfill(2) + break_time13_end_min
-    break_time14 = break_time14_start_hour.zfill(2) + break_time14_start_min + \
-                   break_time14_end_hour.zfill(2) + break_time14_end_min
-    break_time15 = break_time15_start_hour.zfill(2) + break_time15_start_min + \
-                   break_time15_end_hour.zfill(2) + break_time15_end_min
-    break_time16 = break_time16_start_hour.zfill(2) + break_time16_start_min + \
-                   break_time16_end_hour.zfill(2) + break_time16_end_min
+class BreakTimeUpdateView(UpdateView):
+  # モデル、フォーム、テンプレート、データなどを指定
+  model = member
+  fields = []
+  template_name = 'kosu/break_time.html'
+  success_url = reverse_lazy('kosu_main')
 
 
-    # 1直昼休憩時間に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time1_start_hour, break_time1_start_min, break_time1_end_hour, break_time1_end_min, 60, '1直の昼休憩時間', request)     
-    if response:
-      return response
+  # リクエスト処理する際のメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # ログインしていない場合ログイン画面へ
+    if not request.session.get('login_No'):
+      return redirect('/login')
+    # 従業員番号取得
+    self.employee_no = request.session.get('login_No')
 
-    # 2直昼休憩時間に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time5_start_hour, break_time5_start_min, break_time5_end_hour, break_time5_end_min, 60, '2直の昼休憩時間', request)     
-    if response:
-      return response
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
 
-    # 3直昼休憩時間に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time9_start_hour, break_time9_start_min, break_time9_end_hour, break_time9_end_min, 60, '3直の昼休憩時間', request)     
-    if response:
-      return response
 
-    # 常昼昼休憩時間に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time13_start_hour, break_time13_start_min, break_time13_end_hour, break_time13_end_min, 60, '常昼の昼休憩時間', request)     
-    if response:
-      return response
+  # オブジェクトを取得するメソッドをオーバーライド
+  def get_object(self, queryset=None):
+    # 人員情報取得(取得できない場合セッション削除しログイン画面へ)
+    try:
+      return member.objects.get(employee_no=self.employee_no)
+    except member.DoesNotExist:
+      self.request.session.clear()
+      return redirect('/login')
 
-    # 1直残業休憩時間1に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time2_start_hour, break_time2_start_min, break_time2_end_hour, break_time2_end_min, 15, '1直残業時間中の休憩時間1', request)     
-    if response:
-      return response
 
-    # 1直残業休憩時間2に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time3_start_hour, break_time3_start_min, break_time3_end_hour, break_time3_end_min, 60, '1直残業時間中の休憩時間2', request)     
-    if response:
-      return response
+  # コンテキストデータを設定するメソッドをオーバーライド
+  def get_context_data(self, **kwargs):
+    # 親クラスのget_context_dataメソッドを呼び出し
+    context = super().get_context_data(**kwargs)
+    # 休憩データを取得
+    break_data = self.object
 
-    # 1直残業休憩時間3に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time4_start_hour, break_time4_start_min, break_time4_end_hour, break_time4_end_min, 15, '1直残業時間中の休憩時間3', request)     
-    if response:
-      return response
-
-    # 2直残業休憩時間1に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time6_start_hour, break_time6_start_min, break_time6_end_hour, break_time6_end_min, 15, '2直残業時間中の休憩時間1', request)     
-    if response:
-      return response
-
-    # 2直残業休憩時間2に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time7_start_hour, break_time7_start_min, break_time7_end_hour, break_time7_end_min, 60, '2直残業時間中の休憩時間2', request)     
-    if response:
-      return response
-
-    # 2直残業休憩時間3に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time8_start_hour, break_time8_start_min, break_time8_end_hour, break_time8_end_min, 15, '2直残業時間中の休憩時間3', request)     
-    if response:
-      return response
-
-    # 3直残業休憩時間1に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time10_start_hour, break_time10_start_min, break_time10_end_hour, break_time10_end_min, 15, '3直残業時間中の休憩時間1', request)     
-    if response:
-      return response
-
-    # 3直残業休憩時間2に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time11_start_hour, break_time11_start_min, break_time11_end_hour, break_time11_end_min, 60, '3直残業時間中の休憩時間2', request)     
-    if response:
-      return response
-
-    # 3直残業休憩時間3に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time12_start_hour, break_time12_start_min, break_time12_end_hour, break_time12_end_min, 15, '3直残業時間中の休憩時間3', request)     
-    if response:
-      return response
-
-    # 常昼残業休憩時間1に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time14_start_hour, break_time14_start_min, break_time14_end_hour, break_time14_end_min, 15, '常昼残業時間中の休憩時間1', request)     
-    if response:
-      return response
-
-    # 常昼残業休憩時間2に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time15_start_hour, break_time15_start_min, break_time15_end_hour, break_time15_end_min, 60, '常昼残業時間中の休憩時間2', request)     
-    if response:
-      return response
-
-    # 常昼残業休憩時間3に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time16_start_hour, break_time16_start_min, break_time16_end_hour, break_time16_end_min, 15, '常昼残業時間中の休憩時間3', request)     
-    if response:
-      return response
-
-    # POST送信された休憩時間を上書きする 
-    member.objects.update_or_create(employee_no = request.session['login_No'], \
-                                    defaults = {'break_time1' : '#' + break_time1, \
-                                    'break_time1_over1' : '#' + break_time2, \
-                                    'break_time1_over2' : '#' + break_time3, \
-                                    'break_time1_over3' : '#' + break_time4, \
-                                    'break_time2' : '#' + break_time5, \
-                                    'break_time2_over1' : '#' + break_time6, \
-                                    'break_time2_over2' : '#' + break_time7, \
-                                    'break_time2_over3' : '#' + break_time8, \
-                                    'break_time3' : '#' + break_time9, \
-                                    'break_time3_over1' : '#' + break_time10, \
-                                    'break_time3_over2' : '#' + break_time11, \
-                                    'break_time3_over3' : '#' + break_time12, \
-                                    'break_time4' : '#' + break_time13, \
-                                    'break_time4_over1' : '#' + break_time14, \
-                                    'break_time4_over2' : '#' + break_time15, \
-                                    'break_time4_over3' : '#' + break_time16, \
-                                    'break_check' : 'break_check' in request.POST})
+    # タイトルを設定
+    context['title'] = '休憩時間定義'        
+    # 初期値となる休憩時間を設定
+    context.update(self.get_default_times(break_data))
+    # チェックボックスの初期状態を設定
+    context['initial_checkbox'] = break_data.break_check
     
-    # 工数MENU画面に戻る
-    return redirect(to = '/kosu_main')
+    return context
 
 
+  # 初期値の休憩時間を取得するメソッド
+  def get_default_times(self, break_data):
+    # 時間整形関数
+    def time_format(input_time):
+      return input_time[1:3] + ':' + input_time[3:5], input_time[5:7] + ':' + input_time[7:]
 
-  # 休憩データ取得
-  break_data = member.objects.get(employee_no = request.session['login_No'])
-  break1 = break_data.break_time1
-  break1_1 = break_data.break_time1_over1
-  break1_2 = break_data.break_time1_over2
-  break1_3 = break_data.break_time1_over3
-  break2 = break_data.break_time2
-  break2_1 = break_data.break_time2_over1
-  break2_2 = break_data.break_time2_over2
-  break2_3 = break_data.break_time2_over3
-  break3 = break_data.break_time3
-  break3_1 = break_data.break_time3_over1
-  break3_2 = break_data.break_time3_over2
-  break3_3 = break_data.break_time3_over3
-  break4 = break_data.break_time4
-  break4_1 = break_data.break_time4_over1
-  break4_2 = break_data.break_time4_over2
-  break4_3 = break_data.break_time4_over3
-
-  # フォーム初期値定義
-  default_start_time1 = break1[1 : 3] + ':' + break1[3 : 5]
-  default_end_time1 = break1[5 : 7] + ':' + break1[7 : ]
-  default_start_time2 = break1_1[1 : 3] + ':' + break1_1[3 : 5]
-  default_end_time2 = break1_1[5 : 7] + ':' + break1_1[7 : ]
-  default_start_time3 = break1_2[1 : 3] + ':' + break1_2[3 : 5]
-  default_end_time3 = break1_2[5 : 7] + ':' + break1_2[7 : ]
-  default_start_time4 = break1_3[1 : 3] + ':' + break1_3[3 : 5]
-  default_end_time4 = break1_3[5 : 7] + ':' + break1_3[7 : ]
-  default_start_time5 = break2[1 : 3] + ':' + break2[3 : 5]
-  default_end_time5 = break2[5 : 7] + ':' + break2[7 : ]
-  default_start_time6 = break2_1[1 : 3] + ':' + break2_1[3 : 5]
-  default_end_time6 = break2_1[5 : 7] + ':' + break2_1[7 : ]
-  default_start_time7 = break2_2[1 : 3] + ':' + break2_2[3 : 5]
-  default_end_time7 = break2_2[5 : 7] + ':' + break2_2[7 : ]
-  default_start_time8 = break2_3[1 : 3] + ':' + break2_3[3 : 5]
-  default_end_time8 = break2_3[5 : 7] + ':' + break2_3[7 : ]
-  default_start_time9 = break3[1 : 3] + ':' + break3[3 : 5]
-  default_end_time9 = break3[5 : 7] + ':' + break3[7 : ]
-  default_start_time10 = break3_1[1 : 3] + ':' + break3_1[3 : 5]
-  default_end_time10 = break3_1[5 : 7] + ':' + break3_1[7 : ]
-  default_start_time11 = break3_2[1 : 3] + ':' + break3_2[3 : 5]
-  default_end_time11 = break3_2[5 : 7] + ':' + break3_2[7 : ]
-  default_start_time12 = break3_3[1 : 3] + ':' + break3_3[3 : 5]
-  default_end_time12 = break3_3[5 : 7] + ':' + break3_3[7 : ]
-  default_start_time13 = break4[1 : 3] + ':' + break4[3 : 5]
-  default_end_time13 = break4[5 : 7] + ':' + break4[7 : ]
-  default_start_time14 = break4_1[1 : 3] + ':' + break4_1[3 : 5]
-  default_end_time14 = break4_1[5 : 7] + ':' + break4_1[7 : ]
-  default_start_time15 = break4_2[1 : 3] + ':' + break4_2[3 : 5]
-  default_end_time15 = break4_2[5 : 7] + ':' + break4_2[7 : ]
-  default_start_time16 = break4_3[1 : 3] + ':' + break4_3[3 : 5]
-  default_end_time16 = break4_3[5 : 7] + ':' + break4_3[7 : ]
-
-  # 休憩エラー有効チェックがONの場合の処理
-  if member_obj.break_check == True:
-    # チェックBOX初期値ON
-    initial_checkbox = True
-
-  # 休憩エラー有効チェックがOFFの場合の処理
-  else:
-    # チェックBOX初期値OFF
-    initial_checkbox = False
+    # 各休憩時間の初期値を定義
+    return {
+      'default_start_time1': time_format(break_data.break_time1)[0],
+      'default_end_time1': time_format(break_data.break_time1)[1],
+      'default_start_time2': time_format(break_data.break_time1_over1)[0],
+      'default_end_time2': time_format(break_data.break_time1_over1)[1],
+      'default_start_time3': time_format(break_data.break_time1_over2)[0],
+      'default_end_time3': time_format(break_data.break_time1_over2)[1],
+      'default_start_time4': time_format(break_data.break_time1_over3)[0],
+      'default_end_time4': time_format(break_data.break_time1_over3)[1],
+      'default_start_time5': time_format(break_data.break_time2)[0],
+      'default_end_time5': time_format(break_data.break_time2)[1],
+      'default_start_time6': time_format(break_data.break_time2_over1)[0],
+      'default_end_time6': time_format(break_data.break_time2_over1)[1],
+      'default_start_time7': time_format(break_data.break_time2_over2)[0],
+      'default_end_time7': time_format(break_data.break_time2_over2)[1],
+      'default_start_time8': time_format(break_data.break_time2_over3)[0],
+      'default_end_time8': time_format(break_data.break_time2_over3)[1],
+      'default_start_time9': time_format(break_data.break_time3)[0],
+      'default_end_time9': time_format(break_data.break_time3)[1],
+      'default_start_time10': time_format(break_data.break_time3_over1)[0],
+      'default_end_time10': time_format(break_data.break_time3_over1)[1],
+      'default_start_time11': time_format(break_data.break_time3_over2)[0],
+      'default_end_time11': time_format(break_data.break_time3_over2)[1],
+      'default_start_time12': time_format(break_data.break_time3_over3)[0],
+      'default_end_time12': time_format(break_data.break_time3_over3)[1],
+      'default_start_time13': time_format(break_data.break_time4)[0],
+      'default_end_time13': time_format(break_data.break_time4)[1],
+      'default_start_time14': time_format(break_data.break_time4_over1)[0],
+      'default_end_time14': time_format(break_data.break_time4_over1)[1],
+      'default_start_time15': time_format(break_data.break_time4_over2)[0],
+      'default_end_time15': time_format(break_data.break_time4_over2)[1],
+      'default_start_time16': time_format(break_data.break_time4_over3)[0],
+      'default_end_time16': time_format(break_data.break_time4_over3)[1],
+      }
 
 
-  # HTMLに渡す辞書
-  context = {
-    'title' : '休憩時間定義',
-    'default_start_time1' : default_start_time1,
-    'default_end_time1' : default_end_time1,
-    'default_start_time2' : default_start_time2,
-    'default_end_time2' : default_end_time2,
-    'default_start_time3' : default_start_time3,
-    'default_end_time3' : default_end_time3,
-    'default_start_time4' : default_start_time4,
-    'default_end_time4' : default_end_time4,
-    'default_start_time5' : default_start_time5,
-    'default_end_time5' : default_end_time5,
-    'default_start_time6' : default_start_time6,
-    'default_end_time6' : default_end_time6,
-    'default_start_time7' : default_start_time7,
-    'default_end_time7' : default_end_time7,
-    'default_start_time8' : default_start_time8,
-    'default_end_time8' : default_end_time8,
-    'default_start_time9' : default_start_time9,
-    'default_end_time9' : default_end_time9,
-    'default_start_time10' : default_start_time10,
-    'default_end_time10' : default_end_time10,
-    'default_start_time11' : default_start_time11,
-    'default_end_time11' : default_end_time11,
-    'default_start_time12' : default_start_time12,
-    'default_end_time12' : default_end_time12,
-    'default_start_time13' : default_start_time13,
-    'default_end_time13' : default_end_time13,
-    'default_start_time14' : default_start_time14,
-    'default_end_time14' : default_end_time14,
-    'default_start_time15' : default_start_time15,
-    'default_end_time15' : default_end_time15,
-    'default_start_time16' : default_start_time16,
-    'default_end_time16' : default_end_time16,
-    'initial_checkbox' : initial_checkbox,
-    }
+  # フォームが有効な場合に呼び出されるメソッドをオーバーライド
+  def form_valid(self, form):
+    # POST値取得
+    post_data = self.request.POST
+    # 
+    break_times = [
+      (post_data.get(f'start_time{i}'), post_data.get(f'end_time{i}'))
+      for i in range(1, 17)
+      ]
 
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/break_time.html', context)
+    # 休憩時間POST値リスト定義
+    formatted_break_times = []
+    # 各休憩時間をフォーマットしてリストに追加
+    for start, end in break_times:
+      start_hour, start_min = time_index(start)
+      end_hour, end_min = time_index(end)
+      formatted_break_times.append(
+        f"{start_hour.zfill(2)}{start_min}{end_hour.zfill(2)}{end_min}"
+        )
+
+    # エラーラベル定義
+    over_time_labels = {
+      1: '1直の昼休憩時間', 5: '2直の昼休憩時間',
+      9: '3直の昼休憩時間', 13: '常昼の昼休憩時間'
+      }
+
+    # 昼休憩時間が長すぎる場合のチェック
+    for i, label in over_time_labels.items():
+      response = break_time_over(
+        *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), 60, label, self.request
+        )
+      if response:
+        return response
+
+    # 詳細なエラー時間ラベル
+    over_time_rest_labels = {
+      2: ('1直残業時間中の休憩時間1', 15), 3: ('1直残業時間中の休憩時間2', 60), 4: ('1直残業時間中の休憩時間3', 15),
+      6: ('2直残業時間中の休憩時間1', 15), 7: ('2直残業時間中の休憩時間2', 60), 8: ('2直残業時間中の休憩時間3', 15),
+      10: ('3直残業時間中の休憩時間1', 15), 11: ('3直残業時間中の休憩時間2', 60), 12: ('3直残業時間中の休憩時間3', 15),
+      14: ('常昼残業時間中の休憩時間1', 15), 15: ('常昼残業時間中の休憩時間2', 60), 16: ('常昼残業時間中の休憩時間3', 15)
+      }
+
+    # 残業休憩時間が長すぎる場合のチェック
+    for i, (label, max_time) in over_time_rest_labels.items():
+      response = break_time_over(
+        *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), max_time, label, self.request
+        )
+      if response:
+        return response
+
+    # 各休憩時間をフォーマットしてモデルのフィールドに設定
+    self.object.break_time1 = "#" + formatted_break_times[0]
+    self.object.break_time1_over1 = "#" + formatted_break_times[1]
+    self.object.break_time1_over2 = "#" + formatted_break_times[2]
+    self.object.break_time1_over3 = "#" + formatted_break_times[3]
+    self.object.break_time2 = "#" + formatted_break_times[4]
+    self.object.break_time2_over1 = "#" + formatted_break_times[5]
+    self.object.break_time2_over2 = "#" + formatted_break_times[6]
+    self.object.break_time2_over3 = "#" + formatted_break_times[7]
+    self.object.break_time3 = "#" + formatted_break_times[8]
+    self.object.break_time3_over1 = "#" + formatted_break_times[9]
+    self.object.break_time3_over2 = "#" + formatted_break_times[10]
+    self.object.break_time3_over3 = "#" + formatted_break_times[11]
+    self.object.break_time4 = "#" + formatted_break_times[12]
+    self.object.break_time4_over1 = "#" + formatted_break_times[13]
+    self.object.break_time4_over2 = "#" + formatted_break_times[14]
+    self.object.break_time4_over3 = "#" + formatted_break_times[15]
+    self.object.break_check = 'break_check' in post_data
+
+    # データを保存
+    self.object.save()
+    return redirect(self.get_success_url())
 
 
 

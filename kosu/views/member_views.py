@@ -114,7 +114,7 @@ class MemberPageView(ListView):
 # 人員登録画面定義
 class MemberNewView(CreateView):
   # テンプレート、フォーム定義
-  template_name = 'kosu/member_new.html'
+  template_name = 'kosu/member_edit.html'
   form_class = memberForm
 
 
