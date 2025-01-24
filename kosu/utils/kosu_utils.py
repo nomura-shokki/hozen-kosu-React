@@ -1022,294 +1022,82 @@ def break_time_over(start_hour, start_min, end_hour, end_min, limit_tome,comment
 
 
 
-def create_kosu(work_list, obj_get, request):
-  # 作業時間リストリセット
-  kosu_list = []
-  time_list_start = []
-  time_list_end = []
-  def_list = []
-  def_time = []
-  detail_time = []
-  find_list =[]
-
-  # 作業内容と作業詳細毎の開始時間と終了時間インデックス取得
-  for i in range(288):
-    # 最初の要素に作業が入っている場合の処理
-    if i == 0 and work_list[i] != '#':
-      # 検索用リストにインデックス記憶
-      find_list.append(i)
-
-      if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
-        if i >= 234:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 234)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 54)
-
-      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
-        if i >= 144:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 144)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 144)
-
-      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
-            and obj_get.tyoku2 == '2':
-        if i >= 180:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 180)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 108)
-
-      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
-        if i >= 42:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 42)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 246)
-
-      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
-            and obj_get.tyoku2 == '3':
-        if i >= 72:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 72)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 216)
-
-      elif obj_get.tyoku2 == '4':
-        if i >= 216:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 216)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 72)
-
-      elif obj_get.tyoku2 == '6':
-        if i >= 108:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 108)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 180)
-
-    # 時間区分毎に前の作業との差異がある場合の処理
-    if i != 0 and (work_list[i] != work_list[i - 1] or detail_list[i] != detail_list[i - 1]):
-      # 検索用リストにインデックス記憶
-      find_list.append(i)
-
-      if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
-        if i >= 234:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 234)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 54)
-
-      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
-        if i >= 144:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 144)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 144)
-
-      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
-            and obj_get.tyoku2 == '2':
-        if i >= 180:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 180)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 108)
-
-      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
-        if i >= 42:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 42)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 246)
-
-      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
-            and obj_get.tyoku2 == '3':
-        if i >= 72:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 72)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 216)
-
-      elif obj_get.tyoku2 == '4':
-        if i >= 216:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 216)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 72)
-
-      elif obj_get.tyoku2 == '6':
-        if i >= 108:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 108)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 180)
-
-    # 最後の要素に作業が入っている場合の処理
-    if i == 287 and work_list[i] != '#':
-      # 検索用リストにインデックス記憶
-      find_list.append(i)
-
-      if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
-        if i >= 234:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 233)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 55)
-
-      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
-        if i >= 144:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 143)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 145)
-
-      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
-            and obj_get.tyoku2 == '2':
-        if i >= 180:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 179)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 109)
-
-      elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-          member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
-        if i >= 42:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 41)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 247)
-
-      elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
-            and obj_get.tyoku2 == '3':
-        if i >= 72:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 71)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 217)
-
-      elif obj_get.tyoku2 == '4':
-        if i >= 216:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 215)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 73)
-
-      elif obj_get.tyoku2 == '6':
-        if i >= 108:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i - 107)
-        else:
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 181)
-
-
-  # 作業時間インデックスに要素がある場合の処理
-  if len(kosu_list) != 0:
-
-    # 作業時間インデックスを時間表示に修正
-    for ind, t in enumerate(kosu_list):
-
-      # 最後以外のループ処理
-      if len(kosu_list) - 1 != ind:
-
-        # 作業開始時間をSTRで定義
-        time_obj_start = str(int(t)//12).zfill(2) + ':' + str(int(t)%12*5).zfill(2)
-        # 作業終了時間をSTRで定義
-        time_obj_end = str(int(kosu_list[ind + 1])//12).zfill(2) + ':' \
-          + str(int(kosu_list[ind + 1])%12*5).zfill(2)
+def create_kosu(work_list, detail_list, obj_get, member_obj, request):
+    # 作業時間リストリセット
+    kosu_list, time_list_start, time_list_end = [], [], []
+    def_list, def_time, detail_time, find_list = [], [], [], []
+    
+    # 作業内容と作業詳細毎の開始時間と終了時間インデックス取得
+    adjustment_dict = {
+        ('1', '5'): 234,
+        ('2',): 144 if member_obj.shop in ['P', 'R', 'T1', 'T2', 'その他', '組長以上(P,R,T,その他)'] else 180,
+        ('3',): 42 if member_obj.shop in ['P', 'R', 'T1', 'T2', 'その他', '組長以上(P,R,T,その他)'] else 72,
+        ('4',): 216,
+        ('6',): 108,
+    }
+    for i in range(288):
+        add_index = False
+        if i == 0 and work_list[i] != '#':
+            add_index = True
+        elif i != 0 and (work_list[i] != work_list[i - 1] or detail_list[i] != detail_list[i - 1]):
+            add_index = True
+        elif i == 287 and work_list[i] != '#':
+            add_index = True
         
-        # 作業開始時間と作業終了時間をリストに追加
-        time_list_start.append(time_obj_start)
-        time_list_end.append(time_obj_end)
+        if add_index:
+            find_list.append(i)
+            for keys, adjustment in adjustment_dict.items():
+                if obj_get.tyoku2 in keys:
+                    cycle_time = adjustment if member_obj.shop in ['P', 'R', 'T1', 'T2', 'その他', '組長以上(P,R,T,その他)'] else adjustment + 36
+                    kosu_list.append(i - cycle_time if i >= cycle_time else i + (288 - cycle_time))
+                    break
+    
+    # 作業時間インデックスに要素がある場合の処理
+    if kosu_list:
+        for ind, t in enumerate(kosu_list[:-1]):
+            time_list_start.append(f"{str(int(t)//12).zfill(2)}:{str(int(t)%12*5).zfill(2)}")
+            time_list_end.append(f"{str(int(kosu_list[ind + 1])//12).zfill(2)}:{str(int(kosu_list[ind + 1])%12*5).zfill(2)}")
+    
+    # 現在使用している工数区分のオブジェクトを取得
+    kosu_obj = kosu_division.objects.get(kosu_name=request.session['input_def'])
 
-        # 作業開始時間をSTRで定義
-        time_obj_start = str(int(t)//12).zfill(2) + ':' + str(int(t)%12*5).zfill(2)
+    # 工数区分の選択リスト作成
+    for i in range(1, 50):
+        if getattr(kosu_obj, f'kosu_title_{i}') is not None:
+            def_list.append(getattr(kosu_obj, f'kosu_title_{i}'))
 
+    # 工数区分登録カウンターリセット
+    n = 0
+    # 工数区分登録数カウント
+    for kosu_num in range(1, 50):
+      if eval('kosu_obj.kosu_title_{}'.format(kosu_num)) != None:
+        n = kosu_num
+    
+    # 工数区分辞書作成
+    str_list = list("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$")
 
-  # 現在使用している工数区分のオブジェクトを取得
-  kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
+    # リストの長さを工数区分の登録数に応じて調整
+    del str_list[n:]
+    del def_list[n:]
 
-  # 工数区分登録カウンターリセット
-  n = 0
-  # 工数区分登録数カウント
-  for kosu_num in range(1, 50):
-    if eval('kosu_obj.kosu_title_{}'.format(kosu_num)) != None:
-      n = kosu_num
+    # 作業なし・休憩追加
+    str_list.extend(['#', '$'])
+    def_list.extend(['-', '休憩'])
 
-  # 工数区分処理用記号リスト用意
-  str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-              'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                    'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
-  # リストの長さを工数区分の登録数に応じて調整
-  del str_list[n:]
-
-  # 工数区分の選択リスト作成
-  for i, m in enumerate(str_list):
-    # 工数区分定義要素を追加
-    def_list.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
-
-  # 作業なし追加
-  def_list.append('-')
-  # 休憩追加
-  def_list.append('休憩')
-
-  # 作業無し記号追加
-  str_list.append('#')
-  # 休憩記号追加
-  str_list.append('$')
-
-  # 工数区分辞書作成
-  def_library = dict(zip(str_list, def_list))
-
-
-  # 作業内容と作業詳細リスト作成
-  for ind, t in enumerate(find_list):
-
-    # 最後以外のループ処理
-    if len(find_list) - 1 != ind:
-
-      def_time.append(def_library[work_list[t]])
-      detail_time.append(detail_list[t])
-
-  # HTML表示用リスト作成
-  time_display_list = []
-  for k in range(len(time_list_start)):
-    for_list = []
-    for_list.append(str(time_list_start[k]) + '～' + str(time_list_end[k]))
-    for_list.append(def_time[k])
-    for_list.append(detail_time[k])
-    time_display_list.append(for_list)
-
-  # リストを返す
-  return time_display_list
+    def_library = dict(zip(str_list[:len(def_list)], def_list))
+    
+    # 作業内容と作業詳細リスト作成
+    for ind, t in enumerate(find_list[:-1]):
+        def_time.append(def_library.get(work_list[t], work_list[t]))
+        detail_time.append(detail_list[t])
+    
+    # HTML表示用リスト作成
+    time_display_list = [
+        [f"{start}～{end}", def_time[k], detail_time[k]]
+        for k, (start, end) in enumerate(zip(time_list_start, time_list_end))
+    ]
+    
+    return time_display_list
 
 
 
