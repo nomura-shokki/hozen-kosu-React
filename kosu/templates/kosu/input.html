@@ -19,6 +19,7 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
 </head>
 <body class="container">
+  <div id="success-message">工数登録完了</div>
   <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}</h1>
   <div class="number-input-group">
     <p class="h6 no-wrap">
@@ -30,7 +31,7 @@
       <a href="{% url 'main' %}">メインMENUへ</a>
     </p>
   </div>
-  <form action="{% url 'input' %}" method="post">
+  <form id="work-form" action="{% url 'input' %}" method="post">
     {% csrf_token %}
     {% for message in messages %}
       <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
@@ -183,6 +184,9 @@
           </div>
         </tr>
       </table>
+    {% endif %}
+    {% if show_message %}
+      <script src="{% static 'kosu/js/completion_message.js' %}"></script>
     {% endif %}
   </form>
   <div style="width:100%">

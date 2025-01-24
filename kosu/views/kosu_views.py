@@ -13,6 +13,7 @@ import datetime
 import itertools
 import re
 import os
+import time
 import json
 import pandas as pd
 import Levenshtein
@@ -301,6 +302,19 @@ def input(request):
     graph_item, graph_list = handle_get_request(new_work_day, member_obj)
 
 
+    # 工数入力完了記憶がある場合の処理
+    if request.session.get('POST_memory') == True:
+      # 工数登録完了メッセージ表示
+      show_message = True
+      # 1秒後にPOST記憶消す
+      time.sleep(1)
+      del request.session['POST_memory']
+    # 工数入力完了記憶がない場合の処理
+    else:
+      # 工数登録完了メッセージ非表示
+      show_message = False
+
+
 
   # グラフ更新時の処理
   elif "update" in request.POST:
@@ -319,6 +333,9 @@ def input(request):
       messages.error(request, '就業日の削除はしないで下さい。ERROR009')
       # このページをリダイレクト
       return redirect(to = '/input')
+
+    # 工数登録完了メッセージ非表示
+    show_message = False
 
 
 
@@ -1187,6 +1204,10 @@ def input(request):
     # 翌日チェックリセット
     request.session['tomorrow_check'] = False
 
+    # 工数登録完了メッセージ出力
+    show_message = True
+    # POST記憶
+    request.session['POST_memory'] = True
 
     # このページをリダイレクトする
     return redirect(to = '/input')
@@ -1285,6 +1306,9 @@ def input(request):
                                                                'detail_work' : '$'*287, \
                                                                'over_time' : request.POST['over_work']})
 
+    # 工数登録完了メッセージ非表示
+    show_message = False
+
     # このページをリダイレクトする
     return redirect(to = '/input')
 
@@ -1355,6 +1379,9 @@ def input(request):
     # 工数区分定義予測設定を上書きして更新
     member.objects.update_or_create(employee_no = request.session['login_No'], \
                                     defaults = {'def_prediction': 'def_prediction' in request.POST})
+
+    # 工数登録完了メッセージ非表示
+    show_message = False
 
     # このページをリダイレクトする
     return redirect(to = '/input')
@@ -1444,6 +1471,9 @@ def input(request):
 
     # グラフラベル＆グラフデータ作成
     graph_item, graph_list = handle_get_request(new_work_day, member_obj)
+
+    # 工数登録完了メッセージ非表示
+    show_message = False
 
 
 
@@ -1549,13 +1579,8 @@ def input(request):
 
 
 
-  # 作業終了時の変数がある場合の処理
-  if 'default_end_time' in locals():
-    # 処理なし
-    default_end_time = default_end_time
-
   # 作業終了時の変数がない場合の処理
-  else:
+  if 'default_end_time' not in locals():
     # セッションに登録されている作業終了時を変数に入れる
     default_end_time = str(request.session.get('end_time', ''))
 
@@ -1925,7 +1950,8 @@ def input(request):
     'obj_get' : obj_get,
     'obj_link' : obj_link,
     'time_display_list' : time_display_list,
-    'member_obj' : member_obj
+    'member_obj' : member_obj,
+    'show_message': show_message
     }
 
 
@@ -2038,7 +2064,6 @@ class BreakTimeUpdateView(UpdateView):
   def form_valid(self, form):
     # POST値取得
     post_data = self.request.POST
-    # 
     break_times = [
       (post_data.get(f'start_time{i}'), post_data.get(f'end_time{i}'))
       for i in range(1, 17)
@@ -2117,326 +2142,123 @@ class BreakTimeUpdateView(UpdateView):
 
 
 
-# 当日休憩変更定義画面定義
-def today_break_time(request): 
-  # セッションにログインした従業員番号がない場合の処理
-  if not request.session.get('login_No'):
-    # 未ログインならログインページへ飛ぶ
-    return redirect('/login')
-  
-  # 日付データがセッションにない場合の処理
-  if not request.session.get('break_today'):
-    # 工数MENUへ飛ぶ
-    return redirect('/kosu_main')
+# 当日休憩変更画面定義
+class TodayBreakTimeUpdateView(UpdateView):
+  # モデル、フォーム、テンプレート、データなどを指定
+  model = Business_Time_graph
+  fields = []
+  template_name = 'kosu/today_break_time.html'
+  success_url = reverse_lazy('input')
 
-  try:
-    # ログイン者の情報取得
-    member_obj = member.objects.get(employee_no=request.session['login_No'])
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect('/login')
+  # 工数データ取得
+  def get_object(self, queryset=None):
+    return Business_Time_graph.objects.get(employee_no3=self.request.session['login_No'], \
+                                            work_day2=self.request.session['break_today'])
 
+  # 画面処理前の初期設定
+  def dispatch(self, request, *args, **kwargs):
+    # ログインしていない場合ログイン画面へ
+    if not request.session.get('login_No'):
+      return redirect('/login')
 
-  # セッションに工数入力日がない場合の処理
-  if not request.session.get('break_today'):
-    # 工数入力画面に飛ぶ
-    return redirect(to = '/input')
-  
+    # 人員情報取得(取得できない場合セッション削除しログイン画面へ)
+    try:
+      self.member_data = member.objects.get(employee_no=request.session['login_No'])
+    except member.DoesNotExist:
+      request.session.clear()
+      return redirect('/login')
 
+    # 親クラスへ情報送信
+    return super().dispatch(request, *args, **kwargs)
 
-  # POST時の処理
-  if (request.method == 'POST'):
-    # POSTされた値を変数に入れる
-    break_time1_start = request.POST['start_time1']
-    break_time1_end = request.POST['end_time1']
-    break_time2_start = request.POST['start_time2']
-    break_time2_end = request.POST['end_time2']
-    break_time3_start = request.POST['start_time3']
-    break_time3_end = request.POST['end_time3']
-    break_time4_start = request.POST['start_time4']
-    break_time4_end = request.POST['end_time4']
+  # コンテキストデータを設定するメソッドをオーバーライド
+  def get_context_data(self, **kwargs):
+    # 親クラスのget_context_dataメソッドを呼び出し
+    context = super().get_context_data(**kwargs)
+    # 休憩データを取得
+    break_data = self.object
 
-    # 休憩1開始時間の時と分取得
-    break_time1_start_hour, break_time1_start_min = time_index(break_time1_start)
-    break_time1_end_hour, break_time1_end_min = time_index(break_time1_end)
-    # 休憩2開始時間の時と分取得
-    break_time2_start_hour, break_time2_start_min = time_index(break_time2_start)
-    break_time2_end_hour, break_time2_end_min = time_index(break_time2_end)
-    # 休憩3開始時間の時と分取得
-    break_time3_start_hour, break_time3_start_min = time_index(break_time3_start)
-    break_time3_end_hour, break_time3_end_min = time_index(break_time3_end)
-    # 休憩4開始時間の時と分取得
-    break_time4_start_hour, break_time4_start_min = time_index(break_time4_start)
-    break_time4_end_hour, break_time4_end_min = time_index(break_time4_end)
-
-    # POSTされた値をまとめる
-    break_time1 = '#' + break_time1_start_hour.zfill(2) + break_time1_start_min + \
-                  break_time1_end_hour.zfill(2) + break_time1_end_min
-    break_time2 = '#' + break_time2_start_hour.zfill(2) + break_time2_start_min + \
-                  break_time2_end_hour.zfill(2) + break_time2_end_min
-    break_time3 = '#' + break_time3_start_hour.zfill(2) + break_time3_start_min + \
-                  break_time3_end_hour.zfill(2) + break_time3_end_min
-    break_time4 = '#' + break_time4_start_hour.zfill(2) + break_time4_start_min + \
-                  break_time4_end_hour.zfill(2) + break_time4_end_min
-
-
-    # 昼休憩時間に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time1_start_hour, break_time1_start_min, break_time1_end_hour, break_time1_end_min, 60, '昼休憩時間', request)
-    if response:
-      return response
-
-    # 残業休憩時間1に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time2_start_hour, break_time2_start_min, break_time2_end_hour, break_time2_end_min, 15, '残業時間中の休憩時間1', request)
-    if response:
-      return response
-
-    # 残業休憩時間2に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time3_start_hour, break_time3_start_min, break_time3_end_hour, break_time3_end_min, 60, '残業時間中の休憩時間2', request)
-    if response:
-      return response
-
-    # 残業休憩時間3に長すぎる時間を登録しようとした時の処理
-    response = break_time_over(break_time4_start_hour, break_time4_start_min, break_time4_end_hour, break_time4_end_min, 15, '残業時間中の休憩時間3', request)
-    if response:
-      return response
-
-
-    # 工数データあるか確認
-    kosu_data_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                    work_day2 = request.session['break_today'])
-
-    # 工数データある場合の処理
-    if kosu_data_filter.exists():
-      # 工数データ取得
-      kosu_data_get = kosu_data_filter.first()
-
-      # 作業内容と作業詳細をリストに解凍
-      kosu_def = list(kosu_data_get.time_work)
-      detail_list = kosu_data_get.detail_work.split('$')
-
-      # 休憩1のインデックス取得
-      break_start1, break_end1, break_next_day1 = break_time_process(break_time1)
-      # 休憩2のインデックス取得
-      break_start2, break_end2, break_next_day2 = break_time_process(break_time2)
-      # 休憩3のインデックス取得
-      break_start3, break_end3, break_next_day3 = break_time_process(break_time3)
-      # 休憩4のインデックス取得
-      break_start4, break_end4, break_next_day4 = break_time_process(break_time4)
-
-
-      # 休憩エラー有効チェック一時的に無効
-      member_obj.break_check = False
-
-      # 休憩1が日を超えている場合の処理
-      if break_next_day1 == 1:
-        # 休憩時間内の工数データを削除
-        kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
-        kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
-        # エラー発生の場合リダイレクト
-        if messages.get_messages(request)._queued_messages:
-          return redirect(to='/today_break_time')
-
-        # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[int(break_end1)] != '#':
-          # 休憩時間内の工数データを休憩に書き換え
-          kosu_def, detail_list = break_time_write(break_start1, 288, kosu_def, detail_list)
-          kosu_def, detail_list = break_time_write(0, break_end1, kosu_def, detail_list)
-
-      # 休憩1が日を超えていない場合の処理
-      else:
-        # 休憩時間内の工数データを削除
-        kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
-        # エラー発生の場合リダイレクト
-        if messages.get_messages(request)._queued_messages:
-          return redirect(to='/today_break_time')
-
-        # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[int(break_end1)] != '#':
-          # 休憩時間内の工数データを休憩に書き換え
-          kosu_def, detail_list = break_time_write(break_start1, break_end1, kosu_def, detail_list)
-
-
-      # 休憩2が日を超えている場合の処理
-      if break_next_day2 == 1:
-        # 休憩時間内の工数データを削除
-        kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
-        kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
-        # エラー発生の場合リダイレクト
-        if messages.get_messages(request)._queued_messages:
-          return redirect(to='/today_break_time')
-
-        # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[int(break_end2)] != '#':
-          # 休憩時間内の工数データを休憩に書き換え
-          kosu_def, detail_list = break_time_write(break_start2, 288, kosu_def, detail_list)
-          kosu_def, detail_list = break_time_write(0, break_end2, kosu_def, detail_list)
-
-      # 休憩2が日を超えていない場合の処理
-      else:
-        # 休憩時間内の工数データを削除
-        kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
-        # エラー発生の場合リダイレクト
-        if messages.get_messages(request)._queued_messages:
-          return redirect(to='/today_break_time')
-
-        # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[int(break_end2)] != '#':
-          # 休憩時間内の工数データを休憩に書き換え
-          kosu_def, detail_list = break_time_write(break_start2, break_end2, kosu_def, detail_list)
-
-
-      # 休憩3が日を超えている場合の処理
-      if break_next_day3 == 1:
-        # 休憩時間内の工数データを削除
-        kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
-        kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
-        # エラー発生の場合リダイレクト
-        if messages.get_messages(request)._queued_messages:
-          return redirect(to='/today_break_time')
-
-        # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[int(break_end3)] != '#':
-          # 休憩時間内の工数データを休憩に書き換え
-          kosu_def, detail_list = break_time_write(break_start3, 288, kosu_def, detail_list)
-          kosu_def, detail_list = break_time_write(0, break_end3, kosu_def, detail_list)
-
-      # 休憩3が日を超えていない場合の処理
-      else:
-        # 休憩時間内の工数データを削除
-        kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
-        # エラー発生の場合リダイレクト
-        if messages.get_messages(request)._queued_messages:
-          return redirect(to='/today_break_time')
-
-        # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[int(break_end3)] != '#':
-          # 休憩時間内の工数データを休憩に書き換え
-          kosu_def, detail_list = break_time_write(break_start3, break_end3, kosu_def, detail_list)
-
-
-      # 休憩4が日を超えている場合の処理
-      if break_next_day4 == 1:
-        # 休憩時間内の工数データを削除
-        kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
-        kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
-        # エラー発生の場合リダイレクト
-        if messages.get_messages(request)._queued_messages:
-          return redirect(to='/today_break_time')
-
-        # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[int(break_end4)] != '#':
-          # 休憩時間内の工数データを休憩に書き換え
-          kosu_def, detail_list = break_time_write(break_start4, 288, kosu_def, detail_list)
-          kosu_def, detail_list = break_time_write(0, break_end4, kosu_def, detail_list)
-
-      # 休憩4が日を超えていない場合の処理
-      else:
-        # 休憩時間内の工数データを削除
-        kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
-        # エラー発生の場合リダイレクト
-        if messages.get_messages(request)._queued_messages:
-          return redirect(to='/today_break_time')
-
-        # 休憩時間直後の時間に工数入力がある場合の処理
-        if kosu_def[int(break_end4)] != '#':
-          # 休憩時間内の工数データを休憩に書き換え
-          kosu_def, detail_list = break_time_write(break_start4, break_end4, kosu_def, detail_list)
-
-
-      # 作業詳細を文字列に変換
-      detail_list_str = detail_list_summarize(detail_list)
-
-
-      # 作業内容データの内容を上書きして更新
-      Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-                                                  work_day2 = request.session['break_today'], \
-                                                  defaults = {'time_work' : ''.join(kosu_def), \
-                                                              'detail_work' : detail_list_str, \
-                                                              'breaktime' : break_time1, \
-                                                              'breaktime_over1' : break_time2, \
-                                                              'breaktime_over2' : break_time3, \
-                                                              'breaktime_over3' : break_time4})
-
-
-    # 工数データない場合の処理
-    else:
-      # 従業員番号に該当するmemberインスタンスを取得
-      member_instance = member.objects.get(employee_no = request.session['login_No'])
-
-      # 作業内容データの内容を上書きして更新
-      Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-                                                  work_day2 = request.session['break_today'], \
-                                                  defaults = {'name' : member_instance, \
-                                                              'time_work' : '#'*288, \
-                                                              'detail_work' : '$'*287, \
-                                                              'breaktime' : '#' + break_time1, \
-                                                              'breaktime_over1' : '#' + break_time2, \
-                                                              'breaktime_over2' : '#' + break_time3, \
-                                                              'breaktime_over3' : '#' + break_time4})
+    # タイトルを設定
+    context['title'] = '休憩変更'
+    # タイトル(日付)を設定
+    context['data'] = break_data
+    # 初期値となる休憩時間を設定
+    context.update(self.get_default_times(break_data))
     
-    # 工数入力ページへ飛ぶ
-    return redirect(to = '/input')
+    return context
 
+  # 初期値の休憩時間を取得するメソッド
+  def get_default_times(self, break_data):
+    # 時間整形関数
+    def time_format(input_time):
+      return input_time[1:3] + ':' + input_time[3:5], input_time[5:7] + ':' + input_time[7:]
 
+    # 各休憩時間の初期値を定義
+    return {
+      'default_start_time1': time_format(break_data.breaktime)[0],
+      'default_end_time1': time_format(break_data.breaktime)[1],
+      'default_start_time2': time_format(break_data.breaktime_over1)[0],
+      'default_end_time2': time_format(break_data.breaktime_over1)[1],
+      'default_start_time3': time_format(break_data.breaktime_over2)[0],
+      'default_end_time3': time_format(break_data.breaktime_over2)[1],
+      'default_start_time4': time_format(break_data.breaktime_over3)[0],
+      'default_end_time4': time_format(break_data.breaktime_over3)[1],
+      }
 
-  # 工数データあるか確認
-  break_data_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                  work_day2 = request.session['break_today'])
+  # フォームが有効な場合に呼び出されるメソッドをオーバーライド
+  def form_valid(self, form):
+    # POST値取得
+    post_data = self.request.POST
+    break_times = [
+        (post_data.get(f'start_time{i}'), post_data.get(f'end_time{i}'))
+        for i in range(1, 5)
+    ]
 
-  # 工数データがある場合の処理
-  if break_data_filter.exists():
-    # 工数データ取得
-    break_data_get = break_data_filter.first()
-    
-    # 休憩データ取得
-    break1 = break_data_get.breaktime
-    break1_1 = break_data_get.breaktime_over1
-    break1_2 = break_data_get.breaktime_over2
-    break1_3 = break_data_get.breaktime_over3
+    # 休憩時間POST値リスト定義
+    formatted_break_times = []
+    # 各休憩時間をフォーマットしてリストに追加
+    for start, end in break_times:
+      start_hour, start_min = time_index(start)
+      end_hour, end_min = time_index(end)
+      formatted_break_times.append(
+          f"{start_hour.zfill(2)}{start_min}{end_hour.zfill(2)}{end_min}"
+      )
 
-    # フォーム初期値定義
-    default_start_time1 = break1[1 : 3] + ':' + break1[3 : 5]
-    default_end_time1 = break1[5 : 7] + ':' + break1[7 : ]
-    default_start_time2 = break1_1[1 : 3] + ':' + break1_1[3 : 5]
-    default_end_time2 = break1_1[5 : 7] + ':' + break1_1[7 : ]
-    default_start_time3 = break1_2[1 : 3] + ':' + break1_2[3 : 5]
-    default_end_time3 = break1_2[5 : 7] + ':' + break1_2[7 : ]
-    default_start_time4 = break1_3[1 : 3] + ':' + break1_3[3 : 5]
-    default_end_time4 = break1_3[5 : 7] + ':' + break1_3[7 : ]
+    # エラーラベル定義
+    over_time_labels = {
+      1: '昼休憩時間'
+      }
 
-  # 工数データがない場合の処理
-  else:
-    # 空のフォーム初期値定義
-    default_start_time1 = ''
-    default_end_time1 = ''
-    default_start_time2 = ''
-    default_end_time2 = ''
-    default_start_time3 = ''
-    default_end_time3 = ''
-    default_start_time4 = ''
-    default_end_time4 = ''
+    # 昼休憩時間が長すぎる場合のチェック
+    for i, label in over_time_labels.items():
+      response = break_time_over(
+          *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), 60, label, self.request
+      )
+      if response:
+        return response
 
+    # 詳細なエラー時間ラベル
+    over_time_rest_labels = {
+      2: ('残業時間中の休憩時間1', 15), 3: ('残業時間中の休憩時間2', 60), 4: ('残業時間中の休憩時間3', 15),
+      }
 
+    # 残業休憩時間が長すぎる場合のチェック
+    for i, (label, max_time) in over_time_rest_labels.items():
+      response = break_time_over(
+          *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), max_time, label, self.request
+          )
+      if response:
+        return response
 
-  # HTMLに渡す辞書
-  context = {
-    'title' : '休憩変更',
-    'data' : break_data_get,
-    'default_start_time1' : default_start_time1,
-    'default_end_time1' : default_end_time1,
-    'default_start_time2' : default_start_time2,
-    'default_end_time2' : default_end_time2,
-    'default_start_time3' : default_start_time3,
-    'default_end_time3' : default_end_time3,
-    'default_start_time4' : default_start_time4,
-    'default_end_time4' : default_end_time4,
-    }
+    # 各休憩時間をフォーマットしてモデルのフィールドに設定
+    self.object.breaktime = "#" + formatted_break_times[0]
+    self.object.breaktime_over1 = "#" + formatted_break_times[1]
+    self.object.breaktime_over2 = "#" + formatted_break_times[2]
+    self.object.breaktime_over3 = "#" + formatted_break_times[3]
 
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/today_break_time.html', context)
+    # データを保存
+    self.object.save()
+    return redirect(self.get_success_url())
 
 
 

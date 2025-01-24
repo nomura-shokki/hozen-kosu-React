@@ -703,7 +703,7 @@ class Page_form(TestCase):
         # テストユーザーの工数データ取得
         updated_entry = Business_Time_graph.objects.get(employee_no3 = self.member.employee_no, \
                                                         work_day2 = self.Business_Time_graph.work_day2)
-
+        print()
         # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.breaktime, '#13001400')
         # 休憩時間が更新されていることを確認
