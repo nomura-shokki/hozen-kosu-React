@@ -1,4 +1,5 @@
 from ..models import Business_Time_graph
+from ..models import member
 from ..models import kosu_division
 from django.contrib import messages
 from django.shortcuts import redirect
@@ -154,10 +155,7 @@ def handle_get_request(new_work_day, member_obj):
   graph_item = ['{}:{}'.format(i, '00' if n == 0 else '05' if n == 5 else n) for i in range(24) for n in range(0, 60, 5)]
 
   # グラフデータリスト内の各文字を定義
-  str_list = ['#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 
-              'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 
-              'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 
-              'q', 'r', 's', 't', 'u', 'v', 'w', 'x']
+  str_list = list('#ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx')
 
   # 該当日に工数データがある場合の処理
   if obj_filter.exists():
@@ -642,13 +640,8 @@ def kosu_division_dictionary(def_name):
       n = kosu_num
 
   # 工数区分処理用記号リスト用意
-  str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-              'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                    'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
+  str_list = list("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx")[:n]
 
-  # リストの長さを工数区分の登録数に応じて調整
-  del str_list[n:]
 
   # 工数区分の選択リスト作成
   choices_list = []
@@ -1022,82 +1015,129 @@ def break_time_over(start_hour, start_min, end_hour, end_min, limit_tome,comment
 
 
 
+# 工数表示リスト作成関数
 def create_kosu(work_list, detail_list, obj_get, member_obj, request):
-    # 作業時間リストリセット
-    kosu_list, time_list_start, time_list_end = [], [], []
-    def_list, def_time, detail_time, find_list = [], [], [], []
-    
-    # 作業内容と作業詳細毎の開始時間と終了時間インデックス取得
-    adjustment_dict = {
-        ('1', '5'): 234,
-        ('2',): 144 if member_obj.shop in ['P', 'R', 'T1', 'T2', 'その他', '組長以上(P,R,T,その他)'] else 180,
-        ('3',): 42 if member_obj.shop in ['P', 'R', 'T1', 'T2', 'その他', '組長以上(P,R,T,その他)'] else 72,
-        ('4',): 216,
-        ('6',): 108,
+  # 作業時間リストリセット
+  kosu_list, time_list_start, time_list_end = [], [], []
+  def_list, def_time, detail_time, find_list = [], [], [], []
+
+  # 作業内容と作業詳細毎の開始時間と終了時間インデックス取得
+  adjustment_dict = {
+    ('1', '5'): 234,
+    ('2',): 144 if member_obj.shop in ['P', 'R', 'T1', 'T2', 'その他', '組長以上(P,R,T,その他)'] else 180,
+    ('3',): 42 if member_obj.shop in ['P', 'R', 'T1', 'T2', 'その他', '組長以上(P,R,T,その他)'] else 72,
+    ('4',): 216,
+    ('6',): 108,
     }
-    for i in range(288):
-        add_index = False
-        if i == 0 and work_list[i] != '#':
-            add_index = True
-        elif i != 0 and (work_list[i] != work_list[i - 1] or detail_list[i] != detail_list[i - 1]):
-            add_index = True
-        elif i == 287 and work_list[i] != '#':
-            add_index = True
-        
-        if add_index:
-            find_list.append(i)
-            for keys, adjustment in adjustment_dict.items():
-                if obj_get.tyoku2 in keys:
-                    cycle_time = adjustment if member_obj.shop in ['P', 'R', 'T1', 'T2', 'その他', '組長以上(P,R,T,その他)'] else adjustment + 36
-                    kosu_list.append(i - cycle_time if i >= cycle_time else i + (288 - cycle_time))
-                    break
-    
-    # 作業時間インデックスに要素がある場合の処理
-    if kosu_list:
-        for ind, t in enumerate(kosu_list[:-1]):
-            time_list_start.append(f"{str(int(t)//12).zfill(2)}:{str(int(t)%12*5).zfill(2)}")
-            time_list_end.append(f"{str(int(kosu_list[ind + 1])//12).zfill(2)}:{str(int(kosu_list[ind + 1])%12*5).zfill(2)}")
-    
-    # 現在使用している工数区分のオブジェクトを取得
-    kosu_obj = kosu_division.objects.get(kosu_name=request.session['input_def'])
 
-    # 工数区分の選択リスト作成
-    for i in range(1, 50):
-        if getattr(kosu_obj, f'kosu_title_{i}') is not None:
-            def_list.append(getattr(kosu_obj, f'kosu_title_{i}'))
+  for i in range(288):
+    # 工数変化検知
+    add_index = False
+    if i == 0 and work_list[i] != '#':
+      add_index = True
+    elif i != 0 and (work_list[i] != work_list[i - 1] or detail_list[i] != detail_list[i - 1]):
+      add_index = True
+    elif i == 287 and work_list[i] != '#':
+      add_index = True
 
-    # 工数区分登録カウンターリセット
-    n = 0
-    # 工数区分登録数カウント
-    for kosu_num in range(1, 50):
-      if eval('kosu_obj.kosu_title_{}'.format(kosu_num)) != None:
-        n = kosu_num
-    
-    # 工数区分辞書作成
-    str_list = list("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$")
+    # 作業内容が前の時間と変化している場合の処理
+    if add_index:
+      # 検索用リストにインデックス記録
+      find_list.append(i)
+      # 表示用作業内容リストの時間を正規の時間のインデックスで記録
+      for keys, adjustment in adjustment_dict.items():
+        if obj_get.tyoku2 in keys:
+          cycle_time = adjustment if member_obj.shop in ['P', 'R', 'T1', 'T2', 'その他', '組長以上(P,R,T,その他)'] else adjustment + 36
+          kosu_list.append(i - cycle_time if i >= cycle_time else i + (288 - cycle_time))
+          break
 
-    # リストの長さを工数区分の登録数に応じて調整
-    del str_list[n:]
-    del def_list[n:]
+  # 作業時間インデックスに要素がある場合の処理
+  if kosu_list:
+    for ind, t in enumerate(kosu_list[:-1]):
+      time_list_start.append(f"{str(int(t)//12).zfill(2)}:{str(int(t)%12*5).zfill(2)}")
+      time_list_end.append(f"{str(int(kosu_list[ind + 1])//12).zfill(2)}:{str(int(kosu_list[ind + 1])%12*5).zfill(2)}")
 
-    # 作業なし・休憩追加
-    str_list.extend(['#', '$'])
-    def_list.extend(['-', '休憩'])
+  # 業務工数区分辞書作成
+  def_library, def_n = kosu_division_dictionary(request.session['input_def'])
+  def_library.append(['#', '-'])
+  def_library.append(['$', '休憩'])
 
-    def_library = dict(zip(str_list[:len(def_list)], def_list))
-    
-    # 作業内容と作業詳細リスト作成
-    for ind, t in enumerate(find_list[:-1]):
-        def_time.append(def_library.get(work_list[t], work_list[t]))
-        detail_time.append(detail_list[t])
-    
-    # HTML表示用リスト作成
-    time_display_list = [
-        [f"{start}～{end}", def_time[k], detail_time[k]]
-        for k, (start, end) in enumerate(zip(time_list_start, time_list_end))
+  # 作業内容と作業詳細リスト作成
+  def_time = [k[1] for t in find_list[:-1] for k in def_library if k[0] == work_list[t]]
+  detail_time = [detail_list[t] for t in find_list[:-1] for k in def_library if k[0] == work_list[t]]
+
+  # HTML表示用リスト作成
+  time_display_list = [
+    [f"{start}～{end}", def_time[k], detail_time[k]]
+    for k, (start, end) in enumerate(zip(time_list_start, time_list_end))
     ]
-    
-    return time_display_list
+
+  return time_display_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# ログイン確認関数
+def get_member(request):
+  # ログインしていない場合ログイン画面へ
+  if not request.session.get('login_No'):
+    return redirect('/login')
+  
+  # 人員情報取得(取得できない場合セッション削除しログイン画面へ)
+  try:
+    return member.objects.get(employee_no=request.session['login_No'])
+  except member.DoesNotExist:
+    request.session.clear()
+    return redirect('/login')
+  
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数区分定義のみのリスト取得関数
+def get_def_library_data(session_def_name):
+  # 工数区分定義辞書もどき作成
+  def_library, def_num = kosu_division_dictionary(session_def_name)
+  # 工数区分定義のみのリストを返す
+  return [sublist[1] for sublist in def_library], def_num
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+# 累積工数計算関数
+def accumulate_kosu_data(kosu_total, str_list, def_num):
+  # 定義区分数の要素を用意
+  graph_list = list(itertools.repeat(0, def_num))
+  # 累積工数記録
+  for i in kosu_total:
+    # 作業内容の工数区分定義ごとの工数算出
+    graph_year = [i.time_work.count(m) * 5 for m in str_list]
+    # 累積工数を日ごとに加算
+    graph_list = [sum(v) for v in zip(graph_year, graph_list)]
+
+  return graph_list
 
 
 

@@ -6,9 +6,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.views.generic import ListView
 from django.views.generic.edit import UpdateView
+from django.views.generic.edit import DeleteView
 from django.db.models import Q
-from django.http import HttpResponse
 from django.urls import reverse_lazy
+from django.http import HttpResponseRedirect
 import datetime
 import itertools
 import re
@@ -36,6 +37,9 @@ from ..utils.kosu_utils import OK_NF_check
 from ..utils.kosu_utils import index_change
 from ..utils.kosu_utils import break_time_over
 from ..utils.kosu_utils import create_kosu
+from ..utils.kosu_utils import get_member
+from ..utils.kosu_utils import get_def_library_data
+from ..utils.kosu_utils import accumulate_kosu_data
 from ..models import member
 from ..models import Business_Time_graph
 from ..models import kosu_division
@@ -46,6 +50,7 @@ from ..forms import schedule_timeForm
 from ..forms import scheduleForm
 from ..forms import all_kosu_findForm
 from ..forms import all_kosuForm
+
 
 
 
@@ -99,10 +104,7 @@ def dynamic_choices(request):
           break
 
       # 工数区分処理用記号リスト用意
-      str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-                  'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                    'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                        'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
+      str_list = list('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx')
 
       # 選択肢をリスト形式で準備
       choices = [[str_list[n-1], closest_option]]
@@ -1684,236 +1686,13 @@ def input(request):
     # 作業内容と作業詳細を直に合わせて調整
     work_list, detail_list = kosu_sort(obj_get, member_obj)
 
-    # 作業時間リストリセット
-    kosu_list = []
-    time_list_start = []
-    time_list_end = []
-    def_list = []
-    def_time = []
-    detail_time = []
-    find_list =[]
-
-    # 作業内容と作業詳細毎の開始時間と終了時間インデックス取得
-    for i in range(288):
-      # 最初の要素に作業が入っている場合の処理
-      if i == 0 and work_list[i] != '#':
-        # 検索用リストにインデックス記憶
-        find_list.append(i)
-
-        if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
-          kosu_list.append(i + 54)
-
-        elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-            member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 144)
-
-        elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
-              and obj_get.tyoku2 == '2':
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 108)
-
-        elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-            member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 246)
-
-        elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
-              and obj_get.tyoku2 == '3':
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 216)
-
-        elif obj_get.tyoku2 == '4':
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 72)
-
-        elif obj_get.tyoku2 == '6':
-          # 作業時間インデックスに作業時間のインデックス記録
-          kosu_list.append(i + 180)
-
-      # 時間区分毎に前の作業との差異がある場合の処理
-      if i != 0 and (work_list[i] != work_list[i - 1] or detail_list[i] != detail_list[i - 1]):
-        # 検索用リストにインデックス記憶
-        find_list.append(i)
-
-        if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
-          if i >= 234:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 234)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 54)
-
-        elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-            member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
-          if i >= 144:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 144)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 144)
-
-        elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
-              and obj_get.tyoku2 == '2':
-          if i >= 180:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 180)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 108)
-  
-        elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-            member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
-          if i >= 42:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 42)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 246)
-        elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
-              and obj_get.tyoku2 == '3':
-          if i >= 72:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 72)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 216)
-
-        elif obj_get.tyoku2 == '4':
-          if i >= 216:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 216)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 72)
-
-        elif obj_get.tyoku2 == '6':
-          if i >= 108:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 108)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 180)
-
-      # 最後の要素に作業が入っている場合の処理
-      if i == 287 and work_list[i] != '#':
-        # 検索用リストにインデックス記憶
-        find_list.append(i)
-
-        if obj_get.tyoku2 == '1' or obj_get.tyoku2 == '5':
-          if i >= 234:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 233)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 55)
-
-        elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-            member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
-          if i >= 144:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 143)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 145)
-
-        elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
-              and obj_get.tyoku2 == '2':
-          if i >= 180:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 179)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 109)
-
-        elif (member_obj.shop == 'P' or member_obj.shop == 'R' or member_obj.shop == 'T1' or member_obj.shop == 'T2' or \
-            member_obj.shop == 'その他' or member_obj.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
-          if i >= 42:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 41)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 247)
-
-        elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
-              and obj_get.tyoku2 == '3':
-          if i >= 72:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 71)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 217)
-
-        elif obj_get.tyoku2 == '4':
-          if i >= 216:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 215)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 73)
-
-        elif obj_get.tyoku2 == '6':
-          if i >= 108:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i - 107)
-
-          else:
-            # 作業時間インデックスに作業時間のインデックス記録
-            kosu_list.append(i + 181)
-
-    # 作業時間インデックスに要素がある場合の処理
-    if len(kosu_list) != 0:
-      # 作業時間インデックスを時間表示に修正
-      for ind, t in enumerate(kosu_list):
-        # 最後以外のループ処理
-        if len(kosu_list) - 1 != ind:
-          # 作業開始時間をSTRで定義
-          time_obj_start = str(int(t)//12).zfill(2) + ':' + str(int(t)%12*5).zfill(2)
-          # 作業終了時間をSTRで定義
-          time_obj_end = str(int(kosu_list[ind + 1])//12).zfill(2) + ':' \
-            + str(int(kosu_list[ind + 1])%12*5).zfill(2)
-
-          # 作業開始時間と作業終了時間をリストに追加
-          time_list_start.append(time_obj_start)
-          time_list_end.append(time_obj_end)
+    # HTML表示用リスト作成
+    time_display_list = create_kosu(work_list, detail_list, obj_get, member_obj, request)
 
     # 工数区分定義リスト作成
     def_library, def_n = kosu_division_dictionary(request.session['input_def'])
     def_library.append(['#', '-'])
     def_library.append(['$', '休憩'])
-
-    # 作業内容と作業詳細リスト作成
-    for ind, t in enumerate(find_list):
-      # 最後以外のループ処理
-      if len(find_list) - 1 != ind:
-        for d in def_library:
-          if work_list[t] == d[0]:
-            def_time.append(d[1])
-            break
-
-        detail_time.append(detail_list[t])
-
-
-    # HTML表示用リスト作成
-    for k in range(len(time_list_start)):
-      for_list = []
-      for_list.append(str(time_list_start[k]) + '～' + str(time_list_end[k]))
-      for_list.append(def_time[k])
-      for_list.append(detail_time[k])
-      time_display_list.append(for_list)
 
     # 工数合計取得
     time_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
@@ -2510,13 +2289,7 @@ def detail(request, num):
     kosu_obj = kosu_division.objects.get(kosu_name = obj_get.def_ver2)
 
     # 工数区分処理用記号リスト用意
-    str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-                'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                  'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                      'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
-
-    # リストの長さを工数区分の登録数に応じて調整
-    del str_list[n:]
+    str_list = list('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx')[:n]
 
 
   # HTML表示用リスト作成
@@ -3131,54 +2904,40 @@ def detail(request, num):
 
 
 # 工数削除画面定義
-def delete(request, num):
-  # セッションにログインした従業員番号がない場合の処理
-  if not request.session.get('login_No'):
-    # 未ログインならログインページへ飛ぶ
-    return redirect('/login')
-
-  try:
-    # ログイン者の情報取得
-    member_obj = member.objects.get(employee_no=request.session['login_No'])
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect('/login')
+class KosuDeleteView(DeleteView):
+  # モデル、テンプレート、リダイレクト先などを指定
+  model = Business_Time_graph
+  template_name = 'kosu/delete.html'
+  success_url = reverse_lazy('kosu_list', args = [1]) 
 
 
-  # 指定IDの工数履歴のレコードのオブジェクトを変数に入れる
-  obj_get = Business_Time_graph.objects.get(id = num)
-
-  # 作業内容と作業詳細を直に合わせて調整
-  work_list, detail_list = kosu_sort(obj_get, member_obj)
-  # HTML表示用リスト作成
-  time_display_list = create_kosu(work_list, detail_list, obj_get, member_obj, request)
-
-
-
-  # POST時の処理
-  if (request.method == 'POST'):
-
-    # 取得していた指定従業員番号のレコードを削除する
-    obj_get.delete()
-
-    # 工数履歴画面をリダイレクトする
-    return redirect(to = '/list/1')
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # セッションにログインした従業員番号がない場合の処理
+    if not request.session.get('login_No'):
+      return redirect('/login')
+    try:
+      # ログイン者の情報取得
+      self.member_obj = member.objects.get(employee_no=request.session['login_No'])
+    except member.DoesNotExist:
+      # ログイン者情報取得できない場合ログイン画面へ
+      request.session.clear()
+      return redirect('/login')
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
 
 
-
-  # HTMLに渡す辞書
-  context = {
-    'title' : '工数データ削除',
-    'id' : num,
-    'time_display_list' : time_display_list,
-    'obj_get' : obj_get,
-    }
-
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/delete.html', context)
+  # コンテキストデータを取得するメソッドをオーバーライド
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    obj_get = self.get_object()
+    work_list, detail_list = kosu_sort(obj_get, self.member_obj)
+    time_display_list = create_kosu(work_list, detail_list, obj_get, self.member_obj, self.request)
+    context['title'] = '工数データ削除'
+    context['id'] = self.object.id
+    context['time_display_list'] = time_display_list
+    context['obj_get'] = obj_get
+    return context
 
 
 
@@ -3191,426 +2950,108 @@ def delete(request, num):
 
 
 # 工数集計画面定義
-def total(request): 
-  # セッションにログインした従業員番号がない場合の処理
-  if not request.session.get('login_No'):
-    # 未ログインならログインページへ飛ぶ
-    return redirect('/login')
+def total(request):
+  # ログイン情報を取得し、リダイレクトが必要な場合はリダイレクト
+  member_obj = get_member(request)
+  if isinstance(member_obj, HttpResponseRedirect):
+    return member_obj
 
-  try:
-    # ログイン者の情報取得
-    member_obj = member.objects.get(employee_no=request.session['login_No'])
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect('/login')
+  # グラフ項目色定義
+  color_list = ['plum', 'darkgray', 'slategray', 'steelblue', 'royalblue', 'dodgerblue', 'deepskyblue', 'aqua', 'mediumturquoise', 'lightseagreen', 'springgreen', 'limegreen', 'lawngreen', 'greenyellow', 'gold', 'darkorange', 'burlywood', 'sandybrown', 'lightcoral', 'lightsalmon', 'tomato', 'orangered', 'red', 'deeppink', 'hotpink', 'violet', 'magenta', 'mediumorchid', 'darkviolet', 'mediumpurple', 'mediumblue', 'cadetblue', 'mediumseagreen', 'forestgreen', 'darkkhaki', 'crimson', 'rosybrown', 'dimgray', 'midnightblue', 'darkblue', 'darkslategray', 'darkgreen', 'olivedrab', 'darkgoldenrod', 'sienna', 'firebrick', 'maroon', 'darkmagenta', 'indigo', 'black']
 
 
   # GET時の処理
-  if (request.method == 'GET'):
-    # 今日の日時を変数に格納
+  if request.method == 'GET':
+    # 今日の日付を取得
     today = datetime.date.today()
-
-    # フォームの初期値に定義する辞書作成
+    # 日付を文字列に変換
     default_day = str(today)
-
-    # フォームに初期値設定し定義
+    # フォームを定義
     form = kosu_dayForm()
 
-    # ログイン者の工数集計データ取得
-    kosu_total = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], work_day2 = today)
-    
-    # ログイン者の本日の工数集計データがない場合の処理
+    # 今日の工数データあるか確認
+    kosu_total = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__startswith=today)
+    # 今日の工数データがない場合
     if not kosu_total.exists():
-      # 工数区分定義データ取得
-      kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
-    
-      # 工数区分定義の数をカウント
-      def_num = 0
-      for n in range(1, 51):
-        if eval('kosu_obj.kosu_title_{}'.format(n)) not in ('', None):
-          def_num = n
-
-      # 工数区分定義の選択リスト作成
-      graph_item = []
-      for i in range(def_num):
-        graph_item.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
-      
-      # 0が工数区分定義と同じ数入ったリスト作成
+      # 工数区分定義リスト取得
+      graph_item, def_num = get_def_library_data(request.session['input_def'])
+      # グラフの値のゼロを定義
       graph_list = list(itertools.repeat(0, def_num))
-
-    # ログイン者の本日の工数集計データがある場合の処理
+    
+    # 今日の工数データがある場合
     else:
-      # ログイン者の工数集計データ取得
+      # 工数データ取得
       graph_data = kosu_total.first()
-
-      # 工数データに工数区分定義の値がある場合の処理
-      if graph_data.def_ver2 not in ('', None):
-        # 工数区分定義データ取得
-        kosu_obj = kosu_division.objects.get(kosu_name = graph_data.def_ver2)
-
-      # 工数データに工数区分定義の値がある場合の処理
-      else:
-        # 工数区分定義データ取得
-        kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
-
-
-      # 工数区分定義の数をカウント
-      def_num = 0
-      for n in range(1, 51):
-        if eval('kosu_obj.kosu_title_{}'.format(n)) not in ('', None):
-          def_num = n
-        else:
-          break
-
-      # 工数区分定義の選択リスト作成
-      graph_item = []
-      for i in range(def_num):
-        graph_item.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
-
-      # 工数データリスト内の各文字を定義
-      str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-                  'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                    'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                        'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
-      # 工数データリスト内の各文字を工数区分定義の数に調整
-      del str_list[def_num:]
-
-      # 各工数区分定義の累積工数リスト作成
-      str_n = 0
-      graph_list = []
-
-      for i in str_list:
-        str_n = graph_data.time_work.count(i)*5
-
-        graph_list.append(str_n)
-        str_n = 0
-
-    # グラフ項目色定義
-    color_list = ['plum', 'darkgray', 'slategray', 'steelblue', 'royalblue', 'dodgerblue', 
-                  'deepskyblue', 'aqua', 'mediumturquoise', 'lightseagreen', 'springgreen', 'limegreen', 
-                  'lawngreen', 'greenyellow', 'gold', 'darkorange', 'burlywood', 'sandybrown', 'lightcoral', 
-                  'lightsalmon', 'tomato', 'orangered', 'red', 'deeppink', 'hotpink', 'violet', 'magenta', 
-                  'mediumorchid', 'darkviolet', 'mediumpurple', 'mediumblue', 'cadetblue', 'mediumseagreen', 
-                  'forestgreen', 'darkkhaki', 'crimson', 'rosybrown', 'dimgray', 'midnightblue', 'darkblue', 
-                  'darkslategray', 'darkgreen', 'olivedrab', 'darkgoldenrod', 'sienna', 'firebrick', 'maroon', 
-                  'darkmagenta', 'indigo', 'black'] 
-
+      # 工数区分定義のバージョン取得
+      def_name = graph_data.def_ver2 if graph_data.def_ver2 not in ('', None) else request.session['input_def']
+      # 工数区分定義リスト取得
+      graph_item, def_num = get_def_library_data(def_name)
+      # 工数区分定義用記号定義
+      str_list = list('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx')[:def_num]
+      # 工数区分定義別の累積工数取得
+      graph_list = [graph_data.time_work.count(i) * 5 for i in str_list]
 
 
   # POST時の処理
-  if (request.method == 'POST'):
-    # 年間工数選択時処理
-    if request.POST['kosu_summarize'] == '3':
-      # POST送信された就業日を変数に入れる
-      post_day = request.POST['kosu_day']
-      # POST送信された就業日の年部分抜き出し
-      kosu_year = post_day[: 4]
+  elif request.method == 'POST':
+    # POSTされた値を取得
+    post_day = request.POST['kosu_day']
+    summarize_type = request.POST['kosu_summarize']
 
-      # 指定年の工数取得
-      kosu_total = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                    work_day2__startswith = kosu_year)
+    # 年間工数取得時の処理
+    if summarize_type == '3':
+      # 工数データがあるか確認
+      kosu_total = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__startswith=post_day[:4])
+    # 月間工数取得時の処理
+    elif summarize_type == '2':
+      # 工数データがあるか確認
+      kosu_total = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__startswith=post_day[:7])
+    # 指定日工数取得時の処理
+    else:
+      # 工数データがあるか確認
+      kosu_total = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__startswith=post_day)
 
-
-      # 指定年に工数入力がない場合の処理
-      if not kosu_total.exists():
-        # 工数区分定義データ取得
-        kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
-      
-        # 工数区分定義の数をカウント
-        def_num = 0
-        for n in range(1, 51):
-          if eval('kosu_obj.kosu_title_{}'.format(n)) not in ('', None):
-            def_num = n
-          else:
-            break
-
-        # 工数区分定義の選択リスト作成
-        graph_item = []
-        for i in range(def_num):
-          graph_item.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
-
-        # 0が工数区分定義と同じ数入ったリスト作成
-        graph_list = list(itertools.repeat(0, def_num))
-
-
-      # 指定年に工数入力がある場合の処理
-      else:
-        # 年の最初の日の工数区分定義でグラフ項目リスト作成
-        for ind, v in enumerate(kosu_total):
-          # 工数区分定義が空でない場合の処理
-          if v.def_ver2 not in ('', None):
-            # 工数区分定義データ取得
-            kosu_obj = kosu_division.objects.get(kosu_name = v.def_ver2)
-            # 工数区分定義の数をカウント
-            def_num = 0
-            for n in range(1, 51):
-              if eval('kosu_obj.kosu_title_{}'.format(n)) not in ('', None):
-                def_num = n
-              else:
-                break
-            break
-
-          # 工数区分定義が空の場合の処理
-          else:
-            if ind == len(kosu_total) - 1:
-              # 工数区分定義データ取得
-              kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
-
-              # 工数区分定義の数をカウント
-              def_num = 0
-              for n in range(1, 51):
-                if eval('kosu_obj.kosu_title_{}'.format(n)) not in ('', None):
-                  def_num = n
-                else:
-                  break
-
-
-        # 工数区分定義の選択リスト作成
-        graph_item = []
-        for i in range(def_num):
-          graph_item.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
-
-        # 工数データリスト内の各文字を定義
-        str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-                    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                      'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                          'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
-        # 工数データリスト内の各文字を工数区分定義の数に調整
-        del str_list[def_num:]
-
-
-        # 指定年の工数を加算しデータリスト作成
-        graph_list = list(itertools.repeat(0, def_num))
-        for i in kosu_total:
-          # 日毎の累積工数リスト作成
-          str_n = 0
-          graph_year = []
-          for m in str_list:
-            str_n = i.time_work.count(m)*5
-
-            graph_year.append(str_n)
-            str_n = 0
-
-          # 各工数区分定義の累積工数リストを日ごとに加算
-          for w, v in enumerate(zip(graph_year, graph_list)):
-            kosu_sum = sum(v)
-            graph_list[w] = kosu_sum
-
-
-    # 月間工数選択時処理
-    if request.POST['kosu_summarize'] == '2':
-      # POST送信された就業日を変数に入れる
-      post_day = request.POST['kosu_day']
-      # POST送信された就業日の年、月部分抜き出し
-      kosu_month = post_day[: 7]
-
-      # 指定月の工数取得
-      kosu_total = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], work_day2__startswith = kosu_month)
-
-      #指定月に工数入力がない場合の処理
-      if not kosu_total.exists():
-        # 工数区分定義データ取得
-        kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
-      
-        # 工数区分定義の数をカウント
-        def_num = 0
-        for n in range(1, 51):
-          if eval('kosu_obj.kosu_title_{}'.format(n)) not in ('', None):
-            def_num = n
-          else:
-            break
-
-        # 工数区分定義の選択リスト作成
-        graph_item = []
-        for i in range(def_num):
-          graph_item.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
-
-        # 0が工数区分定義と同じ数入ったリスト作成
-        graph_list = list(itertools.repeat(0, def_num))
-
-      # 指定月に工数入力がある場合の処理
-      else:
-        # 月の最初の日の工数区分定義でグラフ項目リスト作成
-        for ind, v in enumerate(kosu_total):
-          # 工数区分定義が空でない場合の処理
-          if v.def_ver2 not in ('', None):
-            # 工数区分定義データ取得
-            kosu_obj = kosu_division.objects.get(kosu_name = v.def_ver2)
-            # 工数区分定義の数をカウント
-            def_num = 0
-            for n in range(1, 51):
-              if eval('kosu_obj.kosu_title_{}'.format(n)) not in ('', None):
-                def_num = n
-              else:
-                break
-            break
-
-          # 工数区分定義が空の場合の処理
-          else:
-            if ind == len(kosu_total) - 1:
-              # 工数区分定義データ取得
-              kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
-
-              # 工数区分定義の数をカウント
-              def_num = 0
-              for n in range(1, 51):
-                if eval('kosu_obj.kosu_title_{}'.format(n)) not in ('', None):
-                  def_num = n
-                else:
-                  break
-
-        # 工数区分定義の選択リスト作成
-        graph_item = []
-        for i in range(def_num):
-          graph_item.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
-
-        # 工数データリスト内の各文字を定義
-        str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-                    'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                      'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                          'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
-        # 工数データリスト内の各文字を工数区分定義の数に調整
-        del str_list[def_num:]
-
-
-        # 指定月の工数を加算しデータリスト作成
-        graph_list = list(itertools.repeat(0, def_num))
-        for i in kosu_total:
-          # 日毎の累積工数リスト作成
-          str_n = 0
-          graph_month = []
-          for m in str_list:
-            str_n = i.time_work.count(m)*5
-
-            graph_month.append(str_n)
-            str_n = 0
-
-          # 各工数区分定義の累積工数リストを日ごとに加算
-          for w, v in enumerate(zip(graph_month, graph_list)):
-            kosu_sum = sum(v)
-            graph_list[w] = kosu_sum
-
-
-    # ログイン者の工数集計データ取得
-    kosu_total = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                    work_day2 = request.POST['kosu_day'])
-
-    # ログイン者の指定日の工数集計データがない場合の処理
-    if kosu_total.count() == 0 and request.POST['kosu_summarize'] == '1':
-      # 工数区分定義データ取得
-      kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
-    
-      # 工数区分定義の数をカウント
-      def_num = 0
-      for n in range(1, 51):
-        if eval('kosu_obj.kosu_title_{}'.format(n)) not in ('', None):
-          def_num = n
-
-      # 工数区分定義の選択リスト作成
-      graph_item = []
-      for i in range(def_num):
-        graph_item.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
-      
-      # 0が工数区分定義と同じ数入ったリスト作成
+    # 指定期間の工数データがない場合の処理
+    if not kosu_total.exists():
+      # 工数区分定義リスト取得
+      graph_item, def_num = get_def_library_data(request.session['input_def'])
+      # グラフの値のゼロを定義
       graph_list = list(itertools.repeat(0, def_num))
 
-
-    # ログイン者の指定日の工数集計データがある場合の処理
-    if kosu_total.count() != 0 and request.POST['kosu_summarize'] == '1':
-      # ログイン者の工数集計データ取得
-      graph_data = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                   work_day2 = request.POST['kosu_day'])
-
-      # 工数データに工数区分定義の値がある場合の処理
-      if graph_data.def_ver2 not in ('', None):
-        # 工数区分定義データ取得
-        kosu_obj = kosu_division.objects.get(kosu_name = graph_data.def_ver2)
-
-      # 工数データに工数区分定義の値がある場合の処理
-      else:
-        # 工数区分定義データ取得
-        kosu_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
-
-      # 工数区分定義の数をカウント
-      def_num = 0
-      for n in range(1, 51):
-        if eval('kosu_obj.kosu_title_{}'.format(n)) not in ('', None):
-          def_num = n
-        else:
-          break
-
-      # 工数区分定義の選択リスト作成
-      graph_item = []
-      for i in range(def_num):
-        graph_item.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
-
-      # 工数データリスト内の各文字を定義
-      str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', \
-                  'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', \
-                    'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', \
-                        'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
-      # 工数データリスト内の各文字を工数区分定義の数に調整
-      del str_list[def_num:]
-
-      # 各工数区分定義の累積工数リスト作成
-      str_n = 0
-      graph_list = []
-
-      for i in str_list:
-        str_n = graph_data.time_work.count(i)*5
-        graph_list.append(str_n)
-        str_n = 0
-
-    # グラフ項目色定義
-    color_list = ['plum', 'darkgray', 'slategray', 'steelblue', 'royalblue', 'dodgerblue', 
-                  'deepskyblue', 'aqua', 'mediumturquoise', 'lightseagreen', 'springgreen', 'limegreen', 
-                  'lawngreen', 'greenyellow', 'gold', 'darkorange', 'burlywood', 'sandybrown', 'lightcoral', 
-                  'lightsalmon', 'tomato', 'orangered', 'red', 'deeppink', 'hotpink', 'violet', 'magenta', 
-                  'mediumorchid', 'darkviolet', 'mediumpurple', 'mediumblue', 'cadetblue', 'mediumseagreen', 
-                  'forestgreen', 'darkkhaki', 'crimson', 'rosybrown', 'dimgray', 'midnightblue', 'darkblue', 
-                  'darkslategray', 'darkgreen', 'olivedrab', 'darkgoldenrod', 'sienna', 'firebrick', 'maroon', 
-                  'darkmagenta', 'indigo', 'black'] 
-
-
-    # 並び順が多い順の場合処理
+    # 指定期間の工数データがある場合
+    else:
+      # 工数データ取得
+      first_record = kosu_total.first()
+      # 工数区分定義のバージョン取得
+      def_name = first_record.def_ver2 if first_record.def_ver2 not in ('', None) else request.session['input_def']
+      # 工数区分定義リスト取得
+      graph_item, def_num = get_def_library_data(def_name)
+      # 工数区分定義用記号定義
+      str_list = list('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx')[:def_num]
+      # 工数区分定義別の累積工数取得
+      graph_list = accumulate_kosu_data(kosu_total, str_list, def_num)
+    
+    # 並び替え時の処理
     if request.POST['kosu_order'] == '2':
-      # グラフ項目色の要素数を合わせる
-      del color_list[def_num:]
-      # 項目色と工数を辞書型に統合
-      color_library = dict(zip(color_list, graph_list))
-      # 工数区分定義と各工数を辞書型に統合
-      graph_library = dict(zip(graph_item, graph_list))
-      # 工数の多い順に辞書を並び替え
-      color_library_tuple = sorted(color_library.items(), key = lambda x : x[1] ,reverse = True)
-      graph_library_tuple = sorted(graph_library.items(), key = lambda x : x[1] ,reverse = True)
-      #タプル型を辞書型に変換
-      color_library = {k : v for k, v in color_library_tuple}
-      graph_library = {k : v for k, v in graph_library_tuple}
-      # 並び替えた辞書を工数区分定義と工数をリストに分ける
-      color_list = color_library.keys()
-      graph_item = graph_library.keys()
-      graph_list = graph_library.values()
+      color_list, graph_item, graph_list = zip(*sorted(zip(color_list, graph_item, graph_list), key=lambda x: x[2], reverse=True))
 
-
-    # フォームにPOSTした値を設定し定義
+    # フォームにPOSTされた値を設定
     form = kosu_dayForm(request.POST)
+    # 初期日にPOSTされた日を設定
     default_day = request.POST['kosu_day']
 
 
 
   # HTMLに渡す辞書
   context = {
-    'title' : '工数集計',
-    'data' : member_obj,
-    'form' : form,
-    'default_day' : default_day,
-    'graph_list' : graph_list,
-    'graph_item' : graph_item,
-    'color_list' : color_list,
-    'graph_library' : dict(zip(graph_item, graph_list))
+      'title': '工数集計',
+      'data': member_obj,
+      'form': form,
+      'default_day': default_day,
+      'graph_list': graph_list,
+      'graph_item': graph_item,
+      'color_list': color_list,
+      'graph_library': dict(zip(graph_item, graph_list)),
   }
 
 

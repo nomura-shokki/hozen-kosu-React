@@ -349,6 +349,8 @@ class MemberEditView(UpdateView):
 
 
 
+
+
 # 人員削除画面定義
 class MemberDeleteView(DeleteView):
   # モデル、テンプレート、リダイレクト先などを指定
@@ -367,9 +369,8 @@ class MemberDeleteView(DeleteView):
       # ログイン者の情報取得
       self.data = member.objects.get(employee_no=request.session['login_No'])
     except member.DoesNotExist:
-      # セッション値から人員情報取得できない場合の処理
+      # ログイン者情報取得できない場合ログイン画面へ
       request.session.clear()
-      # ログインページにリダイレクト
       return redirect(to='/login')
 
     # ログイン者に権限がなければメインページにリダイレクト
@@ -394,6 +395,8 @@ class MemberDeleteView(DeleteView):
         'obj': self.get_object(),
     })
     return context
+
+
 
 
 
