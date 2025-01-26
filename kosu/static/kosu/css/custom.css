@@ -72,16 +72,17 @@ input.big {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: auto;
-  max-width: 100vw;
-  height: auto;
+  width: 90vw; /* ビューポートに合わせた幅 */
+  max-width: 90vw; /* 最大幅をビューポートの90％に */
+  height: auto; /* 必要に応じて調整 */
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
   text-align: center;
   padding: 20px;
   z-index: 1000;
-  white-space: nowrap; 
-  overflow: hidden; 
+  white-space: nowrap;
+  overflow: hidden;
   text-overflow: clip;
   font-size: calc(2vw + 2vh + 1vmin);
 }
+
