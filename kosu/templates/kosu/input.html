@@ -19,7 +19,7 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
 </head>
 <body class="container">
-  <div id="success-message"><span>工数登録完了</span></div>
+  <div id="success-message">工数登録完了</div>
   <h1 class="display-6 text-primary">{{member_obj.name}}さんの{{title}}</h1>
   <div class="number-input-group">
     <p class="h6 no-wrap">
@@ -617,4 +617,9 @@
   </p>
   {% endif %}
 </body>
+<style>
+  html, body {
+    overflow-x: hidden; /* 横スクロールを無効にする */
+  }
+</style>
 </html>
