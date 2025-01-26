@@ -19,9 +19,8 @@ from ..forms import memberForm, member_findForm
 
 # 人員情報一覧表示画面定義
 class MemberPageView(ListView):
-  # テンプレート定義
+  # テンプレート,オブジェクト名定義
   template_name = 'kosu/member.html'
-  # オブジェクト名定義
   context_object_name = 'data'
 
 

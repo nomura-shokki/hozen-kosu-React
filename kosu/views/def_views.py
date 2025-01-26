@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.urls import reverse_lazy
+from django.views.generic import CreateView
 from ..models import member
 from ..models import kosu_division
 from ..models import administrator_data
@@ -521,61 +523,52 @@ def def_delete(request, num):
 
 
 # 工数区分定義登録画面定義
-def def_new(request):
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
+class KosuDivisionCreateView(CreateView):
+  # モデル,フォーム,テンプレート,飛び先定義
+  model = kosu_division
+  form_class = kosu_divisionForm
+  template_name = 'kosu/def_new.html'
+  success_url = reverse_lazy('def_new')
 
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
 
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login') 
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 未ログインならログインページに飛ぶ
+    if request.session.get('login_No', None) is None:
+      return redirect('/login')
 
-  # ログイン者が管理者でなければメニュー画面に飛ぶ
-  if data.administrator != True:
-    return redirect(to = '/')
+    try:
+      # ログイン者の情報取得
+      self.data = member.objects.get(employee_no=request.session['login_No'])
+    except member.DoesNotExist:
+      # ログイン者情報取得できない場合ログイン画面へ
+      request.session.clear()
+      return redirect('/login')
 
-  # POST時の処理
-  if (request.method == 'POST'):
+    # ログイン者が管理者でなければメニュー画面に飛ぶ
+    if not self.data.administrator:
+      return redirect('/')
+
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
+
+
+  # フォームバリデーションが成功した際のメソッドをオーバーライド
+  def form_valid(self, form):
+    # 工数定義区分バージョン取得
+    kosu_name = form.cleaned_data.get('kosu_name')
 
     # POSTされた工数区分定義名を使用していればエラーメッセージを出す
-    def_obj = kosu_division.objects.filter(kosu_name = request.POST['kosu_name'])
-    if def_obj.count() > 0:
-      # エラーメッセージ出力
-      messages.error(request, '登録しようとした工数区分定義名は既に使用しています。登録できません。ERROR027')
-      # このページをリダイレクト
-      return redirect(to = '/def_new')
-    
-    # 工数区分定義の空のモデルクラスを変数に入れる
-    obj = kosu_division()
-    # 空のフォームにPOSTされた値を入れる
-    new = kosu_divisionForm(request.POST, instance=obj)
-    # 新しいレコードを作成しセーブする
-    new.save()
-    # このページをリダイレクトする
-    return redirect(to = '/def_new')
-  
-  # HTMLに渡す辞書
-  context = {
-    'title': '工数区分定義新規登録',
-    'form': kosu_divisionForm(),
-  }
+    if kosu_division.objects.filter(kosu_name=kosu_name).exists():
+      messages.error(self.request, '登録しようとした工数区分定義名は既に使用しています。登録できません。ERROR027')
+      return redirect(self.success_url)
 
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/def_new.html', context)
+    # 新しいレコードを作成しセーブする
+    return super().form_valid(form)
 
 
 
 
 
 #--------------------------------------------------------------------------------------------------------
-
-
-
 
