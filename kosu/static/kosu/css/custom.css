@@ -75,8 +75,15 @@ input.big {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
-  font-size: 2em;
   text-align: center;
   line-height: 100vh;
   z-index: 1000;
+
+  /* 文字のサイズを自動調整 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+
+  /* フォントサイズの調整 */
+  font-size: calc(2vw + 2vh + 1vmin);
 }
