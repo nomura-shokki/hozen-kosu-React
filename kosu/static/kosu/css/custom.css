@@ -72,8 +72,8 @@ input.big {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 100%; /* 必要に応じて調整 */
-  height: auto; /* または適切な値 */
+  width: 100vw; /* ビューポートの幅に合わせる */
+  height: auto; /* 必要に応じて調整 */
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
   text-align: center;
