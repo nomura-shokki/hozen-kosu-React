@@ -72,17 +72,18 @@ input.big {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 90vw; /* ビューポートに合わせた幅 */
-  max-width: 90vw; /* 最大幅をビューポートの90％に */
+  width: 90%; /* デバイス幅の90% */
+  max-width: 90%; /* デバイス幅の90% */
   height: auto; /* 必要に応じて調整 */
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
   text-align: center;
-  padding: 20px;
+  padding: 20px; /* 必要に応じて調整 */
   z-index: 1000;
-  white-space: nowrap;
-  overflow: hidden;
+  white-space: nowrap; 
+  overflow: hidden; 
   text-overflow: clip;
   font-size: calc(2vw + 2vh + 1vmin);
 }
+
 
