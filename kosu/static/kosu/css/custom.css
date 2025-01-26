@@ -72,16 +72,21 @@ input.big {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: fit-content;
-  max-width: 90vw; /* 最大幅設定 */
-  padding: 10px 20px;
+  max-width: 100vw; /* ビューポートの幅に調整 */
+  width: fit-content; /* コンテンツサイズに合わせて幅を自動調整 */
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
   text-align: center;
+  padding: 20px;
   z-index: 1000;
-  white-space: nowrap; 
+  box-sizing: border-box; /* パディングを含む幅の計算 */
+}
+
+#success-message span { 
+  display: block; /* インラインブロックに変更 */
+  margin: 0 auto; /* 小さなデバイスで中央揃え */
+  white-space: nowrap;
   overflow: hidden; 
   text-overflow: clip;
-  font-size: calc(2vw + 2vh + 1vmin);
-  box-sizing: border-box;
+  font-size: calc(2vw + 2vh + 1vmin); /* 文字の自動サイズ調整 */
 }
