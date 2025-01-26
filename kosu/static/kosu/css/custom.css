@@ -83,10 +83,10 @@ input.big {
 }
 
 #success-message span { 
-  display: block; /* インラインブロックに変更 */
-  margin: 0 auto; /* 小さなデバイスで中央揃え */
+  display: block; 
+  margin: 0 auto; 
   white-space: nowrap;
   overflow: hidden; 
   text-overflow: clip;
-  font-size: calc(2vw + 2vh + 1vmin); /* 文字の自動サイズ調整 */
+  font-size: calc(2vw + 2vh + 1vmin); 
 }
