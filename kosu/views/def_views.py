@@ -567,6 +567,11 @@ class KosuDivisionCreateView(CreateView):
     return super().form_valid(form)
 
 
+  # コンテキストデータを取得するメソッドをオーバーライド
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context['title'] = '工数区分定義新規登録'
+    return context
 
 
 
