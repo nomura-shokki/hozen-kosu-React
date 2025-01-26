@@ -1,10 +1,15 @@
 $(document).ready(function(){
-    // 送信完了メッセージを表示
-    let message = document.getElementById("success-message");
-    message.style.display = "block";
+    var message = $("#success-message");
+    
+    // メッセージを表示
+    message.show();
+    
+    // 親要素の横スクロールを無効にする
+    $("body").css("overflow-x", "hidden");
 
     // 1秒後にメッセージを非表示
     setTimeout(function() {
-        message.style.display = "none";
+        message.hide();
+        $("body").css("overflow-x", "auto"); // 元に戻す
     }, 1000);
 });
