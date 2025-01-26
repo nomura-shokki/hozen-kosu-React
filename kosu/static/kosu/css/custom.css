@@ -88,6 +88,8 @@ input.big {
   box-sizing: border-box; /* パディングを含む幅の計算 */
 }
 
-
+.not-container {
+  overflow-x: hidden; /* 横スクロールを無効にする */
+}
 
 
