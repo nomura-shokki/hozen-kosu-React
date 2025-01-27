@@ -1147,3 +1147,105 @@ def accumulate_kosu_data(kosu_total, str_list, def_num):
 
 
 
+
+
+# 直,勤務のダブルフォーム使用先指定関数
+def double_form(employee_no, work_day, request):
+  # 指定日に工数データが既にあるか確認
+  obj_filter = Business_Time_graph.objects.filter(employee_no3=employee_no, work_day2=work_day)
+
+  # 指定日に工数データがある場合の処理
+  if obj_filter.exists():
+    # 工数データ取得
+    obj_get = obj_filter.first()
+    # 直,勤務入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
+    if obj_get.tyoku2 != request.POST.get('tyoku') and request.POST.get('tyoku', '') != '':
+      tyoku = request.POST.get('tyoku')
+    elif obj_get.tyoku2 != request.POST.get('tyoku2') and request.POST.get('tyoku2', '') != '':
+      tyoku = request.POST.get('tyoku2')
+    elif request.POST.get('tyoku', '') == '' and request.POST.get('tyoku2', '') == '':
+      tyoku = ''
+    else:
+      tyoku = obj_get.tyoku2
+
+    if obj_get.work_time != request.POST.get('work') and request.POST.get('work', '') != '':
+      work = request.POST.get('work')
+    elif obj_get.work_time != request.POST.get('work2') and request.POST.get('work2', '') != '':
+      work = request.POST.get('work2')
+    elif request.POST.get('work', '') == '' and request.POST.get('work2', '') == '':
+      work = ''
+    else:
+      work = obj_get.work_time
+
+  # 指定日に工数データがない場合の処理
+  else:
+    tyoku = request.POST.get('tyoku', '') or request.POST.get('tyoku2', '')
+    work = request.POST.get('work', '') or request.POST.get('work2', '')
+
+  return obj_filter, tyoku, work
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 休憩書き込み関数
+def handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_list, member_obj, request):
+  # 日を超えている場合の処理
+  if break_next_day == 1:
+    # 休憩時間内の工数データを削除
+    kosu_def, detail_list = break_time_delete(break_start, 288, kosu_def, detail_list, member_obj, request)
+    kosu_def, detail_list = break_time_delete(0, break_end, kosu_def, detail_list, member_obj, request)
+    # エラー発生の場合の処理
+    if messages.get_messages(request)._queued_messages:
+      return None
+
+    # 休憩時間直後の時間に工数入力がある場合の処理
+    if kosu_def[int(break_end)] != '#':
+      # 休憩時間内の工数データを休憩に書き換え
+      kosu_def, detail_list = break_time_write(break_start, 288, kosu_def, detail_list)
+      kosu_def, detail_list = break_time_write(0, break_end, kosu_def, detail_list)
+
+  # 日を超えていない場合の処理
+  else:
+    # 休憩時間内の工数データを削除
+    kosu_def, detail_list = break_time_delete(break_start, break_end, kosu_def, detail_list, member_obj, request)
+    # エラー発生の場合の処理
+    if messages.get_messages(request)._queued_messages:
+      return None
+
+    # 休憩時間直後の時間に工数入力がある場合の処理
+    if kosu_def[int(break_end)] != '#':
+      # 休憩時間内の工数データを休憩に書き換え
+      kosu_def, detail_list = break_time_write(break_start, break_end, kosu_def, detail_list)
+
+  return kosu_def, detail_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# フォーム保持削除
+def session_del(key, request):
+  # エラー時保持がセッションにある場合のセッション削除
+  if key in request.session:
+    del request.session[key]
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+

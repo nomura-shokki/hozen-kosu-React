@@ -40,6 +40,9 @@ from ..utils.kosu_utils import create_kosu
 from ..utils.kosu_utils import get_member
 from ..utils.kosu_utils import get_def_library_data
 from ..utils.kosu_utils import accumulate_kosu_data
+from ..utils.kosu_utils import double_form
+from ..utils.kosu_utils import handle_break_time
+from ..utils.kosu_utils import session_del
 from ..models import member
 from ..models import Business_Time_graph
 from ..models import kosu_division
@@ -299,11 +302,11 @@ def input(request):
   graph_list = []
 
 
+
   # GET時の処理
   if request.method == 'GET':
     # グラフラベル＆グラフデータ作成
     graph_item, graph_list = handle_get_request(new_work_day, member_obj)
-
 
     # 工数入力完了記憶がある場合の処理
     if request.session.get('POST_memory') == True:
@@ -351,47 +354,8 @@ def input(request):
     def_work = request.POST['kosu_def_list']
     detail_work = request.POST['work_detail']
 
-    # 指定日に工数データが既にあるか確認
-    obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=work_day)
-
-    # 指定日に工数データがある場合の処理
-    if obj_filter.exists():
-      # 工数データ取得
-      obj_get = obj_filter.first()
-
-      # 直入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
-      if obj_get.tyoku2 != request.POST['tyoku'] and request.POST['tyoku'] not in (None, ''):
-        tyoku = request.POST['tyoku']
-      elif obj_get.tyoku2 != request.POST['tyoku2'] and request.POST['tyoku2'] not in (None, ''):
-        tyoku = request.POST['tyoku2']
-      else:
-        tyoku = obj_get.tyoku2
-
-      # 勤務入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
-      if obj_get.work_time != request.POST['work'] and request.POST['work'] not in (None, ''):
-        work = request.POST['work']
-      elif obj_get.work_time != request.POST['work2'] and request.POST['work2'] not in (None, ''):
-        work = request.POST['work2']
-      else:
-        work = obj_get.work_time
-
-    # 指定日に工数データがない場合の処理
-    else:
-      # 2つのフォームで入力のあった直を変数に入れる
-      if request.POST['tyoku'] not in (None, ''):
-        tyoku = request.POST['tyoku']
-      elif request.POST['tyoku2'] not in (None, '') != '':
-        tyoku = request.POST['tyoku2']
-      else:
-        tyoku = ''
-
-      # 2つのフォームで入力のあった勤務を変数に入れる
-      if request.POST['work'] != '':
-        work = request.POST['work']
-      elif request.POST['work2'] != '':
-        work = request.POST['work2']
-      else:
-        work = ''
+    # 直,勤務取得
+    obj_filter, tyoku, work = double_form(request.session['login_No'], request.POST['work_day'], request)
 
     # 直初期値設定(エラー保持)
     request.session['error_tyoku'] = tyoku
@@ -583,121 +547,20 @@ def input(request):
 
         # 休憩変更チェックが入っていない時の処理
         if break_change == 0:
-          # 休憩1が日を超えている場合の処理
-          if break_next_day1 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
+          # 各休憩時間の処理
+          for break_num in range(1, 5):
+            # 各変数の値を動的に取得
+            break_start = locals()[f'break_start{break_num}']
+            break_end = locals()[f'break_end{break_num}']
+            break_next_day = locals()[f'break_next_day{break_num}']
+
+            # 休憩時間を削除
+            result = handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_list, member_obj, request)
+
+            # エラーが出た場合リダイレクト
+            if result is None:
               return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start1, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end1, kosu_def, detail_list)
-
-          # 休憩1が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start1, break_end1, kosu_def, detail_list)
-
-
-          # 休憩2が日を超えている場合の処理
-          if break_next_day2 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start2, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end2, kosu_def, detail_list)
-
-          # 休憩2が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start2, break_end2, kosu_def, detail_list)
-
-
-          # 休憩3が日を超えている場合の処理
-          if break_next_day3 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start3, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end3, kosu_def, detail_list)
-
-          # 休憩3が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start3, break_end3, kosu_def, detail_list)
-
-
-          # 休憩4が日を超えている場合の処理
-          if break_next_day4 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start4, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end4, kosu_def, detail_list)
-
-          # 休憩4が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start4, break_end4, kosu_def, detail_list)
-
+            kosu_def, detail_list = result
 
       # 入力時間が日をまたいでいる場合の処理
       elif check == 1:
@@ -716,120 +579,21 @@ def input(request):
 
         # 休憩変更チェックが入っていない時の処理
         if break_change == 0:
-          # 休憩1が日を超えている場合の処理
-          if break_next_day1 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
+          # 各休憩時間の処理
+          for break_num in range(1, 5):
+            # 各変数の値を動的に取得
+            break_start = locals()[f'break_start{break_num}']
+            break_end = locals()[f'break_end{break_num}']
+            break_next_day = locals()[f'break_next_day{break_num}']
+
+            # 休憩時間を削除
+            result = handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_list, member_obj, request)
+
+            # エラーが出た場合リダイレクト
+            if result is None:
               return redirect(to='/input')
+            kosu_def, detail_list = result
 
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start1, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end1, kosu_def, detail_list)
-
-          # 休憩1が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start1, break_end1, kosu_def, detail_list)
-
-
-          # 休憩2が日を超えている場合の処理
-          if break_next_day2 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start2, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end2, kosu_def, detail_list)
-
-          # 休憩2が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start2, break_end2, kosu_def, detail_list)
-
-
-          # 休憩3が日を超えている場合の処理
-          if break_next_day3 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start3, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end3, kosu_def, detail_list)
-
-          # 休憩3が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start3, break_end3, kosu_def, detail_list)
-
-
-          # 休憩4が日を超えている場合の処理
-          if break_next_day4 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start4, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end4, kosu_def, detail_list)
-
-          # 休憩4が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start4, break_end4, kosu_def, detail_list)
 
       # 作業詳細を文字列に変換
       detail_list_str = detail_list_summarize(detail_list)
@@ -904,121 +668,20 @@ def input(request):
 
         # 休憩変更チェックが入っていない時の処理
         if break_change == 0:
-          # 休憩1が日を超えている場合の処理
-          if break_next_day1 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
+          # 各休憩時間の処理
+          for break_num in range(1, 5):
+            # 各変数の値を動的に取得
+            break_start = locals()[f'break_start{break_num}']
+            break_end = locals()[f'break_end{break_num}']
+            break_next_day = locals()[f'break_next_day{break_num}']
+
+            # 休憩時間を削除
+            result = handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_list, member_obj, request)
+
+            # エラーが出た場合リダイレクト
+            if result is None:
               return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start1, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end1, kosu_def, detail_list)
-
-          # 休憩1が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start1, break_end1, kosu_def, detail_list)
-
-
-          # 休憩2が日を超えている場合の処理
-          if break_next_day2 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start2, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end2, kosu_def, detail_list)
-
-          # 休憩2が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start2, break_end2, kosu_def, detail_list)
-
-
-          # 休憩3が日を超えている場合の処理
-          if break_next_day3 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start3, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end3, kosu_def, detail_list)
-
-          # 休憩3が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start3, break_end3, kosu_def, detail_list)
-
-
-          # 休憩4が日を超えている場合の処理
-          if break_next_day4 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start4, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end4, kosu_def, detail_list)
-
-          # 休憩4が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start4, break_end4, kosu_def, detail_list)
-
+            kosu_def, detail_list = result
 
       # 入力時間が日をまたいでいる場合の処理
       else:
@@ -1028,120 +691,20 @@ def input(request):
 
         # 休憩変更チェックが入っていない時の処理
         if break_change == 0:
-          # 休憩1が日を超えている場合の処理
-          if break_next_day1 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start1, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end1, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
+          # 各休憩時間の処理
+          for break_num in range(1, 5):
+            # 各変数の値を動的に取得
+            break_start = locals()[f'break_start{break_num}']
+            break_end = locals()[f'break_end{break_num}']
+            break_next_day = locals()[f'break_next_day{break_num}']
+
+            # 休憩時間を削除
+            result = handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_list, member_obj, request)
+
+            # エラーが出た場合リダイレクト
+            if result is None:
               return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start1, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end1, kosu_def, detail_list)
-
-          # 休憩1が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start1, break_end1, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end1)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start1, break_end1, kosu_def, detail_list)
-
-
-          # 休憩2が日を超えている場合の処理
-          if break_next_day2 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start2, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end2, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start2, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end2, kosu_def, detail_list)
-
-          # 休憩2が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start2, break_end2, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end2)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start2, break_end2, kosu_def, detail_list)
-
-
-          # 休憩3が日を超えている場合の処理
-          if break_next_day3 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start3, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end3, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start3, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end3, kosu_def, detail_list)
-
-          # 休憩3が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start3, break_end3, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start3, break_end3, kosu_def, detail_list)
-
-
-          # 休憩4が日を超えている場合の処理
-          if break_next_day4 == 1:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start4, 288, kosu_def, detail_list, member_obj, request)
-            kosu_def, detail_list = break_time_delete(0, break_end4, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end4)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start4, 288, kosu_def, detail_list)
-              kosu_def, detail_list = break_time_write(0, break_end4, kosu_def, detail_list)
-
-          # 休憩4が日を超えていない場合の処理
-          else:
-            # 休憩時間内の工数データを削除
-            kosu_def, detail_list = break_time_delete(break_start4, break_end4, kosu_def, detail_list, member_obj, request)
-            # エラー発生の場合リダイレクト
-            if messages.get_messages(request)._queued_messages:
-              return redirect(to='/input')
-
-            # 休憩時間直後の時間に工数入力がある場合の処理
-            if kosu_def[int(break_end3)] != '#':
-              # 休憩時間内の工数データを休憩に書き換え
-              kosu_def, detail_list = break_time_write(break_start4, break_end4, kosu_def, detail_list)
+            kosu_def, detail_list = result
 
 
       # 作業詳細を文字列に変換
@@ -1179,30 +742,9 @@ def input(request):
     request.session['start_time'] = end_time
     request.session['end_time'] = end_time
 
-    # エラー時の直保持がセッションにある場合の処理
-    if 'error_tyoku' in request.session:
-      # セッション削除
-      del request.session['error_tyoku']
-
-    # エラー時の勤務保持がセッションにある場合の処理
-    if 'error_work' in request.session:
-      # セッション削除
-      del request.session['error_work']
-
-    # エラー時の工数定義区分保持がセッションにある場合の処理
-    if 'error_def' in request.session:
-      # セッション削除
-      del request.session['error_def']
-
-    # エラー時の作業詳細保持がセッションにある場合の処理
-    if 'error_detail' in request.session:
-      # セッション削除
-      del request.session['error_detail']
-
-    # エラー時の残業保持がセッションにある場合の処理
-    if 'error_over_work' in request.session:
-      # セッション削除
-      del request.session['error_over_work']
+    # フォーム保持削除
+    for key in ['error_tyoku', 'error_work', 'error_def', 'error_detail', 'error_over_work']:
+      session_del(key, request)
 
     # 翌日チェックリセット
     request.session['tomorrow_check'] = False
@@ -1219,47 +761,8 @@ def input(request):
 
   # 残業登録時の処理
   elif "over_time_correction" in request.POST:
-    # 指定日に工数データが既にあるか確認
-    obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=request.POST['work_day'])
-
-    # 指定日に工数データがある場合の処理
-    if obj_filter.exists():
-      # 工数データ取得
-      obj_get = obj_filter.first()
-
-      # 直入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
-      if obj_get.tyoku2 != request.POST['tyoku'] and request.POST['tyoku'] not in (None, ''):
-        tyoku = request.POST['tyoku']
-      elif obj_get.tyoku2 != request.POST['tyoku2'] and request.POST['tyoku2'] not in (None, ''):
-        tyoku = request.POST['tyoku2']
-      else:
-        tyoku = obj_get.tyoku2
-
-      # 勤務入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
-      if obj_get.work_time != request.POST['work'] and request.POST['work'] not in (None, ''):
-        work = request.POST['work']
-      elif obj_get.work_time != request.POST['work2'] and request.POST['work2'] not in (None, ''):
-        work = request.POST['work2']
-      else:
-        work = obj_get.work_time
-
-    # 指定日に工数データがない場合の処理
-    else:
-      # 2つのフォームで入力のあった直を変数に入れる
-      if request.POST['tyoku'] not in (None, ''):
-        tyoku = request.POST['tyoku']
-      elif request.POST['tyoku2'] not in (None, '') != '':
-        tyoku = request.POST['tyoku2']
-      else:
-        tyoku = ''
-
-      # 2つのフォームで入力のあった勤務を変数に入れる
-      if request.POST['work'] != '':
-        work = request.POST['work']
-      elif request.POST['work2'] != '':
-        work = request.POST['work2']
-      else:
-        work = ''
+    # 直,勤務取得
+    obj_filter, tyoku, work = double_form(request.session['login_No'], request.POST['work_day'], request)
 
     # 未入力がないことを確認
     if request.POST['over_work'] == '':
@@ -1319,47 +822,8 @@ def input(request):
 
   # 工数区分定義予測設定変更時の処理
   elif "def_check" in request.POST:
-    # 指定日に工数データが既にあるか確認
-    obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=request.POST['work_day'])
-
-    # 指定日に工数データがある場合の処理
-    if obj_filter.exists():
-      # 工数データ取得
-      obj_get = obj_filter.first()
-
-      # 直入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
-      if obj_get.tyoku2 != request.POST['tyoku'] and request.POST['tyoku'] not in (None, ''):
-        tyoku = request.POST['tyoku']
-      elif obj_get.tyoku2 != request.POST['tyoku2'] and request.POST['tyoku2'] not in (None, ''):
-        tyoku = request.POST['tyoku2']
-      else:
-        tyoku = obj_get.tyoku2
-
-      # 勤務入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
-      if obj_get.work_time != request.POST['work'] and request.POST['work'] not in (None, ''):
-        work = request.POST['work']
-      elif obj_get.work_time != request.POST['work2'] and request.POST['work2'] not in (None, ''):
-        work = request.POST['work2']
-      else:
-        work = obj_get.work_time
-
-    # 指定日に工数データがない場合の処理
-    else:
-      # 2つのフォームで入力のあった直を変数に入れる
-      if request.POST['tyoku'] not in (None, ''):
-        tyoku = request.POST['tyoku']
-      elif request.POST['tyoku2'] not in (None, '') != '':
-        tyoku = request.POST['tyoku2']
-      else:
-        tyoku = ''
-
-      # 2つのフォームで入力のあった勤務を変数に入れる
-      if request.POST['work'] != '':
-        work = request.POST['work']
-      elif request.POST['work2'] != '':
-        work = request.POST['work2']
-      else:
-        work = ''
+    # 直,勤務取得
+    obj_filter, tyoku, work = double_form(request.session['login_No'], request.POST['work_day'], request)
 
     # 直初期値設定保持
     request.session['error_tyoku'] = tyoku
@@ -1393,47 +857,8 @@ def input(request):
 
   # 現在時刻取得処理
   elif "now_time" in request.POST:
-    # 指定日に工数データが既にあるか確認
-    obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=request.POST['work_day'])
-
-    # 指定日に工数データがある場合の処理
-    if obj_filter.exists():
-      # 工数データ取得
-      obj_get = obj_filter.first()
-
-      # 直入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
-      if obj_get.tyoku2 != request.POST['tyoku'] and request.POST['tyoku'] not in (None, ''):
-        tyoku = request.POST['tyoku']
-      elif obj_get.tyoku2 != request.POST['tyoku2'] and request.POST['tyoku2'] not in (None, ''):
-        tyoku = request.POST['tyoku2']
-      else:
-        tyoku = obj_get.tyoku2
-
-      # 勤務入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
-      if obj_get.work_time != request.POST['work'] and request.POST['work'] not in (None, ''):
-        work = request.POST['work']
-      elif obj_get.work_time != request.POST['work2'] and request.POST['work2'] not in (None, ''):
-        work = request.POST['work2']
-      else:
-        work = obj_get.work_time
-
-    # 指定日に工数データがない場合の処理
-    else:
-      # 2つのフォームで入力のあった直を変数に入れる
-      if request.POST['tyoku'] not in (None, ''):
-        tyoku = request.POST['tyoku']
-      elif request.POST['tyoku2'] not in (None, '') != '':
-        tyoku = request.POST['tyoku2']
-      else:
-        tyoku = ''
-
-      # 2つのフォームで入力のあった勤務を変数に入れる
-      if request.POST['work'] != '':
-        work = request.POST['work']
-      elif request.POST['work2'] != '':
-        work = request.POST['work2']
-      else:
-        work = ''
+    # 直,勤務取得
+    obj_filter, tyoku, work = double_form(request.session['login_No'], request.POST['work_day'], request)
 
     # 現在時刻取得
     now_time = datetime.datetime.now().time()
@@ -1518,63 +943,17 @@ def input(request):
 
   # 定義確認処理
   elif "def_find" in request.POST:
-    # 指定日に工数データが既にあるか確認
-    obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=request.POST['work_day'])
+    # 直,勤務取得
+    obj_filter, tyoku, work = double_form(request.session['login_No'], request.POST['work_day'], request)
 
-    # 指定日に工数データがある場合の処理
-    if obj_filter.exists():
-      # 工数データ取得
-      obj_get = obj_filter.first()
-
-      # 直入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
-      if obj_get.tyoku2 != request.POST['tyoku'] and request.POST['tyoku'] not in (None, ''):
-        tyoku = request.POST['tyoku']
-      elif obj_get.tyoku2 != request.POST['tyoku2'] and request.POST['tyoku2'] not in (None, ''):
-        tyoku = request.POST['tyoku2']
-      else:
-        tyoku = obj_get.tyoku2
-
-      # 勤務入力に変更がある場合変更後のデータを使用、無い場合はデータ内のデータを使用
-      if obj_get.work_time != request.POST['work'] and request.POST['work'] not in (None, ''):
-        work = request.POST['work']
-      elif obj_get.work_time != request.POST['work2'] and request.POST['work2'] not in (None, ''):
-        work = request.POST['work2']
-      else:
-        work = obj_get.work_time
-
-    # 指定日に工数データがない場合の処理
-    else:
-      # 2つのフォームで入力のあった直を変数に入れる
-      if request.POST['tyoku'] not in (None, ''):
-        tyoku = request.POST['tyoku']
-      elif request.POST['tyoku2'] not in (None, '') != '':
-        tyoku = request.POST['tyoku2']
-      else:
-        tyoku = ''
-
-      # 2つのフォームで入力のあった勤務を変数に入れる
-      if request.POST['work'] != '':
-        work = request.POST['work']
-      elif request.POST['work2'] != '':
-        work = request.POST['work2']
-      else:
-        work = ''
-
-    # 直初期値設定保持
+    # フォーム内容保持
     request.session['error_tyoku'] = tyoku
-    # 勤務初期値設定保持
     request.session['error_work'] = work
-    # 工数区分定義初期値設定保持
     request.session['error_def'] = request.POST['kosu_def_list']
-    # 作業詳細初期値設定保持
     request.session['error_detail'] = request.POST['work_detail']
-    # 残業初期値設定保持
     request.session['error_over_work'] = request.POST['over_work']
-    # 作業開始時間保持
     request.session['start_time'] = request.POST['start_time']
-    # 作業終了時間保持
     request.session['end_time'] = request.POST['end_time']
-    # 翌日チェック保持
     request.session['tomorrow_check'] = 'tomorrow_check' in request.POST
 
     # 工数定義区分画面へジャンプ
@@ -1620,26 +999,9 @@ def input(request):
     # 直情報に空を入れる
     tyoku_default = ''
 
-  # エラー時の直保持がセッションにある場合の処理
-  if 'error_tyoku' in request.session:
-    # 直初期値にエラー時の直保持を入れる
-    tyoku_default = request.session['error_tyoku']
-    # セッション削除
-    del request.session['error_tyoku']
-
-  # エラー時の勤務保持がセッションにある場合の処理
-  if 'error_work' in request.session:
-    # 勤務初期値にエラー時の直保持を入れる
-    work_default = request.session['error_work']
-    # セッション削除
-    del request.session['error_work']
-
-  # エラー時の残業保持がセッションにある場合の処理
-  if 'error_over_work' in request.session:
-    # 残業初期値にエラー時の直保持を入れる
-    over_work_default = request.session['error_over_work']
-    # セッション削除
-    del request.session['error_over_work']
+  # フォーム保持削除
+  for key in ['error_tyoku', 'error_work', 'error_def', 'error_detail', 'error_over_work']:
+    session_del(key, request)
 
 
   # 初期値を設定するリスト作成
