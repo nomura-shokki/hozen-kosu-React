@@ -25,6 +25,7 @@ class memberForm(forms.ModelForm):
                }
 
 
+
 class input_kosuForm(forms.Form):
   tyoku_list = [
     ('', ''),
@@ -560,8 +561,6 @@ class inquiryForm(forms.ModelForm):
     widgets = {'content_choice' : forms.Select(attrs={'class' : 'form-control custom-border', 'style' : 'width : 200px;'}),
                'inquiry' : forms.Textarea(attrs={'placeholder': '可能な限り具体的に記入下さい。', 'class' : 'form-control custom-border', 'style' : 'width : 350px;'}),
                'answer' : forms.Textarea(attrs={'class' : 'form-control custom-border', 'style' : 'width : 350px;'})}
-
-
 
 
 

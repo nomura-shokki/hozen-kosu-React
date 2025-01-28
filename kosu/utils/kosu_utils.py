@@ -1017,9 +1017,32 @@ def break_time_over(start_hour, start_min, end_hour, end_min, limit_tome,comment
 
 # 工数表示リスト作成関数
 def create_kosu(work_list, detail_list, obj_get, member_obj, request):
+  # HTML表示用リスト前準備リスト作成
+  def_time, detail_time, time_list_start, time_list_end, kosu_list = create_kosu_basic(work_list, detail_list, obj_get, member_obj, request)
+
+  # HTML表示用リスト作成
+  time_display_list = [
+    [f"{start}～{end}", def_time[k], detail_time[k]]
+    for k, (start, end) in enumerate(zip(time_list_start, time_list_end))
+    ]
+
+  return time_display_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数表示リスト準備関数
+def create_kosu_basic(work_list, detail_list, obj_get, member_obj, request):
   # 作業時間リストリセット
   kosu_list, time_list_start, time_list_end = [], [], []
-  def_list, def_time, detail_time, find_list = [], [], [], []
+  def_time, detail_time, find_list = [], [], []
 
   # 作業内容と作業詳細毎の開始時間と終了時間インデックス取得
   adjustment_dict = {
@@ -1068,13 +1091,7 @@ def create_kosu(work_list, detail_list, obj_get, member_obj, request):
   def_time = [k[1] for t in find_list[:-1] for k in def_library if k[0] == work_list[t]]
   detail_time = [detail_list[t] for t in find_list[:-1] for k in def_library if k[0] == work_list[t]]
 
-  # HTML表示用リスト作成
-  time_display_list = [
-    [f"{start}～{end}", def_time[k], detail_time[k]]
-    for k, (start, end) in enumerate(zip(time_list_start, time_list_end))
-    ]
-
-  return time_display_list
+  return def_time, detail_time, time_list_start, time_list_end, kosu_list
 
 
 
@@ -1238,7 +1255,7 @@ def handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_l
 
 
 
-# フォーム保持削除
+# フォーム保持削除関数
 def session_del(key, request):
   # エラー時保持がセッションにある場合のセッション削除
   if key in request.session:
@@ -1249,5 +1266,48 @@ def session_del(key, request):
 
 
 #--------------------------------------------------------------------------------------------------------
+
+
+
+
+# 休憩時間取得関数
+def break_get(tyoku, request):
+  # 休憩時間取得
+  break_time_obj = member.objects.get(employee_no = request.session['login_No'])
+
+  # 1直の場合の休憩時間取得
+  if tyoku == '1' or tyoku == '5':
+    breaktime = break_time_obj.break_time1
+    breaktime_over1 = break_time_obj.break_time1_over1
+    breaktime_over2 = break_time_obj.break_time1_over2
+    breaktime_over3 = break_time_obj.break_time1_over3
+
+  # 2直の場合の休憩時間取得
+  if tyoku == '2' or tyoku == '6':
+    breaktime = break_time_obj.break_time2
+    breaktime_over1 = break_time_obj.break_time2_over1
+    breaktime_over2 = break_time_obj.break_time2_over2
+    breaktime_over3 = break_time_obj.break_time2_over3
+
+  # 3直の場合の休憩時間取得
+  if tyoku == '3':
+    breaktime = break_time_obj.break_time3
+    breaktime_over1 = break_time_obj.break_time3_over1
+    breaktime_over2 = break_time_obj.break_time3_over2
+    breaktime_over3 = break_time_obj.break_time3_over3
+
+  # 常昼の場合の休憩時間取得
+  if tyoku == '4':
+    breaktime = break_time_obj.break_time4
+    breaktime_over1 = break_time_obj.break_time4_over1
+    breaktime_over2 = break_time_obj.break_time4_over2
+    breaktime_over3 = break_time_obj.break_time4_over3
+
+  return breaktime, breaktime_over1, breaktime_over2, breaktime_over3
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
 
 

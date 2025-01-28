@@ -18,14 +18,14 @@
     <a href="{% url 'main' %}">メインMENUへ</a>
   </p>
   <form action="{% url 'total' %}" method="post">
-  {% csrf_token %}
-  <p>就業日</p>
-  <p><input type="date" class="form-control custom-border" style="width: 150px;" name="kosu_day" id="kosu_day" value={{default_day}}></p>
-  <p>並び順</p>
-  <p class="h5">{{ form.kosu_order }}</p>
-  <p>期間指定</p>
-  <p class="h5">{{ form.kosu_summarize }}</p>
-  <p><input type="submit" value="検索" name="kosu_find" class="btn btn-blue7 mt-2"></p>
+    {% csrf_token %}
+    <p>就業日</p>
+    <p><input type="date" class="form-control custom-border" style="width: 150px;" name="kosu_day" id="kosu_day" value={{default_day}}></p>
+    <p>並び順</p>
+    <p class="h5">{{ form.kosu_order }}</p>
+    <p>期間指定</p>
+    <p class="h5">{{ form.kosu_summarize }}</p>
+    <p><input type="submit" value="検索" name="kosu_find" class="btn btn-blue7 mt-2"></p>
   </form>
   <p>　</p>
   <div style="width:100%">
