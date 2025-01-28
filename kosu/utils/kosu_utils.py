@@ -1047,8 +1047,10 @@ def create_kosu(work_list, detail_list, obj_get, member_obj, request):
       # 表示用作業内容リストの時間を正規の時間のインデックスで記録
       for keys, adjustment in adjustment_dict.items():
         if obj_get.tyoku2 in keys:
-          cycle_time = adjustment if member_obj.shop in ['P', 'R', 'T1', 'T2', 'その他', '組長以上(P,R,T,その他)'] else adjustment + 36
-          kosu_list.append(i - cycle_time if i >= cycle_time else i + (288 - cycle_time))
+          if i == 287:
+            kosu_list.append(i - adjustment + 1 if i >= adjustment else i + (289 - adjustment))
+          else:
+            kosu_list.append(i - adjustment if i >= adjustment else i + (288 - adjustment))
           break
 
   # 作業時間インデックスに要素がある場合の処理
