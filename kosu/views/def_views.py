@@ -3,7 +3,10 @@ from django.shortcuts import redirect
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.urls import reverse_lazy
+from django.http import HttpResponseRedirect
 from django.views.generic import CreateView
+from django.views.generic import ListView
+from ..utils.kosu_utils import get_member
 from ..models import member
 from ..models import kosu_division
 from ..models import administrator_data
@@ -192,43 +195,55 @@ def kosu_Ver(request):
 
 
 # 工数区分定義Ver一覧画面定義
-def def_list(request, num):
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
-  
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
+class DefListView(ListView):
+  # モデル,HTML,オブジェクト名定義
+  model = kosu_division
+  template_name = 'kosu/def_list.html'
+  context_object_name = 'obj'
 
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login') 
 
-  # ログイン者が管理者でなければメニュー画面に飛ぶ
-  if data.administrator != True:
-    return redirect(to = '/')
+  # クエリセットを取得して並び替え
+  def get_queryset(self):
+    queryset = kosu_division.objects.all().order_by('kosu_name').reverse()
+    return queryset
 
-  # 設定データ取得
-  page_num = administrator_data.objects.order_by("id").last()
 
-  
-  # 工数区分表示用のオブジェクト取得
-  obj = kosu_division.objects.all().order_by('kosu_name').reverse()
-  page = Paginator(obj, page_num.menu_row)
+  # コンテキストデータを取得して設定
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context['title'] = '工数区分定義一覧'
+    context['num'] = self.kwargs.get('num')
+    return context
 
-  # HTMLに渡す辞書
-  context = {
-    'title' : '工数区分定義一覧',
-    'obj' : page.get_page(num),
-    'num' : num,
-    }
-  
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/def_list.html', context)
+
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
+    
+    # 管理者でなければメニュー画面にリダイレクト
+    if not  member_obj.administrator:
+      return redirect('/')
+
+    # ページネーション設定データの取得
+    page_num = administrator_data.objects.order_by("id").last().menu_row
+
+    # 工数区分表示用のオブジェクト取得
+    obj = kosu_division.objects.all().order_by('kosu_name').reverse()
+    page = Paginator(obj, page_num)
+    context = {
+      'title': '工数区分定義一覧',
+      'obj': page.get_page(kwargs.get('num')),
+      'num': kwargs.get('num'),
+      }
+
+    # HTMLテンプレートにコンテキストを渡してレンダリング
+    return render(request, 'kosu/def_list.html', context)
+
 
 
 

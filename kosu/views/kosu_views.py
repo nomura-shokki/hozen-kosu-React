@@ -10,7 +10,7 @@ from django.views.generic.edit import DeleteView
 from django.views.generic.edit import FormView
 from django.db.models import Q
 from django.urls import reverse_lazy
-from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse
+from django.http import HttpResponseRedirect
 import datetime
 import itertools
 import re
@@ -161,9 +161,8 @@ def all_choices(request):
 
 # 工数履歴画面定義
 class KosuListView(ListView):
-  # テンプレート定義
+  # テンプレート,オブジェクト名定義
   template_name = 'kosu/kosu_list.html'
-  # オブジェクト名定義
   context_object_name = 'data'
 
 
@@ -1926,120 +1925,166 @@ class KosuDeleteView(DeleteView):
 
 # 工数集計画面定義
 class KosuTotalView(FormView):
-    template_name = 'kosu/total.html'
-    form_class = kosu_dayForm  # 仮のフォームとして利用していますが、kosu_dayについてはHTMLで取得します。
-    success_url = 'total'  # 成功したらどこにリダイレクトするか、適切なURLに変更してください
+  # 使用するテンプレート,フォーム,リダイレクト先定義
+  template_name = 'kosu/total.html'
+  form_class = kosu_dayForm
+  success_url = 'total'
 
-    # dispatchメソッドをオーバーライドして、リクエストごとにメンバー情報を取得
-    def dispatch(self, request, *args, **kwargs):
-        member_obj = get_member(request)  # メンバー情報を取得
-        if isinstance(member_obj, HttpResponseRedirect):  # リダイレクトが必要な場合
-            return member_obj  # リダイレクト応答を返す
-        self.member_obj = member_obj  # メンバー情報を保存
-        return super().dispatch(request, *args, **kwargs)  # 親クラスのdispatchメソッドを呼び出す
 
-    # 初期データを設定
-    def get_initial(self):
-        initial = super().get_initial()  # 親クラスのget_initialメソッドを呼び出す
-        today = datetime.date.today()  # 今日の日付を取得
-        initial['kosu_day'] = str(today)  # kosu_dayの初期値を今日の日付に設定
-        return initial  # 初期値を返す
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
 
-    # GETリクエストの処理
-    def get(self, request, *args, **kwargs):
-        today = datetime.date.today()
-        color_list = [
-            'plum', 'darkgray', 'slategray', 'steelblue', 'royalblue', 'dodgerblue', 'deepskyblue', 'aqua',
-            'mediumturquoise', 'lightseagreen', 'springgreen', 'limegreen', 'lawngreen', 'greenyellow', 'gold',
-            'darkorange', 'burlywood', 'sandybrown', 'lightcoral', 'lightsalmon', 'tomato', 'orangered', 'red',
-            'deeppink', 'hotpink', 'violet', 'magenta', 'mediumorchid', 'darkviolet', 'mediumpurple', 'mediumblue',
-            'cadetblue', 'mediumseagreen', 'forestgreen', 'darkkhaki', 'crimson', 'rosybrown', 'dimgray', 'midnightblue',
-            'darkblue', 'darkslategray', 'darkgreen', 'olivedrab', 'darkgoldenrod', 'sienna', 'firebrick', 'maroon',
-            'darkmagenta', 'indigo', 'black'
-        ]
-        # 今日の日付についての工数データを取得
-        kosu_total = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__startswith=today)
-        if not kosu_total.exists():  # 今日の工数データが存在しない場合
-            graph_item, def_num = get_def_library_data(request.session['input_def'])  # 工数区分定義リストを取得
-            graph_list = list(itertools.repeat(0, def_num))  # デフォルトの工数リスト
-        else:  # 今日の工数データが存在する場合
-            graph_data = kosu_total.first()  # 最初のレコードを取得
-            def_name = graph_data.def_ver2 if graph_data.def_ver2 not in ('', None) else request.session['input_def']  # 工数区分定義のバージョンを取得
-            graph_item, def_num = get_def_library_data(def_name)  # 工数区分定義リストを取得
-            str_list = list('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx')[:def_num]  # 工数区分定義用記号を設定
-            graph_list = [graph_data.time_work.count(i) * 5 for i in str_list]  # 工数区分定義別の累積工数を取得
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
 
-        # コンテキストを設定し、HTMLに渡す
-        context = self.get_context_data(graph_item=graph_item, graph_list=graph_list, color_list=color_list, default_day=str(today))
-        return self.render_to_response(context)
 
-    # POSTリクエストの処理
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        if form.is_valid():  # フォームが有効な場合
-            return self.form_valid(form)  # フォームの有効処理を実行
-        else:  # フォームが無効な場合
-            return self.form_invalid(form)  # フォームの無効処理を実行
+  # 初期データを設定
+  def get_initial(self):
+    #  親クラスのget_initialメソッドを呼び出す
+    initial = super().get_initial()
+    # 今日の日付を取得
+    today = datetime.date.today()
+    # フォーム初期値設定
+    initial['kosu_day'] = str(today)
+    return initial
 
-    # フォームが有効な場合の処理
-    def form_valid(self, form):
-        request = self.request
-        
-        post_day = request.POST.get('kosu_day')  # フォームから日付を取得
-        summarize_type = form.cleaned_data.get('kosu_summarize')  # フォームから集計タイプを取得
-        kosu_order = form.cleaned_data.get('kosu_order')  # フォームから並び順を取得
-        color_list = [
-            'plum', 'darkgray', 'slategray', 'steelblue', 'royalblue', 'dodgerblue', 'deepskyblue', 'aqua',
-            'mediumturquoise', 'lightseagreen', 'springgreen', 'limegreen', 'lawngreen', 'greenyellow', 'gold',
-            'darkorange', 'burlywood', 'sandybrown', 'lightcoral', 'lightsalmon', 'tomato', 'orangered', 'red',
-            'deeppink', 'hotpink', 'violet', 'magenta', 'mediumorchid', 'darkviolet', 'mediumpurple', 'mediumblue',
-            'cadetblue', 'mediumseagreen', 'forestgreen', 'darkkhaki', 'crimson', 'rosybrown', 'dimgray', 'midnightblue',
-            'darkblue', 'darkslategray', 'darkgreen', 'olivedrab', 'darkgoldenrod', 'sienna', 'firebrick', 'maroon',
-            'darkmagenta', 'indigo', 'black'
-        ]
 
-        # 集計タイプに基づいて工数データを取得
-        if summarize_type == '3':  # 年間工数の場合
-            kosu_total = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__startswith=post_day[:4])
-        elif summarize_type == '2':  # 月間工数の場合
-            kosu_total = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__startswith=post_day[:7])
-        else:  # 日付指定の工数の場合
-            kosu_total = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__startswith=post_day)
+  # GETリクエストの処理
+  def get(self, request, *args, **kwargs):
+    # 今日の日付取得
+    today = datetime.date.today()
+    # グラフ色指定
+    color_list = [
+      'plum', 'darkgray', 'slategray', 'steelblue', 'royalblue', 'dodgerblue', 'deepskyblue', 'aqua',
+      'mediumturquoise', 'lightseagreen', 'springgreen', 'limegreen', 'lawngreen', 'greenyellow', 'gold',
+      'darkorange', 'burlywood', 'sandybrown', 'lightcoral', 'lightsalmon', 'tomato', 'orangered', 'red',
+      'deeppink', 'hotpink', 'violet', 'magenta', 'mediumorchid', 'darkviolet', 'mediumpurple', 'mediumblue',
+      'cadetblue', 'mediumseagreen', 'forestgreen', 'darkkhaki', 'crimson', 'rosybrown', 'dimgray', 'midnightblue',
+      'darkblue', 'darkslategray', 'darkgreen', 'olivedrab', 'darkgoldenrod', 'sienna', 'firebrick', 'maroon',
+      'darkmagenta', 'indigo', 'black'
+      ]
 
-        if not kosu_total.exists():  # 工数データが存在しない場合
-            graph_item, def_num = get_def_library_data(request.session['input_def'])  # 工数区分定義リストを取得
-            graph_list = list(itertools.repeat(0, def_num))  # デフォルトの工数リスト
-        else:  # 工数データが存在する場合
-            first_record = kosu_total.first()  # 最初のレコードを取得
-            def_name = first_record.def_ver2 if first_record.def_ver2 not in ('', None) else request.session['input_def']  # 工数区分定義のバージョンを取得
-            graph_item, def_num = get_def_library_data(def_name)  # 工数区分定義リストを取得
-            str_list = list('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx')[:def_num]  # 工数区分定義用記号を設定
-            graph_list = accumulate_kosu_data(kosu_total, str_list, def_num)  # 工数区分定義別の累積工数を取得
+    # 今日の工数データがあるか確認
+    kosu_total = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__startswith=today)
+    # 今日の工数データがない場合の処理
+    if not kosu_total.exists():
+      # 工数区分定義リストを取得
+      graph_item, def_num = get_def_library_data(request.session['input_def'])
+      # 定義分の空のデータが入ったブラフデータ生成
+      graph_list = list(itertools.repeat(0, def_num))
 
-        if kosu_order == '2':  # 並び替えを行う場合
-            color_list, graph_item, graph_list = zip(*sorted(zip(color_list, graph_item, graph_list), key=lambda x: x[2], reverse=True))  # 工数順にソートする
+    # 今日の工数データがある場合の処理
+    else:
+      # 工数データ取得
+      graph_data = kosu_total.first()
+      # 使用している工数区分定義バージョン取得しリスト作成
+      def_name = graph_data.def_ver2 if graph_data.def_ver2 not in ('', None) else request.session['input_def']  # 工数区分定義のバージョンを取得
+      graph_item, def_num = get_def_library_data(def_name)
+      # 工数区分定義用記号を設定
+      str_list = list('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx')[:def_num]
+      # 工数区分定義別の累積工数を取得
+      graph_list = [graph_data.time_work.count(i) * 5 for i in str_list]
 
-        # コンテキストを設定し、HTMLに渡す
-        context = self.get_context_data(form=form, color_list=color_list, graph_item=graph_item, graph_list=graph_list, default_day=post_day, member_obj=self.member_obj)
-        return self.render_to_response(context)
+    # コンテキストを設定し、HTMLに渡す
+    context = self.get_context_data(graph_item=graph_item, graph_list=graph_list, color_list=color_list, default_day=str(today))
+    return self.render_to_response(context)
 
-    # フォームが無効な場合の処理
-    def form_invalid(self, form):
-        return self.render_to_response(self.get_context_data(form=form))
 
-    # コンテキストデータを設定
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)  # 親クラスのget_context_dataメソッドを呼び出す
-        context.update({
-            'title': '工数集計',
-            'data': self.member_obj,  # メンバー情報をコンテキストに追加
-            'default_day': kwargs.get('default_day', self.initial.get('kosu_day', '')),  # デフォルトの日付をコンテキストに追加
-            'graph_list': kwargs.get('graph_list', []),  # グラフリストをコンテキストに追加
-            'graph_item': kwargs.get('graph_item', []),  # グラフ項目をコンテキストに追加
-            'color_list': kwargs.get('color_list', []),  # カラーリストをコンテキストに追加
-            'graph_library': dict(zip(kwargs.get('graph_item', []), kwargs.get('graph_list', []))),  # グラフライブラリをコンテキストに追加
-        })
-        return context  # コンテキストを返す
+  # POSTリクエストの処理
+  def post(self, request, *args, **kwargs):
+    # フォーム定義
+    form = self.get_form()
+    # フォームが有効な場合、有効処理を実行
+    if form.is_valid():
+      return self.form_valid(form)
+    # フォームが無効な場合、無効処理を実行
+    else:
+      return self.form_invalid(form)
+
+
+  # フォームが有効な場合の処理
+  def form_valid(self, form):
+    # リクエスト取得
+    request = self.request
+    
+    # フォームから日付,期間,並び順を取得
+    post_day = request.POST.get('kosu_day')
+    summarize_type = form.cleaned_data.get('kosu_summarize')
+    kosu_order = form.cleaned_data.get('kosu_order')
+    # グラフ色指定
+    color_list = [
+      'plum', 'darkgray', 'slategray', 'steelblue', 'royalblue', 'dodgerblue', 'deepskyblue', 'aqua',
+      'mediumturquoise', 'lightseagreen', 'springgreen', 'limegreen', 'lawngreen', 'greenyellow', 'gold',
+      'darkorange', 'burlywood', 'sandybrown', 'lightcoral', 'lightsalmon', 'tomato', 'orangered', 'red',
+      'deeppink', 'hotpink', 'violet', 'magenta', 'mediumorchid', 'darkviolet', 'mediumpurple', 'mediumblue',
+      'cadetblue', 'mediumseagreen', 'forestgreen', 'darkkhaki', 'crimson', 'rosybrown', 'dimgray', 'midnightblue',
+      'darkblue', 'darkslategray', 'darkgreen', 'olivedrab', 'darkgoldenrod', 'sienna', 'firebrick', 'maroon',
+      'darkmagenta', 'indigo', 'black'
+      ]
+
+    # 集計期間に基づいて工数データを取得
+    # 年間
+    if summarize_type == '3':
+      kosu_total = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__startswith=post_day[:4])
+    # 月間
+    elif summarize_type == '2':
+      kosu_total = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__startswith=post_day[:7])
+    # 日付指定
+    else:
+      kosu_total = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__startswith=post_day)
+
+    # 工数データがない場合の処理
+    if not kosu_total.exists():
+      # 工数区分定義のリストとその数分の空のグラフデータ作成
+      graph_item, def_num = get_def_library_data(request.session['input_def'])
+      graph_list = list(itertools.repeat(0, def_num))
+    
+    # 工数データがある場合の処理
+    else:
+      # 工数データ取得
+      first_record = kosu_total.first()
+      # 工数区分定義バージョン取得しそのリスト作成
+      def_name = first_record.def_ver2 if first_record.def_ver2 not in ('', None) else request.session['input_def']  # 工数区分定義のバージョンを取得
+      graph_item, def_num = get_def_library_data(def_name)
+      # 工数区分定義用記号を設定
+      str_list = list('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx')[:def_num]
+      # 工数区分定義別の累積工数を取得
+      graph_list = accumulate_kosu_data(kosu_total, str_list, def_num)
+
+    # 工数大きい順に並び替えを行う場合の処理
+    if kosu_order == '2':
+      color_list, graph_item, graph_list = zip(*sorted(zip(color_list, graph_item, graph_list), key=lambda x: x[2], reverse=True))  # 工数順にソートする
+
+    # コンテキストを設定し、HTMLに渡す
+    context = self.get_context_data(form=form, color_list=color_list, graph_item=graph_item, graph_list=graph_list, default_day=post_day, member_obj=self.member_obj)
+    return self.render_to_response(context)
+
+
+  # フォームが無効な場合の処理
+  def form_invalid(self, form):
+    return self.render_to_response(self.get_context_data(form=form))
+
+  # コンテキストデータを設定
+  def get_context_data(self, **kwargs):
+    # 親クラスのget_context_dataメソッドを呼び出す
+    context = super().get_context_data(**kwargs)
+    # コンテキストデータ指定
+    context.update({
+      'title': '工数集計',
+      'data': self.member_obj,
+      'default_day': kwargs.get('default_day', self.initial.get('kosu_day', '')),
+      'graph_list': kwargs.get('graph_list', []),
+      'graph_item': kwargs.get('graph_item', []),
+      'color_list': kwargs.get('color_list', []),
+      'graph_library': dict(zip(kwargs.get('graph_item', []), kwargs.get('graph_list', []))),
+      })
+    return context
 
 
 
