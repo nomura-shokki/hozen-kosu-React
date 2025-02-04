@@ -37,6 +37,8 @@ class Page_form(TestCase):
             break_time4_over1 = '#19001915',
             break_time4_over2 = '#01150215',
             break_time4_over3 = '#06150630',
+            break_check = False,
+            def_prediction = False,
             )
 
         # administrator_dataダミーデータ
@@ -415,6 +417,7 @@ class Page_form(TestCase):
 
 
 
+    # 休憩エラーありなし追加必要
     # 工数登録ページ工数入力チェック(スマホ画面)
     def test_input_kosu_smartphone_form(self):
 
@@ -752,6 +755,7 @@ class Page_form(TestCase):
             'end_time15': '22:15',
             'start_time16': '23:55',
             'end_time16': '0:10',
+            'break_check': True,
             'break_change' : '休憩時間登録',
             }
 
@@ -765,36 +769,22 @@ class Page_form(TestCase):
 
         # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time1, '#13001400')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time1_over1, '#17001715')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time1_over2, '#22002215')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time1_over3, '#23550010')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time2, '#13001400')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time2_over1, '#17001715')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time2_over2, '#22002215')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time2_over3, '#23550010')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time3, '#13001400')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time3_over1, '#17001715')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time3_over2, '#22002215')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time3_over3, '#23550010')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time4, '#13001400')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time4_over1, '#17001715')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time4_over2, '#22002215')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time4_over3, '#23550010')
+        self.assertEqual(updated_entry.break_check, True)
 
 
 
@@ -979,6 +969,34 @@ class Page_form(TestCase):
         self.assertEqual(updated_entry.time_work, 'DDDDDDDDDDDD####################################################################################AAAAAAAAAAAABBBBBBBBBBBBCCCCCCCCCCCCDDDDDDDDDDDD$$$$$$$$$$$$EEEEEEEEEEEEFFFFFFFFFFFFGGGGGGGGGGGGHHHHHHHHHHHHIIIIIIIIIIDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD')
         # 作業内容が更新されていることを確認
         self.assertEqual(updated_entry.detail_work, '水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$aaa$aaa$aaa$aaa$aaa$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$bbb$bbb$bbb$bbb$bbb$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給$水分補給')
+
+
+
+    # 工数詳細ページ日付編集チェック
+    def test_detail_day_edit_form(self):
+        # フォームデータ定義
+        form_data = {
+            'kosu_day' : '2000-02-01',
+            'tyoku' : '5',
+            'work': '年休',
+            'over_time': 135,
+            'edit_day': '編集',
+            }
+
+        # URLに対してPOSTリクエスト送信
+        response = self.client.post(reverse('detail', args = [self.Business_Time_graph.id]), form_data)
+        # リクエストのレスポンスステータスコードが302(リダイレクト)であることを確認
+        self.assertEqual(response.status_code, 302)
+
+        # テストユーザーの工数データ取得
+        updated_entry = Business_Time_graph.objects.get(employee_no3 = self.member.employee_no, \
+                                                        work_day2 = '2000-02-01')
+        # 作業内容が更新されていることを確認
+        self.assertEqual(updated_entry.work_day2.isoformat(), '2000-02-01')
+        self.assertEqual(updated_entry.tyoku2, '5')
+        self.assertEqual(updated_entry.work_time, '年休')
+        self.assertEqual(updated_entry.over_time, 135)
+        self.assertEqual(updated_entry.judgement, False)
 
 
 
@@ -2672,6 +2690,9 @@ class Page_form(TestCase):
         # 変数整合性チェック
         self.assertEqual(ok_list, [['テストユーザー', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None], ['テストユーザー2', None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]])
 
+
+
+    # フォーローポップアップ
 
 
     # 問い合わせ新規登録チェック

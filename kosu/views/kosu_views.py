@@ -166,18 +166,14 @@ class KosuListView(ListView):
   context_object_name = 'data'
 
 
-  # 画面処理前の初期設定
+  # リクエストを処理するメソッドをオーバーライド
   def dispatch(self, request, *args, **kwargs):
-    # ログインしていない場合ログイン画面へ
-    if not request.session.get('login_No'):
-      return redirect('/login')
-
-    # 人員情報取得(取得できない場合セッション削除しログイン画面へ)
-    try:
-      self.member_data = member.objects.get(employee_no=request.session['login_No'])
-    except member.DoesNotExist:
-      request.session.clear()
-      return redirect('/login')
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_data = member_obj
 
     # 今日の日付を取得
     self.kosu_today = datetime.date.today()
@@ -947,14 +943,14 @@ class BreakTimeUpdateView(UpdateView):
   success_url = reverse_lazy('kosu_main')
 
 
-  # リクエスト処理する際のメソッドをオーバーライド
+  # リクエストを処理するメソッドをオーバーライド
   def dispatch(self, request, *args, **kwargs):
-    # ログインしていない場合ログイン画面へ
-    if not request.session.get('login_No'):
-      return redirect('/login')
-    # 従業員番号取得
-    self.employee_no = request.session.get('login_No')
-
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
     # 親クラスのdispatchメソッドを呼び出し
     return super().dispatch(request, *args, **kwargs)
 
@@ -963,6 +959,8 @@ class BreakTimeUpdateView(UpdateView):
   def get_object(self, queryset=None):
     # 人員情報取得(取得できない場合セッション削除しログイン画面へ)
     try:
+      # 従業員番号取得
+      self.employee_no = self.request.session.get('login_No')
       return member.objects.get(employee_no=self.employee_no)
     except member.DoesNotExist:
       self.request.session.clear()
@@ -982,7 +980,6 @@ class BreakTimeUpdateView(UpdateView):
     context.update(self.get_default_times(break_data))
     # チェックボックスの初期状態を設定
     context['initial_checkbox'] = break_data.break_check
-    
     return context
 
 
@@ -1119,26 +1116,24 @@ class TodayBreakTimeUpdateView(UpdateView):
   template_name = 'kosu/today_break_time.html'
   success_url = reverse_lazy('input')
 
+
   # 工数データ取得
   def get_object(self, queryset=None):
     return Business_Time_graph.objects.get(employee_no3=self.request.session['login_No'], \
                                             work_day2=self.request.session['break_today'])
 
-  # 画面処理前の初期設定
+
+  # リクエストを処理するメソッドをオーバーライド
   def dispatch(self, request, *args, **kwargs):
-    # ログインしていない場合ログイン画面へ
-    if not request.session.get('login_No'):
-      return redirect('/login')
-
-    # 人員情報取得(取得できない場合セッション削除しログイン画面へ)
-    try:
-      self.member_data = member.objects.get(employee_no=request.session['login_No'])
-    except member.DoesNotExist:
-      request.session.clear()
-      return redirect('/login')
-
-    # 親クラスへ情報送信
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_data = member_obj
+    # 親クラスのdispatchメソッドを呼び出し
     return super().dispatch(request, *args, **kwargs)
+
 
   # コンテキストデータを設定するメソッドをオーバーライド
   def get_context_data(self, **kwargs):
@@ -1155,6 +1150,7 @@ class TodayBreakTimeUpdateView(UpdateView):
     context.update(self.get_default_times(break_data))
     
     return context
+
 
   # 初期値の休憩時間を取得するメソッド
   def get_default_times(self, break_data):
@@ -1173,6 +1169,7 @@ class TodayBreakTimeUpdateView(UpdateView):
       'default_start_time4': time_format(break_data.breaktime_over3)[0],
       'default_end_time4': time_format(break_data.breaktime_over3)[1],
       }
+
 
   # フォームが有効な場合に呼び出されるメソッドをオーバーライド
   def form_valid(self, form):
@@ -1887,16 +1884,12 @@ class KosuDeleteView(DeleteView):
 
   # リクエストを処理するメソッドをオーバーライド
   def dispatch(self, request, *args, **kwargs):
-    # セッションにログインした従業員番号がない場合の処理
-    if not request.session.get('login_No'):
-      return redirect('/login')
-    try:
-      # ログイン者の情報取得
-      self.member_obj = member.objects.get(employee_no=request.session['login_No'])
-    except member.DoesNotExist:
-      # ログイン者情報取得できない場合ログイン画面へ
-      request.session.clear()
-      return redirect('/login')
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
     # 親クラスのdispatchメソッドを呼び出し
     return super().dispatch(request, *args, **kwargs)
 
@@ -1939,7 +1932,6 @@ class KosuTotalView(FormView):
     if isinstance(member_obj, HttpResponseRedirect):
       return member_obj
     self.member_obj = member_obj
-
     # 親クラスのdispatchメソッドを呼び出し
     return super().dispatch(request, *args, **kwargs)
 
