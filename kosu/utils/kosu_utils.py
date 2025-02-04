@@ -1270,6 +1270,7 @@ def session_del(key, request):
 
 
 
+
 # 休憩時間取得関数
 def break_get(tyoku, request):
   # 休憩時間取得
@@ -1307,7 +1308,32 @@ def break_get(tyoku, request):
 
 
 
+
+
 #--------------------------------------------------------------------------------------------------------
 
 
+
+
+
+# 勤務入力フォーム初期値設定関数
+def schedule_default(year, month, day_list, request):
+  # 勤務フォーム初期値定義
+  form_default_list = {}
+  for i in range(37):
+    if day_list[i] != '':
+      day_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
+                                                      work_day2 = datetime.date(year, month, day_list[i]))
+      if day_filter.exists():
+        day_get = day_filter.first()
+        form_default_list[('day{}'.format(i + 1))] = day_get.work_time
+        form_default_list[('tyoku{}'.format(i + 1))] = day_get.tyoku2
+
+  return form_default_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
 

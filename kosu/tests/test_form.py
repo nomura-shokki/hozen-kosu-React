@@ -343,7 +343,6 @@ class Page_form(TestCase):
 
     # 工数登録ページ残業登録チェック(スマホ画面)
     def test_input_over_time_smartphone_form(self):
-
         # フォームデータ定義(工数データ有の場合)
         form_data = {
             'work_day': self.Business_Time_graph.work_day2,
@@ -392,7 +391,6 @@ class Page_form(TestCase):
 
     # 工数登録ページ残業登録チェック(PC画面)
     def test_input_over_time_pc_form(self):
-
         # フォームデータ定義(工数データ有の場合)
         form_data = {
             'work_day': self.Business_Time_graph.work_day2,
@@ -420,7 +418,6 @@ class Page_form(TestCase):
     # 休憩エラーありなし追加必要
     # 工数登録ページ工数入力チェック(スマホ画面)
     def test_input_kosu_smartphone_form(self):
-
         # フォームデータ定義(工数データ有、日またぎ無しの場合)
         form_data = {
             'work_day': self.Business_Time_graph.work_day2,
@@ -444,11 +441,9 @@ class Page_form(TestCase):
         # テストユーザーの工数データ取得
         updated_entry = Business_Time_graph.objects.get(employee_no3 = self.member.employee_no, \
                                                         work_day2 = self.Business_Time_graph.work_day2)
-        # 作業内容が更新されていることを確認
+        # 工数データが更新されていることを確認
         self.assertEqual(updated_entry.time_work, '################################################################################################AAAAAAAAAAAABBBBBBBBBBBBCCCCCCCCCCCCDDDDDDDDDDDD$$$$$$$$$$$$EEEEEEEEEEEEFFFFFFFFFFFFGGGGGGGGGGGGHHHHHHHHHHHHIIIIIIIIIIJJJJJJJJJJJJAA$$$A########################################################')
-        # 残業時間が135に更新されていることを確認
         self.assertEqual(updated_entry.over_time, 135)
-        # 整合性がOKに更新されていることを確認
         self.assertEqual(updated_entry.judgement, True)
 
 
@@ -476,9 +471,8 @@ class Page_form(TestCase):
         # テストユーザーの工数データ取得
         updated_entry = Business_Time_graph.objects.get(employee_no3 = self.member.employee_no, \
                                                         work_day2 = self.Business_Time_graph.work_day2)
-        # 作業内容が更新されていることを確認
+        # 工数データが更新されていることを確認
         self.assertEqual(updated_entry.time_work, 'BBBB############################################################################################AAAAAAAAAAAABBBBBBBBBBBBCCCCCCCCCCCCDDDDDDDDDDDD$$$$$$$$$$$$EEEEEEEEEEEEFFFFFFFFFFFFGGGGGGGGGGGGHHHHHHHHHHHHIIIIIIIIIIJJJJJJJJJJJJAA$$$A######################################################BB')
-        # 整合性がNGに更新されていることを確認
         self.assertEqual(updated_entry.judgement, False)
 
 
@@ -505,13 +499,10 @@ class Page_form(TestCase):
         # テストユーザーの工数データ取得
         updated_entry = Business_Time_graph.objects.get(employee_no3 = self.member.employee_no, \
                                                         work_day2 = datetime.datetime.strptime(self.Business_Time_graph.work_day2, '%Y-%m-%d').date() + datetime.timedelta(days = 2))
-        # 作業内容が更新されていることを確認
+        # 工数データが更新されていることを確認
         self.assertEqual(updated_entry.time_work, '################################################################################################AAAAAAAAAAAA####################################################################################################################################################################################')
-        # 残業時間が30に更新されていることを確認
         self.assertEqual(updated_entry.over_time, 30)
-        # 整合性がNGに更新されていることを確認
         self.assertEqual(updated_entry.judgement, False)
-        # 休憩時間が読み込まれていることを確認
         self.assertEqual(updated_entry.breaktime, '#12001300')
 
 
@@ -539,20 +530,16 @@ class Page_form(TestCase):
         # テストユーザーの工数データ取得
         updated_entry = Business_Time_graph.objects.get(employee_no3 = self.member.employee_no, \
                                                         work_day2 = datetime.datetime.strptime(self.Business_Time_graph.work_day2, '%Y-%m-%d').date() + datetime.timedelta(days = 3))
-        # 作業内容が更新されていることを確認
+        # 工数データが更新されていることを確認
         self.assertEqual(updated_entry.time_work, 'AAAAAA####################################################################################################################################################################################################################################################################################AAAAAA')
-        # 残業時間が30に更新されていることを確認
         self.assertEqual(updated_entry.over_time, 30)
-        # 整合性がNGに更新されていることを確認
         self.assertEqual(updated_entry.judgement, False)
-        # 休憩時間が読み込まれていることを確認
         self.assertEqual(updated_entry.breaktime, '#12001300')
 
 
 
     # 工数登録ページ工数入力チェック(PC画面)
     def test_input_kosu_pc_form(self):
-
         # フォームデータ定義(工数データ有、日またぎ無しの場合)
         form_data = {
             'work_day': self.Business_Time_graph.work_day2,
@@ -576,11 +563,9 @@ class Page_form(TestCase):
         # テストユーザーの工数データ取得
         updated_entry = Business_Time_graph.objects.get(employee_no3 = self.member.employee_no, \
                                                         work_day2 = self.Business_Time_graph.work_day2)
-        # 作業内容が更新されていることを確認
+        # 工数データが更新されていることを確認
         self.assertEqual(updated_entry.time_work, '################################################################################################AAAAAAAAAAAABBBBBBBBBBBBCCCCCCCCCCCCDDDDDDDDDDDD$$$$$$$$$$$$EEEEEEEEEEEEFFFFFFFFFFFFGGGGGGGGGGGGHHHHHHHHHHHHIIIIIIIIIIJJJJJJJJJJJJAA$$$A########################################################')
-        # 残業時間が135に更新されていることを確認
         self.assertEqual(updated_entry.over_time, 135)
-        # 整合性がOKに更新されていることを確認
         self.assertEqual(updated_entry.judgement, True)
 
 
@@ -608,9 +593,8 @@ class Page_form(TestCase):
         # テストユーザーの工数データ取得
         updated_entry = Business_Time_graph.objects.get(employee_no3 = self.member.employee_no, \
                                                         work_day2 = self.Business_Time_graph.work_day2)
-        # 作業内容が更新されていることを確認
+        # 工数データが更新されていることを確認
         self.assertEqual(updated_entry.time_work, 'BBBB############################################################################################AAAAAAAAAAAABBBBBBBBBBBBCCCCCCCCCCCCDDDDDDDDDDDD$$$$$$$$$$$$EEEEEEEEEEEEFFFFFFFFFFFFGGGGGGGGGGGGHHHHHHHHHHHHIIIIIIIIIIJJJJJJJJJJJJAA$$$A######################################################BB')
-        # 整合性がNGに更新されていることを確認
         self.assertEqual(updated_entry.judgement, False)
 
 
@@ -637,13 +621,10 @@ class Page_form(TestCase):
         # テストユーザーの工数データ取得
         updated_entry = Business_Time_graph.objects.get(employee_no3 = self.member.employee_no, \
                                                         work_day2 = datetime.datetime.strptime(self.Business_Time_graph.work_day2, '%Y-%m-%d').date() + datetime.timedelta(days = 2))
-        # 作業内容が更新されていることを確認
+        # 工数データが更新されていることを確認
         self.assertEqual(updated_entry.time_work, '################################################################################################AAAAAAAAAAAA####################################################################################################################################################################################')
-        # 残業時間が30に更新されていることを確認
         self.assertEqual(updated_entry.over_time, 30)
-        # 整合性がNGに更新されていることを確認
         self.assertEqual(updated_entry.judgement, False)
-        # 休憩時間が読み込まれていることを確認
         self.assertEqual(updated_entry.breaktime, '#12001300')
 
 
@@ -671,20 +652,16 @@ class Page_form(TestCase):
         # テストユーザーの工数データ取得
         updated_entry = Business_Time_graph.objects.get(employee_no3 = self.member.employee_no, \
                                                         work_day2 = datetime.datetime.strptime(self.Business_Time_graph.work_day2, '%Y-%m-%d').date() + datetime.timedelta(days = 3))
-        # 作業内容が更新されていることを確認
+        # 工数データが更新されていることを確認
         self.assertEqual(updated_entry.time_work, 'AAAAAA####################################################################################################################################################################################################################################################################################AAAAAA')
-        # 残業時間が30に更新されていることを確認
         self.assertEqual(updated_entry.over_time, 30)
-        # 整合性がNGに更新されていることを確認
         self.assertEqual(updated_entry.judgement, False)
-        # 休憩時間が読み込まれていることを確認
         self.assertEqual(updated_entry.breaktime, '#12001300')
 
 
 
     # 当日休憩変更ページ登録チェック
     def test_today_break_time_form(self):
-
         # フォームデータ定義(工数データ有の場合)
         form_data = {
             'start_time1': '13:00',
@@ -706,21 +683,16 @@ class Page_form(TestCase):
         # テストユーザーの工数データ取得
         updated_entry = Business_Time_graph.objects.get(employee_no3 = self.member.employee_no, \
                                                         work_day2 = self.Business_Time_graph.work_day2)
-        print()
         # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.breaktime, '#13001400')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.breaktime_over1, '#17001715')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.breaktime_over2, '#22002215')
-        # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.breaktime_over3, '#23550010')
 
 
 
     # 休憩変更ページ登録チェック
     def test_break_time_form(self):
-
         # フォームデータ定義(工数データ有の場合)
         form_data = {
             'start_time1': '13:00',
