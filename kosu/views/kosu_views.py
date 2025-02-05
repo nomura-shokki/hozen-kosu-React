@@ -46,6 +46,7 @@ from ..utils.kosu_utils import double_form
 from ..utils.kosu_utils import handle_break_time
 from ..utils.kosu_utils import session_del
 from ..utils.kosu_utils import break_get
+from ..utils.kosu_utils import schedule_default
 from ..models import member
 from ..models import Business_Time_graph
 from ..models import kosu_division
@@ -646,7 +647,7 @@ def input(request):
                                                    work_day2 = request.POST['work_day'], \
                                                    defaults = {'over_time' : request.POST['over_work'], \
                                                                'judgement' : judgement_check(list(obj_get.time_work), work, tyoku, member_obj, request.POST['over_work'])})
-      
+
     # 工数データがない場合の処理
     else:
       # 工数データ作成し残業書き込み
@@ -801,36 +802,28 @@ def input(request):
     default_end_time = str(request.session.get('end_time', ''))
 
 
-  # 残業データあるか確認
+  # 工数データあるか確認
   obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
                                                   work_day2 = request.session.get('day', kosu_today))
-
-  # 残業データある場合の処理
+  # 工数データある場合の処理
   if obj_filter.exists():
-    # 残業データ取得
+    # 工数データ取得
     obj_get = obj_filter.first()
+    # フォーム初期値定義
     over_work_default = obj_get.over_time
-    # 直情報取得
     tyoku_default = obj_get.tyoku2
-    # 勤務情報取得
     work_default = obj_get.work_time
-    # 工数入力状況取得
     ok_ng = obj_get.judgement
-    # 休憩変更情報取得
     break_change_default = obj_get.break_change
 
-  # 残業データない場合の処理
+  # 工数データない場合の処理
   else:
     obj_get = ''
-    # 残業に0を入れる
+    # フォーム初期値定義
     over_work_default = 0
-    # 工数入力状況に空を入れる
     ok_ng = False
-    # 休憩時間変更に空を入れる
-    break_change_default = False
-    # 勤務情報に空を入れる 
+    break_change_default = False 
     work_default = ''
-    # 直情報に空を入れる
     tyoku_default = ''
 
   # フォーム保持削除
@@ -872,9 +865,6 @@ def input(request):
   # 工数データ無い場合リンクに空を入れる
   obj_link = any(num != 0 for num in graph_list)
 
-
-  # HTML表示用リストリセット
-  time_display_list = []
   # 工数データある場合の処理
   if obj_link == True:
     # 作業内容と作業詳細を直に合わせて調整
@@ -895,6 +885,8 @@ def input(request):
     default_total = 0
     # 工数区分定義
     def_library = []
+    # HTML表示用リスト定義
+    time_display_list = []
 
 
 
@@ -2130,16 +2122,7 @@ def schedule(request):
     day_list = calendar_day(year, month)
 
     # 勤務フォーム初期値定義
-    form_default_list = {}
-    for i in range(37):
-      if day_list[i] != '':
-        day_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                        work_day2 = datetime.date(year, month, day_list[i]))
-        if day_filter.exists():
-          day_get = day_filter.first()
-          form_default_list[('day{}'.format(i + 1))] = day_get.work_time
-          form_default_list[('tyoku{}'.format(i + 1))] = day_get.tyoku2
-
+    form_default_list = schedule_default(year, month, day_list, request)
     # 勤務フォーム定義
     form = scheduleForm(form_default_list)
 
@@ -2165,16 +2148,7 @@ def schedule(request):
     day_list = calendar_day(year, month)
 
     # 勤務フォーム初期値定義
-    form_default_list = {}
-    for i in range(37):
-      if day_list[i] != '':
-        day_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                        work_day2 = datetime.date(year, month, day_list[i]))
-        if day_filter.exists():
-          day_get = day_filter.first()
-          form_default_list[('day{}'.format(i + 1))] = day_get.work_time
-          form_default_list[('tyoku{}'.format(i + 1))] = day_get.tyoku2
-
+    form_default_list = schedule_default(year, month, day_list, request)
     # 勤務フォーム定義
     form = scheduleForm(form_default_list)
 
@@ -2228,26 +2202,8 @@ def schedule(request):
                             'over_time' : 0, \
                             'judgement' : False})
 
-    # 勤務フォーム初期値リセット
-    form_default_list = {}
-
     # 勤務フォーム初期値定義
-    for i in range(37):
-      # 日付リストに日付が入っている場合の処理
-      if day_list[i] != '':
-        # 対応する日付に工数データがあるか確認
-        day_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                        work_day2 = datetime.date(year, month, day_list[i]))
-
-        # 対応する日付に工数データがある場合の処理
-        if day_filter.exists():
-          # 対応する日付の工数データを取得
-          day_get = day_filter.first()
-          
-          # 就業データを初期値リストに入れる
-          form_default_list[('day{}'.format(i + 1))] = day_get.work_time
-          form_default_list[('tyoku{}'.format(i + 1))] = day_get.tyoku2
-
+    form_default_list = schedule_default(year, month, day_list, request)
     # 勤務フォーム定義
     form = scheduleForm(form_default_list)
     # カレンダー設定フォーム定義
@@ -2321,27 +2277,8 @@ def schedule(request):
                             'over_time' : 0, \
                             'judgement' : True})
 
-    # 勤務フォーム初期値リセット
-    form_default_list = {}
-
     # 勤務フォーム初期値定義
-    for i in range(37):
-
-      # 日付リストに日付が入っている場合の処理
-      if day_list[i] != '':
-        # 対応する日付に工数データがあるか確認
-        day_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                        work_day2 = datetime.date(year, month, day_list[i]))
-
-        # 対応する日付に工数データがある場合の処理
-        if day_filter.exists():
-          # 対応する日付の工数データを取得
-          day_get = day_filter.first()
-
-          # 就業データを初期値リストに入れる
-          form_default_list[('day{}'.format(i + 1))] = day_get.work_time
-          form_default_list[('tyoku{}'.format(i + 1))] = day_get.tyoku2
-
+    form_default_list = schedule_default(year, month, day_list, request)
     # 勤務フォーム定義
     form = scheduleForm(form_default_list)
     # カレンダー設定フォーム定義
@@ -2419,28 +2356,8 @@ def schedule(request):
                           'judgement' : judgement})
 
 
-    # 勤務フォーム初期値リセット
-    form_default_list = {}
-
     # 勤務フォーム初期値定義
-    for i in range(37):
-
-      # 日付リストに日付が入っている場合の処理
-      if day_list[i] != '':
-
-        # 対応する日付に工数データがあるか確認
-        day_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                        work_day2 = datetime.date(year, month, day_list[i]))
-
-        # 対応する日付に工数データがある場合の処理
-        if day_filter.exists():
-          # 対応する日付の工数データを取得
-          day_get = day_filter.first()
-          
-          # 就業データを初期値リストに入れる
-          form_default_list[('day{}'.format(i + 1))] = day_get.work_time
-          form_default_list[('tyoku{}'.format(i + 1))] = day_get.tyoku2
-
+    form_default_list = schedule_default(year, month, day_list, request)
     # 勤務フォーム定義
     form = scheduleForm(form_default_list)
 
@@ -2498,12 +2415,11 @@ def schedule(request):
     
   # 工数入力データ取得
   for i, k in  enumerate(title_list):
-
     # 日付リストの該当要素が空でない場合の処理
     if day_list[i] != '':
       # ログイン者の工数データを該当日でフィルター 
       graph_data_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                          work_day2 = datetime.date(year, month, day_list[i]))
+                                                             work_day2 = datetime.date(year, month, day_list[i]))
 
       # 工数データがない場合の処理
       if not graph_data_filter.exists():
@@ -2514,8 +2430,7 @@ def schedule(request):
       # 工数データがある場合の処理
       else:
         # ログイン者の該当日の工数データ取得
-        graph_data_get = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                          work_day2 =datetime.date(year, month, day_list[i]))
+        graph_data_get = graph_data_filter.first()
         # 作業内容リストに解凍
         data_list = list(graph_data_get.time_work)
        
@@ -2686,7 +2601,6 @@ def over_time(request):
     request.session.clear()
     # ログインページに戻る
     return redirect('/login')
-
 
   # 本日の日付取得
   today = datetime.date.today()
@@ -3850,57 +3764,41 @@ def all_kosu_detail(request, num):
 
 
 # 工数削除画面定義
-def all_kosu_delete(request, num):
-  # 設定データ取得
-  page_num = administrator_data.objects.order_by("id").last()
-
-  # セッションにログインした従業員番号がない場合の処理
-  if not request.session.get('login_No'):
-    # 未ログインならログインページへ飛ぶ
-    return redirect('/login')
-
-  # ログイン者が問い合わせ担当者でない場合の処理
-  if request.session['login_No'] not in (page_num.administrator_employee_no1, page_num.administrator_employee_no2, page_num.administrator_employee_no3):
-    # 権限がなければメインページに飛ぶ
-    return redirect(to = '/')
+class AllKosuDeleteView(DeleteView):
+  # モデル、テンプレート、リダイレクト先などを指定
+  model = Business_Time_graph
+  template_name = 'kosu/all_kosu_delete.html'
+  success_url = reverse_lazy('all_kosu', args = [1])
+  context_object_name = 'obj'
 
 
-  try:
-    # ログイン者の情報取得
-    member_data = member.objects.get(employee_no = request.session['login_No'])
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 設定データ取得
+    page_num = administrator_data.objects.order_by("id").last()
 
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login')
-  
+    # ログイン者が問い合わせ担当者でない場合、メインページに飛ぶ
+    if request.session['login_No'] not in (page_num.administrator_employee_no1,
+                                            page_num.administrator_employee_no2,
+                                            page_num.administrator_employee_no3):
+      return redirect('/')
 
-  # 指定IDの工数履歴のレコードのオブジェクトを変数に入れる
-  obj_get = Business_Time_graph.objects.get(id = num)
-
-  # POST時の処理
-  if (request.method == 'POST'):
-    # 取得していた指定従業員番号のレコードを削除する
-    obj_get.delete()
-
-    # 工数履歴画面をリダイレクトする
-    return redirect(to = '/all_kosu/1')
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
 
 
-
-  # HTMLに渡す辞書
-  context = {
-    'title' : '工数データ削除',
-    'num' : num,
-    'obj' : obj_get,
-    }
-  
-
-
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/all_kosu_delete.html', context)
+  # コンテキストデータを取得するメソッドをオーバーライド
+  def get_context_data(self, **kwargs):
+      context = super().get_context_data(**kwargs)
+      context['title'] = '工数データ削除'
+      context['num'] = self.kwargs['pk']
+      return context
 
 
 

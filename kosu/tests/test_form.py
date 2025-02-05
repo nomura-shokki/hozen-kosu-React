@@ -1392,7 +1392,6 @@ class Page_form(TestCase):
 
     # 残業管理ページ表示切替チェック
     def test_over_time_change_form(self):
-
         # フォームデータ定義
         form_data = {
             'year': '2000',
