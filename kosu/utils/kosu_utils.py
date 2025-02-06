@@ -1337,3 +1337,24 @@ def schedule_default(year, month, day_list, request):
 
 #--------------------------------------------------------------------------------------------------------
 
+
+
+
+
+# 工数削除関数
+def kosu_delete(start_indent, end_indent, work_list, detail_list):
+  # 工数削除
+  for i in range(start_indent, end_indent):
+    work_list[i] = '#'
+    detail_list[i] = ''
+
+  return work_list, detail_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
