@@ -35,7 +35,6 @@ from ..forms import uploadForm
 
 # ログイン画面定義
 def login(request):
-
   # ログイン済みならメイン画面に飛ぶ
   if request.session.get('login_No', None) != None:
     return redirect(to = '/')
@@ -44,7 +43,6 @@ def login(request):
 
   # POST時の処理
   if (request.method == 'POST'):
-
     # POST送信された値を変数に入れる
     find = request.POST['employee_no4']
 
@@ -101,7 +99,6 @@ def login(request):
 
 # メイン画面定義
 def main(request):
-
   # 未ログインならログインページに飛ぶ
   if request.session.get('login_No', None) == None:
     return redirect(to = '/login')
@@ -135,10 +132,8 @@ def main(request):
 
   # POST時の処理
   if (request.method == 'POST'):
-
     # セッションを削除
     request.session.flush()
-
     # ログインページに飛ぶ
     return redirect(to = '/login')
 
@@ -169,7 +164,6 @@ def main(request):
 
 # 工数メイン画面定義
 def kosu_main(request):
-
   # 未ログインならログインページに飛ぶ
   if request.session.get('login_No', None) == None:
 
@@ -212,10 +206,8 @@ def kosu_main(request):
 
 # 工数区分定義メイン画面定義
 def def_main(request):
-
   # 未ログインならログインページに飛ぶ
   if request.session.get('login_No', None) == None:
-
     return redirect(to = '/login')
 
   try:
@@ -254,10 +246,8 @@ def def_main(request):
 
 # 人員メイン画面定義
 def member_main(request):
-
   # 未ログインならログインページに飛ぶ
   if request.session.get('login_No', None) == None:
-
     return redirect(to = '/login')
 
   try:

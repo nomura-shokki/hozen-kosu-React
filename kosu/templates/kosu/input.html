@@ -30,7 +30,15 @@
       {% endif %}
       <a href="{% url 'main' %}">メインMENUへ</a>
     </p>
-  </div>
+    </div>
+    {% if def_alarm == True %}
+      <h1 class="display-6 text-danger">ーーー　警告　ーーー</h6>
+      <P class="fs-6 text-danger">
+        工数区分定義が古い定義になっています。<br>
+        定義変更前の過去の業務工数を打つなどの特別な目的がない場合は定義のバージョンを切り替えて下さい。<br>
+        (手動で切り替えるかログインし直すと最新の定義が設定されます。)
+      </p>
+    {% endif %}
   <form id="work-form" action="{% url 'input' %}" method="post">
     {% csrf_token %}
     {% for message in messages %}

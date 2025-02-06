@@ -889,27 +889,31 @@ def input(request):
     # HTML表示用リスト定義
     time_display_list = []
 
+  # 工数区分定義警告表示判断
+  new_def_Ver = kosu_division.objects.order_by("id").last()
+
 
 
   # HTMLに渡す辞書
   context = {
-    'title' : '工数登録',
-    'form' : form,
-    'new_day' : str(new_work_day),
-    'default_start_time' : request.session.get('start_time', ''),
-    'default_end_time' : default_end_time,
-    'graph_list' : graph_list,
-    'graph_item' : graph_item,
-    'def_library' : def_library,
-    'def_n' : def_n,
-    'OK_NG' : ok_ng,
-    'time_total' : time_total,
-    'default_total' : default_total,
-    'obj_get' : obj_get,
-    'obj_link' : obj_link,
-    'time_display_list' : time_display_list,
-    'member_obj' : member_obj,
-    'show_message': show_message
+    'title': '工数登録',
+    'form': form,
+    'new_day': str(new_work_day),
+    'default_start_time': request.session.get('start_time', ''),
+    'default_end_time': default_end_time,
+    'graph_list': graph_list,
+    'graph_item': graph_item,
+    'def_library': def_library,
+    'def_n': def_n,
+    'OK_NG': ok_ng,
+    'time_total': time_total,
+    'default_total': default_total,
+    'obj_get': obj_get,
+    'obj_link': obj_link,
+    'time_display_list': time_display_list,
+    'member_obj': member_obj,
+    'show_message': show_message,
+    'def_alarm': request.session['input_def'] != new_def_Ver.kosu_name,
     }
 
 
