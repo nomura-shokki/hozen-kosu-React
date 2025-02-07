@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.http import HttpResponse
+from django.views.generic.edit import FormView
 from pathlib import Path
 from io import BytesIO
 import openpyxl
@@ -34,58 +35,58 @@ from ..forms import uploadForm
 
 
 # ログイン画面定義
-def login(request):
-  # ログイン済みならメイン画面に飛ぶ
-  if request.session.get('login_No', None) != None:
-    return redirect(to = '/')
-  
+class LoginFormView(FormView):
+  # 使用するテンプレート,フォーム,リダイレクト先定義
+  template_name = 'kosu/login.html'
+  form_class = loginForm
+  success_url = '/'
 
 
-  # POST時の処理
-  if (request.method == 'POST'):
-    # POST送信された値を変数に入れる
-    find = request.POST['employee_no4']
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # ログイン済みならメイン画面にリダイレクト
+    if request.session.get('login_No'):
+      return redirect(self.success_url)
+    return super().dispatch(request, *args, **kwargs)
 
-    # POST送信された値が空の場合の処理
+  # フォームが有効な場合の処理
+  def form_valid(self, form):
+    # フォームから送信された値を取得
+    find = form.cleaned_data['employee_no4']
+    # 従業員番号が空の場合、リダイレクト
     if find == '':
-      # エラーメッセージ出力
-      messages.error(request, '従業員番号を入力して下さい。ERROR001')
-      # このページをリダイレクト
-      return redirect(to = '/login')
-    
+      messages.error(self.request, '従業員番号を入力して下さい。ERROR001')
+      return redirect('/login')
 
-    # 人員登録データの内、従業員番号がPOST送信された値と等しいレコードのオブジェクトを取得
-    data = member.objects.filter(employee_no = find)
+    # 人員登録データから値を検索
+    data = member.objects.filter(employee_no=find)
+    # 従業員番号の登録がない場合、リダイレクト
+    if not data.exists():
+      messages.error(self.request, '入力された従業員番号は登録がありません。ERROR002')
+      return redirect('/login')
 
-
-    # POST送信された値が人員登録の中にない場合
-    if data.count() == 0:
-      # エラーメッセージ出力
-      messages.error(request, '入力された従業員番号は登録がありません。ERROR002')
-      # このページをリダイレクト
-      return redirect(to = '/login')
-    
-    # POST送信された値が人員登録の中にいる場合
-    if data.count() >= 1:
-      # 従業員番号をセッションに保存する
-      request.session['login_No'] = find
-      # 使用する工数区分を読み込む(最新のもの)
+    # 従業員番号の登録がある場合の処理
+    else:
+      # 従業員番号をセッションに保存
+      self.request.session['login_No'] = find
+      # 使用する工数区分を読み込む（最新のもの）
       def_Ver = kosu_division.objects.order_by("id").last()
-      request.session['input_def'] = def_Ver.kosu_name
+      self.request.session['input_def'] = def_Ver.kosu_name
 
-      # メインページに飛ぶ
-      return redirect(to = '/')
-   
+      # メインページにリダイレクト
+      return redirect(self.success_url)
 
-   
-  # HTMLに渡す辞書
-  context = {
-    'title' : 'ログイン',
-    'form' : loginForm(),
-    }
-  
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/login.html', context)
+
+  # フォームが無効だった場合の処理（同じ画面に留まらせ）
+  def form_invalid(self, form):
+    return self.render_to_response(self.get_context_data(form=form))
+
+
+  # コンテキストデータを設定
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context['title'] = 'ログイン'
+    return context
 
 
 
@@ -457,7 +458,6 @@ def inquiry_main(request):
 
 # 管理者画面定義
 def administrator_menu(request):
-
   # 未ログインならログインページに飛ぶ
   if request.session.get('login_No', None) == None:
     return redirect(to = '/login')
@@ -503,107 +503,83 @@ def administrator_menu(request):
 
   # 設定更新時の処理
   if 'registration' in request.POST:
-    # 一覧表示項目数に文字が入っている場合の処理
+    # 一覧表示項目数に文字が入っている場合、リダイレクト
     if not request.POST['menu_row'].isdigit():
-      # エラーメッセージ出力
       messages.error(request, '一覧表示項目数は数字で入力して下さい。ERROR056')
-      # このページをリダイレクト
       return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no1'] != '':
-      # 問い合わせ担当者従業員番号に文字が入っている場合の処理
+      # 問い合わせ担当者従業員番号に文字が入っている場合、リダイレクト
       if not request.POST['administrator_employee_no1'].isdigit():
-        # エラーメッセージ出力
         messages.error(request, '問い合わせ担当者従業員番号は数字で入力して下さい。ERROR077')
-        # このページをリダイレクト
         return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no2'] != '':
-      # 問い合わせ担当者従業員番号に文字が入っている場合の処理
+      # 問い合わせ担当者従業員番号に文字が入っている場合、リダイレクト
       if not request.POST['administrator_employee_no2'].isdigit():
-        # エラーメッセージ出力
         messages.error(request, '問い合わせ担当者従業員番号は数字で入力して下さい。ERROR078')
-        # このページをリダイレクト
         return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no3'] != '':
-      # 問い合わせ担当者従業員番号に文字が入っている場合の処理
+      # 問い合わせ担当者従業員番号に文字が入っている場合、リダイレクト
       if not request.POST['administrator_employee_no3'].isdigit():
-        # エラーメッセージ出力
         messages.error(request, '問い合わせ担当者従業員番号は数字で入力して下さい。ERROR079')
-        # このページをリダイレクト
         return redirect(to = '/administrator')
 
-    # 一覧表示項目数が自然数でない場合の処理
+    # 一覧表示項目数が自然数でない場合、リダイレクト
     if math.floor(float(request.POST['menu_row'])) != float(request.POST['menu_row']) or \
       float(request.POST['menu_row']) <= 0:
-      # エラーメッセージ出力
       messages.error(request, '一覧表示項目数は自然数で入力して下さい。ERROR029')
-      # このページをリダイレクト
       return redirect(to = '/administrator')
     
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no1'] != '':
-      # 問い合わせ担当者従業員番号が自然数でない場合の処理
+      # 問い合わせ担当者従業員番号が自然数でない場合、リダイレクト
       if math.floor(float(request.POST['administrator_employee_no1'])) != \
         float(request.POST['administrator_employee_no1']) or \
         float(request.POST['administrator_employee_no1']) <= 0:
-        # エラーメッセージ出力
         messages.error(request, '問い合わせ担当者従業員番号は自然数で入力して下さい。ERROR033')
-        # このページをリダイレクト
         return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no2'] != '':
-      # 問い合わせ担当者従業員番号が自然数でない場合の処理
+      # 問い合わせ担当者従業員番号が自然数でない場合、リダイレクト
       if math.floor(float(request.POST['administrator_employee_no2'])) != \
         float(request.POST['administrator_employee_no2']) or \
         float(request.POST['administrator_employee_no2']) <= 0:
-        # エラーメッセージ出力
         messages.error(request, '問い合わせ担当者従業員番号は自然数で入力して下さい。ERROR034')
-        # このページをリダイレクト
         return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no3'] != '':
-      # 問い合わせ担当者従業員番号が自然数でない場合の処理
+      # 問い合わせ担当者従業員番号が自然数でない場合、リダイレクト
       if math.floor(float(request.POST['administrator_employee_no3'])) != \
         float(request.POST['administrator_employee_no3']) or \
         float(request.POST['administrator_employee_no3']) <= 0:
-        # エラーメッセージ出力
         messages.error(request, '問い合わせ担当者従業員番号は自然数で入力して下さい。ERROR035')
-        # このページをリダイレクト
         return redirect(to = '/administrator')
 
-    # 一覧表示項目数が半角でない場合の処理
+    # 一覧表示項目数が半角でない場合、リダイレクト
     if has_non_halfwidth_characters(request.POST['menu_row']):
-      # エラーメッセージ出力
       messages.error(request, '一覧表示項目数は半角で入力して下さい。ERROR053')
-      # このページをリダイレクト
       return redirect(to = '/administrator')
 
-    # 問い合わせ担当者従業員番号が半角でない場合の処理
+    # 問い合わせ担当者従業員番号が半角でない場合、リダイレクト
     if has_non_halfwidth_characters(request.POST['administrator_employee_no1']):
-      # エラーメッセージ出力
       messages.error(request, '問い合わせ担当者従業員番号は半角で入力して下さい。ERROR036')
-      # このページをリダイレクト
       return redirect(to = '/administrator')
 
-    # 問い合わせ担当者従業員番号が半角でない場合の処理
+    # 問い合わせ担当者従業員番号が半角でない場合、リダイレクト
     if has_non_halfwidth_characters(request.POST['administrator_employee_no2']):
-      # エラーメッセージ出力
       messages.error(request, '問い合わせ担当者従業員番号は半角で入力して下さい。ERROR037')
-      # このページをリダイレクト
       return redirect(to = '/administrator')
 
-    # 問い合わせ担当者従業員番号が半角でない場合の処理
+    # 問い合わせ担当者従業員番号が半角でない場合、リダイレクト
     if has_non_halfwidth_characters(request.POST['administrator_employee_no3']):
-      # エラーメッセージ出力
       messages.error(request, '問い合わせ担当者従業員番号は半角で入力して下さい。ERROR038')
-      # このページをリダイレクト
       return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
