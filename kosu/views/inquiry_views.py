@@ -20,7 +20,6 @@ from ..forms import inquiry_findForm
 
 # 問い合わせ入力画面定義
 def inquiry_new(request):
-
   # 未ログインならログインページに飛ぶ
   if request.session.get('login_No', None) == None:
     return redirect(to = '/login')
@@ -45,13 +44,10 @@ def inquiry_new(request):
 
   # POST時の処理
   if (request.method == 'POST'):
-
     # 問い合わせ内容が10文字未満の場合の処理
     if len(request.POST['inquiry']) < 10:
-
       # エラーメッセージ出力
       messages.error(request, '問い合わせ内容は10文字以上でお願いします。ERROR041')
-
       # このページをリダイレクト
       return redirect(to = '/inquiry_new')
 
@@ -63,58 +59,46 @@ def inquiry_new(request):
                        name = member_instance, \
                        content_choice = request.POST['content_choice'], \
                        inquiry = request.POST['inquiry'])
-    
     # レコードセーブ
     new.save()
 
 
     # 最新の問い合わせデータ取得
     inquiry_data_id = inquiry_data.objects.order_by("id").last()
-
     # 設定データ取得
     default_data = administrator_data.objects.order_by("id").last()
     
 
     # ポップアップ1空の場合の処理
     if default_data.pop_up1 == '':
-
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
                          defaults = {'pop_up_id1' : inquiry_data_id.id,
                                      'pop_up1' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
       
-
     elif default_data.pop_up2 == '':
-
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
                          defaults = {'pop_up_id2' : inquiry_data_id.id,
                                      'pop_up2' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
 
-
     elif default_data.pop_up3 == '':
-
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
                          defaults = {'pop_up_id3' : inquiry_data_id.id,
                                      'pop_up3' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
 
-
     elif default_data.pop_up4 == '':
-
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
                          defaults = {'pop_up_id4' : inquiry_data_id.id,
                                      'pop_up4' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
 
-
     elif default_data.pop_up5 == '':
-
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
                          defaults = {'pop_up_id5' : inquiry_data_id.id,
                                      'pop_up5' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
-
 
     # このページを読み直す
     return redirect(to='/inquiry_new')

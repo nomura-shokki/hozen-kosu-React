@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
+from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from pathlib import Path
 from io import BytesIO
@@ -14,6 +16,7 @@ import environ
 import urllib.parse
 import unicodedata
 from ..utils.kosu_utils import kosu_division_dictionary
+from ..utils.kosu_utils import get_member
 from ..models import member
 from ..models import Business_Time_graph
 from ..models import kosu_division
@@ -99,59 +102,52 @@ class LoginFormView(FormView):
 
 
 # メイン画面定義
-def main(request):
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
-
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
-
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login') 
-
-  # 設定データ取得
-  default_data = administrator_data.objects.order_by("id").last()
-
-  # 問い合わせ担当者従業員番号がログイン者の従業員番号と一致している場合、ポップアップ表示設定
-  if default_data.administrator_employee_no1 == str(request.session['login_No']):
-    pop_up_display = True
-  elif default_data.administrator_employee_no2 == str(request.session['login_No']):
-    pop_up_display = True
-  elif default_data.administrator_employee_no3 == str(request.session['login_No']):
-    pop_up_display = True
-
-  else:
-    pop_up_display = False
+class MainView(TemplateView):
+  # 使用するテンプレート定義
+  template_name = 'kosu/main.html'
 
 
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
+  
 
-  # POST時の処理
-  if (request.method == 'POST'):
+  # コンテキストデータを設定
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    request = self.request
+
+    # 設定データ取得
+    default_data = administrator_data.objects.order_by("id").last()
+
+    # 問い合わせ担当者従業員番号がログイン者の従業員番号と一致している場合、ポップアップ表示設定
+    pop_up_display = default_data.administrator_employee_no1 == str(request.session['login_No']) or \
+                     default_data.administrator_employee_no2 == str(request.session['login_No']) or \
+                     default_data.administrator_employee_no3 == str(request.session['login_No'])
+
+    context.update({
+      'title': 'MENU',
+      'data': self.member_obj,
+      'pop_up_display': pop_up_display,
+      'pop_up': default_data,
+      })
+    
+    return context
+
+
+  # POSTリクエストの処理
+  def post(self, request):
     # セッションを削除
     request.session.flush()
     # ログインページに飛ぶ
-    return redirect(to = '/login')
-
-
-  
-  # HTMLに渡す辞書
-  context = {
-    'title' : 'MENU',
-    'data' : data,
-    'pop_up_display' : pop_up_display,
-    'pop_up' : default_data,
-    }
-  
-
-
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/main.html', context)
+    return redirect('/login')
 
 
 
@@ -164,36 +160,34 @@ def main(request):
 
 
 # 工数メイン画面定義
-def kosu_main(request):
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
+class KosuMainView(TemplateView):
+  # 使用するテンプレート定義
+  template_name = 'kosu/kosu_main.html'
+    
 
-    return redirect(to = '/login')
-
-
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
-
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login') 
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
 
 
+  # コンテキストデータを設定
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
 
-  # HTMLに渡す辞書
-  context = {
-    'title' : '工数MENU',
-    'data' : data,
-    }
-  
+    # HTMLに渡す辞書
+    context.update({
+        'title': '工数MENU',
+        'data': self.member_obj,
+    })
 
-
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/kosu_main.html', context)
+    return context
 
 
 
@@ -206,34 +200,34 @@ def kosu_main(request):
 
 
 # 工数区分定義メイン画面定義
-def def_main(request):
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
+class DefMainView(TemplateView):
+  # 使用するテンプレート定義
+  template_name = 'kosu/def_main.html'
+    
 
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
-
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login') 
-
-
-
-  # HTMLに渡す辞書
-  context = {
-    'title' : '工数区分定義MENU',
-    'data' : data,
-    }
-  
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
 
 
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/def_main.html', context)
+  # コンテキストデータを設定
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+
+    # HTMLに渡す辞書
+    context.update({
+        'title': '工数区分定義MENU',
+        'data': self.member_obj,
+    })
+
+    return context
 
 
 
@@ -246,39 +240,40 @@ def def_main(request):
 
 
 # 人員メイン画面定義
-def member_main(request):
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
+class MemberMainView(TemplateView):
+  # 使用するテンプレート定義
+  template_name = 'kosu/member_main.html'
+    
 
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
 
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login') 
+    # ログイン者に権限がなければメインページに戻る
+    if member_obj.authority == False:
+      return redirect('/')
 
-  # ログイン者に権限がなければメインページに戻る
-  if data.authority == False:
-
-    return redirect(to = '/')
-  
-
-
-  # HTMLに渡す辞書
-  context = {
-    'title' : '人員MENU',
-    'data' : data,
-    }
-  
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
+    
 
 
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/member_main.html', context)
+  # コンテキストデータを設定
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+
+    # HTMLに渡す辞書
+    context.update({
+        'title': '人員MENU',
+        'data': self.member_obj,
+    })
+
+    return context
 
 
 

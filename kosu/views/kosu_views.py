@@ -26,8 +26,6 @@ from ..utils.kosu_utils import time_index
 from ..utils.kosu_utils import break_time_process
 from ..utils.kosu_utils import kosu_duplication_check
 from ..utils.kosu_utils import kosu_write
-from ..utils.kosu_utils import break_time_delete
-from ..utils.kosu_utils import break_time_write
 from ..utils.kosu_utils import detail_list_summarize
 from ..utils.kosu_utils import judgement_check
 from ..utils.kosu_utils import kosu_division_dictionary
@@ -2850,56 +2848,9 @@ def all_kosu_detail(request, num):
     form.fields['def_ver'].choices = Ver_choose
 
     # 作業内容整形
-    time_work = request.POST['time_work0'] + \
-                request.POST['time_work1'] + \
-                request.POST['time_work2'] + \
-                request.POST['time_work3'] + \
-                request.POST['time_work4'] + \
-                request.POST['time_work5'] + \
-                request.POST['time_work6'] + \
-                request.POST['time_work7'] + \
-                request.POST['time_work8'] + \
-                request.POST['time_work9'] + \
-                request.POST['time_work10'] + \
-                request.POST['time_work11'] + \
-                request.POST['time_work12'] + \
-                request.POST['time_work13'] + \
-                request.POST['time_work14'] + \
-                request.POST['time_work15'] + \
-                request.POST['time_work16'] + \
-                request.POST['time_work17'] + \
-                request.POST['time_work18'] + \
-                request.POST['time_work19'] + \
-                request.POST['time_work20'] + \
-                request.POST['time_work21'] + \
-                request.POST['time_work22'] + \
-                request.POST['time_work23']
-
+    time_work = ''.join(request.POST[f'time_work{i}'] for i in range(24))
     # 作業詳細整形
-    detail_work = request.POST['detail_work0'] + '$' +\
-                  request.POST['detail_work1'] + '$' +\
-                  request.POST['detail_work2'] + '$' +\
-                  request.POST['detail_work3'] + '$' +\
-                  request.POST['detail_work4'] + '$' +\
-                  request.POST['detail_work5'] + '$' +\
-                  request.POST['detail_work6'] + '$' +\
-                  request.POST['detail_work7'] + '$' +\
-                  request.POST['detail_work8'] + '$' +\
-                  request.POST['detail_work9'] + '$' +\
-                  request.POST['detail_work10'] + '$' +\
-                  request.POST['detail_work11'] + '$' +\
-                  request.POST['detail_work12'] + '$' +\
-                  request.POST['detail_work13'] + '$' +\
-                  request.POST['detail_work14'] + '$' +\
-                  request.POST['detail_work15'] + '$' +\
-                  request.POST['detail_work16'] + '$' +\
-                  request.POST['detail_work17'] + '$' +\
-                  request.POST['detail_work18'] + '$' +\
-                  request.POST['detail_work19'] + '$' +\
-                  request.POST['detail_work20'] + '$' +\
-                  request.POST['detail_work21'] + '$' +\
-                  request.POST['detail_work22'] + '$' +\
-                  request.POST['detail_work23']
+    detail_work = '$'.join(request.POST[f'detail_work{i}'] for i in range(24))
 
 
     # POSTした従業員番号があるか確認
