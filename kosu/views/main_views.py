@@ -119,11 +119,11 @@ def main(request):
   default_data = administrator_data.objects.order_by("id").last()
 
   # 問い合わせ担当者従業員番号がログイン者の従業員番号と一致している場合、ポップアップ表示設定
-  if default_data.administrator_employee_no1 == request.session['login_No']:
+  if default_data.administrator_employee_no1 == str(request.session['login_No']):
     pop_up_display = True
-  elif default_data.administrator_employee_no2 == request.session['login_No']:
+  elif default_data.administrator_employee_no2 == str(request.session['login_No']):
     pop_up_display = True
-  elif default_data.administrator_employee_no3 == request.session['login_No']:
+  elif default_data.administrator_employee_no3 == str(request.session['login_No']):
     pop_up_display = True
 
   else:

@@ -186,9 +186,9 @@ def inquiry_list(request, num):
 
 
   # ログイン者が問い合わせ担当者である場合の処理
-  if default_data.administrator_employee_no1 == request.session['login_No'] or \
-  default_data.administrator_employee_no2 == request.session['login_No'] or \
-  default_data.administrator_employee_no3 == request.session['login_No']:
+  if default_data.administrator_employee_no1 == str(request.session['login_No']) or \
+  default_data.administrator_employee_no2 == str(request.session['login_No']) or \
+  default_data.administrator_employee_no3 == str(request.session['login_No']):
     
     # ボタン表示設定
     button_display = True
@@ -422,9 +422,9 @@ def inquiry_display(request, num):
 
 
   # ログイン者が問い合わせ担当者である場合の処理
-  if default_data.administrator_employee_no1 == request.session['login_No'] or \
-     default_data.administrator_employee_no2 == request.session['login_No'] or \
-     default_data.administrator_employee_no3 == request.session['login_No']:
+  if default_data.administrator_employee_no1 == str(request.session['login_No']) or \
+     default_data.administrator_employee_no2 == str(request.session['login_No']) or \
+     default_data.administrator_employee_no3 == str(request.session['login_No']):
     
     # ポップアップのデータと一致する場合の処理
     if default_data.pop_up_id1 == str(num):
