@@ -121,6 +121,7 @@ class Page_form(TestCase):
             member13 = '',
             member14 = 111,
             member15 = '',
+            follow = True,
             )
 
         # inquiry_dataダミーデータ
@@ -2285,9 +2286,9 @@ class Page_form(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # 変数を読み出し
-        data2 = response.context['data2']
+        obj = response.context['obj']
         # レコードが1つであることを確認
-        self.assertEqual(len(data2), 3)
+        self.assertEqual(len(obj), 3)
 
 
         # フォームデータ定義
@@ -2303,9 +2304,9 @@ class Page_form(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # 変数を読み出し
-        data2 = response.context['data2']
+        obj = response.context['obj']
         # レコードが1つであることを確認
-        self.assertEqual(len(data2), 2)
+        self.assertEqual(len(obj), 2)
 
 
         # フォームデータ定義
@@ -2321,9 +2322,9 @@ class Page_form(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # 変数を読み出し
-        data2 = response.context['data2']
+        obj = response.context['obj']
         # レコードが1つであることを確認
-        self.assertEqual(len(data2), 1)
+        self.assertEqual(len(obj), 1)
 
 
         # フォームデータ定義
@@ -2339,9 +2340,9 @@ class Page_form(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # 変数を読み出し
-        data2 = response.context['data2']
+        obj = response.context['obj']
         # レコードが1つであることを確認
-        self.assertEqual(len(data2), 3)
+        self.assertEqual(len(obj), 3)
 
 
 
@@ -2663,12 +2664,22 @@ class Page_form(TestCase):
 
 
 
-    # フォーローポップアップ
+    # フォーローポップアップチェック
+    def test_team_main_popup_form(self):
+        # URL定義
+        url = reverse('team_main')
+        # URLに対してGETリクエスト送信
+        response = self.client.get(url)
+
+        # リクエストのレスポンスステータスコードが200(OK)であることを確認
+        self.assertEqual(response.status_code, 200)
+        # フォーローポップアップチェック
+        self.assertEqual(response.context['team'], ['テストユーザー氏の工数未入力があります。', 'テストユーザー氏の工数未入力があります。', 'テストユーザー氏の工数未入力があります。', 'テストユーザー氏の工数未入力があります。', 'テストユーザー氏の工数未入力があります。', 'テストユーザー氏の工数未入力があります。', 'テストユーザー氏の工数未入力があります。'])
+
 
 
     # 問い合わせ新規登録チェック
     def test_inquiry_new_form(self):
-
         # フォームデータ定義(工数データ有、日またぎ無しの場合)
         form_data = {
             'content_choice': '不具合',
@@ -2696,7 +2707,6 @@ class Page_form(TestCase):
 
     # 問い合わせ履歴検索チェック
     def test_inquiry_list_form(self):
-
         # memberダミーデータ
         self.member = member.objects.create(
             employee_no = 222,

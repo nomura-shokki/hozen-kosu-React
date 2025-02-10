@@ -1,12 +1,14 @@
-from django.shortcuts import render
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
+from django.views.generic import ListView
 from ..utils.kosu_utils import handle_get_request
 from ..utils.kosu_utils import index_change
 from ..utils.kosu_utils import create_kosu
+from ..utils.kosu_utils import get_member
 from ..utils.team_utils import excel_function
 from ..utils.team_utils import team_member_name_get
 from dateutil.relativedelta import relativedelta
@@ -24,6 +26,7 @@ from ..forms import teamForm
 from ..forms import team_kosuForm
 from ..forms import member_findForm
 from ..forms import schedule_timeForm
+
 
 
 
@@ -76,7 +79,6 @@ def team(request):
 
   # ログイン者の班員登録がない場合の処理
   if data2.count() == 0:
-
     # ログイン者が組長以上の場合の処理
     if data.shop == '組長以上(P,R,T,その他)' or data.shop == '組長以上(W,A)':
       # 絞り込み1指定あり、絞り込み2指定なしの場合の選択肢を絞り込み1のみで絞り込み
@@ -264,7 +266,7 @@ def team(request):
                       'member13' : request.POST['member13'], \
                       'member14' : request.POST['member14'], \
                       'member15' : request.POST['member15'], \
-                        })
+                      })
 
       # 班員メイン画面をリダイレクトする
       return redirect(to = '/team_main')
@@ -504,163 +506,113 @@ def team_graph(request):
 
 
 # 班員工数確認画面定義
-def team_kosu(request, num):
-
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
-
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
-
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login') 
-  
-  # ログイン者に権限がなければメインページに戻る
-  if data.authority == False:
-    return redirect(to = '/')
-
-  # ログイン者の班員登録情報取得
-  team_filter = team_member.objects.filter(employee_no5 = request.session['login_No'])
-  # 班員登録がなければメインページに戻る
-  if team_filter.count() == 0:
-    return redirect(to = '/team_main')
+class TeamKosuListView(ListView):
+  # テンプレート,オブジェクト名定義
+  template_name = 'kosu/team_kosu.html'
+  context_object_name = 'obj'
 
 
-  # 今日の日時を変数に格納
-  dt = datetime.date.today()
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
 
-  # フォームの初期値に定義
-  if request.session.get('find_employee_no2', '') != '':
-    start_list = {'employee_no6' : request.session['find_employee_no2']}
+    # 権限なければメイン画面へ
+    if not member_obj.authority:
+      return redirect(to='/')
 
-  else:
-    start_list = {'employee_no6' : ''}
+    # 班員登録無ければ班員MENUへ
+    if not team_member.objects.filter(employee_no5=request.session['login_No']).exists():
+      return redirect(to='/team_main')
 
-  if request.session.get('find_team_day', '') != '':
-    default_day = request.session['find_team_day']
-
-  else:
-    default_day = str(dt)
-  
-
-  # フォームの選択肢に使用するログイン者の班員設定のオブジェクト取得
-  form_choices = team_member.objects.get(employee_no5 = request.session['login_No'])
-
-  # 選択肢の表示数検出
-  for i in range(1, 16):
-    # 班員の登録がある場合の処理
-    if eval('form_choices.member{}'.format(i)) != '':
-      # インデックス記録
-      n = i
-
-  # 班員リストリセット
-  choices_list = [['','']]
-  filtered_list = []
-
-  # 班員リスト作成
-  for i in range(n):
-    # 班員の選択肢リセット
-    choices_element = []
-
-    # 班員が空欄でない場合
-    if eval('form_choices.member{}'.format(i + 1)) != '':
-      # 班員の従業員番号が人員データにあるか確認
-      obj_filter = member.objects.filter(employee_no = eval('form_choices.member{}'.format(i + 1)))
-      
-      # 班員の従業員番号が人員データにある場合の処理
-      if obj_filter.count() != 0:
-        # 班員の従業員番号から人員データ取得
-        obj_get = member.objects.get(employee_no = eval('form_choices.member{}'.format(i + 1)))
-
-        # 従業員番号と名前の選択肢作成
-        choices_element = choices_element + [obj_get.employee_no, obj_get.name]
-        filtered_list.append(obj_get.employee_no)
-
-        # 選択肢を選択肢リストに追加
-        choices_list.append(choices_element)
+    return super().dispatch(request, *args, **kwargs)
 
 
-  # 設定データ取得
-  page_num = administrator_data.objects.order_by("id").last()
+  # 班員リストと選択肢リスト作成関数
+  def get_filtered_choices(self):
+    # 班員情報取得
+    form_choices = team_member.objects.get(employee_no5=self.request.session['login_No'])
+    # 班員リスト、選択肢リスト作成
+    filtered_list = []
+    choices_list = [['', '']]
+    for i in range(1, 16):
+      member_code = getattr(form_choices, f'member{i}', '')
+      # 班員登録ある場合の処理
+      if member_code:
+        # 人員情報確認
+        obj_filter = member.objects.filter(employee_no=member_code)
+        # 人員登録がある場合の処理
+        if obj_filter.exists():
+          # 人員情報取得
+          obj_get = obj_filter.first()
+          # リストに要素追加
+          filtered_list.append(obj_get.employee_no)
+          choices_list.append([obj_get.employee_no, obj_get.name])
+
+    return filtered_list, choices_list
 
 
+  # フィルタリング内容決定関数
+  def build_filters(self, filtered_list):
+    # POST値取得
+    find = self.request.POST.get('employee_no6') if self.request.method == 'POST' else self.request.session.get('find_employee_no2', '')
+    find2 = self.request.POST.get('team_day') if self.request.method == 'POST' else self.request.session.get('find_team_day', '')
 
-  # POST時の処理
-  if (request.method == 'POST'):
+    # セッション更新 (POST時のみ)
+    if self.request.method == 'POST':
+      self.request.session['find_employee_no2'] = find
+      self.request.session['find_team_day'] = find2
+    # フィルタリング内容設定
+    filters = {'employee_no3__in': filtered_list}
+    if find:
+      filters['employee_no3__icontains'] = find
+    if find2:
+      filters['work_day2__contains'] = find2
 
-    # POST送信時のフォームの状態(POSTした値は入ったまま)
-    form = team_kosuForm(request.POST)
-    default_day = request.POST['team_day']
+    return filters
 
-    # POSTした値を変数に入れる
-    find = request.POST['employee_no6']
-    find2 = request.POST['team_day']
-    request.session['find_employee_no2'] = find
-    request.session['find_team_day'] = find2
 
-    # 就業日と班員の従業員番号でフィルターをかけて一致したものをHTML表示用変数に入れる
-    data2 = Business_Time_graph.objects.filter(employee_no3__icontains = find, \
-      employee_no3__in = filtered_list, work_day2__contains = find2).order_by('work_day2').reverse()
+  # フィルタリングされたデータ取得
+  def get_queryset(self):
+    # 今日の日時
+    dt = datetime.date.today()
 
-    page = Paginator(data2, page_num.menu_row)
+    # フィルタリング用データ作成
+    filtered_list, choices_list = self.get_filtered_choices()
+    # フィルターとクエリセット取得
+    filters = self.build_filters(filtered_list)
+    obj = Business_Time_graph.objects.filter(**filters).order_by('work_day2').reverse()
 
-  # POSTしていない時の処理
-  else:
-    # POST送信していない時のフォームの状態(今日の日付が入ったフォーム)
-    form = team_kosuForm(start_list)
+    # 設定データ取得
+    page_num = administrator_data.objects.order_by("id").last().menu_row
+    # ページネーション
+    paginator = Paginator(obj, page_num)
 
-    # 指定メンバーと指定日のセッションある場合の処理
-    if ('find_employee_no2' in request.session) and ('find_team_day' in request.session):
-      # 班員の従業員番号でフィルターをかけて一致したものをHTML表示用変数に入れる
-      data2 = Business_Time_graph.objects.filter(employee_no3__icontains = request.session['find_employee_no2'], \
-                                                 employee_no3__in = filtered_list, \
-                                                 work_day2__contains = request.session['find_team_day']).order_by('work_day2').reverse()
+    # フォーム準備
+    form = team_kosuForm({'employee_no6': self.request.session.get('find_employee_no2', '')})
+    form.fields['employee_no6'].choices = choices_list
 
-    # 指定メンバーのセッションのみある場合の処理
-    elif ('find_employee_no2' in request.session) and ('find_team_day' not in request.session):
-      # 班員の従業員番号でフィルターをかけて一致したものをHTML表示用変数に入れる
-      data2 = Business_Time_graph.objects.filter(employee_no3__icontains = request.session['find_employee_no2'], \
-                                                 employee_no3__in = filtered_list).order_by('work_day2').reverse()
+    # HTMLに送るデータを設定
+    self.extra_context = {
+      'title': '班員工数確認',
+      'data': self.member_obj,
+      'form': form,
+      'default_day': self.request.session.get('find_team_day', str(dt)),
+      'num': self.kwargs.get('num'),
+      'obj': paginator.get_page(self.kwargs.get('num')),
+      }
 
-    # 指定日のセッションのみある場合の処理
-    elif ('find_team_day' in request.session) and ('find_employee_no2' not in request.session):
-      # 班員の従業員番号でフィルターをかけて一致したものをHTML表示用変数に入れる
-      data2 = Business_Time_graph.objects.filter(work_day2__contains = request.session['find_team_day'], \
-                                                 employee_no3__in = filtered_list).order_by('work_day2').reverse()
-
-    # セッションがない場合の処理
-    else:
-      # 班員の従業員番号でフィルターをかけて一致したものをHTML表示用変数に入れる
-      data2 = Business_Time_graph.objects.filter(employee_no3__in = filtered_list).order_by('work_day2').reverse()
-    
-
-    page = Paginator(data2, page_num.menu_row)
+    return obj
 
 
 
-  # フォームの選択肢定義
-  form.fields['employee_no6'].choices = choices_list
-
-
-
-  # HTMLに渡す辞書
-  context = {
-    'title' : '班員工数確認',
-    'data' : data,
-    'data2' : page.get_page(num),
-    'form' : form,
-    'default_day' : default_day,
-    'num' : num,
-    }
-
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/team_kosu.html', context)
+  # POST時の処理(GETと同じ処理をする)
+  def post(self, request, *args, **kwargs):
+    return super().get(request, *args, **kwargs)
 
 
 

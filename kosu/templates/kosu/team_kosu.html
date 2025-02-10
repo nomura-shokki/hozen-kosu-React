@@ -10,12 +10,12 @@
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
 </head>
 <body class="container">
-    <h1 class="display-6 text-danger">{{data.name}}さん{{title}}</h1>
-    <p class="h6">
-      <a href="{% url 'team_main' %}" class="text-danger">班員MENUへ</a>　　　
-      <a href="{% url 'team_graph' %}" class="text-danger">班員工数グラフへ</a>
-    </p>
-    <p>　</p>
+  <h1 class="display-6 text-danger">{{data.name}}さん{{title}}</h1>
+  <p class="h6">
+    <a href="{% url 'team_main' %}" class="text-danger">班員MENUへ</a>　　　
+    <a href="{% url 'team_graph' %}" class="text-danger">班員工数グラフへ</a>
+  </p>
+  <p>　</p>
   <form action="{% url 'team_kosu' num %}" method="post">
   {% csrf_token %}
     {% bootstrap_javascript jquery='full' %} 
@@ -34,7 +34,7 @@
         <th style="text-align:center;">整合性</th>
         <th style="text-align:center;">詳細</th>
       </tr>
-    {% for i in data2 %}
+    {% for i in obj %}
       <tr>
         <td style="text-align:center;">
           {{i.name}}
@@ -61,14 +61,14 @@
   </div>
   </form>
   <ul class="pagination justify-content-center">
-    {% if data2.has_previous %}
+    {% if obj.has_previous %}
     <li class="page-item">
       <a class="page-link text-danger" href="{% url 'team_kosu' 1 %}">
         &laquo; 最初</a>
     </li>
     <li class="page-item">
       <a class="page-link text-danger" 
-      href="{% url 'team_kosu' data2.previous_page_number %}">
+      href="{% url 'team_kosu' obj.previous_page_number %}">
         &laquo; 前</a>
     </li>
     {% else %}
@@ -83,17 +83,17 @@
     {% endif %}
     <li class="page-item">
       <a class="page-link text-danger">
-        {{data2.number}}/{{data2.paginator.num_pages}}</a>
+        {{obj.number}}/{{obj.paginator.num_pages}}</a>
     </li>
-    {% if data2.has_next %}
+    {% if obj.has_next %}
     <li class="page-item">
       <a class="page-link text-danger" 
-        href="{% url 'team_kosu' data2.next_page_number %}">
+        href="{% url 'team_kosu' obj.next_page_number %}">
           次 &raquo;</a>
     </li>
     <li class="page-item">
       <a class="page-link text-danger" 
-        href="{% url 'team_kosu' data2.paginator.num_pages %}">
+        href="{% url 'team_kosu' obj.paginator.num_pages %}">
           最後 &raquo;</a>
     </li>
     {% else %}
