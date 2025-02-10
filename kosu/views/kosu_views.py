@@ -509,6 +509,10 @@ def input(request):
                                           'time_work' : ''.join(kosu_def), \
                                           'over_time' : request.POST['over_work'], \
                                           'detail_work' : detail_list_summarize(detail_list),\
+                                          'breaktime' : breaktime, \
+                                          'breaktime_over1' : breaktime_over1, \
+                                          'breaktime_over2' : breaktime_over2, \
+                                          'breaktime_over3' : breaktime_over3, \
                                           'judgement' : judgement_check(kosu_def, work, tyoku, member_obj, request.POST['over_work']), \
                                           'break_change' : 'break_change' in request.POST})
       
