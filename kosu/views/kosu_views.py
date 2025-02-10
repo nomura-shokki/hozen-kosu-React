@@ -2797,384 +2797,187 @@ class AllKosuListView(ListView):
 
 # 工数編集画面定義
 def all_kosu_detail(request, num):
-  # 設定データ取得
-  page_num = administrator_data.objects.order_by("id").last()
+  # 設定データ取得（最後の管理者データ）
+  admin_data_last = administrator_data.objects.order_by("id").last()
 
-  # セッションにログインした従業員番号がない場合の処理
+  # セッションにログインした従業員番号がない場合（未ログイン）
   if not request.session.get('login_No'):
-    # 未ログインならログインページへ飛ぶ
     return redirect('/login')
 
-  # ログイン者が問い合わせ担当者でない場合の処理
-  if str(request.session['login_No']) not in (page_num.administrator_employee_no1, page_num.administrator_employee_no2, page_num.administrator_employee_no3):
-    # 権限がなければメインページに飛ぶ
-    return redirect(to = '/')
+  # ログイン者が問い合わせ担当者でない場合
+  login_no = str(request.session['login_No'])
+  if login_no not in (admin_data_last.administrator_employee_no1,
+                      admin_data_last.administrator_employee_no2,
+                      admin_data_last.administrator_employee_no3):
+    return redirect('/')
 
-
+  # ログイン者の情報を取得
   try:
-    # ログイン者の情報取得
-    member_data = member.objects.get(employee_no = request.session['login_No'])
-
-  # セッション値から人員情報取得できない場合の処理
+    member_data = member.objects.get(employee_no=login_no)
   except member.DoesNotExist:
-    # セッション削除
+    # 該当セッションが無効の場合、セッション削除後ログインページへリダイレクト
     request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login')
-  
+    return redirect('/login')
 
-  # 指定IDの工数履歴のレコードのオブジェクトを変数に入れる
-  obj_get = Business_Time_graph.objects.get(id = num)
+  # 工数履歴データ取得
+  obj_get = Business_Time_graph.objects.get(id=num)
 
-
-  # 工数定義区分Verリスト作成
-  Ver_list = kosu_division.objects.values_list('kosu_name', flat=True)\
-                    .order_by('id').distinct()
-
-  # 工数定義区分Verリスト定義
-  Ver_choose = []
-
-  # 工数定義区分Verを名前に変更するループ
-  for No in list(Ver_list):
-    # 名前リスト作成
-    Ver_choose.append([No, No])
+  # 工数定義区分Verリスト（重複排除しID順ソート）
+  ver_list = kosu_division.objects.values_list('kosu_name', flat=True).order_by('id').distinct()
+  ver_choose = [[ver, ver] for ver in ver_list]
 
 
 
-  # POST時の処理
-  if (request.method == 'POST'):
-    # フォーム定義
+  # POSTリクエスト時の処理
+  if request.method == 'POST':
+    # フォーム定義(工数区分定義バージョン選択肢付属)
     form = all_kosuForm(request.POST)
+    form.fields['def_ver'].choices = ver_choose
 
-    # フォーム選択肢定義
-    form.fields['def_ver'].choices = Ver_choose
+    # 作業内容の整形
+    time_work = ''.join(request.POST.get(f'time_work{i}', '') for i in range(24))
+    detail_work = '$'.join(request.POST.get(f'detail_work{i}', '') for i in range(24))
 
-    # 作業内容整形
-    time_work = ''.join(request.POST[f'time_work{i}'] for i in range(24))
-    # 作業詳細整形
-    detail_work = '$'.join(request.POST[f'detail_work{i}'] for i in range(24))
-
-
-    # POSTした従業員番号があるか確認
-    member_filter = member.objects.filter(employee_no = request.POST['employee_no'])
-
-    # 従業員番号がない場合、リダイレクト
-    if not member_filter.exists():
+    # 従業員番号チェック
+    employee_no = request.POST.get('employee_no', '')
+    if not member.objects.filter(employee_no=employee_no).exists():
       messages.error(request, 'その従業員番号は人員データにありません。ERROR092')
-      return redirect(to = '/all_kosu_detail/{}'.format(num))
+      return redirect(to=f'/all_kosu_detail/{num}')
 
-    # 従業員番号か就業日が空欄の場合、リダイレクト
-    if (request.POST['employee_no'] in (None, '')) or (request.POST['work_day'] in (None, '')):
+    # 必須項目（従業員番号、就業日）が空の場合
+    if not employee_no or not request.POST.get('work_day', ''):
       messages.error(request, '従業員番号か就業日が未入力です。ERROR100')
-      return redirect(to = '/all_kosu_detail/{}'.format(num))
+      return redirect(to=f'/all_kosu_detail/{num}')
 
-    # 12桁の#とアルファベットの小文字、大文字の文字列の正規表現パターン
-    pattern = r'^[a-zA-Z#]{12}$'
-
-    # 作業内容の入力値が不適切な場合、リダイレクト
+    # 作業内容の正規表現チェック
+    time_work_pattern = r'^[a-zA-Z#$]{12}$'
     for i in range(24):
-      time_work_key = f"time_work{i}"
-      if not re.fullmatch(pattern, request.POST.get(time_work_key, '')):
+      time_work_value = request.POST.get(f'time_work{i}', '')
+      if not re.fullmatch(time_work_pattern, time_work_value):
         messages.error(request, f'{i}時台の作業内容の入力値が不適切です。ERROR101')
-        return redirect(f'/all_kosu_detail/{num}')
+        return redirect(to=f'/all_kosu_detail/{num}')
 
-    # 作業詳細の入力値が不適切な場合、リダイレクト
+    # 作業詳細の整合性チェック
     for i in range(24):
-      time_detail_key = f"detail_work{i}"
-      if request.POST.get(time_detail_key, '').count('$') != 11:
+      detail_work_value = request.POST.get(f'detail_work{i}', '')
+      if detail_work_value.count('$') != 11:
         messages.error(request, f'{i}時台の作業詳細の入力値が不適切です。ERROR102')
-        return redirect(f'/all_kosu_detail/{num}')
+        return redirect(to=f'/all_kosu_detail/{num}')
 
-    # 残業が5の倍数でない場合、リダイレクト
-    if int(request.POST['over_time']) % 5 != 0:
+    # 残業時間の整合性チェック
+    if int(request.POST.get('over_time', 0)) % 5 != 0:
       messages.error(request, '残業の入力値が5の倍数ではありません。ERROR149')
-      return redirect(to = '/all_kosu_detail/{}'.format(num))
+      return redirect(to=f'/all_kosu_detail/{num}')
 
-    # #と8桁の数字の文字列の正規表現パターン
-    pattern2 = r'^#([0-9]{8})$'
-    match = re.fullmatch(pattern2, request.POST['breaktime'])
-    match2 = re.fullmatch(pattern2, request.POST['breaktime_over1'])
-    match3 = re.fullmatch(pattern2, request.POST['breaktime_over2'])
-    match4 = re.fullmatch(pattern2, request.POST['breaktime_over3'])
+    # 休憩時間フォーマットチェック
+    breaktime_fields = ['breaktime', 'breaktime_over1', 'breaktime_over2', 'breaktime_over3']
+    breaktime_name = ['昼休憩', '残業休憩時間1', '残業休憩時間2', '残業休憩時間3']
+    breaktime_pattern = r'^#([0-9]{8})$'
 
-    # 昼休憩の入力値の形式が不適切な場合、リダイレクト
-    if not match:
-      messages.error(request, '昼休憩の記入が#+数字8桁の形式になっていません。ERROR150')
-      return redirect(to = '/all_kosu_detail/{}'.format(num))
+    for i, field in enumerate(breaktime_fields):
+      match = re.fullmatch(breaktime_pattern, request.POST.get(field, ''))
+      if not match:
+        messages.error(request, f'{breaktime_name[i]}の記入が#+数字8桁の形式になっていません。ERROR150')
+        return redirect(to=f'/all_kosu_detail/{num}')
 
-    # 残業休憩時間1の入力値の形式が不適切な場合、リダイレクト
-    if not match2:
-      messages.error(request, '残業休憩時間1の記入が#+数字8桁の形式になっていません。ERROR151')
-      return redirect(to = '/all_kosu_detail/{}'.format(num))
+      # 時刻の範囲チェック（60進数、5分刻み）
+      number_part = match.group(1)
+      hours1, minutes1, hours2, minutes2 = map(int, [number_part[:2], number_part[2:4], number_part[4:6], number_part[6:]])
+      invalid_time = (
+        hours1 not in range(24) or minutes1 not in range(0, 60, 5) or
+        hours2 not in range(24) or minutes2 not in range(0, 60, 5)
+        )
+      if invalid_time:
+        messages.error(request, f'{breaktime_name[i]}の設定が60進数の入力でないか5分刻みの数字ではありません。ERROR151')
+        return redirect(to=f'/all_kosu_detail/{num}')
 
-    # 残業休憩時間2の入力値の形式が不適切な場合、リダイレクト
-    if not match3:
-      messages.error(request, '残業休憩時間2の記入が#+数字8桁の形式になっていません。ERROR152')
-      return redirect(to = '/all_kosu_detail/{}'.format(num))
+    # 従業員番号・日付変更時の確認
+    original_employee_no = request.session['memory_No']
+    original_work_day = request.session['memory_day']
+    new_employee_no = request.POST['employee_no']
+    new_work_day = request.POST['work_day']
 
-    # 残業休憩時間3の入力値の形式が不適切な場合、リダイレクト
-    if not match4:
-      messages.error(request, '残業休憩時間3の記入が#+数字8桁の形式になっていません。ERROR153')
-      return redirect(to = '/all_kosu_detail/{}'.format(num))
-
-    # 休憩時間の数字部分を抽出
-    number_part = str(match.group(1))
-    number_part_1 = int(number_part[ : 2])
-    number_part_2 = int(number_part[2 : 4])
-    number_part_3 = int(number_part[4 : 6])
-    number_part_4 = int(number_part[6 : ]) 
-    number_part2 = str(match2.group(1))
-    number_part2_1 = int(number_part2[ : 2])
-    number_part2_2 = int(number_part2[2 : 4])
-    number_part2_3 = int(number_part2[4 : 6])
-    number_part2_4 = int(number_part2[6 : ]) 
-    number_part3 = str(match3.group(1))
-    number_part3_1 = int(number_part3[ : 2])
-    number_part3_2 = int(number_part3[2 : 4])
-    number_part3_3 = int(number_part3[4 : 6])
-    number_part3_4 = int(number_part3[6 : ]) 
-    number_part4 = str(match4.group(1))
-    number_part4_1 = int(number_part4[ : 2])
-    number_part4_2 = int(number_part4[2 : 4])
-    number_part4_3 = int(number_part4[4 : 6])
-    number_part4_4 = int(number_part4[6 : ]) 
-
-    # 昼休憩時間の設定が60進数の入力でないか5分刻みの数字でない場合、リダイレクト
-    if number_part_1 < 0 or number_part_1 > 23 or number_part_2 < 0 or number_part_2 > 55 or number_part_2 % 5 != 0 or\
-      number_part_3 < 0 or number_part_3 > 23 or number_part_4 < 0 or number_part_4 > 55 or number_part_4 % 5 != 0:
-      messages.error(request, '昼休憩時間の設定が60進数の入力でないか5分刻みの数字ではありません。ERROR154')
-      return redirect(to = '/all_kosu_detail/{}'.format(num))
-
-    # 残業休憩時間1の設定が60進数の入力でないか5分刻みの数字でない場合、リダイレクト
-    if number_part2_1 < 0 or number_part2_1 > 23 or number_part2_2 < 0 or number_part2_2 > 55 or number_part2_2 % 5 != 0 or\
-      number_part2_3 < 0 or number_part2_3 > 23 or number_part2_4 < 0 or number_part2_4 > 55 or number_part2_4 % 5 != 0:
-      messages.error(request, '残業休憩時間1の設定が60進数の入力でないか5分刻みの数字ではありません。ERROR155')
-      return redirect(to = '/all_kosu_detail/{}'.format(num))
-
-    # 残業休憩時間2の設定が60進数の入力でないか5分刻みの数字でない場合、リダイレクト
-    if number_part3_1 < 0 or number_part3_1 > 23 or number_part3_2 < 0 or number_part3_2 > 55 or number_part3_2 % 5 != 0 or\
-      number_part3_3 < 0 or number_part3_3 > 23 or number_part3_4 < 0 or number_part3_4 > 55 or number_part3_4 % 5 != 0:
-      messages.error(request, '残業休憩時間2の設定が60進数の入力でないか5分刻みの数字ではありません。ERROR156')
-      return redirect(to = '/all_kosu_detail/{}'.format(num))
-
-    # 残業休憩時間3の設定が60進数の入力でないか5分刻みの数字でない場合、リダイレクト
-    if number_part4_1 < 0 or number_part4_1 > 23 or number_part4_2 < 0 or number_part4_2 > 55 or number_part4_2 % 5 != 0 or\
-      number_part4_3 < 0 or number_part4_3 > 23 or number_part4_4 < 0 or number_part4_4 > 55 or number_part4_4 % 5 != 0:
-      messages.error(request, '残業休憩時間3の設定が60進数の入力でないか5分刻みの数字ではありません。ERROR157')
-      return redirect(to = '/all_kosu_detail/{}'.format(num))
-
-    # 従業員番号か日付に変更があった場合の処理
-    if request.POST['employee_no'] != request.session['memory_No'] or \
-      str(request.POST['work_day']) != request.session['memory_day']:
-      # 変更後の日付に工数データがあるか確認
-      obj_filter = Business_Time_graph.objects.filter(employee_no3 = request.POST['employee_no'], \
-                                                      work_day2 = request.POST['work_day'])
-      # 変更後の日付に工数データがある場合、リダイレクト
-      if obj_filter.exists():
+    if new_employee_no != original_employee_no or new_work_day != original_work_day:
+      # 新しい日付に既存データがある場合はエラー
+      if Business_Time_graph.objects.filter(employee_no3=new_employee_no, work_day2=new_work_day).exists():
         messages.error(request, 'その日付には既に工数データがあります。ERROR091')
-        return redirect(to = '/all_kosu_detail/{}'.format(num))
-      
-      # 工数データがない場合の処理
-      else:
-        # 元の工数データ削除
-        obj_get.delete()
+        return redirect(to=f'/all_kosu_detail/{num}')
 
-    # 従業員番号に該当するmemberインスタンスを取得
-    member_instance = member.objects.get(employee_no = request.POST['employee_no'])
+      # 元のデータを削除
+      obj_get.delete()
 
-    # 作業内容データの内容を上書きして更新
-    Business_Time_graph.objects.update_or_create(employee_no3 = request.POST['employee_no'], \
-                                                 work_day2 = request.POST['work_day'], \
-                                                 defaults = {'name' : member_instance, \
-                                                             'def_ver2' : request.POST['def_ver'], \
-                                                             'work_time' : request.POST['work_time'], \
-                                                             'tyoku2' : request.POST['tyoku'], \
-                                                             'time_work' : time_work, \
-                                                             'detail_work' : detail_work, \
-                                                             'over_time' : request.POST['over_time'], \
-                                                             'breaktime' : request.POST['breaktime'], \
-                                                             'breaktime_over1' : request.POST['breaktime_over1'], \
-                                                             'breaktime_over2' : request.POST['breaktime_over2'], \
-                                                             'breaktime_over3' : request.POST['breaktime_over3'], \
-                                                             'judgement' : 'judgement' in request.POST, \
-                                                             'break_change' : 'break_change' in request.POST})
+    # 工数データの保存または更新
+    member_instance = member.objects.get(employee_no=new_employee_no)
+    Business_Time_graph.objects.update_or_create(
+      employee_no3=new_employee_no,
+      work_day2=new_work_day,
+      defaults={
+        'name': member_instance,
+        'def_ver2': request.POST['def_ver'],
+        'work_time': request.POST['work_time'],
+        'tyoku2': request.POST['tyoku'],
+        'time_work': time_work,
+        'detail_work': detail_work,
+        'over_time': request.POST['over_time'],
+        'breaktime': request.POST['breaktime'],
+        'breaktime_over1': request.POST['breaktime_over1'],
+        'breaktime_over2': request.POST['breaktime_over2'],
+        'breaktime_over3': request.POST['breaktime_over3'],
+        'judgement': 'judgement' in request.POST,
+        'break_change': 'break_change' in request.POST,
+        }
+    )
 
-    default_day = str(request.POST['work_day'])
+    default_day = new_work_day
 
 
 
-  # POST時以外の処理
+  # GETリクエスト時の処理
   else:
-    # 日付初期値
+    # データの初期値設定
     default_day = obj_get.work_day2
-
-    # 変更前従業員番号記憶
     request.session['memory_No'] = str(obj_get.employee_no3)
-    # 変更前日付記憶
     request.session['memory_day'] = str(obj_get.work_day2)
 
-    # 作業詳細を取得しリストに解凍
+    # 作業詳細の分割とリスト化
     detail_list = obj_get.detail_work.split('$')
+    time_work_list = [obj_get.time_work[i * 12:(i + 1) * 12] for i in range(24)]
+    detail_work_list = [detail_list[i * 12:(i + 1) * 12] for i in range(24)]
 
-    # 時間帯作業分け
-    work_list0 = obj_get.time_work[ : 12]
-    work_list1 = obj_get.time_work[12 : 24]
-    work_list2 = obj_get.time_work[24 : 36]
-    work_list3 = obj_get.time_work[36 : 48]
-    work_list4 = obj_get.time_work[48 : 60]
-    work_list5 = obj_get.time_work[60 : 72]
-    work_list6 = obj_get.time_work[72 : 84]
-    work_list7 = obj_get.time_work[84 : 96]
-    work_list8 = obj_get.time_work[96 : 108]
-    work_list9 = obj_get.time_work[108 : 120]
-    work_list10 = obj_get.time_work[120 : 132]
-    work_list11 = obj_get.time_work[132 : 144]
-    work_list12 = obj_get.time_work[144 : 156]
-    work_list13 = obj_get.time_work[156 : 168]
-    work_list14 = obj_get.time_work[168 : 180]
-    work_list15 = obj_get.time_work[180 : 192]
-    work_list16 = obj_get.time_work[192 : 204]
-    work_list17 = obj_get.time_work[204 : 216]
-    work_list18 = obj_get.time_work[216 : 228]
-    work_list19 = obj_get.time_work[228 : 240]
-    work_list20 = obj_get.time_work[240 : 252]
-    work_list21 = obj_get.time_work[252 : 264]
-    work_list22 = obj_get.time_work[264 : 276]
-    work_list23 = obj_get.time_work[276 : ]
-    detail_list0 = detail_list[ : 12]
-    detail_list1 = detail_list[12 : 24]
-    detail_list2 = detail_list[24 : 36]
-    detail_list3 = detail_list[36 : 48]
-    detail_list4 = detail_list[48 : 60]
-    detail_list5 = detail_list[60 : 72]
-    detail_list6 = detail_list[72 : 84]
-    detail_list7 = detail_list[84 : 96]
-    detail_list8 = detail_list[96 : 108]
-    detail_list9 = detail_list[108 : 120]
-    detail_list10 = detail_list[120 : 132]
-    detail_list11 = detail_list[132 : 144]
-    detail_list12 = detail_list[144 : 156]
-    detail_list13 = detail_list[156 : 168]
-    detail_list14 = detail_list[168 : 180]
-    detail_list15 = detail_list[180 : 192]
-    detail_list16 = detail_list[192 : 204]
-    detail_list17 = detail_list[204 : 216]
-    detail_list18 = detail_list[216 : 228]
-    detail_list19 = detail_list[228 : 240]
-    detail_list20 = detail_list[240 : 252]
-    detail_list21 = detail_list[252 : 264]
-    detail_list22 = detail_list[264 : 276]
-    detail_list23 = detail_list[276 : ]
-
-    # 作業詳細リストを文字列に変更
-    detail_list_str0 = detail_list_summarize(detail_list0)
-    detail_list_str1 = detail_list_summarize(detail_list1)
-    detail_list_str2 = detail_list_summarize(detail_list2)
-    detail_list_str3 = detail_list_summarize(detail_list3)
-    detail_list_str4 = detail_list_summarize(detail_list4)
-    detail_list_str5 = detail_list_summarize(detail_list5)
-    detail_list_str6 = detail_list_summarize(detail_list6)
-    detail_list_str7 = detail_list_summarize(detail_list7)
-    detail_list_str8 = detail_list_summarize(detail_list8)
-    detail_list_str9 = detail_list_summarize(detail_list9)
-    detail_list_str10 = detail_list_summarize(detail_list10)
-    detail_list_str11 = detail_list_summarize(detail_list11)
-    detail_list_str12 = detail_list_summarize(detail_list12)
-    detail_list_str13 = detail_list_summarize(detail_list13)
-    detail_list_str14 = detail_list_summarize(detail_list14)
-    detail_list_str15 = detail_list_summarize(detail_list15)
-    detail_list_str16 = detail_list_summarize(detail_list16)
-    detail_list_str17 = detail_list_summarize(detail_list17)
-    detail_list_str18 = detail_list_summarize(detail_list18)
-    detail_list_str19 = detail_list_summarize(detail_list19)
-    detail_list_str20 = detail_list_summarize(detail_list20)
-    detail_list_str21 = detail_list_summarize(detail_list21)
-    detail_list_str22 = detail_list_summarize(detail_list22)
-    detail_list_str23 = detail_list_summarize(detail_list23)
-
-
-
-    form_default = {
-      'employee_no' : obj_get.employee_no3,
-      'def_ver' : obj_get.def_ver2,
-      'tyoku' : obj_get.tyoku2,
-      'work_time' : obj_get.work_time,
-      'time_work0' : work_list0,
-      'time_work1' : work_list1,
-      'time_work2' : work_list2,
-      'time_work3' : work_list3,
-      'time_work4' : work_list4,
-      'time_work5' : work_list5,
-      'time_work6' : work_list6,
-      'time_work7' : work_list7,
-      'time_work8' : work_list8,
-      'time_work9' : work_list9,
-      'time_work10' : work_list10,
-      'time_work11' : work_list11,
-      'time_work12' : work_list12,
-      'time_work13' : work_list13,
-      'time_work14' : work_list14,
-      'time_work15' : work_list15,
-      'time_work16' : work_list16,
-      'time_work17' : work_list17,
-      'time_work18' : work_list18,
-      'time_work19' : work_list19,
-      'time_work20' : work_list20,
-      'time_work21' : work_list21,
-      'time_work22' : work_list22,
-      'time_work23' : work_list23,
-      'detail_work0' : detail_list_str0,
-      'detail_work1' : detail_list_str1,
-      'detail_work2' : detail_list_str2,
-      'detail_work3' : detail_list_str3,
-      'detail_work4' : detail_list_str4,
-      'detail_work5' : detail_list_str5,
-      'detail_work6' : detail_list_str6,
-      'detail_work7' : detail_list_str7,
-      'detail_work8' : detail_list_str8,
-      'detail_work9' : detail_list_str9,
-      'detail_work10' : detail_list_str10,
-      'detail_work11' : detail_list_str11,
-      'detail_work12' : detail_list_str12,
-      'detail_work13' : detail_list_str13,
-      'detail_work14' : detail_list_str14,
-      'detail_work15' : detail_list_str15,
-      'detail_work16' : detail_list_str16,
-      'detail_work17' : detail_list_str17,
-      'detail_work18' : detail_list_str18,
-      'detail_work19' : detail_list_str19,
-      'detail_work20' : detail_list_str20,
-      'detail_work21' : detail_list_str21,
-      'detail_work22' : detail_list_str22,
-      'detail_work23' : detail_list_str23,
-      'over_time' : obj_get.over_time,
-      'breaktime' : obj_get.breaktime,
-      'breaktime_over1' : obj_get.breaktime_over1,
-      'breaktime_over2' : obj_get.breaktime_over2,
-      'breaktime_over3' : obj_get.breaktime_over3,
-      'judgement' : obj_get.judgement,
-      'break_change' : obj_get.break_change,
+    form_defaults = {
+      'employee_no': obj_get.employee_no3,
+      'def_ver': obj_get.def_ver2,
+      'tyoku': obj_get.tyoku2,
+      'work_time': obj_get.work_time,
+      'over_time': obj_get.over_time,
+      'breaktime': obj_get.breaktime,
+      'breaktime_over1': obj_get.breaktime_over1,
+      'breaktime_over2': obj_get.breaktime_over2,
+      'breaktime_over3': obj_get.breaktime_over3,
+      'judgement': obj_get.judgement,
+      'break_change': obj_get.break_change,
       }
 
-    # フォーム定義
-    form = all_kosuForm(form_default)
+    # 作業時間と詳細をフォームデータに追加
+    for i in range(24):
+      form_defaults[f'time_work{i}'] = time_work_list[i]
+      form_defaults[f'detail_work{i}'] = '$'.join(detail_work_list[i])
 
-    # フォーム選択肢定義
-    form.fields['def_ver'].choices = Ver_choose
+    form = all_kosuForm(form_defaults)
+    form.fields['def_ver'].choices = ver_choose
 
 
 
   # HTMLに渡す辞書
   context = {
-    'title' : '工数データ編集',
-    'form' : form,
-    'default_day' : str(default_day),
-    'num' : num,
+    'title': '工数データ編集',
+    'form': form,
+    'default_day': str(default_day),
+    'num': num,
     }
-  
 
 
-  # 指定したHTMLに辞書を渡して表示を完成させる
+
   return render(request, 'kosu/all_kosu_detail.html', context)
 
 
