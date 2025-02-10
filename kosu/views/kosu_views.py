@@ -852,15 +852,13 @@ def input(request):
 
   # 工数区分定義リスト作成
   choices_list, def_n = kosu_division_dictionary(request.session['input_def'])
-  def_library = choices_list
-  def_library.append(['#', '-'])
-  def_library.append(['$', '休憩'])
   choices_list.insert(0, ['', ''])
   choices_list.append(['$', '休憩'])
-
+  def_library, def_n = kosu_division_dictionary(request.session['input_def'])
+  def_library.append(['#', '-'])
+  
   # フォームの初期状態定義
   form = input_kosuForm(default_list)
-
   # フォームの選択肢定義
   form.fields['kosu_def_list'].choices = choices_list
 
