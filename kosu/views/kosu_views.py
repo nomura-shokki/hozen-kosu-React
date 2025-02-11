@@ -2588,6 +2588,7 @@ def over_time(request):
 
   # 工数入力OKリスト作成
   OK_NG_list = OK_NF_check(year, month, day_list, member_obj)
+  OK_NG_list.reverse()
 
 
 
