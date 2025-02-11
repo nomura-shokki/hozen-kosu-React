@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.views.generic import ListView
+from django.views.generic.edit import FormView
 from ..utils.kosu_utils import handle_get_request
 from ..utils.kosu_utils import index_change
 from ..utils.kosu_utils import create_kosu
@@ -38,248 +39,146 @@ from ..forms import schedule_timeForm
 
 
 # 班員設定画面定義
-def team(request):
-
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-
-    return redirect(to = '/login')
-  
-
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
-
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login') 
-  
-  # ログイン者に権限がなければメインページに戻る
-  if data.authority == False:
-    return redirect(to = '/')
-  
-
-  # 班員登録時の処理
-  if "shop_choice" in request.POST:
-    # 絞り込むショップをセッションに保存する
-    request.session['shop_choose'] = request.POST['shop']
-    request.session['shop_choose2'] = request.POST['shop2']
-
-    # このページをリダイレクトする
-    return redirect(to = '/team')
+class TeamView(FormView):
+    # テンプレート,フォーム,リダイレクト先名定義
+  template_name = 'kosu/team.html'
+  form_class = teamForm
+  success_url = '/team_main'
 
 
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    data = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(data, HttpResponseRedirect):
+      return data
+    self.data = data
 
-  # ログイン者の班員情報取得
-  data2 = team_member.objects.filter(employee_no5 = request.session['login_No'])
+    # 権限なければメイン画面へ
+    if not data.authority:
+      return redirect(to='/')
+
+    return super().dispatch(request, *args, **kwargs)
 
 
-  # ログイン者の班員登録がない場合の処理
-  if data2.count() == 0:
-    # ログイン者が組長以上の場合の処理
-    if data.shop == '組長以上(P,R,T,その他)' or data.shop == '組長以上(W,A)':
-      # 絞り込み1指定あり、絞り込み2指定なしの場合の選択肢を絞り込み1のみで絞り込み
-      if request.session.get('shop_choose', None) != None and request.session.get('shop_choose', None) != '' and \
-        (request.session.get('shop_choose2', None) == None or request.session.get('shop_choose2', None) == ''):
-        member_obj = member.objects.filter(shop = request.session['shop_choose']).order_by('employee_no')
+  # 初期データを設定
+  def get_initial(self):
+    initial_data = {
+      'shop': self.request.session.get('shop_choose', ''),
+      'shop2': self.request.session.get('shop_choose2', '')
+      }
 
-      # 絞り込み2指定あり、絞り込み1指定なしの場合の選択肢を絞り込み2のみで絞り込み
-      if request.session.get('shop_choose2', None) != None and request.session.get('shop_choose2', None) != '' and \
-        (request.session.get('shop_choose', None) == None or request.session.get('shop_choose', None) == ''):
-        member_obj = member.objects.filter(shop = request.session['shop_choose2']).order_by('employee_no')
+    # 班員データある場合初期値定義
+    obj = getattr(self, 'obj', None)
+    if obj:
+      # 既存の班員登録がある場合、そのデータを初期値に設定する
+      initial_data.update({
+        'follow': obj.follow,
+        'member1': obj.member1,
+        'member2': obj.member2,
+        'member3': obj.member3,
+        'member4': obj.member4,
+        'member5': obj.member5,
+        'member6': obj.member6,
+        'member7': obj.member7,
+        'member8': obj.member8,
+        'member9': obj.member9,
+        'member10': obj.member10,
+        'member11': obj.member11,
+        'member12': obj.member12,
+        'member13': obj.member13,
+        'member14': obj.member14,
+        'member15': obj.member15
+        })
+    return initial_data
 
-      # 絞り込み1,2指定ありの場合の選択肢を絞り込み1,2で絞り込み
-      if request.session.get('shop_choose', None) != None and request.session.get('shop_choose', None) != '' and \
-        request.session.get('shop_choose2', None) != None and request.session.get('shop_choose2', None) != '':
-        member_obj = member.objects.filter(Q(shop = request.session['shop_choose'])|Q(shop = request.session['shop_choose2'])).order_by('employee_no')
 
-      # 絞り込み無しの場合、全人員を選択肢に表示
-      if (request.session.get('shop_choose', None) == None or request.session.get('shop_choose', None) == '') and \
-        (request.session.get('shop_choose2', None) == None or request.session.get('shop_choose2', None) == ''):
-        member_obj = member.objects.all().order_by('employee_no')
+  # フォーム定義
+  def get_form(self, form_class=None):
+    form = super().get_form(form_class)
+    member_obj = self.get_member_queryset()
 
-    # ログイン者が組長以上でない場合の処理
+    # 班員選択肢を設定
+    choices_list = [('', '')]
+    choices_list.extend([(i.employee_no, str(i.name)) for i in member_obj])
+    for field in ['member1', 'member2', 'member3', 'member4', 'member5',
+                 'member6', 'member7', 'member8', 'member9', 'member10',
+                 'member11', 'member12', 'member13', 'member14', 'member15']:
+      form.fields[field].choices = choices_list
+
+    return form
+
+
+  # 班員選択肢絞り込み管薄(自身組長の場合)
+  def get_member_queryset(self):
+    # ログイン者が組長以上の場合、セッションの絞り込み条件に応じて選択肢を絞り込む
+    if self.data.shop in ['組長以上(P,R,T,その他)', '組長以上(W,A)']:
+      shop1 = self.request.session.get('shop_choose', None)
+      shop2 = self.request.session.get('shop_choose2', None)
+
+      if shop1 and not shop2:
+        return member.objects.filter(shop=shop1).order_by('employee_no')
+      elif shop2 and not shop1:
+        return member.objects.filter(shop=shop2).order_by('employee_no')
+      elif shop1 and shop2:
+        return member.objects.filter(Q(shop=shop1) | Q(shop=shop2)).order_by('employee_no')
+
+      return member.objects.all().order_by('employee_no')
+
+    # 組長以上でない場合、自分と同じショップの人員に絞り込み
     else:
-      # ログイン者と同じショップの人員のオブジェクトを取得
-      member_obj = member.objects.filter(shop = data.shop).order_by('employee_no')
-
-    # 人員登録のある従業員番号の選択リスト作成
-    choices_list = [('','')]
-    for i in member_obj:
-      choices_list.append((i.employee_no, str(i.name)))
-
-    # フォーム初期値
-    form_list = {
-      'shop' : request.session.get('shop_choose', ''),
-      'shop2' : request.session.get('shop_choose2', '')
-    }
-
-    # フォームを用意
-    form = teamForm(form_list)
-    # フォームの選択肢定義
-    form.fields['member1'].choices = choices_list
-    form.fields['member2'].choices = choices_list
-    form.fields['member3'].choices = choices_list
-    form.fields['member4'].choices = choices_list
-    form.fields['member5'].choices = choices_list
-    form.fields['member6'].choices = choices_list
-    form.fields['member7'].choices = choices_list
-    form.fields['member8'].choices = choices_list
-    form.fields['member9'].choices = choices_list
-    form.fields['member10'].choices = choices_list
-    form.fields['member11'].choices = choices_list
-    form.fields['member12'].choices = choices_list
-    form.fields['member13'].choices = choices_list
-    form.fields['member14'].choices = choices_list
-    form.fields['member15'].choices = choices_list
+      return member.objects.filter(shop=self.data.shop).order_by('employee_no')
 
 
-    # 班員登録時の処理
-    if "team_new" in request.POST:
-      # POST送信された値を変数に入れる
-      member1 = request.POST['member1']
-      member2 = request.POST['member2']
-      member3 = request.POST['member3']
-      member4 = request.POST['member4']
-      member5 = request.POST['member5']
-      member6 = request.POST['member6']
-      member7 = request.POST['member7']
-      member8 = request.POST['member8']
-      member9 = request.POST['member9']
-      member10 = request.POST['member10']
-      member11 = request.POST['member11']
-      member12 = request.POST['member12']
-      member13 = request.POST['member13']
-      member14 = request.POST['member14']
-      member15 = request.POST['member15']
+  # フォームが有効な場合の処理
+  def form_valid(self, form):
+    # ショップ絞り込み時の処理
+    if "shop_choice" in self.request.POST:
+      # ショップ絞り込み条件をセッションに保存後、リダイレクト
+      self.request.session['shop_choose'] = self.request.POST.get('shop')
+      self.request.session['shop_choose2'] = self.request.POST.get('shop2')
+      return redirect('/team')
 
-      # POSTされた値をモデルのそれぞれのフィールドに入れる
-      new = team_member(employee_no5 = request.session['login_No'], \
-                        member1 = member1, member2 = member2, member3 = member3, \
-                        member4 = member4, member5 = member5, member6 = member6, \
-                        member7 = member7, member8 = member8, member9 = member9, \
-                        member10 = member10, member11 = member11, member12 = member12, \
-                        member13 = member13, member14 = member14, member15 = member15, \
-                        follow = 'follow' in request.POST)
-      # 新しいレコードを作成しセーブする
-      new.save()
+    # 班員登録を更新
+    team_member.objects.update_or_create(
+      employee_no5=self.request.session['login_No'],
+      defaults={
+        'follow': 'follow' in self.request.POST,
+        **{f'member{i}': form.cleaned_data[f'member{i}'] for i in range(1, 16)}
+        })
 
-      # 班員メイン画面をリダイレクトする
-      return redirect(to = '/team_main')
+    return super().form_valid(form)
 
 
-  # ログイン者の班員登録がある場合の処理
-  else:
-    # ログイン者の班員登録のオブジェクトを取得
-    obj = team_member.objects.get(employee_no5 = request.session['login_No'])
+  # GET時の処理
+  def get(self, request, *args, **kwargs):
+    # ログイン者の班員登録がある場合、そのオブジェクトを取得
+    self.obj = team_member.objects.filter(employee_no5=request.session['login_No']).first()
+    return super().get(request, *args, **kwargs)
 
-    # ログイン者が組長以上の場合の処理
-    if data.shop == '組長以上(P,R,T,その他)' or data.shop == '組長以上(W,A)':
-      # 絞り込み1指定あり、絞り込み2指定なしの場合の選択肢を絞り込み1のみで絞り込み
-      if request.session.get('shop_choose', None) != None and request.session.get('shop_choose', None) != '' and \
-        (request.session.get('shop_choose2', None) == None or request.session.get('shop_choose2', None) == ''):
-        member_obj = member.objects.filter(shop = request.session['shop_choose']).order_by('employee_no')
 
-      # 絞り込み2指定あり、絞り込み1指定なしの場合の選択肢を絞り込み2のみで絞り込み
-      if request.session.get('shop_choose2', None) != None and request.session.get('shop_choose2', None) != '' and \
-        (request.session.get('shop_choose', None) == None or request.session.get('shop_choose', None) == ''):
-        member_obj = member.objects.filter(shop = request.session['shop_choose2']).order_by('employee_no')
+  # POST時の処理
+  def post(self, request, *args, **kwargs):
+    # ログイン者の班員登録がある場合、そのオブジェクトを取得
+    self.obj = team_member.objects.filter(employee_no5=request.session['login_No']).first()
 
-      # 絞り込み1,2指定ありの場合の選択肢を絞り込み1,2で絞り込み
-      if request.session.get('shop_choose', None) != None and request.session.get('shop_choose', None) != '' and \
-        request.session.get('shop_choose2', None) != None and request.session.get('shop_choose2', None) != '':
-        member_obj = member.objects.filter(Q(shop = request.session['shop_choose'])|Q(shop = request.session['shop_choose2'])).order_by('employee_no')
+    # ショップ絞り込み時は再度このページにリダイレクト
+    if "shop_choice" in self.request.POST:
+      self.request.session['shop_choose'] = self.request.POST.get('shop')
+      self.request.session['shop_choose2'] = self.request.POST.get('shop2')
+      return redirect('/team')
 
-      # 絞り込み無しの場合、全人員を選択肢に表示
-      if (request.session.get('shop_choose', None) == None or request.session.get('shop_choose', None) == '') and \
-        (request.session.get('shop_choose2', None) == None or request.session.get('shop_choose2', None) == ''):
-        member_obj = member.objects.all().order_by('employee_no')
+    return super().post(request, *args, **kwargs)
 
-    # ログイン者が組長以上でない場合の処理
-    else:
-      # ログイン者と同じショップの人員のオブジェクトを取得
-      member_obj = member.objects.filter(shop = data.shop).order_by('employee_no')
 
-    # 人員登録のある従業員番号の選択リスト作成
-    choices_list = [('','')]
-    for i in member_obj:
-      choices_list.append((i.employee_no, str(i.name)))
-    # フォーム初期値を用意
-    form_list = {'shop' : request.session.get('shop_choose', ''),
-                 'shop2' : request.session.get('shop_choose2', ''),
-                 'follow' : obj.follow, 
-                 'member1' : obj.member1, 
-                 'member2' : obj.member2, 
-                 'member3' : obj.member3, 
-                 'member4' : obj.member4, 
-                 'member5' : obj.member5, 
-                 'member6' : obj.member6, 
-                 'member7' : obj.member7, 
-                 'member8' : obj.member8, 
-                 'member9' : obj.member9, 
-                 'member10' : obj.member10, 
-                 'member11' : obj.member11, 
-                 'member12' : obj.member12, 
-                 'member13' : obj.member13, 
-                 'member14' : obj.member14, 
-                 'member15' : obj.member15}
-    # フォームを用意
-    form = teamForm(form_list)
-    # フォームの選択肢定義
-    form.fields['member1'].choices = choices_list
-    form.fields['member2'].choices = choices_list
-    form.fields['member3'].choices = choices_list
-    form.fields['member4'].choices = choices_list
-    form.fields['member5'].choices = choices_list
-    form.fields['member6'].choices = choices_list
-    form.fields['member7'].choices = choices_list
-    form.fields['member8'].choices = choices_list
-    form.fields['member9'].choices = choices_list
-    form.fields['member10'].choices = choices_list
-    form.fields['member11'].choices = choices_list
-    form.fields['member12'].choices = choices_list
-    form.fields['member13'].choices = choices_list
-    form.fields['member14'].choices = choices_list
-    form.fields['member15'].choices = choices_list
-
-    # 班員登録時の処理
-    if "team_new" in request.POST:
-
-      # 指定IDのレコードにPOST送信された値を上書きする
-      team_member.objects.update_or_create(employee_no5 = request.session['login_No'], \
-          defaults = {'follow' : 'follow' in request.POST, \
-                      'member1' : request.POST['member1'], \
-                      'member2' : request.POST['member2'], \
-                      'member3' : request.POST['member3'], \
-                      'member4' : request.POST['member4'], \
-                      'member5' : request.POST['member5'], \
-                      'member6' : request.POST['member6'], \
-                      'member7' : request.POST['member7'], \
-                      'member8' : request.POST['member8'], \
-                      'member9' : request.POST['member9'], \
-                      'member10' : request.POST['member10'], \
-                      'member11' : request.POST['member11'], \
-                      'member12' : request.POST['member12'], \
-                      'member13' : request.POST['member13'], \
-                      'member14' : request.POST['member14'], \
-                      'member15' : request.POST['member15'], \
-                      })
-
-      # 班員メイン画面をリダイレクトする
-      return redirect(to = '/team_main')
-
-  # HTMLに渡す辞書
-  context = {
-    'title' : '班員設定',
-    'data' : data,
-    'form' : form,
-    }
-
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/team.html', context)
+  # HTMLに渡す辞書を設定
+  def render_to_response(self, context, **response_kwargs):
+    context.update({
+      'title': '班員設定',
+      'data': self.data
+      })
+    return super().render_to_response(context, **response_kwargs)
 
 
 
