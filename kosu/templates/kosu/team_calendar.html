@@ -41,894 +41,907 @@
     <p>　</p>
     <table class="table table-bordered border-dark">
       <tr>
-        <th colspan="2"><div class="text-center">曜日</div></th>
-        <th class="table-pink"><div class="text-center">日</div></th>
-        <th><div class="text-center">月</div></th>
-        <th><div class="text-center">火</div></th>
-        <th><div class="text-center">水</div></th>
-        <th><div class="text-center">木</div></th>
-        <th><div class="text-center">金</div></th>
-        <th class="table-light_blue"><div class="text-center">土</div></th>
+        <th colspan="2" class="no-wrap" style="text-align:center;">曜日</th>
+        <th class="table-pink no-wrap" style="text-align:center;">日</th>
+        <th class="no-wrap" style="text-align:center;">月</th>
+        <th class="no-wrap" style="text-align:center;">火</th>
+        <th class="no-wrap" style="text-align:center;">水</th>
+        <th class="no-wrap" style="text-align:center;">木</th>
+        <th class="no-wrap" style="text-align:center;">金</th>
+        <th class="table-light_blue no-wrap" style="text-align:center;">土</th>
       </tr>
 
       <tr>
-        <td colspan="2"><div class="text-center">日付</div></td>
+        <td colspan="2" class="no-wrap" style="text-align:center;">日付</td>
         {% for i in day_list|slice:":7" %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i|date:"n/j"}}</div>
+          <div class="fw-bold">{{i|date:"n/j"}}</div>
         </td>
         {% endfor %}
       </tr>
 
       {% if member_num >= 1 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name1}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name1}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list1 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list1 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list1 %}
         {% with inp=ok_ng_list1.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
         {% endfor %}
       </tr>
       {% endif %}
+
 
       {% if member_num >= 2 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name2}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name2}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list2 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list2 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list2 %}
         {% with inp=ok_ng_list2.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
         {% endfor %}
       </tr>
       {% endif %}
+
 
       {% if member_num >= 3 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name3}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name3}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list3 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list3 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list3 %}
         {% with inp=ok_ng_list3.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
         {% endfor %}
       </tr>
       {% endif %}
+
 
       {% if member_num >= 4 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name4}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name4}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list4 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list4 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list4 %}
         {% with inp=ok_ng_list4.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
         {% endfor %}
       </tr>
       {% endif %}
+
 
       {% if member_num >= 5 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name5}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name5}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list5 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list5 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list5 %}
         {% with inp=ok_ng_list5.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
         {% endfor %}
       </tr>
       {% endif %}
+
 
       {% if member_num >= 6 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name6}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name6}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list6 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list6 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list6 %}
         {% with inp=ok_ng_list6.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
         {% endfor %}
       </tr>
       {% endif %}
+
 
       {% if member_num >= 7 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name7}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name7}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list7 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list7 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list7 %}
         {% with inp=ok_ng_list7.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
         {% endfor %}
       </tr>
       {% endif %}
+
 
       {% if member_num >= 8 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name8}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name8}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list8 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list8 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list8 %}
         {% with inp=ok_ng_list8.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
         {% endfor %}
       </tr>
       {% endif %}
+
 
       {% if member_num >= 9 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name9}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name9}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list9 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list9 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list9 %}
         {% with inp=ok_ng_list9.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
         {% endfor %}
       </tr>
       {% endif %}
+
 
       {% if member_num >= 10 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name10}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name10}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list10 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list10 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list10 %}
         {% with inp=ok_ng_list10.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
         {% endfor %}
       </tr>
       {% endif %}
+
 
       {% if member_num >= 11 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name11}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name11}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list11 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list11 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list11 %}
         {% with inp=ok_ng_list11.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
         {% endfor %}
       </tr>
       {% endif %}
+
 
       {% if member_num >= 12 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name12}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name12}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list12 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list12 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list12 %}
         {% with inp=ok_ng_list12.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
         {% endfor %}
       </tr>
       {% endif %}
+
 
       {% if member_num >= 13 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name13}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name13}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list13 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list13 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list13 %}
         {% with inp=ok_ng_list13.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
         {% endfor %}
       </tr>
       {% endif %}
+
 
       {% if member_num >= 14 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name14}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name14}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list14 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list14 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list14 %}
         {% with inp=ok_ng_list14.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}
@@ -936,61 +949,62 @@
       </tr>
       {% endif %}
 
+
       {% if member_num >= 15 %}
       <tr>
-        <td rowspan="3"><div class="text-center"><br><br><br>{{member_name15}}</div></td>
-        <td><div class="text-center">勤務</div></td>
+        <td rowspan="3" class="no-wrap" style="text-align:center;"><br><br><br>{{member_name15}}</td>
+        <td class="no-wrap" style="text-align:center;">勤務</td>
         {% for i in work_list15 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">残業(分)</div></td>
+        <td class="no-wrap" style="text-align:center;">残業(分)</td>
         {% for i in over_time_list15 %}
         {% if forloop.first %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
-          <div class="text-center fw-bold">{{i}}</div>
+          <div class="fw-bold">{{i}}</div>
         </td>
         {% endfor %}
       </tr>
 
       <tr>
-        <td><div class="text-center">入力時間</div></td>
+        <td class="no-wrap" style="text-align:center;">入力時間</td>
         {% for i in kosu_list15 %}
         {% with inp=ok_ng_list15.pop %}
         {% if forloop.first and inp == False %}
-        <td class="table-pink">
+        <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
         {% if forloop.last and inp == False %}
-        <td class="table-light_blue">
+        <td class="table-light_blue no-wrap" style="text-align:center;">
         {% else %}
         {% if inp == True %}
-        <td class="table-green">
+        <td class="table-green no-wrap" style="text-align:center;">
         {% else %}
-        <td>
+        <td class="no-wrap" style="text-align:center;">
         {% endif %}
         {% endif %}
         {% endif %}
           {% for k in i %}
-          <div class="text-center fw-bold">{{k}}</div>
+          <div class="fw-bold">{{k}}</div>
           {% endfor %}
         </td>
         {% endwith %}

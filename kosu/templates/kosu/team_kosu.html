@@ -8,6 +8,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
+  <script src="{% static 'kosu/js/team_kosu_choice.js' %}"></script>
 </head>
 <body class="container">
   <h1 class="display-6 text-danger">{{data.name}}さん{{title}}</h1>
@@ -17,48 +18,46 @@
   </p>
   <p>　</p>
   <form action="{% url 'team_kosu' num %}" method="post">
-  {% csrf_token %}
-    {% bootstrap_javascript jquery='full' %} 
-    {{ form.media }}
+    {% csrf_token %}
     <p>班員指定：</p>
     <p>{{form.employee_no6}}</p>
     <p>日付：</p>
     <p><input type="date" class="form-control custom-border" style="width: 200px;" name="team_day" id="team_day" value={{default_day}}></p>
-    <p><input type="submit" value="検索" class="btn btn-orange7 mt-2" name="find_team"></p>
+    <button name="find_team" class="btn btn-link"></button>
     <div class="table-responsive">
-    <table class="table text-nowrap table-custom">
-      <tr>
-        <th style="text-align:center;">氏名</th>
-        <th style="text-align:center;">就業日</th>
-        <th style="text-align:center;">直</th>
-        <th style="text-align:center;">整合性</th>
-        <th style="text-align:center;">詳細</th>
-      </tr>
-    {% for i in obj %}
-      <tr>
-        <td style="text-align:center;">
-          {{i.name}}
-        </td>
-        <td style="text-align:center;">
-          {{i.work_day2|date:"Y-m-d"}}
-        </td>
-        <td style="text-align:center;">
-          {% if i.tyoku2 == "1" %}1直{% endif %}
-          {% if i.tyoku2 == "2" %}2直{% endif %}
-          {% if i.tyoku2 == "3" %}3直{% endif %}
-          {% if i.tyoku2 == "4" %}常昼{% endif %}
-        </td>
-        <td style="text-align:center;">
-          {% if i.judgement == True %}<b  class="text-primary">OK</b>{% endif %}
-          {% if i.judgement == False %}<b  class="text-danger">NG</b>{% endif %}
-        </td>
-        <td style="text-align:center;">
-          <a href="{% url 'team_detail' i.id %}">詳細</a>
-        </td>
-      <tr>
-    {% endfor %}
-    </table>
-  </div>
+      <table class="table text-nowrap table-custom">
+        <tr>
+          <th style="text-align:center;">氏名</th>
+          <th style="text-align:center;">就業日</th>
+          <th style="text-align:center;">直</th>
+          <th style="text-align:center;">整合性</th>
+          <th style="text-align:center;">詳細</th>
+        </tr>
+        {% for i in obj %}
+          <tr>
+            <td style="text-align:center;">
+              {{i.name}}
+            </td>
+            <td style="text-align:center;">
+              {{i.work_day2|date:"Y-m-d"}}
+            </td>
+            <td style="text-align:center;">
+              {% if i.tyoku2 == "1" %}1直{% endif %}
+              {% if i.tyoku2 == "2" %}2直{% endif %}
+              {% if i.tyoku2 == "3" %}3直{% endif %}
+              {% if i.tyoku2 == "4" %}常昼{% endif %}
+            </td>
+            <td style="text-align:center;">
+              {% if i.judgement == True %}<b  class="text-primary">OK</b>{% endif %}
+              {% if i.judgement == False %}<b  class="text-danger">NG</b>{% endif %}
+            </td>
+            <td style="text-align:center;">
+              <a href="{% url 'team_detail' i.id %}">詳細</a>
+            </td>
+          <tr>
+        {% endfor %}
+      </table>
+    </div>
   </form>
   <ul class="pagination justify-content-center">
     {% if obj.has_previous %}
