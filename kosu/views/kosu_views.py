@@ -46,6 +46,7 @@ from ..utils.kosu_utils import session_del
 from ..utils.kosu_utils import break_get
 from ..utils.kosu_utils import schedule_default
 from ..utils.kosu_utils import kosu_delete
+from ..utils.kosu_utils import kosu_edit_check
 from ..models import member
 from ..models import Business_Time_graph
 from ..models import kosu_division
@@ -1461,28 +1462,11 @@ def detail(request, num):
     start_time = request.POST.get('start_time{}'.format(edit_id))
     end_time = request.POST.get('end_time{}'.format(edit_id))
 
+    # 入力エラー検出
+    response = kosu_edit_check(start_time, end_time, edit_id, num, request)
+    if response:
+      return response
 
-    # 作業開始時間の指定がない場合、リダイレクト
-    if start_time in ('', None):
-      messages.error(request, '時間が入力されていません。ERROR089')
-      return redirect(to = '/detail/{}'.format(num))
-    
-    # 作業終了時間の指定がない場合、リダイレクト
-    if end_time in ('', None):
-      messages.error(request, '時間が入力されていません。ERROR090')
-      return redirect(to = '/detail/{}'.format(num))
-
-    # 作業詳細に'$'が含まれている場合、リダイレクト
-    if '$' in request.POST.get('detail_time{}'.format(edit_id)):
-      messages.error(request, '作業詳細に『$』は使用できません。工数編集できませんでした。ERROR093')
-      return redirect(to = '/detail/{}'.format(num))
-
-    # 作業詳細に文字数が100文字以上の場合、リダイレクト
-    if len(request.POST.get('detail_time{}'.format(edit_id))) >= 100:
-      messages.error(request, '作業詳細は100文字以内で入力して下さい。工数編集できませんでした。ERROR094')
-      return redirect(to = '/detail/{}'.format(num))
-  
-  
     # 作業開始、終了の時と分取得
     start_time_hour, start_time_min = time_index(start_time)
     end_time_hour, end_time_min = time_index(end_time)
@@ -1490,13 +1474,6 @@ def detail(request, num):
     # 作業開始、終了時間のインデックス取得
     start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
     end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
-
-
-    # 作業開始時間と終了時間が同じ場合、リダイレクト
-    if start_time_ind == end_time_ind:
-      messages.error(request, '入力された作業時間が正しくありません。ERROR088')
-      return redirect(to = '/detail/{}'.format(num))
-
 
     # 作業内容と作業詳細を取得しリストに解凍
     work_list = list(obj_get.time_work)
@@ -1643,27 +1620,11 @@ def detail(request, num):
       start_time = request.POST.get('start_time{}'.format(d))
       end_time = request.POST.get('end_time{}'.format(d))
 
-      # 作業開始時間の指定がない場合、リダイレクト
-      if start_time in ('', None):
-        messages.error(request, '時間が入力されていません。ERROR089')
-        return redirect(to = '/detail/{}'.format(num))
-      
-      # 作業終了時間の指定がない場合、リダイレクト
-      if end_time in ('', None):
-        messages.error(request, '時間が入力されていません。ERROR090')
-        return redirect(to = '/detail/{}'.format(num))
-
-      # 作業詳細に'$'が含まれている場合、リダイレクト
-      if '$' in request.POST.get('detail_time{}'.format(d)):
-        messages.error(request, '作業詳細に『$』は使用できません。工数編集できませんでした。ERROR093')
-        return redirect(to = '/detail/{}'.format(num))
-
-      # 作業詳細に文字数が100文字以上の場合、リダイレクト
-      if len(request.POST.get('detail_time{}'.format(d))) >= 100:
-        messages.error(request, '作業詳細は100文字以内で入力して下さい。工数編集できませんでした。ERROR094')
-        return redirect(to = '/detail/{}'.format(num))
-    
-    
+      # 入力エラー検出
+      response = kosu_edit_check(start_time, end_time, edit_id, num, request)
+      if response:
+        return response
+ 
       # 作業開始、終了の時と分取得
       start_time_hour, start_time_min = time_index(start_time)
       end_time_hour, end_time_min = time_index(end_time)
@@ -1671,12 +1632,6 @@ def detail(request, num):
       # 作業開始、終了時間のインデックス取得
       start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
       end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
-
-
-      # 作業開始時間と終了時間が同じ場合、リダイレクト
-      if start_time_ind == end_time_ind:
-        messages.error(request, '入力された作業時間が正しくありません。ERROR088')
-        return redirect(to = '/detail/{}'.format(num))
 
 
       # 変更後の作業時間が日を跨いでいない時の処理

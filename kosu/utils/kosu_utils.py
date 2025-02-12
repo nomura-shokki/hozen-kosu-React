@@ -1358,3 +1358,34 @@ def kosu_delete(start_indent, end_indent, work_list, detail_list):
 
 
 
+
+
+# 工数編集エラー検出関数
+def kosu_edit_check(start_time, end_time, edit_id, num, request):
+  # 作業時間の指定がない場合、リダイレクト
+  if start_time in ('', None) or end_time in ('', None):
+    messages.error(request, '時間が入力されていません。ERROR089')
+    return redirect(to = '/detail/{}'.format(num))
+
+  # 作業詳細に'$'が含まれている場合、リダイレクト
+  if '$' in request.POST.get('detail_time{}'.format(edit_id)):
+    messages.error(request, '作業詳細に『$』は使用できません。工数編集できませんでした。ERROR093')
+    return redirect(to = '/detail/{}'.format(num))
+
+  # 作業詳細に文字数が100文字以上の場合、リダイレクト
+  if len(request.POST.get('detail_time{}'.format(edit_id))) >= 100:
+    messages.error(request, '作業詳細は100文字以内で入力して下さい。工数編集できませんでした。ERROR094')
+    return redirect(to = '/detail/{}'.format(num))
+
+    # 作業開始時間と終了時間が同じ場合、リダイレクト
+  if start_time == end_time:
+    messages.error(request, '入力された作業時間が正しくありません。ERROR088')
+    return redirect(to = '/detail/{}'.format(num))
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
