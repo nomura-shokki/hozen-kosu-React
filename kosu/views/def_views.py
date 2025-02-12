@@ -544,7 +544,7 @@ def def_delete(request, num):
 
 
 # 工数区分定義登録画面定義
-class KosuDivisionCreateView(CreateView):
+class DefNewView(CreateView):
   # モデル,フォーム,テンプレート,飛び先定義
   model = kosu_division
   form_class = kosu_divisionForm
