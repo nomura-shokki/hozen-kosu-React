@@ -6,10 +6,12 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.views.generic import ListView
 from django.views.generic.edit import FormView
+from django.views.generic.base import TemplateView
 from ..utils.kosu_utils import handle_get_request
 from ..utils.kosu_utils import index_change
 from ..utils.kosu_utils import create_kosu
 from ..utils.kosu_utils import get_member
+from ..utils.kosu_utils import get_def_library_data
 from ..utils.team_utils import excel_function
 from ..utils.team_utils import team_member_name_get
 from dateutil.relativedelta import relativedelta
@@ -40,7 +42,7 @@ from ..forms import schedule_timeForm
 
 # 班員設定画面定義
 class TeamView(FormView):
-    # テンプレート,フォーム,リダイレクト先名定義
+    # テンプレート,フォーム,リダイレクト先定義
   template_name = 'kosu/team.html'
   form_class = teamForm
   success_url = '/team_main'
@@ -191,208 +193,99 @@ class TeamView(FormView):
 
 
 # 班員工数グラフ確認画面定義
-def team_graph(request):
-  
-  # セッションにログインした従業員番号がない場合の処理
-  if not request.session.get('login_No'):
-    # 未ログインならログインページへ飛ぶ
-    return redirect('/login')
-
-  try:
-    # ログイン者の情報取得
-    member_obj = member.objects.get(employee_no=request.session['login_No'])
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect('/login')
-
-  # ログイン者に権限がなければメインページに戻る
-  if member_obj.authority == False:
-    return redirect(to = '/')
-
-  # ログイン者の班員登録情報取得
-  data = team_member.objects.filter(employee_no5 = request.session['login_No'])
-  # 班員登録がなければメインページに戻る
-  if data.count() == 0:
-    return redirect(to = '/')
+class TeamGraphView(TemplateView):
+  # テンプレート定義
+  template_name = 'kosu/team_graph.html'
 
 
   # GET時の処理
-  if (request.method == 'GET'):
-    # 今日の日時を変数に格納
-    dt = datetime.date.today()
-    # フォーム初期値設定
-    default_day = str(dt)
+  def get(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
 
+    # 権限なければメイン画面へ
+    if not member_obj.authority:
+      return redirect(to='/')
+
+    # 班員登録なければ班員MENUへ
+    data = team_member.objects.filter(employee_no5=request.session['login_No'])
+    if not data.exists():
+      return redirect(to='/team_main')
+
+    # 今日の日付取得
+    dt = datetime.date.today()
+    return self._render_context(request, dt)
 
 
   # POST時の処理
-  if (request.method == 'POST'):
-    
-    # 就業日検索が空で検索された場合の処理
-    if request.POST['team_day'] == '':
-      # エラーメッセージ出力
+  def post(self, request, *args, **kwargs):
+    # 日付指定ない場合、リダイレクト
+    if 'team_day' not in request.POST or request.POST['team_day'] == '':
       messages.error(request, '日付を指定してから検索して下さい。ERROR27')
-      # このページをリダイレクト
-      return redirect(to = '/team_graph')
+      return redirect('/team_graph')
 
-    # POSTされた日付を変数に入れる
+    # POSTされた日付取得
     dt = request.POST['team_day']
-    # フォーム初期値設定
+    return self._render_context(request, dt)
+
+
+  # コンテキスト構築処理
+  def _render_context(self, request, dt):
+    # フォームの初期状態定義
     default_day = str(dt)
+    form = team_kosuForm()
+    
+    # 班員取得
+    obj = team_member.objects.get(employee_no5=request.session['login_No'])
 
+    # 班員の従業員番号を定義
+    for i in range(1, 16):
+      if eval('obj.member{}'.format(i)) == '':
+        exec('obj_member{}=0'.format(i))
+      else:
+        exec('obj_member{}=obj.member{}'.format(i, i))
 
+    # 班員の名前リスト、従業員番号リスト作成
+    n = 0
+    name_list = []
+    employee_no_list = []
 
-  # フォーム定義
-  form = team_kosuForm()
+    for i in range(1, 16):
+      member_filter = member.objects.filter(employee_no=eval('obj_member{}'.format(i)))
+      if member_filter.count() != 0:
+        member_data = member.objects.get(employee_no=eval('obj_member{}'.format(i)))
+        name_list.append(member_data.name)
+        employee_no_list.append(member_data)
+    n = len(name_list)
 
-  # ログイン者の班員データ取得
-  obj = team_member.objects.get(employee_no5 = request.session['login_No'])
+    # 工数表示グラフの要素リスト、ラベル作成
+    graph_list = [[] for _ in range(15)]
+    graph_item = [[] for _ in range(15)]
+    for i in range(n):
+      graph_item[i], graph_list[i] = handle_get_request(dt, employee_no_list[i])
 
-  # 班員データに空があった場合0を定義
-  for i in range(1, 16):
-    if eval('obj.member{}'.format(i)) == '':
-      exec('obj_member{}=0'.format(i))
-    else:
-      exec('obj_member{}=obj.member{}'.format(i, i))
+    # 工数区分定義取得
+    graph_kosu_list, def_n = get_def_library_data(request.session['input_def'])
 
-  # 班員数、班員の名前リスト取得
-  n = 0
-  name_list = []
-  employee_no_list = []
+    # HTMLへ送るコンテキスト定義
+    context = {
+      'title': '班員工数グラフ',
+      'form': form,
+      'default_day': default_day,
+      'name_list': name_list,
+      'n': n,
+      'graph_kosu_list': graph_kosu_list,
+      'def_n': def_n,
+      }
+    # コンテキストにグラフ情報追加
+    for i in range(15):
+      context[f'graph_list{i+1}'] = graph_list[i]
+      context[f'graph_item{i+1}'] = graph_item[i]
 
-  for i in range(1, 16):
-    member_filter =  member.objects.filter(employee_no = eval('obj_member{}'.format(i)))
-    if member_filter.count() != 0:
-      member_data = member.objects.get(employee_no = eval('obj_member{}'.format(i)))
-      name_list.append(member_data.name)
-      employee_no_list.append(member_data)
-  n = len(name_list)
-  
-
-  graph_list1 = []
-  graph_item1 = []
-  graph_list2 = []
-  graph_item2 = []
-  graph_list3 = []
-  graph_item3 = []
-  graph_list4 = []
-  graph_item4 = []
-  graph_list5 = []
-  graph_item5 = []
-  graph_list6 = []
-  graph_item6 = []
-  graph_list7 = []
-  graph_item7 = []
-  graph_list8 = []
-  graph_item8 = []
-  graph_list9 = []
-  graph_item9 = []
-  graph_list10 = []
-  graph_item10 = []
-  graph_list11 = []
-  graph_item11 = []
-  graph_list12 = []
-  graph_item12 = []
-  graph_list13 = []
-  graph_item13 = []
-  graph_list14 = []
-  graph_item14 = []
-  graph_list15 = []
-  graph_item15 = []
-
-  if n >= 1:
-    graph_item1, graph_list1 = handle_get_request(dt, employee_no_list[0])
-  if n >= 2:
-    graph_item2, graph_list2 = handle_get_request(dt, employee_no_list[1])
-  if n >= 3:
-    graph_item3, graph_list3 = handle_get_request(dt, employee_no_list[2])
-  if n >= 4:
-    graph_item4, graph_list4 = handle_get_request(dt, employee_no_list[3])
-  if n >= 5:
-    graph_item5, graph_list5 = handle_get_request(dt, employee_no_list[4])
-  if n >= 6:
-    graph_item6, graph_list6 = handle_get_request(dt, employee_no_list[5])
-  if n >= 7:
-    graph_item7, graph_list7 = handle_get_request(dt, employee_no_list[6])
-  if n >= 8:
-    graph_item8, graph_list8 = handle_get_request(dt, employee_no_list[7])
-  if n >= 9:
-    graph_item9, graph_list9 = handle_get_request(dt, employee_no_list[8])
-  if n >= 10:
-    graph_item10, graph_list10 = handle_get_request(dt, employee_no_list[9])
-  if n >= 11:
-    graph_item11, graph_list11 = handle_get_request(dt, employee_no_list[10])
-  if n >= 12:
-    graph_item12, graph_list12 = handle_get_request(dt, employee_no_list[11])
-  if n >= 13:
-    graph_item13, graph_list13 = handle_get_request(dt, employee_no_list[12])
-  if n >= 14:
-    graph_item14, graph_list14 = handle_get_request(dt, employee_no_list[13])
-  if n >= 15:
-    graph_item15, graph_list15 = handle_get_request(dt, employee_no_list[14])
-
-  # 現在使用している工数区分のオブジェクトを取得
-  kosu_obj = kosu_division.objects.get(kosu_name = request.session.get('input_def', None))
-  # 工数区分登録カウンターリセット
-  def_n = 0
-  # 工数区分登録数カウント
-  for i in range(1, 51):
-    if eval('kosu_obj.kosu_title_{}'.format(i)) != '':
-      def_n = i
-
-  # 工数区分の選択リスト作成
-  graph_kosu_list = []
-  for i in range(1, def_n + 1):
-    graph_kosu_list.append(eval('kosu_obj.kosu_title_{}'.format(i)))
-
-
-
-  # HTMLに渡す辞書
-  context = {
-    'title' : '班員工数グラフ',
-    'form' : form,
-    'default_day' : default_day,
-    'name_list' : name_list,
-    'n' : n,
-    'graph_kosu_list' : graph_kosu_list,
-    'def_n' : def_n,
-    'graph_list1' : graph_list1,
-    'graph_item1' : graph_item1,
-    'graph_list2' : graph_list2,
-    'graph_item2' : graph_item2,
-    'graph_list3' : graph_list3,
-    'graph_item3' : graph_item3,
-    'graph_list4' : graph_list4,
-    'graph_item4' : graph_item4,
-    'graph_list5' : graph_list5,
-    'graph_item5' : graph_item5,
-    'graph_list6' : graph_list6,
-    'graph_item6' : graph_item6,
-    'graph_list7' : graph_list7,
-    'graph_item7' : graph_item7,
-    'graph_list8' : graph_list8,
-    'graph_item8' : graph_item8,
-    'graph_list9' : graph_list9,
-    'graph_item9' : graph_item9,
-    'graph_list10' : graph_list10,
-    'graph_item10' : graph_item10,
-    'graph_list11' : graph_list11,
-    'graph_item11' : graph_item11,
-    'graph_list12' : graph_list12,
-    'graph_item12' : graph_item12,
-    'graph_list13' : graph_list13,
-    'graph_item13' : graph_item13,
-    'graph_list14' : graph_list14,
-    'graph_item14' : graph_item14,
-    'graph_list15' : graph_list15,
-    'graph_item15' : graph_item15,
-    }
- 
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/team_graph.html', context)
+    return self.render_to_response(context)
 
 
 
@@ -1879,7 +1772,7 @@ def class_list(request):
 
 
     # フォームの初期値定義
-    shop_default = {'shop2' : request.session.get('find_shop', '')}
+    shop_default = {'shop2' : request.session.get('find_shop', data.shop)}
     schedule_default = {'year' : year, 
                         'month' : month}
     

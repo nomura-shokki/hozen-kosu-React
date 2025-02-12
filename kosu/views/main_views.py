@@ -38,7 +38,7 @@ from ..forms import uploadForm
 
 
 # ログイン画面定義
-class LoginFormView(FormView):
+class LoginView(FormView):
   # 使用するテンプレート,フォーム,リダイレクト先定義
   template_name = 'kosu/login.html'
   form_class = loginForm
