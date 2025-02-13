@@ -1389,3 +1389,29 @@ def kosu_edit_check(start_time, end_time, edit_id, num, request):
 #--------------------------------------------------------------------------------------------------------
 
 
+
+
+
+# 工数編集関数
+def kosu_edit_write(start_time_ind, end_time_ind, work_list, detail_list, edit_id, request):
+  # 変更後の作業時間に工数データが入力されていないかチェック
+  for k in range(start_time_ind, end_time_ind):
+    # 変更後の作業時間に工数データが入力されている場合、リダイレクト
+    if work_list[k] != '#':
+      if work_list[k] != '$':
+        messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR085')
+        return None, None
+
+    # 変更後の作業時間に工数データが入力されていない場合の処理
+    else:
+      # 作業内容、作業詳細書き込み
+      work_list[k] = request.POST.get('def_time{}'.format(edit_id))
+      detail_list[k] = request.POST.get('detail_time{}'.format(edit_id))
+
+  return work_list, detail_list
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+

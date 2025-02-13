@@ -47,6 +47,7 @@ from ..utils.kosu_utils import break_get
 from ..utils.kosu_utils import schedule_default
 from ..utils.kosu_utils import kosu_delete
 from ..utils.kosu_utils import kosu_edit_check
+from ..utils.kosu_utils import kosu_edit_write
 from ..models import member
 from ..models import Business_Time_graph
 from ..models import kosu_division
@@ -1493,49 +1494,22 @@ def detail(request, num):
 
     # 変更後の作業時間が日を跨いでいない時の処理
     if start_time_ind < end_time_ind:
-      # 変更後の作業時間に工数データが入力されていないかチェック
-      for k in range(start_time_ind, end_time_ind):
-        # 変更後の作業時間に工数データが入力されている場合、リダイレクト
-        if work_list[k] != '#':
-          if work_list[k] != '$':
-            messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR085')
-            return redirect(to = '/detail/{}'.format(num))
+      # 工数編集書き込み
+      work_list, detail_list = kosu_edit_write(start_time_ind, end_time_ind, work_list, detail_list, edit_id, request)
 
-        # 変更後の作業時間に工数データが入力されていない場合の処理
-        else:
-          # 作業内容、作業詳細書き込み
-          work_list[k] = request.POST.get('def_time{}'.format(edit_id))
-          detail_list[k] = request.POST.get('detail_time{}'.format(edit_id))
-          
+      # 工数変更ができなかった場合のリダイレクト処理
+      if work_list is None or detail_list is None:
+        return redirect(to='/detail/{}'.format(num))
+
     # 変更後の作業時間が日を跨いでいる時の処理
     else:
-      # 変更後の作業時間に工数データが入力されていないかチェック
-      for k in range(start_time_ind, 288):
-        # 変更後の作業時間に工数データが入力されている場合、リダイレクト
-        if work_list[k] != '#':
-          if work_list[k] != '$':
-            messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR086')
-            return redirect(to = '/detail/{}'.format(num))
+      # 工数編集書き込み
+      work_list, detail_list = kosu_edit_write(start_time_ind, 288, work_list, detail_list,edit_id, request)
+      work_list, detail_list = kosu_edit_write(0, end_time_ind, work_list, detail_list, edit_id, request)
 
-        # 変更後の作業時間に工数データが入力されていない場合の処理
-        else:
-          # 作業内容、作業詳細書き込み
-          work_list[k] = request.POST.get('def_time{}'.format(edit_id))
-          detail_list[k] = request.POST.get('detail_time{}'.format(edit_id))
-
-      # 変更後の作業時間に工数データが入力されていないかチェック
-      for k in range(end_time_ind):
-        # 変更後の作業時間に工数データが入力されている場合、リダイレクト
-        if work_list[k] != '#':
-          if work_list[k] != '$':
-            messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR087')
-            return redirect(to = '/detail/{}'.format(num))
-
-        # 変更後の作業時間に工数データが入力されていない場合の処理
-        else:
-          # 作業内容、作業詳細書き込み
-          work_list[k] = request.POST.get('def_time{}'.format(edit_id))
-          detail_list[k] = request.POST.get('detail_time{}'.format(edit_id))
+      # 工数変更ができなかった場合のリダイレクト処理
+      if work_list is None or detail_list is None:
+        return redirect(to='/detail/{}'.format(num))
 
     # 作業内容データの内容を上書きして更新
     Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
