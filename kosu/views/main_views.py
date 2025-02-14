@@ -661,7 +661,8 @@ def administrator_menu(request):
       '残業休憩時間2',
       '残業休憩時間3', 
       '就業形態', 
-      '工数入力OK_NG'
+      '工数入力OK_NG',
+      '休憩変更チェック',
       ]
     ws.append(headers)
 
@@ -682,7 +683,8 @@ def administrator_menu(request):
         item.breaktime_over2,
         item.breaktime_over3, 
         item.work_time, 
-        item.judgement
+        item.judgement,
+        item.break_change,
         ]
       ws.append(row)
 
@@ -741,7 +743,8 @@ def administrator_menu(request):
       ws.cell(1, 7).value != '作業詳細' or ws.cell(1, 8).value != '残業時間' or \
       ws.cell(1, 9).value != '昼休憩時間' or ws.cell(1, 10).value != '残業休憩時間1' or \
       ws.cell(1, 11).value != '残業休憩時間2' or ws.cell(1, 12).value != '残業休憩時間3' or \
-      ws.cell(1, 13).value != '就業形態' or ws.cell(1, 14).value != '工数入力OK_NG':
+      ws.cell(1, 13).value != '就業形態' or ws.cell(1, 14).value != '工数入力OK_NG' or \
+      ws.cell(1, 15).value != '休憩変更チェック' :
 
       # エラーメッセージ出力
       messages.error(request, 'ロードしようとしたファイルは工数データバックアップではありません。ERROR048')
@@ -781,7 +784,8 @@ def administrator_menu(request):
                                       breaktime_over2 = ws.cell(row = i + 1, column = 11).value, \
                                       breaktime_over3 = ws.cell(row = i + 1, column = 12).value, \
                                       work_time = ws.cell(row = i + 1, column = 13).value, \
-                                      judgement = ws.cell(row = i + 1, column = 14).value) 
+                                      judgement = ws.cell(row = i + 1, column = 14).value, \
+                                      break_change = ws.cell(row = i + 1, column = 15).value) 
 
       # レコードセーブ
       new_data.save()
@@ -947,6 +951,18 @@ def administrator_menu(request):
         '常昼残業休憩時間1', 
         '常昼残業休憩時間2', 
         '常昼残業休憩時間3',
+        'ポップアップ1',
+        'ポップアップID1',
+        'ポップアップ2',
+        'ポップアップID2',
+        'ポップアップ3',
+        'ポップアップID3',
+        'ポップアップ4',
+        'ポップアップID4',
+        'ポップアップ5',
+        'ポップアップID6',
+        '休憩エラー有効チェック',
+        '工数定義区分予測無効',
         ]
     ws.append(headers)
 
@@ -974,6 +990,18 @@ def administrator_menu(request):
         item.break_time4_over1, 
         item.break_time4_over2, 
         item.break_time4_over3,
+        item.pop_up1,
+        item.pop_up_id1,
+        item.pop_up2,
+        item.pop_up_id2,
+        item.pop_up3,
+        item.pop_up_id3,
+        item.pop_up4,
+        item.pop_up_id4,
+        item.pop_up5,
+        item.pop_up_id5,
+        item.break_check,
+        item.def_prediction,
         ]
       ws.append(row)
 
@@ -1038,7 +1066,14 @@ def administrator_menu(request):
       ws.cell(1, 15).value != '3直残業休憩時間1' or ws.cell(1, 16).value != '3直残業休憩時間2' or \
       ws.cell(1, 17).value != '3直残業休憩時間3' or ws.cell(1, 18).value != '常昼昼休憩時間' or \
       ws.cell(1, 19).value != '常昼残業休憩時間1' or ws.cell(1, 20).value != '常昼残業休憩時間2' or \
-      ws.cell(1, 21).value != '常昼残業休憩時間3':
+      ws.cell(1, 21).value != '常昼残業休憩時間3' or ws.cell(1, 22).value != 'ポップアップ1' or \
+      ws.cell(1, 23).value != 'ポップアップID1' or ws.cell(1, 24).value != 'ポップアップ2' or \
+      ws.cell(1, 25).value != 'ポップアップID2' or ws.cell(1, 26).value != 'ポップアップ3' or \
+      ws.cell(1, 27).value != 'ポップアップID3' or ws.cell(1, 28).value != 'ポップアップ4' or \
+      ws.cell(1, 29).value != 'ポップアップID4' or ws.cell(1, 30).value != 'ポップアップ5' or \
+      ws.cell(1, 31).value != 'ポップアップID5' or ws.cell(1, 32).value != '休憩エラー有効チェック' or \
+      ws.cell(1, 33).value != '工数定義区分予測無効':
+
       # エラーメッセージ出力
       messages.error(request, 'ロードしようとしたファイルは人員情報バックアップではありません。ERROR049')
       # このページをリダイレクト
@@ -1083,7 +1118,19 @@ def administrator_menu(request):
                           break_time4 = ws.cell(row = i + 1, column = 18).value, \
                           break_time4_over1 = ws.cell(row = i + 1, column = 19).value, \
                           break_time4_over2 = ws.cell(row = i + 1, column = 20).value, \
-                          break_time4_over3 = ws.cell(row = i + 1, column = 21).value)
+                          break_time4_over3 = ws.cell(row = i + 1, column = 21).value, \
+                          pop_up1 = ws.cell(row = i + 1, column = 22).value, \
+                          pop_up_id1 = ws.cell(row = i + 1, column = 23).value, \
+                          pop_up2 = ws.cell(row = i + 1, column = 24).value, \
+                          pop_up_id2 = ws.cell(row = i + 1, column = 25).value, \
+                          pop_up3 = ws.cell(row = i + 1, column = 26).value, \
+                          pop_up_id3 = ws.cell(row = i + 1, column = 27).value, \
+                          pop_up4 = ws.cell(row = i + 1, column = 28).value, \
+                          pop_up_id4 = ws.cell(row = i + 1, column = 29).value, \
+                          pop_up5 = ws.cell(row = i + 1, column = 30).value, \
+                          pop_up_id5 = ws.cell(row = i + 1, column = 31).value, \
+                          break_check = ws.cell(row = i + 1, column = 32).value, \
+                          def_prediction = ws.cell(row = i + 1, column = 33).value)
         new_data.save()
 
       # 上書きチェックOFFの場合の処理
@@ -1111,7 +1158,19 @@ def administrator_menu(request):
                             break_time4 = ws.cell(row = i + 1, column = 18).value, \
                             break_time4_over1 = ws.cell(row = i + 1, column = 19).value, \
                             break_time4_over2 = ws.cell(row = i + 1, column = 20).value, \
-                            break_time4_over3 = ws.cell(row = i + 1, column = 21).value)
+                            break_time4_over3 = ws.cell(row = i + 1, column = 21).value, \
+                            pop_up1 = ws.cell(row = i + 1, column = 22).value, \
+                            pop_up_id1 = ws.cell(row = i + 1, column = 23).value, \
+                            pop_up2 = ws.cell(row = i + 1, column = 24).value, \
+                            pop_up_id2 = ws.cell(row = i + 1, column = 25).value, \
+                            pop_up3 = ws.cell(row = i + 1, column = 26).value, \
+                            pop_up_id3 = ws.cell(row = i + 1, column = 27).value, \
+                            pop_up4 = ws.cell(row = i + 1, column = 28).value, \
+                            pop_up_id4 = ws.cell(row = i + 1, column = 29).value, \
+                            pop_up5 = ws.cell(row = i + 1, column = 30).value, \
+                            pop_up_id5 = ws.cell(row = i + 1, column = 31).value, \
+                            break_check = ws.cell(row = i + 1, column = 32).value, \
+                            def_prediction = ws.cell(row = i + 1, column = 33).value)
           new_data.save()
 
     # 一時ファイル削除
@@ -1143,6 +1202,12 @@ def administrator_menu(request):
         '班員8', 
         '班員9', 
         '班員10',
+        '班員11', 
+        '班員12', 
+        '班員13', 
+        '班員14', 
+        '班員15',
+        'フォローON/OFF',
         ]
     ws.append(headers)
 
@@ -1159,7 +1224,13 @@ def administrator_menu(request):
         item.member7, 
         item.member8, 
         item.member9, 
-        item.member10
+        item.member10,
+        item.member11, 
+        item.member12, 
+        item.member13, 
+        item.member14, 
+        item.member15,
+        item.follow, 
         ]
       ws.append(row)
 
@@ -1215,7 +1286,10 @@ def administrator_menu(request):
       ws.cell(1, 5).value != '班員4' or ws.cell(1, 6).value != '班員5' or \
       ws.cell(1, 7).value != '班員6' or ws.cell(1, 8).value != '班員7' or \
       ws.cell(1, 9).value != '班員8' or ws.cell(1, 10).value != '班員9' or \
-      ws.cell(1, 11).value != '班員10':
+      ws.cell(1, 11).value != '班員10' or ws.cell(1, 12).value != '班員11' or \
+      ws.cell(1, 13).value != '班員12' or ws.cell(1, 14).value != '班員13' or \
+      ws.cell(1, 15).value != '班員14' or ws.cell(1, 16).value != '班員15' or \
+      ws.cell(1, 17).value != 'フォローON/OFF':
       # エラーメッセージ出力
       messages.error(request, 'ロードしようとしたファイルは班員情報バックアップではありません。ERROR050')
       # このページをリダイレクト
@@ -1247,7 +1321,14 @@ def administrator_menu(request):
                              member7 = ws.cell(row = i + 1, column = 8).value, \
                              member8 = ws.cell(row = i + 1, column = 9).value, \
                              member9 = ws.cell(row = i + 1, column = 10).value, \
-                             member10 = ws.cell(row = i + 1, column = 11).value) 
+                             member10 = ws.cell(row = i + 1, column = 11).value, \
+                             member11 = ws.cell(row = i + 1, column = 12).value, \
+                             member12 = ws.cell(row = i + 1, column = 13).value, \
+                             member13 = ws.cell(row = i + 1, column = 14).value, \
+                             member14 = ws.cell(row = i + 1, column = 15).value, \
+                             member15 = ws.cell(row = i + 1, column = 16).value, \
+                             follow = ws.cell(row = i + 1, column = 17).value, \
+                            ) 
 
       new_data.save()
  
@@ -1797,6 +1878,16 @@ def administrator_menu(request):
         '問い合わせ担当者従業員番号1',
         '問い合わせ担当者従業員番号2',
         '問い合わせ担当者従業員番号3',
+        'ポップアップ1',
+        'ポップアップID1',
+        'ポップアップ2',
+        'ポップアップID2',
+        'ポップアップ3',
+        'ポップアップID3',
+        'ポップアップ4',
+        'ポップアップID4',
+        'ポップアップ5',
+        'ポップアップID6',
         ]
     ws.append(headers)
 
@@ -1808,6 +1899,16 @@ def administrator_menu(request):
         item.administrator_employee_no1,
         item.administrator_employee_no2,
         item.administrator_employee_no3,
+        item.pop_up1,
+        item.pop_up_id1,
+        item.pop_up2,
+        item.pop_up_id2,
+        item.pop_up3,
+        item.pop_up_id3,
+        item.pop_up4,
+        item.pop_up_id4,
+        item.pop_up5,
+        item.pop_up_id5,
         ]
       ws.append(row)
 
@@ -1864,7 +1965,12 @@ def administrator_menu(request):
 
     # 読み込むファイルが正しいファイルでない場合の処理
     if ws.cell(1, 1).value != '一覧表示項目数' or ws.cell(1, 2).value != '問い合わせ担当者従業員番号1' or \
-      ws.cell(1, 3).value != '問い合わせ担当者従業員番号2' or ws.cell(1, 4).value != '問い合わせ担当者従業員番号4':
+      ws.cell(1, 3).value != '問い合わせ担当者従業員番号2' or ws.cell(1, 4).value != '問い合わせ担当者従業員番号3' or \
+      ws.cell(1, 5).value != 'ポップアップ1' or ws.cell(1, 6).value != 'ポップアップID1' or \
+      ws.cell(1, 7).value != 'ポップアップ2' or ws.cell(1, 8).value != 'ポップアップID2' or \
+      ws.cell(1, 9).value != 'ポップアップ3' or ws.cell(1, 10).value != 'ポップアップID3' or \
+      ws.cell(1, 11).value != 'ポップアップ4' or ws.cell(1, 12).value != 'ポップアップID4' or \
+      ws.cell(1, 13).value != 'ポップアップ5' or ws.cell(1, 14).value != 'ポップアップID5':
       # エラーメッセージ出力
       messages.error(request, 'ロードしようとしたファイルは設定情報バックアップではありません。ERROR052')
       # このページをリダイレクト
@@ -1889,7 +1995,17 @@ def administrator_menu(request):
       new_data = administrator_data(menu_row = ws.cell(row = i + 1, column = 1).value, \
                                     administrator_employee_no1 = ws.cell(row = i + 1, column = 2).value, \
                                     administrator_employee_no2 = ws.cell(row = i + 1, column = 3).value, \
-                                    administrator_employee_no3 = ws.cell(row = i + 1, column = 4).value)
+                                    administrator_employee_no3 = ws.cell(row = i + 1, column = 4).value, \
+                                    pop_up1 = ws.cell(row = i + 1, column = 5).value, \
+                                    pop_up_id1 = ws.cell(row = i + 1, column = 6).value, \
+                                    pop_up2 = ws.cell(row = i + 1, column = 7).value, \
+                                    pop_up_id2 = ws.cell(row = i + 1, column = 8).value, \
+                                    pop_up3 = ws.cell(row = i + 1, column = 9).value, \
+                                    pop_up_id3 = ws.cell(row = i + 1, column = 10).value, \
+                                    pop_up4 = ws.cell(row = i + 1, column = 11).value, \
+                                    pop_up_id4 = ws.cell(row = i + 1, column = 12).value, \
+                                    pop_up5 = ws.cell(row = i + 1, column = 13).value, \
+                                    pop_up_id5 = ws.cell(row = i + 1, column = 14).value)
       new_data.save()
 
     # 一時ファイル削除
@@ -1963,33 +2079,21 @@ def help(request):
     display = True
 
 
-    # 人員ファイルが未選択時の処理
+    # 人員ファイルが未選択時リダイレクト
     if 'member_file' not in request.FILES:
-
-      # エラーメッセージ出力
       messages.error(request, '人員ファイルが選択されていません。ERROR024')
-
-      # このページをリダイレクト
       return redirect(to = '/help')
 
 
-    # 工数区分定義ファイルが未選択時の処理
+    # 工数区分定義ファイルが未選択時リダイレクト
     if 'def_file' not in request.FILES:
-
-      # エラーメッセージ出力
       messages.error(request, '工数区分定義ファイルが選択されていません。ERROR025')
-
-      # このページをリダイレクト
       return redirect(to = '/help')
 
 
-    # 工数区分定義ファイルが未選択時の処理
+    # 工数区分定義ファイルが未選択時リダイレクト
     if 'setting_file' not in request.FILES:
-
-      # エラーメッセージ出力
       messages.error(request, '管理者設定ファイルが選択されていません。ERROR039')
-
-      # このページをリダイレクト
       return redirect(to = '/help')
 
 
@@ -2015,16 +2119,13 @@ def help(request):
 
     # 人員データにレコードがある場合の処理
     if member.objects.exists():
-
       # Excelからデータを読み込むループ
       for i in range(1, data_num):
-
         # 人員データに指定従業員番号があるか確認
         member_obj_filter = member.objects.filter(employee_no = ws.cell(row = i + 1, column = 1).value)
 
         # 人員データに指定従業員番号がある場合の処理
         if member_obj_filter.count() != 0:
-
           # 指定従業員番号の人員データ取得
           member_obj_get = member.objects.get(employee_no = ws.cell(row = i + 1, column = 1).value)
           # 取得した人員データを消す
@@ -2051,17 +2152,27 @@ def help(request):
                           break_time4 = ws.cell(row = i + 1, column = 18).value, \
                           break_time4_over1 = ws.cell(row = i + 1, column = 19).value, \
                           break_time4_over2 = ws.cell(row = i + 1, column = 20).value, \
-                          break_time4_over3 = ws.cell(row = i + 1, column = 21).value)                           
+                          break_time4_over3 = ws.cell(row = i + 1, column = 21).value, \
+                          pop_up1 = ws.cell(row = i + 1, column = 22).value, \
+                          pop_up_id1 = ws.cell(row = i + 1, column = 23).value, \
+                          pop_up2 = ws.cell(row = i + 1, column = 24).value, \
+                          pop_up_id2 = ws.cell(row = i + 1, column = 25).value, \
+                          pop_up3 = ws.cell(row = i + 1, column = 26).value, \
+                          pop_up_id3 = ws.cell(row = i + 1, column = 27).value, \
+                          pop_up4 = ws.cell(row = i + 1, column = 28).value, \
+                          pop_up_id4 = ws.cell(row = i + 1, column = 29).value, \
+                          pop_up5 = ws.cell(row = i + 1, column = 30).value, \
+                          pop_up_id5 = ws.cell(row = i + 1, column = 31).value, \
+                          break_check = ws.cell(row = i + 1, column = 32).value, \
+                          def_prediction = ws.cell(row = i + 1, column = 33).value)                           
 
         new_data.save()
 
 
     # 人員データにレコードがない場合の処理
     else:
-
       # Excelからデータを読み込むループ
       for i in range(1, data_num):
-
         # Excelからデータを読み込み
         new_data = member(employee_no = ws.cell(row = i + 1, column = 1).value, \
                           name = ws.cell(row = i + 1, column = 2).value, \
@@ -2083,7 +2194,19 @@ def help(request):
                           break_time4 = ws.cell(row = i + 1, column = 18).value, \
                           break_time4_over1 = ws.cell(row = i + 1, column = 19).value, \
                           break_time4_over2 = ws.cell(row = i + 1, column = 20).value, \
-                          break_time4_over3 = ws.cell(row = i + 1, column = 21).value)                           
+                          break_time4_over3 = ws.cell(row = i + 1, column = 21).value, \
+                          pop_up1 = ws.cell(row = i + 1, column = 22).value, \
+                          pop_up_id1 = ws.cell(row = i + 1, column = 23).value, \
+                          pop_up2 = ws.cell(row = i + 1, column = 24).value, \
+                          pop_up_id2 = ws.cell(row = i + 1, column = 25).value, \
+                          pop_up3 = ws.cell(row = i + 1, column = 26).value, \
+                          pop_up_id3 = ws.cell(row = i + 1, column = 27).value, \
+                          pop_up4 = ws.cell(row = i + 1, column = 28).value, \
+                          pop_up_id4 = ws.cell(row = i + 1, column = 29).value, \
+                          pop_up5 = ws.cell(row = i + 1, column = 30).value, \
+                          pop_up_id5 = ws.cell(row = i + 1, column = 31).value, \
+                          break_check = ws.cell(row = i + 1, column = 32).value, \
+                          def_prediction = ws.cell(row = i + 1, column = 33).value)                  
 
         new_data.save()
 
@@ -2115,16 +2238,13 @@ def help(request):
 
     # 工数定義区分データにレコードがある場合の処理
     if kosu_division.objects.exists():
-
       # Excelからデータを読み込み
       for i in range(1, data_num):
-
         # 工数定義区分データに指定従業員番号があるか確認
         def_obj_filter = kosu_division.objects.filter(kosu_name = ws1.cell(row = i + 1, column = 1).value)
 
         # 工数定義区分データに指定従業員番号がある場合の処理
         if def_obj_filter.count() != 0:
-
           # 指定従工数定義区分データ取得
           def_obj_get = kosu_division.objects.get(kosu_name = ws1.cell(row = i + 1, column = 1).value)
           # 取得した工数定義区分データを消す
@@ -2287,10 +2407,8 @@ def help(request):
 
     # 工数定義区分データにレコードがない場合の処理
     else:
-
       # Excelからデータを読み込み
       for i in range(1, data_num):
-
         new_data1 = kosu_division(kosu_name = ws1.cell(row = i + 1, column = 1).value, \
                                   kosu_title_1 = ws1.cell(row = i + 1, column = 2).value, \
                                   kosu_division_1_1 = ws1.cell(row = i + 1, column = 3).value, \
@@ -2473,7 +2591,6 @@ def help(request):
 
     # 管理者設定データにレコードがある場合の処理
     if administrator_data.objects.exists():
-
       # 管理者設定データ取得
       setting_obj_get = administrator_data.objects.all()
       # 取得した管理者設定データを消す
@@ -2482,10 +2599,21 @@ def help(request):
 
     # Excelからデータを読み込むループ
     for i in range(1, data_num):
-
       # Excelからデータを読み込み
-      new_data2 = administrator_data(menu_row = ws2.cell(row = i + 1, column = 1).value)
-
+      new_data2 = administrator_data(menu_row = ws2.cell(row = i + 1, column = 1).value, \
+                                     administrator_employee_no1 = ws2.cell(row = i + 1, column = 2).value, \
+                                     administrator_employee_no2 = ws2.cell(row = i + 1, column = 3).value, \
+                                     administrator_employee_no3 = ws2.cell(row = i + 1, column = 4).value, \
+                                     pop_up1 = ws2.cell(row = i + 1, column = 5).value, \
+                                     pop_up_id1 = ws2.cell(row = i + 1, column = 6).value, \
+                                     pop_up2 = ws2.cell(row = i + 1, column = 7).value, \
+                                     pop_up_id2 = ws2.cell(row = i + 1, column = 8).value, \
+                                     pop_up3 = ws2.cell(row = i + 1, column = 9).value, \
+                                     pop_up_id3 = ws2.cell(row = i + 1, column = 10).value, \
+                                     pop_up4 = ws2.cell(row = i + 1, column = 11).value, \
+                                     pop_up_id4 = ws2.cell(row = i + 1, column = 12).value, \
+                                     pop_up5 = ws2.cell(row = i + 1, column = 13).value, \
+                                     pop_up_id5 = ws2.cell(row = i + 1, column = 14).value)
       new_data2.save()
 
 
