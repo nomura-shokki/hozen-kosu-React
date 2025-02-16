@@ -1694,20 +1694,16 @@ def class_list(request):
 
 
     # 指定ショップの人員毎に工数入力可否をリストにするループ
-    for name in name_list:
-
+    for ind, name in enumerate(name_list):
       # 仮リストを空で定義
       provisional_list = []
       # 仮リストに人員名を入れる
       provisional_list.append(name)
-
       # 人員情報取得
-      member_obj_get = member.objects.get(name = name)
-
+      member_obj_get = member.objects.get(employee_no = No_list[ind])
 
       # 取得した人員の工数入力可否をリスト化するループ
       for day in range(1, last_day_of_month.day + 1):
-
         # 指定日に工数データがあるか確認
         obj_filter = Business_Time_graph.objects.filter(employee_no3 = member_obj_get.employee_no, \
                                                         work_day2 = datetime.date(int(request.POST['year']), \
