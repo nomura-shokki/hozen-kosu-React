@@ -1,185 +1,186 @@
 {% load static %}
 <!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{title}}</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-  <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
-  <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
-  <script src="{% static 'kosu/js/before_comment.js' %}"></script>
-</head>
-<body class="container">
-  <h1 class="display-1 text-dark">{{title}}</h1>
-  <p class="h6"><a href="{% url 'main' %}" class="text-dark">メインMENUへ</a></p>
-  <p>　</p>
-  {% for message in messages %}
-  <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
-    <p  class="text-danger">
-      {{ message }}
-    </p>
-  </div>
-  {% endfor %}
-  <table class="table">
-  <form action="{% url 'administrator' %}" method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-     {{form.as_table}}
-  <tr><th><td>
-    <input type="submit" value="登録" name=registration onclick="return confirm_edit_admin();" class="btn btn-gray2 mt-2">
-  </td></th></tr>
-  <tr><th><td>
-    　
-  </td></th></tr>
-  <tr><th>
-    <h1 class="display-6 text-dark">データ管理</h1>
-    <small>(バックアップを押すとデータがPCにダウンロードされます)</small>
-  </th></tr>
-  <tr>
-    <th>
-      工数データバックアップ
-    </th>
-    <td>
-      <div class="number-input-group">
-        <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day" id="data_day">～
-        <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day2" id="data_day2">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
+    <script src="{% static 'kosu/js/before_comment.js' %}"></script>
+    <script src="{% static 'kosu/js/display.js' %}"></script>
+  </head>
+  <body class="container" id="display">
+    <h1 class="display-1 text-dark">{{title}}</h1>
+    <p class="h6"><a href="{% url 'main' %}" class="text-dark">メインMENUへ</a></p>
+    <p>　</p>
+    {% for message in messages %}
+      <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
+        <p  class="text-danger">
+          {{ message }}
+        </p>
       </div>
-      <br>
-      <input type="submit" value="バックアップ" name=kosu_backup class="btn btn-gray2 mt-2">
-      <input type="submit" value="工数定義区分予測データ出力" name=prediction_data class="btn btn-gray2 mt-2">
-      <input type="submit" value="削除" name=kosu_delete onclick="return confirmDelete_all();" class="btn btn-gray2 mt-2">
-    </td>
-  </tr>
-  <tr>
-    <th>
-      工数データロードファイルパス
-    </th>
-    <td>
-      {{load_form.kosu_file}}
-      <input type="submit" value="ロード" name=kosu_load class="btn btn-gray2 mt-2">
-    </td>
-  </tr>
-  <tr><th><td>
-    　
-  </td></th></tr>
-  <tr>
-    <th>
-      人員情報バックアップ
-    </th>
-    <td>
-      <input type="submit" value="バックアップ" name=member_backup class="btn btn-gray2 mt-2">
-    </td>
-  </tr>
-  <tr>
-    <th>
-      人員情報ロードファイルパス
-    </th>
-    <td>
-      {{load_form.member_file}}
-      <input type="submit" value="ロード" name=member_load class="btn btn-gray2 mt-2">
-    </td>
-  </tr>
-  <tr>
-    <th></th>
-    <td>
-      同一従業員番号があった場合上書きする　　
-      <input type="checkbox" id="overwrite_check" name="overwrite_check" class="big">
-      <style>
-        input.big {
-          transform: scale(1.5);
-        }
-      </style>
-    </td>
-  </tr>
-  <tr>
-    <th></th>
-    <td>
-      <small>
-        (上書きした場合、全工数と問い合わせデータの氏名削除。バックアップ後実施のこと)
-      </small>
-    </td>
-  </tr>
-  <tr><th><td>
-    　
-  </td></th></tr>
-  <tr>
-    <th>
-      班員情報バックアップ
-    </th>
-    <td>
-      <input type="submit" value="バックアップ" name=team_backup class="btn btn-gray2 mt-2">
-    </td>
-  </tr>
-  <tr>
-    <th>
-      班員情報ロードファイルパス
-    </th>
-    <td>
-      {{load_form.team_file}}
-      <input type="submit" value="ロード" name=team_load class="btn btn-gray2 mt-2">
-    </td>
-  </tr>
-  <tr><th><td>
-    　
-  </td></th></tr>
-  <tr>
-    <th>
-      工数区分定義バックアップ
-    </th>
-    <td>
-      <input type="submit" value="バックアップ" name=def_backup class="btn btn-gray2 mt-2">
-    </td>
-  </tr>
-  <tr>
-    <th>
-      工数区分定義ロードファイルパス
-    </th>
-    <td>
-      {{load_form.def_file}}
-      <input type="submit" value="ロード" name=def_load class="btn btn-gray2 mt-2">
-    </td>
-  </tr>
-  <tr><th><td>
-    　
-  </td></th></tr>
-  <tr>
-    <th>
-      お問い合わせバックアップ
-    </th>
-    <td>
-      <input type="submit" value="バックアップ" name=inquiry_backup class="btn btn-gray2 mt-2">
-    </td>
-  </tr>
-  <tr>
-    <th>
-      お問い合わせロードファイルパス
-    </th>
-    <td>
-      {{load_form.inquiry_file}}
-      <input type="submit" value="ロード" name=inquiry_load class="btn btn-gray2 mt-2">
-    </td>
-  </tr>
-  <tr><th><td>
-    　
-  </td></th></tr>
-  <tr>
-    <th>
-      管理者設定バックアップ
-    </th>
-    <td>
-      <input type="submit" value="バックアップ" name=setting_backup class="btn btn-gray2 mt-2">
-    </td>
-  </tr>
-  <tr>
-    <th>
-      管理者設定ロードファイルパス
-    </th>
-    <td>
-      {{load_form.setting_file}}
-      <input type="submit" value="ロード" name=setting_load class="btn btn-gray2 mt-2">
-    </td>
-  </tr>
-  </form>
-  </table>
-</body>
+    {% endfor %}
+    <table class="table">
+      <form action="{% url 'administrator' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{form.as_table}}
+        <tr><th><td>
+          <input type="submit" value="登録" name=registration onclick="return confirm_edit_admin();" class="btn btn-gray2 mt-2">
+        </td></th></tr>
+        <tr><th><td>
+          　
+        </td></th></tr>
+        <tr><th>
+          <h1 class="display-6 text-dark">データ管理</h1>
+          <small>(バックアップを押すとデータがPCにダウンロードされます)</small>
+        </th></tr>
+        <tr>
+          <th>
+            工数データバックアップ
+          </th>
+          <td>
+            <div class="number-input-group">
+              <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day" id="data_day">～
+              <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day2" id="data_day2">
+            </div>
+            <br>
+            <input type="submit" value="バックアップ" name=kosu_backup class="btn btn-gray2 mt-2">
+            <input type="submit" value="工数定義区分予測データ出力" name=prediction_data class="btn btn-gray2 mt-2">
+            <input type="submit" value="削除" name=kosu_delete onclick="return confirmDelete_all();" class="btn btn-gray2 mt-2">
+          </td>
+        </tr>
+        <tr>
+          <th>
+            工数データロードファイルパス
+          </th>
+          <td>
+            {{load_form.kosu_file}}
+            <input type="submit" value="ロード" name=kosu_load class="btn btn-gray2 mt-2">
+          </td>
+        </tr>
+        <tr><th><td>
+          　
+        </td></th></tr>
+        <tr>
+          <th>
+            人員情報バックアップ
+          </th>
+          <td>
+            <input type="submit" value="バックアップ" name=member_backup class="btn btn-gray2 mt-2">
+          </td>
+        </tr>
+        <tr>
+          <th>
+            人員情報ロードファイルパス
+          </th>
+          <td>
+            {{load_form.member_file}}
+            <input type="submit" value="ロード" name=member_load class="btn btn-gray2 mt-2">
+          </td>
+        </tr>
+        <tr>
+          <th></th>
+          <td>
+            同一従業員番号があった場合上書きする　　
+            <input type="checkbox" id="overwrite_check" name="overwrite_check" class="big">
+            <style>
+              input.big {
+                transform: scale(1.5);
+              }
+            </style>
+          </td>
+        </tr>
+        <tr>
+          <th></th>
+          <td>
+            <small>
+              (上書きした場合、全工数と問い合わせデータの氏名削除。バックアップ後実施のこと)
+            </small>
+          </td>
+        </tr>
+        <tr><th><td>
+          　
+        </td></th></tr>
+        <tr>
+          <th>
+            班員情報バックアップ
+          </th>
+          <td>
+            <input type="submit" value="バックアップ" name=team_backup class="btn btn-gray2 mt-2">
+          </td>
+        </tr>
+        <tr>
+          <th>
+            班員情報ロードファイルパス
+          </th>
+          <td>
+            {{load_form.team_file}}
+            <input type="submit" value="ロード" name=team_load class="btn btn-gray2 mt-2">
+          </td>
+        </tr>
+        <tr><th><td>
+          　
+        </td></th></tr>
+        <tr>
+          <th>
+            工数区分定義バックアップ
+          </th>
+          <td>
+            <input type="submit" value="バックアップ" name=def_backup class="btn btn-gray2 mt-2">
+          </td>
+        </tr>
+        <tr>
+          <th>
+            工数区分定義ロードファイルパス
+          </th>
+          <td>
+            {{load_form.def_file}}
+            <input type="submit" value="ロード" name=def_load class="btn btn-gray2 mt-2">
+          </td>
+        </tr>
+        <tr><th><td>
+          　
+        </td></th></tr>
+        <tr>
+          <th>
+            お問い合わせバックアップ
+          </th>
+          <td>
+            <input type="submit" value="バックアップ" name=inquiry_backup class="btn btn-gray2 mt-2">
+          </td>
+        </tr>
+        <tr>
+          <th>
+            お問い合わせロードファイルパス
+          </th>
+          <td>
+            {{load_form.inquiry_file}}
+            <input type="submit" value="ロード" name=inquiry_load class="btn btn-gray2 mt-2">
+          </td>
+        </tr>
+        <tr><th><td>
+          　
+        </td></th></tr>
+        <tr>
+          <th>
+            管理者設定バックアップ
+          </th>
+          <td>
+            <input type="submit" value="バックアップ" name=setting_backup class="btn btn-gray2 mt-2">
+          </td>
+        </tr>
+        <tr>
+          <th>
+            管理者設定ロードファイルパス
+          </th>
+          <td>
+            {{load_form.setting_file}}
+            <input type="submit" value="ロード" name=setting_load class="btn btn-gray2 mt-2">
+          </td>
+        </tr>
+      </form>
+    </table>
+  </body>
 </html>

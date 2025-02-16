@@ -62,6 +62,5 @@ window.addEventListener('load', () => {
                 fill: 'forwards',
             }
         );
-
     }
 });

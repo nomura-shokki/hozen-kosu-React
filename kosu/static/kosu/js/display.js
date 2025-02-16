@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const heading = document.querySelector('body');
+    const heading = document.querySelector('#display');
   
     if (heading) {
       const keyframes = [
