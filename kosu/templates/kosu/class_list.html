@@ -21,7 +21,7 @@
     </div>
     <h1 class="display-5 text-danger">{{title}}</h1>
     <p class="h6"><a href="{% url 'team_main' %}" class="text-danger">班員MENUへ</a></p>
-    <form action="{% url 'class_list' %}" method="post">
+    <form id="dataForm">
       {% csrf_token %}
       <p>　</p>
       <p>
@@ -39,9 +39,10 @@
           {{schedule_form.month}}月
         </div>
       </p>
-      <button name="update" class="btn btn-link"></button>
+      <button name="update" id="update" class="btn btn-danger"></button>
       <p>工数データが入力されている日付を選択すると詳細を閲覧できます。</p>
       <p>※この画面は大量のデータを扱うため動作が重くなっています。</p>
+      <div id="responseArea">
       <table class="table table-bordered border-dark table-custom">
         <tr>
           <td rowspan="2" class="no-wrap" style="text-align:center;">
@@ -102,6 +103,49 @@
           </tr>
         {% endfor %}
       </table>
+      </div>
     </form>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('dataForm');
+        const loading = document.getElementById('loading');
+        const responseArea = document.getElementById('responseArea');
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault(); // デフォルトのフォーム動作を止める
+          
+          // ローディング画面を表示
+          loading.style.display = 'grid';
+
+          // フォームデータを取得
+          const formData = new FormData(form);
+
+          try {
+            // 非同期リクエストを実行
+            const response = await fetch("{% url 'class_list' %}", {
+              method: 'POST',
+              body: formData,
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+              },
+            });
+
+            // JSONデータのレスポンスを処理
+            if (response.ok) {
+              const data = await response.json();
+              responseArea.innerHTML = data.html; // レスポンスされたHTMLを挿入
+            } else {
+              responseArea.innerHTML = '<p class="text-danger">エラーが発生しました。</p>';
+            }
+          } catch (err) {
+            console.error(err);
+            responseArea.innerHTML = '<p class="text-danger">通信エラーが発生しました。</p>';
+          } finally {
+            // ローディング画面を非表示
+            loading.style.display = 'none';
+          }
+        });
+      });
+    </script>
   </body>
 </html>
