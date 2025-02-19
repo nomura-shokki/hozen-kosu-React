@@ -9,10 +9,9 @@
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
     <script src="{% static 'kosu/js/class_list_change.js' %}"></script>
-    <script src="{% static 'kosu/js/loading.js' %}"></script>
   </head>
   <body class="container">
-    <div id="loading">
+    <div id="loading" style="display: none;">
       <div class="item">
         <img src="{% static 'kosu/img/helmet.png' %}">
       </div>
@@ -24,30 +23,22 @@
     <form id="dataForm">
       {% csrf_token %}
       <p>　</p>
-      <p>
-        ショップ指定
-      </p>
-      <p>
-        {{shop_form.shop2}}
-      </p>
-      <p>
-        年月指定
-      </p>
+      <p> ショップ指定 </p>
+      <p> {{shop_form.shop2}} </p>
+      <p> 年月指定 </p>
       <p>
         <div class="number-input-group">
           {{schedule_form.year}}年
           {{schedule_form.month}}月
         </div>
       </p>
-      <button name="update" id="update" class="btn btn-link"></button>
+      <button type="button" name="update" id="update" class="btn btn-link" onclick="showLoading()">更新</button>
       <p>工数データが入力されている日付を選択すると詳細を閲覧できます。</p>
       <p>※この画面は大量のデータを扱うため動作が重くなっています。</p>
       <div id="responseArea">
       <table class="table table-bordered border-dark table-custom">
         <tr>
-          <td rowspan="2" class="no-wrap" style="text-align:center;">
-            氏名
-          </td>
+          <td rowspan="2" class="no-wrap" style="text-align:center;">氏名</td>
           {% for d, w in day_list %}
             {% if w == "土" %}
               <td class="table-light_blue no-wrap" style="text-align:center;">
@@ -106,44 +97,65 @@
       </div>
     </form>
     <script>
+      // ローディング画面を表示する関数
+      function showLoading() {
+        // "loading"というIDを持つ要素（ローディング画面）のスタイルを表示状態に設定
+        document.getElementById('loading').style.display = 'grid';
+
+        // setTimeoutを使用して、5秒後にローディング画面を非表示状態に設定
+        setTimeout(() => {
+          document.getElementById('loading').style.display = 'none';
+        }, 1000);  // 5000ミリ秒（5秒）後
+      }
+
+      // 初期化：DOM（Document Object Model）が完全にロードされた後に実行
       document.addEventListener('DOMContentLoaded', () => {
+        // "dataForm"というIDを持つフォーム要素を取得
         const form = document.getElementById('dataForm');
-        const loading = document.getElementById('loading');
+
+        // "update"というIDを持つボタン要素を取得
+        const updateButton = document.getElementById('update');
+
+        // "responseArea"というIDを持つ領域（リクエスト結果を表示する場所）を取得
         const responseArea = document.getElementById('responseArea');
 
-        form.addEventListener('submit', async (e) => {
-          e.preventDefault(); // デフォルトのフォーム動作を止める
-          
-          // ローディング画面を表示
-          loading.style.display = 'grid';
+        // 「更新」ボタンにクリックイベントリスナーを追加
+        updateButton.addEventListener('click', async () => {
+          // ローディング画面を表示（showLoading関数の呼び出し）
+          showLoading();
 
-          // フォームデータを取得
-          const formData = new FormData(form);
+          // フォーム内のデータを取得し、FormDataオブジェクトに格納
+          const formData = new FormData(form); // フォームの各フィールドを名前と値のペアとして取得
 
           try {
-            // 非同期リクエストを実行
+            // サーバーに対して非同期POSTリクエストを送信（fetch関数を使用）
             const response = await fetch("{% url 'class_list' %}", {
-              method: 'POST',
-              body: formData,
+              method: 'POST', // HTTPメソッドをPOSTに設定
+              body: formData, // 取得したformDataオブジェクトをリクエストの本文として送信
               headers: {
+                // リクエストヘッダーに追加、Ajaxリクエストであることを示す
                 'X-Requested-With': 'XMLHttpRequest',
               },
             });
 
-            // JSONデータのレスポンスを処理
+            // サーバーからのレスポンス（HTTPステータスコード）を確認
             if (response.ok) {
+              // レスポンスが成功の場合、レスポンスボディをJSONとして解析
               const data = await response.json();
-              responseArea.innerHTML = data.html; // レスポンスされたHTMLを挿入
+
+              // レスポンスされたデータ(具体的にはHTML)を"responseArea"に表示
+              responseArea.innerHTML = data.html;
             } else {
+              // サーバーからエラー（HTTPステータスコードが200以外）の場合の処理
               responseArea.innerHTML = '<p class="text-danger">エラーが発生しました。</p>';
             }
           } catch (err) {
-            console.error(err);
+            // 非同期処理中にエラーが発生した場合の例外処理
+            console.error(err); // コンソールにエラーメッセージを出力（デバッグ用）
+
+            // ユーザーに通信エラーを通知
             responseArea.innerHTML = '<p class="text-danger">通信エラーが発生しました。</p>';
-          } finally {
-            // ローディング画面を非表示
-            loading.style.display = 'none';
-          }
+          } finally {}
         });
       });
     </script>
