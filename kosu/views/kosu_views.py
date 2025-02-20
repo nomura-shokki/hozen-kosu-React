@@ -1964,7 +1964,7 @@ def schedule(request):
 
 
   # カレンダー更新時の処理
-  if "time_update" in request.POST:
+  if "update" in request.POST:
     # 年取得
     year = int(request.POST['year'])
     # 月取得

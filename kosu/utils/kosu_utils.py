@@ -1478,7 +1478,10 @@ def work_default(day_list, year, month, member_obj, request):
         indices = get_indices(data_list)
         for start, end in indices:
           tm = index_change(start, end, tm)
-
+        # 時間表示を4行に調整
+        for _ in range(4 - len(tm)):
+          tm.append('　')
+  
   # 工数入力OKリスト作成
   OK_NG_list = OK_NF_check(year, month, day_list, member_obj)
 

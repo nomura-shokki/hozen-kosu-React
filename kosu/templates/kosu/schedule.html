@@ -24,7 +24,7 @@
         {{form2.year}}年　{{form2.month}}月　　
         <input type="submit" value="勤務登録" name="work_update" class="btn btn-blue7 mt-2">
       </div>
-      <button name="time_update" class="btn btn-link"></button>
+      <button name="update" id="update" class="btn btn-link"></button>
       {% for message in messages %}
       <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
         <p  class="text-danger">

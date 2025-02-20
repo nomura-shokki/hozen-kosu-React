@@ -2546,7 +2546,6 @@ class Page_form(TestCase):
 
     # 入力可否(ショップ)ページ切替チェック
     def test_class_form(self):
-
         # memberダミーデータ
         self.member = member.objects.create(
             employee_no = 222,
@@ -2617,7 +2616,6 @@ class Page_form(TestCase):
             'shop2': 'その他',
             'year': '2000',
             'month': '1',
-            'switching': '切り替え',
             }
 
         # URLに対してPOSTリクエスト送信
