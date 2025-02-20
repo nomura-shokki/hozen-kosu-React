@@ -48,6 +48,7 @@ from ..utils.kosu_utils import schedule_default
 from ..utils.kosu_utils import kosu_delete
 from ..utils.kosu_utils import kosu_edit_check
 from ..utils.kosu_utils import kosu_edit_write
+from ..utils.kosu_utils import get_indices
 from ..models import member
 from ..models import Business_Time_graph
 from ..models import kosu_division
@@ -2194,166 +2195,38 @@ def schedule(request):
 
 
   # 入力工数表示リセット
-  time_list1 = []
-  time_list2 = []
-  time_list3 = []
-  time_list4 = []
-  time_list5 = []
-  time_list6 = []
-  time_list7 = []
-  time_list8 = []
-  time_list9 = []
-  time_list10 = []
-  time_list11 = []
-  time_list12 = []
-  time_list13 = []
-  time_list14 = []
-  time_list15 = []
-  time_list16 = []
-  time_list17 = []
-  time_list18 = []
-  time_list19 = []
-  time_list20 = []
-  time_list21 = []
-  time_list22 = []
-  time_list23 = []
-  time_list24 = []
-  time_list25 = []
-  time_list26 = []
-  time_list27 = []
-  time_list28 = []
-  time_list29 = []
-  time_list30 = []
-  time_list31 = []
-  time_list32 = []
-  time_list33 = []
-  time_list34 = []
-  time_list35 = []
-  time_list36 = []
-  time_list37 = []
-  title_list = ['time_list1', 'time_list2', 'time_list3', 'time_list4', \
-                'time_list5', 'time_list6', 'time_list7', 'time_list8', \
-                'time_list9', 'time_list10', 'time_list11', 'time_list12', \
-                'time_list13', 'time_list14', 'time_list15', 'time_list16', \
-                'time_list17', 'time_list18', 'time_list19', 'time_list20', \
-                'time_list21', 'time_list22', 'time_list23', 'time_list24', \
-                'time_list25', 'time_list26', 'time_list27', 'time_list28', \
-                'time_list29', 'time_list30', 'time_list31', 'time_list32', \
-                'time_list33', 'time_list34', 'time_list35', 'time_list36', \
-                'time_list37'
-                ]
-    
+  time_list = [[] for _ in range(37)]
+
   # 工数入力データ取得
-  for i, k in  enumerate(title_list):
+  for i, tm in enumerate(time_list):
     # 日付リストの該当要素が空でない場合の処理
     if day_list[i] != '':
-      # ログイン者の工数データを該当日でフィルター 
-      graph_data_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                             work_day2 = datetime.date(year, month, day_list[i]))
+      # ログイン者の工数データを該当日でフィルター
+      graph_data_filter = Business_Time_graph.objects.filter(
+        employee_no3=request.session['login_No'],
+        work_day2=datetime.date(year, month, day_list[i])
+        )
 
       # 工数データがない場合の処理
       if not graph_data_filter.exists():
         # カレンダー工数表示リストに空の値を入れる
-        for p in range(4):
-          eval(k).append('　')
-
-      # 工数データがある場合の処理
+        tm.extend(['　'] * 4)
       else:
         # ログイン者の該当日の工数データ取得
         graph_data_get = graph_data_filter.first()
         # 作業内容リストに解凍
         data_list = list(graph_data_get.time_work)
-       
-        # 表示時間インデックスリセット
-        start_index1 = 0
-        end_index1 = 0
-        start_index2 = 0
-        end_index2 = 0
-        start_index3 = 0
-        end_index3 = 0
-        start_index4 = 0
-        end_index4 = 0
-        loop_stop = 0
 
-        # 工数データを文字に変換するため工数の開始、終了時間のインデックス取得
-        for t in range(288):
-          if data_list[t] != '#':
-            start_index1 = t
-            break
-          if t == 287:
-            loop_stop = 1
-
-        if loop_stop == 0:
-          for t in range(start_index1 + 1, 288):
-            if data_list[t] == '#':
-              end_index1 = t
-              break
-            if t == 287 and data_list[t] != '#':
-              end_index1 = 288
-              loop_stop = 1
-
-          if loop_stop == 0:
-            for t in range(end_index1 + 1, 288):
-              if data_list[t] != '#':
-                start_index2 = t
-                break
-              if t == 287:
-                loop_stop = 1
-
-            if loop_stop == 0:
-              for t in range(start_index2 + 1, 288):
-                if data_list[t] == '#':
-                  end_index2 = t
-                  break
-                if t == 287 and data_list[t] != '#':
-                  end_index2 = 288
-                  loop_stop = 1
-
-              if loop_stop == 0:
-                for t in range(end_index2 + 1, 288):
-                  if data_list[t] != '#':
-                    start_index3 = t
-                    break
-                  if t == 287:
-                    loop_stop = 1
-    
-                if loop_stop == 0:
-                  for t in range(start_index3 + 1, 288):
-                    if data_list[t] == '#':
-                      end_index3 = t
-                      break
-                    if t == 287 and data_list[t] != '#':
-                      end_index3 = 288
-                      loop_stop = 1
-
-                  if loop_stop == 0:
-                    for t in range(end_index3 + 1, 288):
-                      if data_list[t] != '#':
-                        start_index4 = t
-                        break
-                      if t == 287:
-                        loop_stop = 1
-        
-                    if loop_stop == 0:
-                      for t in range(start_index4 + 1, 288):
-                        if data_list[t] == '#':
-                          end_index4 = t
-                          break
-                        if t == 287 and data_list[t] != '#':
-                          end_index4 = 288
-        # ローカルの変数取得
-        ns = locals()
-        # 取得したインデックスを時間表示に変換
-        ns[k] = index_change(start_index1, end_index1, ns[k])
-        ns[k] = index_change(start_index2, end_index2, ns[k])
-        ns[k] = index_change(start_index3, end_index3, ns[k])
-        ns[k] = index_change(start_index4, end_index4, ns[k])
+        # インデックス取得と時間表示に変換
+        indices = get_indices(data_list)
+        for start, end in indices:
+          tm = index_change(start, end, tm)
 
   # 工数入力OKリスト作成
   OK_NG_list = OK_NF_check(year, month, day_list, member_obj)
 
 
-  
+
   # HTMLに渡す辞書
   context = {
     'title' : '勤務入力',
@@ -2361,43 +2234,7 @@ def schedule(request):
     'form2' : form2,
     'day_list' : day_list,
     'OK_NG_list' : OK_NG_list,
-    'time_list1': time_list1,
-    'time_list2': time_list2,
-    'time_list3': time_list3,
-    'time_list4': time_list4,
-    'time_list5': time_list5,
-    'time_list6': time_list6,
-    'time_list7': time_list7,
-    'time_list8': time_list8,
-    'time_list9': time_list9,
-    'time_list10': time_list10,
-    'time_list11': time_list11,
-    'time_list12': time_list12,
-    'time_list13': time_list13,
-    'time_list14': time_list14,
-    'time_list15': time_list15,
-    'time_list16': time_list16,
-    'time_list17': time_list17,
-    'time_list18': time_list18,
-    'time_list19': time_list19,
-    'time_list20': time_list20,
-    'time_list21': time_list21,
-    'time_list22': time_list22,
-    'time_list23': time_list23,
-    'time_list24': time_list24,
-    'time_list25': time_list25,
-    'time_list26': time_list26,
-    'time_list27': time_list27,
-    'time_list28': time_list28,
-    'time_list29': time_list29,
-    'time_list30': time_list30,
-    'time_list31': time_list31,
-    'time_list32': time_list32,
-    'time_list33': time_list33,
-    'time_list34': time_list34,
-    'time_list35': time_list35,
-    'time_list36': time_list36,
-    'time_list37': time_list37, 
+    'time_list': time_list,
   }
 
 
@@ -2485,7 +2322,6 @@ def over_time(request):
 
   # 工数入力データ取得
   for i in  day_list:
-
     # 日付リストの該当要素が空でない場合の処理
     if i != '':
       # ログイン者の工数データを該当日でフィルター 

@@ -1415,3 +1415,35 @@ def kosu_edit_write(start_time_ind, end_time_ind, work_list, detail_list, edit_i
 #--------------------------------------------------------------------------------------------------------
 
 
+
+
+
+# 工数入力インデックス取得関数
+def get_indices(data_list):
+  # インデックスリスト,作業スタートインデックス定義
+  indices = []
+  start = None
+
+  for t in range(288):
+    # 作業の開始を発見したらインデックスを記録
+    if data_list[t] != '#' and start is None:
+      start = t
+    # 作業の終わりを発見したらインデックスリストに作業時間を記録しスタートインデックスリセット
+    elif data_list[t] == '#' and start is not None:
+      indices.append((start, t))
+      start = None
+  
+  # 作業が24時まで継続していた場合にインデックスリストに記録
+  if start is not None:
+    indices.append((start, 288))
+
+  return indices
+  
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
