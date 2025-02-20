@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData(form);
   
             // サーバーへのPOSTリクエスト
-            const response = await fetch(classListUrl, {
+            const response = await fetch(htmlUrl, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         );
 
-        loadingAreaGreen.animate(
+        const loadingAreaGreenAnimation =loadingAreaGreen.animate(
             {
                 translate: ['0 100vh', '0 0', '0 -100vh']
             },
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
         // 全アニメーション終了後に要素を非表示に設定
-        Promise.all([loadingAnimation.finished, loadingTextAnimation.finished, loadingImgAnimation.finished])
+        Promise.all([loadingAnimation.finished, loadingTextAnimation.finished, loadingImgAnimation.finished, loadingAreaGreenAnimation.finished])
             .then(() => {
                 loading.style.display = "none"; // ローディング画面全体を非表示
                 loading.style.opacity = "1"; // 次回のためにリセット

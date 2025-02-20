@@ -1757,7 +1757,7 @@ def class_list(request):
       }
 
     # 部分テンプレート（テーブル部分）のレンダリング
-    html = render_to_string('kosu/partial_table.html', context, request)
+    html = render_to_string('kosu/class_list_table.html', context, request)
 
     return JsonResponse({'html': html})  # JSONレスポンス
 

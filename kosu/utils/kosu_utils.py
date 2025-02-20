@@ -1447,3 +1447,55 @@ def get_indices(data_list):
 
 
 
+
+
+# 工数入力時間表示関数
+def work_default(day_list, year, month, member_obj, request):
+  # 入力工数表示リセット
+  time_list = [[] for _ in range(37)]
+
+  # 工数入力データ取得
+  for i, tm in enumerate(time_list):
+    # 日付リストの該当要素が空でない場合の処理
+    if day_list[i] != '':
+      # ログイン者の工数データを該当日でフィルター
+      graph_data_filter = Business_Time_graph.objects.filter(
+        employee_no3=request.session['login_No'],
+        work_day2=datetime.date(year, month, day_list[i])
+        )
+
+      # 工数データがない場合の処理
+      if not graph_data_filter.exists():
+        # カレンダー工数表示リストに空の値を入れる
+        tm.extend(['　'] * 4)
+      else:
+        # ログイン者の該当日の工数データ取得
+        graph_data_get = graph_data_filter.first()
+        # 作業内容リストに解凍
+        data_list = list(graph_data_get.time_work)
+
+        # インデックス取得と時間表示に変換
+        indices = get_indices(data_list)
+        for start, end in indices:
+          tm = index_change(start, end, tm)
+
+  # 工数入力OKリスト作成
+  OK_NG_list = OK_NF_check(year, month, day_list, member_obj)
+
+  return OK_NG_list, time_list
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
