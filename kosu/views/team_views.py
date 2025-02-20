@@ -1640,9 +1640,6 @@ def class_list(request):
 
   # POST時の処理
   if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
-    import time
-    time.sleep(2)
-
     # 検索項目に空欄がある場合の処理
     if request.POST['year'] == '' or request.POST['month'] == '':
       # エラーメッセージ出力
@@ -1766,7 +1763,6 @@ def class_list(request):
 
   # POST時以外の処理
   else:
-    # 元のコード（変更なし）
     # セッション値に年月のデータがない場合の処理
     if request.session.get('find_year', '') == '' or request.session.get('find_month', '') == '':
       # 本日の年月取得

@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const keyframes = [
         {
           opacity: 0,
-          transform: 'translateY(40px)'
+          transform: 'translateY(30px)'
         },
         {
           opacity: 1,
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       ];
       const options = {
-        duration: 1500,
+        duration: 1000,
         easing: 'ease'
       };
   
