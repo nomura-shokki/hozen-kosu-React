@@ -110,45 +110,7 @@ input.big {
     width: 90%; /* 幅を90%に設定 */
   }
 }
-/*
-#loading {
-  background-color: var(--light-grey);
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: grid;
-  place-items: center;
-}
-#loading-screen {
-  background-color: var(--light-green);
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  translate: 0 100vh;
-}
-#loading p {
-  font-size: 2rem;
-  font-family: var(--oswald-font);
-}
 
-@keyframes sway {
-  0% {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(5deg);
-  }
-  50% {
-    transform: rotate(0deg);
-  }
-  75% {
-    transform: rotate(-5deg);
-  }
-  100% {
-    transform: rotate(0deg);
-  }
-}
-*/
 
 #loading img {
   /* ローディング画面で表示される画像にアニメーション効果を適用 */
