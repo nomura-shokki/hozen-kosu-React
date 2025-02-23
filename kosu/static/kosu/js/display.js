@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       ];
       const options = {
-        duration: 1500,
+        duration: 1000,
         easing: 'ease'
       };
   

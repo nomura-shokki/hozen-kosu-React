@@ -1287,20 +1287,30 @@ class Page_form(TestCase):
             'update': '表示切替',
             }
 
-        # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('schedule'), form_data)
-        # レスポンスが成功（ステータスコード200）であることを確認
-        self.assertEqual(response.status_code, 200)
+        # URLに対してPOSTリクエスト送信 (HTTP_X_REQUESTED_WITHヘッダーを追加)
+        response = self.client.post(
+            reverse('schedule'),
+            form_data,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+            )
+
+        # 変数を読み出し
+        day_list = response.context['day_list']
+        # 変数整合性チェック
+        self.assertEqual(day_list, ['', '', '', '', '', '', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
+
 
         # フォームデータ2定義
         form_data2 = {
             'default_work': 'デフォルト勤務入力',
             }
 
-        # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('schedule'), form_data2)
-        # レスポンスが成功（ステータスコード200）であることを確認
-        self.assertEqual(response.status_code, 200)
+        # URLに対してPOSTリクエスト送信 (HTTP_X_REQUESTED_WITHヘッダーを追加)
+        response = self.client.post(
+            reverse('schedule'),
+            form_data2,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+            )
 
         # テストユーザーの工数データ取得
         updated_entry1 = Business_Time_graph.objects.get(employee_no3 = self.member.employee_no, \
@@ -2354,7 +2364,6 @@ class Page_form(TestCase):
 
     #班員工数一覧ページ切替チェック
     def test_team_calendar_form(self):
-
         # フォームデータ定義
         form_data = {
             'work_day': '2000-01-01',
@@ -2419,7 +2428,6 @@ class Page_form(TestCase):
 
     # 班員残業ページ切替チェック
     def test_team_over_time_form(self):
-
         # memberダミーデータ
         self.member = member.objects.create(
             employee_no = 222,
