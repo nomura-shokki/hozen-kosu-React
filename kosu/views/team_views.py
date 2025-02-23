@@ -1638,6 +1638,8 @@ def class_list(request):
     # ログインページに戻る
     return redirect(to='/login')
 
+
+
   # POST時の処理
   if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
     # 検索項目に空欄がある場合の処理

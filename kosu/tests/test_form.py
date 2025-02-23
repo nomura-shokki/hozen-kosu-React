@@ -146,6 +146,8 @@ class Page_form(TestCase):
         self.session['input_def'] =  self.kosu_division.kosu_name
         self.session['day'] =  self.Business_Time_graph.work_day2
         self.session['break_today'] =  self.Business_Time_graph.work_day2
+        self.session['find_year'] =  2000
+        self.session['find_month'] =  1
         self.session.save()
 
 
@@ -1138,7 +1140,7 @@ class Page_form(TestCase):
         form_data = {
             'year' : '2000',
             'month': '1',
-            'time_update': '表示切替',
+            'update': '表示切替',
             }
 
         # URLに対してPOSTリクエスト送信
@@ -1156,7 +1158,7 @@ class Page_form(TestCase):
         form_data2 = {
             'year' : '2000',
             'month': '2',
-            'time_update': '表示切替',
+            'update': '表示切替',
             }
 
         # URLに対してPOSTリクエスト送信
@@ -1178,7 +1180,7 @@ class Page_form(TestCase):
         form_data = {
             'year' : '2000',
             'month': '1',
-            'time_update': '表示切替',
+            'update': '表示切替',
             }
 
         # URLに対してPOSTリクエスト送信
@@ -1282,7 +1284,7 @@ class Page_form(TestCase):
         form_data = {
             'year' : '2000',
             'month': '1',
-            'time_update': '表示切替',
+            'update': '表示切替',
             }
 
         # URLに対してPOSTリクエスト送信
@@ -1334,7 +1336,7 @@ class Page_form(TestCase):
         form_data = {
             'year' : '2000',
             'month': '1',
-            'time_update': '表示切替',
+            'update': '表示切替',
             }
 
         # URLに対してPOSTリクエスト送信
@@ -2618,10 +2620,12 @@ class Page_form(TestCase):
             'month': '1',
             }
 
-        # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('class_list'), form_data)
-        # レスポンスが成功（ステータスコード200）であることを確認
-        self.assertEqual(response.status_code, 200)
+        # URLに対してPOSTリクエスト送信 (HTTP_X_REQUESTED_WITHヘッダーを追加)
+        response = self.client.post(
+            reverse('class_list'),
+            form_data,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+            )
 
         # 変数を読み出し
         week_list = response.context['week_list']
@@ -2649,10 +2653,12 @@ class Page_form(TestCase):
             'switching': '切り替え',
             }
 
-        # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('class_list'), form_data2)
-        # レスポンスが成功（ステータスコード200）であることを確認
-        self.assertEqual(response.status_code, 200)
+        # URLに対してPOSTリクエスト送信 (HTTP_X_REQUESTED_WITHヘッダーを追加)
+        response = self.client.post(
+            reverse('class_list'),
+            form_data2,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+            )
 
         # 変数を読み出し
         week_list = response.context['week_list']
