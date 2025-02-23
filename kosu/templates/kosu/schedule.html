@@ -18,31 +18,31 @@
   </p>
   <form action="{% url 'schedule' %}" method="post">
   {% csrf_token %}
+    <p>表示月指定</p>
+    <div class="number-input-group">
+      {{form2.year}}年　{{form2.month}}月　　
+      <input type="submit" value="勤務登録" name="work_update" class="btn btn-blue7 mt-2">
+    </div>
+    <button name="update" id="update" class="btn btn-link"></button>
+    {% for message in messages %}
+    <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
+      <p  class="text-danger">
+        {{ message }}
+      </p>
+    </div>
+    {% endfor %}
+    <p>　</p>
+    <p>
+      <svg width="100" height="40">
+        <rect x="0" y="0" width="90" height="40" fill="#33ff00" />
+        <text x="15" y="25" font-weight="bold">入力時間</text>
+      </svg>
+      工数入力OK
+    </p>
+    <p>
+      <input type="submit" value="デフォルト勤務入力" name="default_work" class="btn btn-blue7 mt-2">
+    </p>
     <table class="table table-bordered border-dark">
-      <p>表示月指定</p>
-      <div class="number-input-group">
-        {{form2.year}}年　{{form2.month}}月　　
-        <input type="submit" value="勤務登録" name="work_update" class="btn btn-blue7 mt-2">
-      </div>
-      <button name="update" id="update" class="btn btn-link"></button>
-      {% for message in messages %}
-      <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
-        <p  class="text-danger">
-          {{ message }}
-        </p>
-      </div>
-      {% endfor %}
-      <p>　</p>
-      <p>
-        <svg width="100" height="40">
-          <rect x="0" y="0" width="90" height="40" fill="#33ff00" />
-          <text x="15" y="25" font-weight="bold">入力時間</text>
-        </svg>
-        工数入力OK
-      </p>
-      <p>
-        <input type="submit" value="デフォルト勤務入力" name="default_work" class="btn btn-blue7 mt-2">
-      </p>
       <tr><p>　</p></tr>
       <tr>
         <th class="table-pink"><div class="text-center">日</div></th>
@@ -987,5 +987,6 @@
       </tr>
       {% endif %}
     </table>
+    </form>
   </body>
 </html>
