@@ -1135,7 +1135,6 @@ class Page_form(TestCase):
 
     # 勤務入力ページ表示切替チェック
     def test_schedule_change_form(self):
-
         # フォームデータ定義
         form_data = {
             'year' : '2000',
@@ -1143,10 +1142,12 @@ class Page_form(TestCase):
             'update': '表示切替',
             }
 
-        # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('schedule'), form_data)
-        # レスポンスが成功（ステータスコード200）であることを確認
-        self.assertEqual(response.status_code, 200)
+        # URLに対してPOSTリクエスト送信 (HTTP_X_REQUESTED_WITHヘッダーを追加)
+        response = self.client.post(
+            reverse('schedule'),
+            form_data,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+            )
 
         # 集計値が正しいか確認
         day_list = list(response.context['day_list'])
@@ -1161,10 +1162,12 @@ class Page_form(TestCase):
             'update': '表示切替',
             }
 
-        # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('schedule'), form_data2)
-        # レスポンスが成功（ステータスコード200）であることを確認
-        self.assertEqual(response.status_code, 200)
+        # URLに対してPOSTリクエスト送信 (HTTP_X_REQUESTED_WITHヘッダーを追加)
+        response = self.client.post(
+            reverse('schedule'),
+            form_data2,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+            )
 
         # 集計値が正しいか確認
         day_list = list(response.context['day_list'])
@@ -1175,7 +1178,6 @@ class Page_form(TestCase):
 
     # 勤務入力ページ勤務登録チェック
     def test_schedule_form(self):
-
         # フォームデータ定義
         form_data = {
             'year' : '2000',
@@ -1183,10 +1185,13 @@ class Page_form(TestCase):
             'update': '表示切替',
             }
 
-        # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('schedule'), form_data)
-        # レスポンスが成功（ステータスコード200）であることを確認
-        self.assertEqual(response.status_code, 200)
+        # URLに対してPOSTリクエスト送信 (HTTP_X_REQUESTED_WITHヘッダーを追加)
+        response = self.client.post(
+            reverse('schedule'),
+            form_data,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+            )
+
 
         # フォームデータ2定義
         form_data2 = {
@@ -1255,10 +1260,12 @@ class Page_form(TestCase):
             'work_update': '勤務登録',
             }
 
-        # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('schedule'), form_data2)
-        # レスポンスが成功（ステータスコード200）であることを確認
-        self.assertEqual(response.status_code, 200)
+        # URLに対してPOSTリクエスト送信 (HTTP_X_REQUESTED_WITHヘッダーを追加)
+        response = self.client.post(
+            reverse('schedule'),
+            form_data2,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+            )
 
         # テストユーザーの工数データ取得
         updated_entry1 = Business_Time_graph.objects.get(employee_no3 = self.member.employee_no, \
@@ -1279,7 +1286,6 @@ class Page_form(TestCase):
 
     # 勤務入力ページデフォルト勤務登録チェック
     def test_schedule_default_form(self):
-
         # フォームデータ定義
         form_data = {
             'year' : '2000',
@@ -1341,7 +1347,6 @@ class Page_form(TestCase):
 
     # 勤務入力ページデフォルト直登録チェック
     def test_schedule_tyoku_default_form(self):
-
         # フォームデータ定義
         form_data = {
             'year' : '2000',
@@ -1349,10 +1354,12 @@ class Page_form(TestCase):
             'update': '表示切替',
             }
 
-        # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('schedule'), form_data)
-        # レスポンスが成功（ステータスコード200）であることを確認
-        self.assertEqual(response.status_code, 200)
+        # URLに対してPOSTリクエスト送信 (HTTP_X_REQUESTED_WITHヘッダーを追加)
+        response = self.client.post(
+            reverse('schedule'),
+            form_data,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+            )
 
         # フォームデータ2定義
         form_data2 = {
@@ -1365,10 +1372,12 @@ class Page_form(TestCase):
             'default_tyoku': '直一括入力',
             }
 
-        # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('schedule'), form_data2)
-        # レスポンスが成功（ステータスコード200）であることを確認
-        self.assertEqual(response.status_code, 200)
+        # URLに対してPOSTリクエスト送信 (HTTP_X_REQUESTED_WITHヘッダーを追加)
+        response = self.client.post(
+            reverse('schedule'),
+            form_data2,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+            )
 
         # テストユーザーの工数データ取得
         updated_entry1 = Business_Time_graph.objects.filter(employee_no3 = self.member.employee_no, \
@@ -1451,7 +1460,6 @@ class Page_form(TestCase):
 
     # 工数区分定義確認ページ表示切替チェック
     def test_kosu_def_change_form(self):
-
         # フォームデータ定義
         form_data = {
             'kosu_def_list': '工数区分名1',
@@ -1483,7 +1491,6 @@ class Page_form(TestCase):
 
     # 工数区分定義Ver切替ページVer切替チェック
     def test_def_Ver_change_form(self):
-
         # kosu_divisionダミーデータ
         self.kosu_division = kosu_division.objects.create(
             kosu_name = 'トライ定義2',

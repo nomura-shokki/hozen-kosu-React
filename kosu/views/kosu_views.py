@@ -834,20 +834,15 @@ def input(request):
     work_default = ''
     tyoku_default = ''
 
-  # フォーム保持削除
-  for key in ['error_tyoku', 'error_work', 'error_def', 'error_detail', 'error_over_work']:
-    session_del(key, request)
-
-
   # 初期値を設定するリスト作成
-  default_list = {'work' : work_default,
-                 'work2' : work_default,
-                 'tyoku' : tyoku_default,
-                 'tyoku2' : tyoku_default, 
+  default_list = {'work' : request.session.get('error_work', work_default),
+                 'work2' : request.session.get('error_work', work_default),
+                 'tyoku' : request.session.get('error_tyoku', tyoku_default),
+                 'tyoku2' : request.session.get('error_tyoku', tyoku_default),
                  'tomorrow_check' : request.session.get('tomorrow_check', False),
                  'kosu_def_list': request.session.get('error_def', ''),
                  'work_detail' : request.session.get('error_detail', ''),
-                 'over_work' : over_work_default,
+                 'over_work' : request.session.get('error_over_work', over_work_default),
                  'break_change' : break_change_default,
                  'def_prediction' : member_obj.def_prediction} 
 
@@ -1939,6 +1934,8 @@ def schedule(request):
   if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
     # カレンダー更新時の処理
     if  "update" in request.POST:
+      import time
+      time.sleep(5)
       # 年取得
       year = int(request.POST['year'])
       # 月取得
