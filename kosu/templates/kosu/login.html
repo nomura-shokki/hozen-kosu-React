@@ -9,7 +9,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
   </head>
-  <body class="container">
+  <body class="container" id="display">
     <h1 class="display-1 text-primary">{{title}}</h1>
     <p>　</p>
     <form action="{% url 'login' %}" method="post">
@@ -26,5 +26,6 @@
     {% endfor %}
     <p>　</p>
     <a href="{% url 'help' %}" class="text-dark">データが全て消えてログインできない場合</a>
+    <script src="{% static 'kosu/js/display.js' %}"></script>
   </body>
 </html>

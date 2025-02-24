@@ -20,7 +20,6 @@ from dateutil.relativedelta import relativedelta
 from io import BytesIO
 import datetime
 import openpyxl
-import itertools
 import urllib.parse
 from ..models import member
 from ..models import Business_Time_graph
@@ -1621,213 +1620,150 @@ def team_over_time(request):
 
 
 # 工数入力可否(ショップ単位)画面定義
-def class_list(request):
-
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) is None:
-    return redirect(to='/login')
-
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no=request.session['login_No'])
-
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to='/login')
+class ClassListView(FormView):
+  # 使用テンプレート,フォームの定義
+  template_name = 'kosu/class_list.html'
+  form_class = member_findForm  # 店舗選択フォーム（フォームの選択を適宜調整）
+  extra_form_class = schedule_timeForm  # 年月選択フォーム（2つのフォーム使用時のサポート）
 
 
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
 
-  # POST時の処理
-  if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
-    # 検索項目に空欄がある場合の処理
-    if request.POST['year'] == '' or request.POST['month'] == '':
-      # エラーメッセージ出力
-      messages.error(request, '表示年月に未入力箇所があります。ERROR032')
-      # このページをリダイレクト
-      return redirect(to='/class_list')
+    # 権限なければメイン画面へ
+    if not member_obj.authority:
+      return redirect(to='/')
 
-    # フォームの初期値定義
-    shop_default = {'shop2': request.POST['shop2']}
-    schedule_default = {'year': request.POST['year'],
-                        'month': request.POST['month']}
+    # 班員登録無ければ班員MENUへ
+    if not team_member.objects.filter(employee_no5=request.session['login_No']).exists():
+      return redirect(to='/team_main')
 
-    # フォーム定義
-    shop_form = member_findForm(shop_default)
-    schedule_form = schedule_timeForm(schedule_default)
+    return super().dispatch(request, *args, **kwargs)
 
-    # POSTした値をセッションに登録
-    request.session['find_shop'] = request.POST['shop2']
-    request.session['find_year'] = request.POST['year']
-    request.session['find_month'] = request.POST['month']
+  # フォーム初期値オーバーライド
+  def get_form_kwargs(self):
+    kwargs = super().get_form_kwargs()
+    # ショップ選択初期値定義
+    shop_default = {'shop2': self.request.session.get('find_shop', self.member_obj.shop)}
 
-    # 選択ショップの人員取得
-    member_obj_filter = member.objects.filter(shop=request.POST['shop2']).order_by('employee_no')
-
-    # 空のリスト定義
-    No_list = []
-    name_list = []
-    ok_list = []
-    week_list = []
-
-    # 取得した人員情報の従業員番号をリスト化するループ
-    for i in member_obj_filter:
-      # 従業員番号をリストに追加
-      No_list.append(i.employee_no)
-      # 名前をリストに追加
-      name_list.append(i.name)
-
-    # 次の月の最初の日を定義
-    if request.POST['month'] == '12':
-      next_month = datetime.date(int(request.POST['year']) + 1, 1, 1)
-    else:
-      next_month = datetime.date(int(request.POST['year']), int(request.POST['month']) + 1, 1)
-
-    # 次の月の最初の日から1を引くことで、指定した月の最後の日を取得
-    last_day_of_month = next_month - datetime.timedelta(days=1)
-
-    # 指定ショップの人員毎に工数入力可否をリストにするループ
-    for ind, name in enumerate(name_list):
-      # 仮リストを空で定義
-      provisional_list = []
-      # 仮リストに人員名を入れる
-      provisional_list.append(name)
-      # 人員情報取得
-      member_obj_get = member.objects.get(employee_no=No_list[ind])
-
-      # 取得した人員の工数入力可否をリスト化するループ
-      for day in range(1, last_day_of_month.day + 1):
-        # 指定日に工数データがあるか確認
-        obj_filter = Business_Time_graph.objects.filter(
-            employee_no3=member_obj_get.employee_no,
-            work_day2=datetime.date(int(request.POST['year']),
-                                    int(request.POST['month']),
-                                    day)
-        )
-
-        # 工数データがある場合の処理
-        if obj_filter.count() != 0:
-          # 工数データ取得
-          obj_get = Business_Time_graph.objects.get(
-              employee_no3=member_obj_get.employee_no,
-              work_day2=datetime.date(int(request.POST['year']),
-                                      int(request.POST['month']),
-                                      day)
-          )
-
-          # 工数入力可否を仮リストに入れる
-          provisional_list.append(obj_get)
-
-        # 工数データがない場合の処理
-        else:
-          # 仮リストに工数入力可否をFalseで入れる
-          provisional_list.append(None)
-
-      # 仮リストを工数入力可否リストに入れる
-      ok_list.append(provisional_list)
-
-    # 曜日リスト作成するループ
-    for d in range(1, last_day_of_month.day + 1):
-      # 曜日を取得する日を作成
-      week_day = datetime.date(int(request.POST['year']), int(request.POST['month']), d)
-
-      # 指定日の曜日をリストに挿入
-      if week_day.weekday() == 0:
-        week_list.append('月')
-      elif week_day.weekday() == 1:
-        week_list.append('火')
-      elif week_day.weekday() == 2:
-        week_list.append('水')
-      elif week_day.weekday() == 3:
-        week_list.append('木')
-      elif week_day.weekday() == 4:
-        week_list.append('金')
-      elif week_day.weekday() == 5:
-        week_list.append('土')
-      elif week_day.weekday() == 6:
-        week_list.append('日')
-
-    # contextの定義
-    context = {
-      'shop_form': shop_form,
-      'schedule_form': schedule_form,
-      'day_list': zip(range(1, last_day_of_month.day + 1), week_list),
-      'ok_list': ok_list,
-      'week_list': week_list,
-      }
-
-    # 部分テンプレート（テーブル部分）のレンダリング
-    html = render_to_string('kosu/class_list_table.html', context, request)
-
-    return JsonResponse({'html': html})  # JSONレスポンス
-
-  # POST時以外の処理
-  else:
-    # セッション値に年月のデータがない場合の処理
-    if request.session.get('find_year', '') == '' or request.session.get('find_month', '') == '':
-      # 本日の年月取得
+    # 年月デフォルト値を定義
+    if self.request.session.get('find_year', '') == '' or self.request.session.get('find_month', '') == '':
       year = datetime.date.today().year
       month = datetime.date.today().month
-
-    # セッション値に年月のデータがある場合の処理
     else:
-      # セッション値から年月取得
-      year = request.session['find_year']
-      month = request.session['find_month']
+      year = self.request.session['find_year']
+      month = self.request.session['find_month']
 
-    # 以下は元のコードと同じ
-    shop_default = {'shop2': request.session.get('find_shop', data.shop)}
     schedule_default = {'year': year, 'month': month}
+    kwargs['initial'] = shop_default
+    self.extra_initial = schedule_default
+    return kwargs
 
-    shop_form = member_findForm(shop_default)
-    schedule_form = schedule_timeForm(schedule_default)
 
-    if request.session.get('find_shop', '') != '':
-      member_obj_filter = member.objects.filter(shop=request.session['find_shop']).order_by('employee_no')
+  # コンテキストデータを設定するメソッドをオーバーライド
+  def get_context_data(self, **kwargs):
+    # コンテキストデータの処理
+    context = super().get_context_data(**kwargs)
+
+    # 選択された店舗の従業員データ
+    if self.request.session.get('find_shop', '') != '':
+      member_obj_filter = member.objects.filter(shop=self.request.session['find_shop']).order_by('employee_no')
     else:
-      member_obj_filter = member.objects.filter(shop=data.shop).order_by('employee_no')
+      user_data = member.objects.get(employee_no=self.request.session['login_No'])
+      member_obj_filter = member.objects.filter(shop=user_data.shop).order_by('employee_no')
 
     No_list = []
     name_list = []
     ok_list = []
     week_list = []
 
-    if int(month) == 12:
-      next_month = datetime.date(int(year) + 1, 1, 1)
+    year = int(self.request.session.get('find_year', datetime.date.today().year))
+    month = int(self.request.session.get('find_month', datetime.date.today().month))
+
+    # 月の最終日取得
+    if month == 12:
+      next_month = datetime.date(year + 1, 1, 1)
     else:
-      next_month = datetime.date(int(year), int(month) + 1, 1)
+      next_month = datetime.date(year, month + 1, 1)
 
     last_day_of_month = next_month - datetime.timedelta(days=1)
 
-    for d in range(1, last_day_of_month.day + 1):
-      week_day = datetime.date(int(year), int(month), d)
-      if week_day.weekday() == 0:
-        week_list.append('月')
-      elif week_day.weekday() == 1:
-        week_list.append('火')
-      elif week_day.weekday() == 2:
-        week_list.append('水')
-      elif week_day.weekday() == 3:
-        week_list.append('木')
-      elif week_day.weekday() == 4:
-        week_list.append('金')
-      elif week_day.weekday() == 5:
-        week_list.append('土')
-      elif week_day.weekday() == 6:
-        week_list.append('日')
+    # 従業員情報設定
+    for member_obj in member_obj_filter:
+      No_list.append(member_obj.employee_no)
+      name_list.append(member_obj.name)
 
-    context = {
+    for ind, name in enumerate(name_list):
+      provisional_list = []
+      provisional_list.append(name)
+      member_obj_get = member.objects.get(employee_no=No_list[ind])
+
+      # 工数入力可否情報設定
+      for day in range(1, last_day_of_month.day + 1):
+        day_date = datetime.date(year, month, day)
+        business_time_obj = Business_Time_graph.objects.filter(
+            employee_no3=member_obj_get.employee_no, work_day2=day_date
+        )
+        if business_time_obj.count() != 0:
+          provisional_list.append(business_time_obj[0])
+        else:
+          provisional_list.append(None)
+
+      ok_list.append(provisional_list)
+
+    # 曜日リスト作成
+    for d in range(1, last_day_of_month.day + 1):
+      week_day = datetime.date(year, month, d).weekday()
+      week_mapping = ['月', '火', '水', '木', '金', '土', '日']
+      week_list.append(week_mapping[week_day])
+
+    # コンテキスト定義
+    context.update({
       'title': '工数入力可否(ショップ単位)',
-      'shop_form': shop_form,
-      'schedule_form': schedule_form,
+      'shop_form': member_findForm(self.get_form_kwargs()['initial']),
+      'schedule_form': schedule_timeForm(self.extra_initial),
       'day_list': zip(range(1, last_day_of_month.day + 1), week_list),
       'ok_list': ok_list,
       'week_list': week_list,
-      }
+      })
 
-    return render(request, 'kosu/class_list.html', context)
+    return context
+
+
+  # フォームが有効な場合の処理
+  def form_valid(self, form):
+    # POSTリクエストの処理
+    if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+      year = self.request.POST.get('year', '')
+      month = self.request.POST.get('month', '')
+      shop2 = self.request.POST.get('shop2', '')
+
+      # 年or月が未入力だとリダイレクト
+      if not year or not month:
+        messages.error(self.request, '表示年月に未入力箇所があります。ERROR032')
+        return redirect(to='/class_list')
+
+      # 検索記憶更新
+      self.request.session['find_shop'] = shop2
+      self.request.session['find_year'] = year
+      self.request.session['find_month'] = month
+
+      # 再レンダリングされたテーブルのみのHTMLを返却
+      html = render_to_string('kosu/class_list_table.html', self.get_context_data(), self.request)
+      return JsonResponse({'html': html})
+    return super().form_valid(form)
+
+
+  # フォームが無効な状態の処理
+  def form_invalid(self, form):
+    messages.error(self.request, '入力フォームにエラーがあります。')
+    return redirect('/class_list')
 
 
 
