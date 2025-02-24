@@ -1,3 +1,6 @@
+// ローディング画面のアニメーション変更時は1度ローディング画面を表示してから
+// しばらく持ってから再度ローディング画面のアニメーションが任意の挙動か確認すること
+
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('dataForm');
     const responseArea = document.getElementById('responseArea');
@@ -5,11 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingText = document.querySelector('#loading p');
     const loadingImg = document.querySelector('#loading img');
     const loadingAreaGreen = document.querySelector('#loading-screen');
-  
+
     document.querySelectorAll('button').forEach(button => {
         button.addEventListener('click', async (event) => {
             showLoading();
-  
+
             try {
                 const formData = new FormData(form);
                 formData.append(event.target.name, event.target.name);
@@ -21,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         'X-Requested-With': 'XMLHttpRequest',
                     },
                 });
-                
+
                 if (response.ok) {
                     const data = await response.json();
                     responseArea.innerHTML = data.html;
@@ -54,7 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
         loading.style.opacity = "1";
         loadingText.style.opacity = "1";
         loadingImg.style.opacity = "1";
+        loadingImg.style.display = "block";
         loadingAreaGreen.style.opacity = "1";
+        loadingAreaGreen.style.transform = "translate(0, 100vh)";
     }
 
     function hideLoading() {
@@ -102,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 duration: 1000,
                 delay: 500,
                 easing: 'ease',
-                fill: 'forwards',
+                fill: 'none',
             }
         );
 
@@ -110,6 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(() => {
                 loading.style.display = "none";
                 loading.style.opacity = "1";
+
+                resetAnimations();
             });
     }
 });
