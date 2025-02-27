@@ -110,7 +110,7 @@ input.big {
 
 
 #loading {
-  background-color: #888888; /* 背景色を灰色に設定 */
+  background-color: var(--light-grey); /* 背景色を灰色に設定 */
   position: fixed; /* 画面全体に固定 */
   top: 0; /* 画面の上から配置 */
   left: 0; /* 画面の左から配置 */
