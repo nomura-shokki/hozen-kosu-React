@@ -10,12 +10,13 @@
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
   </head>
   <body class="container">
+    <div id="success-message">
     <div id="loading" style="display: none;">
       <div class="item">
         <img src="{% static 'kosu/img/helmet.png' %}">
       </div>
       <p>Loading...</p>
-      <div id="loading-screen"></div>
+    </div>
     </div>
     <h1 class="display-5 text-danger">{{title}}</h1>
     <p class="h6"><a href="{% url 'team_main' %}" class="text-danger">班員MENUへ</a></p>

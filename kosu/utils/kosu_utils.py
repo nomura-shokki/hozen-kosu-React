@@ -354,7 +354,7 @@ def kosu_duplication_check(start_ind, end_ind, kosu_def, request):
     if kosu_def[kosu] != '$':
       if kosu_def[kosu] != '#':
         # エラーメッセージ出力
-        messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR008')
+        messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR030')
         # このページをリダイレクト
         return redirect(to = '/input')
 
@@ -400,7 +400,7 @@ def break_time_delete(break_start_ind, break_end_ind, kosu_def, detail_list, mem
         # 作業内容リストが休憩でない場合の処理
         if kosu_def[bt] != '$':
           # エラーメッセージ出力
-          messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR158')
+          messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR031')
           return kosu_def, detail_list
 
     # ユーザーが休憩エラー有効チェックOFFの場合の処理   
@@ -1001,7 +1001,7 @@ def break_time_over(start_hour, start_min, end_hour, end_min, limit_tome,comment
     (int(end_hour)*60 + int(end_min) + 1440) - \
     (int(start_hour)*60 + int(start_min)) > limit_tome):
     # エラーメッセージ出力
-    messages.error(request, '{}が{}分を超えています。正しい休憩時間を登録して下さい。ERROR061'.format(comment, limit_tome))
+    messages.error(request, '{}が{}分を超えています。正しい休憩時間を登録して下さい。ERROR032'.format(comment, limit_tome))
     # このページをリダイレクト
     return redirect(to = '/break_time')
 
@@ -1364,22 +1364,22 @@ def kosu_delete(start_indent, end_indent, work_list, detail_list):
 def kosu_edit_check(start_time, end_time, edit_id, num, request):
   # 作業時間の指定がない場合、リダイレクト
   if start_time in ('', None) or end_time in ('', None):
-    messages.error(request, '時間が入力されていません。ERROR089')
+    messages.error(request, '時間が入力されていません。ERROR033')
     return redirect(to = '/detail/{}'.format(num))
 
   # 作業詳細に'$'が含まれている場合、リダイレクト
   if '$' in request.POST.get('detail_time{}'.format(edit_id)):
-    messages.error(request, '作業詳細に『$』は使用できません。工数編集できませんでした。ERROR093')
+    messages.error(request, '作業詳細に『$』は使用できません。工数編集できませんでした。ERROR034')
     return redirect(to = '/detail/{}'.format(num))
 
   # 作業詳細に文字数が100文字以上の場合、リダイレクト
   if len(request.POST.get('detail_time{}'.format(edit_id))) >= 100:
-    messages.error(request, '作業詳細は100文字以内で入力して下さい。工数編集できませんでした。ERROR094')
+    messages.error(request, '作業詳細は100文字以内で入力して下さい。工数編集できませんでした。ERROR035')
     return redirect(to = '/detail/{}'.format(num))
 
     # 作業開始時間と終了時間が同じ場合、リダイレクト
   if start_time == end_time:
-    messages.error(request, '入力された作業時間が正しくありません。ERROR088')
+    messages.error(request, '入力された作業時間が正しくありません。ERROR036')
     return redirect(to = '/detail/{}'.format(num))
 
 
@@ -1399,7 +1399,7 @@ def kosu_edit_write(start_time_ind, end_time_ind, work_list, detail_list, edit_i
     # 変更後の作業時間に工数データが入力されている場合、リダイレクト
     if work_list[k] != '#':
       if work_list[k] != '$':
-        messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR085')
+        messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR037')
         return None, None
 
     # 変更後の作業時間に工数データが入力されていない場合の処理

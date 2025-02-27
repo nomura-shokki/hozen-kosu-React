@@ -166,7 +166,7 @@ class MemberNewView(CreateView):
     request = self.request
     # POSTした従業員番号が既に登録されている場合エラー出力
     if member.objects.filter(employee_no=request.POST['employee_no']).exists():
-        messages.error(request, '入力した従業員番号はすでに登録があるので登録できません。ERROR020')
+        messages.error(request, '入力した従業員番号はすでに登録があるので登録できません。ERROR041')
         return redirect(to='/new')
 
     # POSTしたショップがボデーか組立の場合の処理
@@ -287,7 +287,7 @@ class MemberEditView(UpdateView):
 
     # 編集後の従業員番号が既存データと被った場合、エラー出力しリダイレクト
     if int(original_employee_no) != int(new_employee_no) and member.objects.filter(employee_no=new_employee_no).exists():
-      messages.error(self.request, '入力した従業員番号はすでに登録があるので登録できません。ERROR021')
+      messages.error(self.request, '入力した従業員番号はすでに登録があるので登録できません。ERROR042')
       return redirect(to=f'/member_edit/{self.kwargs["num"]}')
     
     # デフォルトの休憩時間リスト指定

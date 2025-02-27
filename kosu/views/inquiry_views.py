@@ -47,7 +47,7 @@ def inquiry_new(request):
     # 問い合わせ内容が10文字未満の場合の処理
     if len(request.POST['inquiry']) < 10:
       # エラーメッセージ出力
-      messages.error(request, '問い合わせ内容は10文字以上でお願いします。ERROR041')
+      messages.error(request, '問い合わせ内容は10文字以上でお願いします。ERROR046')
       # このページをリダイレクト
       return redirect(to = '/inquiry_new')
 

@@ -225,7 +225,7 @@ class TeamGraphView(TemplateView):
   def post(self, request, *args, **kwargs):
     # 日付指定ない場合、リダイレクト
     if 'team_day' not in request.POST or request.POST['team_day'] == '':
-      messages.error(request, '日付を指定してから検索して下さい。ERROR27')
+      messages.error(request, '日付を指定してから検索して下さい。ERROR43')
       return redirect('/team_graph')
 
     # POSTされた日付取得
@@ -1446,7 +1446,7 @@ def team_over_time(request):
     # 検索項目に空欄がある場合の処理
     if request.POST['year'] == '' or request.POST['month'] == '':
       # エラーメッセージ出力
-      messages.error(request, '表示年月に未入力箇所があります。ERROR082')
+      messages.error(request, '表示年月に未入力箇所があります。ERROR044')
       # このページをリダイレクト
       return redirect(to = '/class_list')
     
@@ -1746,7 +1746,7 @@ class ClassListView(FormView):
 
       # 年or月が未入力だとリダイレクト
       if not year or not month:
-        messages.error(self.request, '表示年月に未入力箇所があります。ERROR032')
+        messages.error(self.request, '表示年月に未入力箇所があります。ERROR045')
         return redirect(to='/class_list')
 
       # 検索記憶更新

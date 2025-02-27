@@ -323,7 +323,7 @@ def input(request):
 
     else:
       # エラー時リダイレクト
-      messages.error(request, '就業日の削除はしないで下さい。ERROR009')
+      messages.error(request, '就業日の削除はしないで下さい。ERROR001')
       return redirect(to = '/input')
 
     # 工数登録完了メッセージ非表示
@@ -364,27 +364,27 @@ def input(request):
 
     # いずれかが None または 空文字列ならばエラーメッセージ出力してリダイレクト
     if any(v in (None, '') for v in values):
-        messages.error(request, '直、工数区分、勤務、残業、作業時間のいずれかが未入力です。工数登録できませんでした。ERROR060')
+        messages.error(request, '直、工数区分、勤務、残業、作業時間のいずれかが未入力です。工数登録できませんでした。ERROR002')
         return redirect(to='/input')
 
     # 作業詳細に'$'が含まれている場合リダイレクト
     if '$' in detail_work:
-      messages.error(request, '作業詳細に『$』は使用できません。工数登録できませんでした。ERROR026')
+      messages.error(request, '作業詳細に『$』は使用できません。工数登録できませんでした。ERROR003')
       return redirect(to = '/input')
 
     # 作業詳細に文字数が100文字以上の場合リダイレクト
     if len(detail_work) >= 100:
-      messages.error(request, '作業詳細は100文字以内で入力して下さい。工数登録できませんでした。ERROR059')
+      messages.error(request, '作業詳細は100文字以内で入力して下さい。工数登録できませんでした。ERROR004')
       return redirect(to = '/input')
 
     # 残業時間が15の倍数でない場合リダイレクト
     if int(request.POST['over_work'])%15 != 0 and work != '休出':
-      messages.error(request, '残業時間が15分の倍数になっていません。工数登録できませんでした。ERROR058')
+      messages.error(request, '残業時間が15分の倍数になっていません。工数登録できませんでした。ERROR005')
       return redirect(to = '/input')
 
     # 作業開始時間と作業終了時間が同じ場合リダイレクト
     if start_time == end_time:
-      messages.error(request, '作業時間が誤っています。確認して下さい。ERROR003')
+      messages.error(request, '作業時間が誤っています。確認して下さい。ERROR006')
       return redirect(to = '/input')
 
     # 作業開始、終了の時と分取得
@@ -398,17 +398,17 @@ def input(request):
 
     # 作業開始時間が作業終了時間より遅い場合のリダイレクト
     if start_time_ind > end_time_ind and check == 0:
-      messages.error(request, '作業開始時間が終了時間を越えています。翌日チェックを忘れていませんか？ERROR004')
+      messages.error(request, '作業開始時間が終了時間を越えています。翌日チェックを忘れていませんか？ERROR007')
       return redirect(to = '/input')
 
     # 1日以上の工数が入力された場合リダイレクト
     if start_time_ind <= end_time_ind and check == 1:
-      messages.error(request, '1日以上の工数は入力できません。誤って翌日チェックを入れていませんか？ERROR097')
+      messages.error(request, '1日以上の工数は入力できません。誤って翌日チェックを入れていませんか？ERROR008')
       return redirect(to = '/input')
 
     # 入力時間が21時間を超える場合リダイレクト
     if ((end_time_ind + 36) >= start_time_ind and check == 1) or ((end_time_ind - 252) >= start_time_ind and check == 0):
-      messages.error(request, '作業時間が21時間を超えています。入力できません。ERROR098')
+      messages.error(request, '作業時間が21時間を超えています。入力できません。ERROR009')
       return redirect(to = '/input')
 
 
@@ -421,7 +421,7 @@ def input(request):
 
       # 以前同日に打ち込んだ工数区分定義と違う場合リダイレクト
       if obj_get.def_ver2 not in (request.session['input_def'], None, ''):
-        messages.error(request, '前に入力された工数と工数区分定義のVerが違います。ERROR007')
+        messages.error(request, '前に入力された工数と工数区分定義のVerが違います。ERROR010')
         return redirect(to = '/input')
 
 
@@ -632,17 +632,17 @@ def input(request):
 
     # 残業未入力の場合リダイレクト
     if request.POST['over_work'] == '':
-      messages.error(request, '残業が未入力です。登録できませんでした。ERROR017')
+      messages.error(request, '残業が未入力です。登録できませんでした。ERROR011')
       return redirect(to = '/input')
     
     # 残業時間が15の倍数でない場合リダイレクト
     if int(request.POST['over_work'])%15 != 0 and work != '休出':
-      messages.error(request, '残業時間が15分の倍数になっていません。工数登録できませんでした。ERROR018')
+      messages.error(request, '残業時間が15分の倍数になっていません。工数登録できませんでした。ERROR012')
       return redirect(to = '/input')
 
     # 休出時に残業時間が5の倍数でない場合リダイレクト
     if int(request.POST['over_work'])%5 != 0 and work == '休出':
-      messages.error(request, '残業時間が5分の倍数になっていません。工数登録できませんでした。ERROR084')
+      messages.error(request, '残業時間が5分の倍数になっていません。工数登録できませんでした。ERROR013')
       return redirect(to = '/input')
 
     
@@ -769,7 +769,7 @@ def input(request):
       # 休憩データが空の場合リダイレクト
       if obj_get.breaktime == None or obj_get.breaktime_over1 == None or \
         obj_get.breaktime_over2 == None or obj_get.breaktime_over3 == None:
-        messages.error(request, 'この日は、まだ休憩データがありません。工数を1件以上入力してから休憩を変更して下さい。ERROR016')
+        messages.error(request, 'この日は、まだ休憩データがありません。工数を1件以上入力してから休憩を変更して下さい。ERROR014')
         return redirect(to = '/input')
 
       # 休憩データがある場合の処理 
@@ -779,7 +779,7 @@ def input(request):
 
     # 工数データがない場合リダイレクト
     else:
-      messages.error(request, 'この日は、まだ工数データがありません。工数を1件以上入力してから休憩を変更して下さい。ERROR006')
+      messages.error(request, 'この日は、まだ工数データがありません。工数を1件以上入力してから休憩を変更して下さい。ERROR015')
       return redirect(to = '/input')
 
 
@@ -1331,12 +1331,12 @@ def detail(request, num):
   if "edit_day" in request.POST:
     # 指定日が空欄の場合、リダイレクト
     if request.POST['kosu_day'] == '':
-      messages.error(request, '変更する日付を指定して下さい。ERROR096')
+      messages.error(request, '変更する日付を指定して下さい。ERROR016')
       return redirect(to = '/detail/{}'.format(num))
 
     # 残業空欄の場合、リダイレクト
     if request.POST['over_time'] == '':
-      messages.error(request, '残業は空欄で登録できません。ERROR099')
+      messages.error(request, '残業は空欄で登録できません。ERROR017')
       return redirect(to = '/detail/{}'.format(num))
 
     # 日付に変更がある場合の処理
@@ -1346,7 +1346,7 @@ def detail(request, num):
 
       # 指定日に工数データがある場合、リダイレクト
       if obj_check.exists():
-        messages.error(request, '指定された日は既に工数データが存在します。指定日のデータを削除してから再度実行下さい。ERROR095')
+        messages.error(request, '指定された日は既に工数データが存在します。指定日のデータを削除してから再度実行下さい。ERROR018')
         return redirect(to = '/detail/{}'.format(num))
 
     # 作業内容データの内容を上書きして更新
@@ -1372,7 +1372,7 @@ def detail(request, num):
 
     # 時間指定を空でPOSTした場合、リダイレクト
     if start_time == '' or end_time == '':
-      messages.error(request, '時間が指定されていません。ERROR005')
+      messages.error(request, '時間が指定されていません。ERROR019')
       return redirect(to = '/detail/{}'.format(num))
     
     # 作業開始、終了の時と分取得
@@ -1389,7 +1389,7 @@ def detail(request, num):
 
     # 削除開始時間が削除終了時間より遅い時間の場合、リダイレクト
     if (start_indent > end_indent) and check == 0:
-      messages.error(request, '削除の開始時間が終了時間よりも遅い時間を指定されましたので処理できません。ERROR011')
+      messages.error(request, '削除の開始時間が終了時間よりも遅い時間を指定されましたので処理できません。ERROR020')
       return redirect(to = '/detail/{}'.format(num))
 
     # 日を超えていない場合の処理
@@ -1582,7 +1582,7 @@ def detail(request, num):
 
     # 工数入力時間に被りがある場合、リダイレクト
     if len(index_list) != len(set(index_list)):
-      messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR085')
+      messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR021')
       return redirect(to = '/detail/{}'.format(num))
 
 
@@ -2598,12 +2598,12 @@ def all_kosu_detail(request, num):
     # 従業員番号チェック
     employee_no = request.POST.get('employee_no', '')
     if not member.objects.filter(employee_no=employee_no).exists():
-      messages.error(request, 'その従業員番号は人員データにありません。ERROR092')
+      messages.error(request, 'その従業員番号は人員データにありません。ERROR022')
       return redirect(to=f'/all_kosu_detail/{num}')
 
     # 必須項目（従業員番号、就業日）が空の場合
     if not employee_no or not request.POST.get('work_day', ''):
-      messages.error(request, '従業員番号か就業日が未入力です。ERROR100')
+      messages.error(request, '従業員番号か就業日が未入力です。ERROR023')
       return redirect(to=f'/all_kosu_detail/{num}')
 
     # 作業内容の正規表現チェック
@@ -2611,19 +2611,19 @@ def all_kosu_detail(request, num):
     for i in range(24):
       time_work_value = request.POST.get(f'time_work{i}', '')
       if not re.fullmatch(time_work_pattern, time_work_value):
-        messages.error(request, f'{i}時台の作業内容の入力値が不適切です。ERROR101')
+        messages.error(request, f'{i}時台の作業内容の入力値が不適切です。ERROR024')
         return redirect(to=f'/all_kosu_detail/{num}')
 
     # 作業詳細の整合性チェック
     for i in range(24):
       detail_work_value = request.POST.get(f'detail_work{i}', '')
       if detail_work_value.count('$') != 11:
-        messages.error(request, f'{i}時台の作業詳細の入力値が不適切です。ERROR102')
+        messages.error(request, f'{i}時台の作業詳細の入力値が不適切です。ERROR025')
         return redirect(to=f'/all_kosu_detail/{num}')
 
     # 残業時間の整合性チェック
     if int(request.POST.get('over_time', 0)) % 5 != 0:
-      messages.error(request, '残業の入力値が5の倍数ではありません。ERROR149')
+      messages.error(request, '残業の入力値が5の倍数ではありません。ERROR026')
       return redirect(to=f'/all_kosu_detail/{num}')
 
     # 休憩時間フォーマットチェック
@@ -2634,7 +2634,7 @@ def all_kosu_detail(request, num):
     for i, field in enumerate(breaktime_fields):
       match = re.fullmatch(breaktime_pattern, request.POST.get(field, ''))
       if not match:
-        messages.error(request, f'{breaktime_name[i]}の記入が#+数字8桁の形式になっていません。ERROR150')
+        messages.error(request, f'{breaktime_name[i]}の記入が#+数字8桁の形式になっていません。ERROR027')
         return redirect(to=f'/all_kosu_detail/{num}')
 
       # 時刻の範囲チェック（60進数、5分刻み）
@@ -2645,7 +2645,7 @@ def all_kosu_detail(request, num):
         hours2 not in range(24) or minutes2 not in range(0, 60, 5)
         )
       if invalid_time:
-        messages.error(request, f'{breaktime_name[i]}の設定が60進数の入力でないか5分刻みの数字ではありません。ERROR151')
+        messages.error(request, f'{breaktime_name[i]}の設定が60進数の入力でないか5分刻みの数字ではありません。ERROR028')
         return redirect(to=f'/all_kosu_detail/{num}')
 
     # 従業員番号・日付変更時の確認
@@ -2657,7 +2657,7 @@ def all_kosu_detail(request, num):
     if new_employee_no != original_employee_no or new_work_day != original_work_day:
       # 新しい日付に既存データがある場合はエラー
       if Business_Time_graph.objects.filter(employee_no3=new_employee_no, work_day2=new_work_day).exists():
-        messages.error(request, 'その日付には既に工数データがあります。ERROR091')
+        messages.error(request, 'その日付には既に工数データがあります。ERROR029')
         return redirect(to=f'/all_kosu_detail/{num}')
 
       # 元のデータを削除

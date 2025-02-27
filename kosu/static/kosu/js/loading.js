@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const loading = document.querySelector('#loading');
     const loadingText = document.querySelector('#loading p');
     const loadingImg = document.querySelector('#loading img');
-    const loadingAreaGreen = document.querySelector('#loading-screen');
 
     document.querySelectorAll('button').forEach(button => {
         button.addEventListener('click', async (event) => {
@@ -45,21 +44,17 @@ document.addEventListener('DOMContentLoaded', () => {
         loading.style.display = "grid";
         loadingText.style.display = "block";
         loadingImg.style.display = "block";
-        loadingAreaGreen.style.display = "block";
     }
 
     function resetAnimations() {
         loading.getAnimations().forEach(animation => animation.cancel());
         loadingText.getAnimations().forEach(animation => animation.cancel());
         loadingImg.getAnimations().forEach(animation => animation.cancel());
-        loadingAreaGreen.getAnimations().forEach(animation => animation.cancel());
 
         loading.style.opacity = "1";
         loadingText.style.opacity = "1";
         loadingImg.style.opacity = "1";
         loadingImg.style.display = "block";
-        loadingAreaGreen.style.opacity = "1";
-        loadingAreaGreen.style.transform = "translate(0, 100vh)";
     }
 
     function hideLoading() {
@@ -99,19 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         );
 
-        const loadingAreaGreenAnimation = loadingAreaGreen.animate(
-            {
-                translate: ['0 100vh', '0 0', '0 -100vh']
-            },
-            {
-                duration: 1000,
-                delay: 500,
-                easing: 'ease',
-                fill: 'none',
-            }
-        );
-
-        Promise.all([loadingAnimation.finished, loadingTextAnimation.finished, loadingImgAnimation.finished, loadingAreaGreenAnimation.finished])
+        Promise.all([loadingAnimation.finished, loadingTextAnimation.finished, loadingImgAnimation.finished])
             .then(() => {
                 loading.style.display = "none";
                 loading.style.opacity = "1";

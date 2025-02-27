@@ -50,7 +50,7 @@ def kosu_def(request):
     # 検索欄が空欄の場合の処理
     if request.POST['kosu_def_list'] == '':
       # エラーメッセージ出力
-      messages.error(request, '確認する定義区分が選択されていません。ERROR031')
+      messages.error(request, '確認する定義区分が選択されていません。ERROR038')
       # このページをリダイレクト
       return redirect(to = '/kosu_def')
 
@@ -305,7 +305,7 @@ def def_edit(request, num):
     if request.session.get('edit_def', None) != request.POST['kosu_name'] and \
       def_data.count() >= 1:
       # エラーメッセージ出力
-      messages.error(request, '入力した工数区分定義名はすでに登録があるので登録できません。ERROR028')
+      messages.error(request, '入力した工数区分定義名はすでに登録があるので登録できません。ERROR039')
       # このページをリダイレクト
       return redirect(to = '/def_edit/{}'.format(num))
 
@@ -581,7 +581,7 @@ class DefNewView(CreateView):
 
     # POSTされた工数区分定義名を使用していればエラーメッセージを出す
     if kosu_division.objects.filter(kosu_name=kosu_name).exists():
-      messages.error(self.request, '登録しようとした工数区分定義名は既に使用しています。登録できません。ERROR027')
+      messages.error(self.request, '登録しようとした工数区分定義名は既に使用しています。登録できません。ERROR040')
       return redirect(self.success_url)
 
     # 新しいレコードを作成しセーブする

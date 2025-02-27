@@ -58,14 +58,14 @@ class LoginView(FormView):
     find = form.cleaned_data['employee_no4']
     # 従業員番号が空の場合、リダイレクト
     if find == '':
-      messages.error(self.request, '従業員番号を入力して下さい。ERROR001')
+      messages.error(self.request, '従業員番号を入力して下さい。ERROR047')
       return redirect('/login')
 
     # 人員登録データから値を検索
     data = member.objects.filter(employee_no=find)
     # 従業員番号の登録がない場合、リダイレクト
     if not data.exists():
-      messages.error(self.request, '入力された従業員番号は登録がありません。ERROR002')
+      messages.error(self.request, '入力された従業員番号は登録がありません。ERROR048')
       return redirect('/login')
 
     # 従業員番号の登録がある場合の処理
@@ -500,28 +500,28 @@ def administrator_menu(request):
   if 'registration' in request.POST:
     # 一覧表示項目数に文字が入っている場合、リダイレクト
     if not request.POST['menu_row'].isdigit():
-      messages.error(request, '一覧表示項目数は数字で入力して下さい。ERROR056')
+      messages.error(request, '一覧表示項目数は数字で入力して下さい。ERROR049')
       return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no1'] != '':
       # 問い合わせ担当者従業員番号に文字が入っている場合、リダイレクト
       if not request.POST['administrator_employee_no1'].isdigit():
-        messages.error(request, '問い合わせ担当者従業員番号は数字で入力して下さい。ERROR077')
+        messages.error(request, '問い合わせ担当者従業員番号は数字で入力して下さい。ERROR050')
         return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no2'] != '':
       # 問い合わせ担当者従業員番号に文字が入っている場合、リダイレクト
       if not request.POST['administrator_employee_no2'].isdigit():
-        messages.error(request, '問い合わせ担当者従業員番号は数字で入力して下さい。ERROR078')
+        messages.error(request, '問い合わせ担当者従業員番号は数字で入力して下さい。ERROR051')
         return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
     if request.POST['administrator_employee_no3'] != '':
       # 問い合わせ担当者従業員番号に文字が入っている場合、リダイレクト
       if not request.POST['administrator_employee_no3'].isdigit():
-        messages.error(request, '問い合わせ担当者従業員番号は数字で入力して下さい。ERROR079')
+        messages.error(request, '問い合わせ担当者従業員番号は数字で入力して下さい。ERROR052')
         return redirect(to = '/administrator')
 
     # 一覧表示項目数が自然数でない場合、リダイレクト
@@ -536,7 +536,7 @@ def administrator_menu(request):
       if math.floor(float(request.POST['administrator_employee_no1'])) != \
         float(request.POST['administrator_employee_no1']) or \
         float(request.POST['administrator_employee_no1']) <= 0:
-        messages.error(request, '問い合わせ担当者従業員番号は自然数で入力して下さい。ERROR033')
+        messages.error(request, '問い合わせ担当者従業員番号は自然数で入力して下さい。ERROR053')
         return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
@@ -545,7 +545,7 @@ def administrator_menu(request):
       if math.floor(float(request.POST['administrator_employee_no2'])) != \
         float(request.POST['administrator_employee_no2']) or \
         float(request.POST['administrator_employee_no2']) <= 0:
-        messages.error(request, '問い合わせ担当者従業員番号は自然数で入力して下さい。ERROR034')
+        messages.error(request, '問い合わせ担当者従業員番号は自然数で入力して下さい。ERROR054')
         return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
@@ -554,27 +554,27 @@ def administrator_menu(request):
       if math.floor(float(request.POST['administrator_employee_no3'])) != \
         float(request.POST['administrator_employee_no3']) or \
         float(request.POST['administrator_employee_no3']) <= 0:
-        messages.error(request, '問い合わせ担当者従業員番号は自然数で入力して下さい。ERROR035')
+        messages.error(request, '問い合わせ担当者従業員番号は自然数で入力して下さい。ERROR055')
         return redirect(to = '/administrator')
 
     # 一覧表示項目数が半角でない場合、リダイレクト
     if has_non_halfwidth_characters(request.POST['menu_row']):
-      messages.error(request, '一覧表示項目数は半角で入力して下さい。ERROR053')
+      messages.error(request, '一覧表示項目数は半角で入力して下さい。ERROR056')
       return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が半角でない場合、リダイレクト
     if has_non_halfwidth_characters(request.POST['administrator_employee_no1']):
-      messages.error(request, '問い合わせ担当者従業員番号は半角で入力して下さい。ERROR036')
+      messages.error(request, '問い合わせ担当者従業員番号は半角で入力して下さい。ERROR057')
       return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が半角でない場合、リダイレクト
     if has_non_halfwidth_characters(request.POST['administrator_employee_no2']):
-      messages.error(request, '問い合わせ担当者従業員番号は半角で入力して下さい。ERROR037')
+      messages.error(request, '問い合わせ担当者従業員番号は半角で入力して下さい。ERROR058')
       return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が半角でない場合、リダイレクト
     if has_non_halfwidth_characters(request.POST['administrator_employee_no3']):
-      messages.error(request, '問い合わせ担当者従業員番号は半角で入力して下さい。ERROR038')
+      messages.error(request, '問い合わせ担当者従業員番号は半角で入力して下さい。ERROR059')
       return redirect(to = '/administrator')
 
     # 問い合わせ担当者従業員番号が空でない場合の処理
@@ -584,7 +584,7 @@ def administrator_menu(request):
       # 人員データ無い場合の処理
       if member_obj_filter.count() == 0:
         # エラーメッセージ出力
-        messages.error(request, '入力された問い合わせ担当者従業員番号は登録されていません。ERROR055')
+        messages.error(request, '入力された問い合わせ担当者従業員番号は登録されていません。ERROR060')
         # このページをリダイレクト
         return redirect(to = '/administrator')
 
@@ -595,7 +595,7 @@ def administrator_menu(request):
       # 人員データ無い場合の処理
       if member_obj_filter.count() == 0:
         # エラーメッセージ出力
-        messages.error(request, '入力された問い合わせ担当者従業員番号は登録されていません。ERROR080')
+        messages.error(request, '入力された問い合わせ担当者従業員番号は登録されていません。ERROR061')
         # このページをリダイレクト
         return redirect(to = '/administrator')
 
@@ -606,7 +606,7 @@ def administrator_menu(request):
       # 人員データ無い場合の処理
       if member_obj_filter.count() == 0:
         # エラーメッセージ出力
-        messages.error(request, '入力された問い合わせ担当者従業員番号は登録されていません。ERROR081')
+        messages.error(request, '入力された問い合わせ担当者従業員番号は登録されていません。ERROR062')
         # このページをリダイレクト
         return redirect(to = '/administrator')
 
@@ -627,14 +627,14 @@ def administrator_menu(request):
     # 日付指定空の場合の処理
     if request.POST['data_day'] == '' or request.POST['data_day2'] == '':
       # エラーメッセージ出力
-      messages.error(request, 'バックアップする日付を指定してください。ERROR022')
+      messages.error(request, 'バックアップする日付を指定してください。ERROR063')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
     # 読み込み開始日が終了日を超えている場合の処理
     if request.POST['data_day'] > request.POST['data_day2'] :
       # エラーメッセージ出力
-      messages.error(request, '読み込み開始日が終了日を超えています。ERROR010')
+      messages.error(request, '読み込み開始日が終了日を超えています。ERROR064')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -717,7 +717,7 @@ def administrator_menu(request):
     # 工数データファイルが未選択時の処理
     if 'kosu_file' not in request.FILES:
       # エラーメッセージ出力
-      messages.error(request, '工数データファイルが選択されていません。ERROR040')
+      messages.error(request, '工数データファイルが選択されていません。ERROR065')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -747,7 +747,7 @@ def administrator_menu(request):
       ws.cell(1, 15).value != '休憩変更チェック' :
 
       # エラーメッセージ出力
-      messages.error(request, 'ロードしようとしたファイルは工数データバックアップではありません。ERROR048')
+      messages.error(request, 'ロードしようとしたファイルは工数データバックアップではありません。ERROR066')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -800,14 +800,14 @@ def administrator_menu(request):
     # 日付指定空の場合の処理
     if request.POST['data_day'] == '' or request.POST['data_day2'] == '':
       # エラーメッセージ出力
-      messages.error(request, '日付を指定してください。ERROR159')
+      messages.error(request, '日付を指定してください。ERROR067')
       # このページをリダイレクト
       return redirect('/administrator')
 
     # 削除開始日が終了日を超えている場合の処理
     if request.POST['data_day'] > request.POST['data_day2']:
       # エラーメッセージ出力
-      messages.error(request, '開始日が終了日を超えています。ERROR160')
+      messages.error(request, '開始日が終了日を超えています。ERROR068')
       # このページをリダイレクト
       return redirect('/administrator')
 
@@ -898,14 +898,14 @@ def administrator_menu(request):
     # 日付指定空の場合の処理
     if request.POST['data_day'] == '' or request.POST['data_day2'] == '':
       # エラーメッセージ出力
-      messages.error(request, '削除する日付を指定してください。ERROR023')
+      messages.error(request, '削除する日付を指定してください。ERROR069')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
     # 削除開始日が終了日を超えている場合の処理
     if request.POST['data_day'] > request.POST['data_day2'] :
       # エラーメッセージ出力
-      messages.error(request, '削除開始日が終了日を超えています。ERROR158')
+      messages.error(request, '削除開始日が終了日を超えています。ERROR070')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -1034,7 +1034,7 @@ def administrator_menu(request):
     # 人員データファイルが未選択時の処理
     if 'member_file' not in request.FILES:
       # エラーメッセージ出力
-      messages.error(request, '人員ファイルが選択されていません。ERROR044')
+      messages.error(request, '人員ファイルが選択されていません。ERROR071')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -1075,7 +1075,7 @@ def administrator_menu(request):
       ws.cell(1, 33).value != '工数定義区分予測無効':
 
       # エラーメッセージ出力
-      messages.error(request, 'ロードしようとしたファイルは人員情報バックアップではありません。ERROR049')
+      messages.error(request, 'ロードしようとしたファイルは人員情報バックアップではありません。ERROR072')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -1260,7 +1260,7 @@ def administrator_menu(request):
     # 工数データファイルが未選択時の処理
     if 'team_file' not in request.FILES:
       # エラーメッセージ出力
-      messages.error(request, '班員ファイルが選択されていません。ERROR045')
+      messages.error(request, '班員ファイルが選択されていません。ERROR073')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -1291,7 +1291,7 @@ def administrator_menu(request):
       ws.cell(1, 15).value != '班員14' or ws.cell(1, 16).value != '班員15' or \
       ws.cell(1, 17).value != 'フォローON/OFF':
       # エラーメッセージ出力
-      messages.error(request, 'ロードしようとしたファイルは班員情報バックアップではありません。ERROR050')
+      messages.error(request, 'ロードしようとしたファイルは班員情報バックアップではありません。ERROR074')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -1466,7 +1466,7 @@ def administrator_menu(request):
     # 工数データファイルが未選択時の処理
     if 'def_file' not in request.FILES:
       # エラーメッセージ出力
-      messages.error(request, '工数区分定義ファイルが選択されていません。ERROR046')
+      messages.error(request, '工数区分定義ファイルが選択されていません。ERROR075')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -1565,7 +1565,7 @@ def administrator_menu(request):
       ws.cell(1, 149).value != '工数区分名50' or ws.cell(1, 150).value != '定義50' or \
       ws.cell(1, 151).value != '作業内容50':
       # エラーメッセージ出力
-      messages.error(request, 'ロードしようとしたファイルは工数区分定義情報バックアップではありません。ERROR051')
+      messages.error(request, 'ロードしようとしたファイルは工数区分定義情報バックアップではありません。ERROR076')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -1805,7 +1805,7 @@ def administrator_menu(request):
     # 工数データファイルが未選択時の処理
     if 'inquiry_file' not in request.FILES:
       # エラーメッセージ出力
-      messages.error(request, 'お問い合わせファイルが選択されていません。ERROR043')
+      messages.error(request, 'お問い合わせファイルが選択されていません。ERROR077')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -1829,7 +1829,7 @@ def administrator_menu(request):
       ws.cell(1, 3).value != '内容選択' or ws.cell(1, 4).value != '問い合わせ' or \
       ws.cell(1, 5).value != '回答':
       # エラーメッセージ出力
-      messages.error(request, 'ロードしようとしたファイルはお問い合わせ情報バックアップではありません。ERROR030')
+      messages.error(request, 'ロードしようとしたファイルはお問い合わせ情報バックアップではありません。ERROR078')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -1941,7 +1941,7 @@ def administrator_menu(request):
     # 工数データファイルが未選択時の処理
     if 'setting_file' not in request.FILES:
       # エラーメッセージ出力
-      messages.error(request, '管理者設定ファイルが選択されていません。ERROR047')
+      messages.error(request, '管理者設定ファイルが選択されていません。ERROR079')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -1972,7 +1972,7 @@ def administrator_menu(request):
       ws.cell(1, 11).value != 'ポップアップ4' or ws.cell(1, 12).value != 'ポップアップID4' or \
       ws.cell(1, 13).value != 'ポップアップ5' or ws.cell(1, 14).value != 'ポップアップID5':
       # エラーメッセージ出力
-      messages.error(request, 'ロードしようとしたファイルは設定情報バックアップではありません。ERROR052')
+      messages.error(request, 'ロードしようとしたファイルは設定情報バックアップではありません。ERROR080')
       # このページをリダイレクト
       return redirect(to = '/administrator')
 
@@ -2068,7 +2068,7 @@ def help(request):
       display = True
     else:
       display = False
-      messages.error(request, 'パスワードが違います。ERROR042')
+      messages.error(request, 'パスワードが違います。ERROR081')
    
 
 
@@ -2081,19 +2081,19 @@ def help(request):
 
     # 人員ファイルが未選択時リダイレクト
     if 'member_file' not in request.FILES:
-      messages.error(request, '人員ファイルが選択されていません。ERROR024')
+      messages.error(request, '人員ファイルが選択されていません。ERROR082')
       return redirect(to = '/help')
 
 
     # 工数区分定義ファイルが未選択時リダイレクト
     if 'def_file' not in request.FILES:
-      messages.error(request, '工数区分定義ファイルが選択されていません。ERROR025')
+      messages.error(request, '工数区分定義ファイルが選択されていません。ERROR083')
       return redirect(to = '/help')
 
 
     # 工数区分定義ファイルが未選択時リダイレクト
     if 'setting_file' not in request.FILES:
-      messages.error(request, '管理者設定ファイルが選択されていません。ERROR039')
+      messages.error(request, '管理者設定ファイルが選択されていません。ERROR084')
       return redirect(to = '/help')
 
 
