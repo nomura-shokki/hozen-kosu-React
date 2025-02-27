@@ -109,25 +109,27 @@ input.big {
 }
 
 
-#loading img {
-  animation: sway 2s infinite ease-in-out; 
-  width: 100%; 
-  height: 300px; 
-  object-fit: cover; 
+#loading {
+  position: relative; /* 子要素(#loading img)の基準 */
+  visibility: hidden; /* 初期状態で非表示 */
 }
 
-#loading {
-  background-color: var(--light-grey); 
-  position: fixed; 
-  inset: 0; 
-  z-index: 9999; 
-  display: grid; 
-  place-items: center; 
+#loading img {
+  animation: sway 2s infinite ease-in-out; 
+  position: absolute; /* 親(#loading)を基準に配置される */
+  width: 30vw; /* 画面幅の30% */
+  height: auto; /* アスペクト比を保持 */
+  object-fit: cover; 
 }
 
 #loading p {
   font-size: 2rem; 
   font-family: var(--oswald-font); 
+  position: absolute; 
+  bottom: 10%; /* 下部から少し余裕を持たせる */
+  left: 50%; 
+  transform: translateX(-50%);
+  text-align: center;
 }
 
 @keyframes sway {

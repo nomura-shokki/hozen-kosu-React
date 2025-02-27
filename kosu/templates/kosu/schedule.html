@@ -12,12 +12,45 @@
     <script src="{% static 'kosu/js/schedule_switching.js' %}"></script>
   </head>
   <body class="container">
-    <div id="loading" style="display: none;">
+    <div id="loading" style="visibility: hidden;"> <!-- 非表示にしておく -->
       <div class="item">
-        <img src="{% static 'kosu/img/helmet.png' %}">
+        <img id="loadingImg" src="{% static 'kosu/img/helmet.png' %}">
       </div>
       <p>Loading...</p>
     </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+          const loadingImg = document.getElementById('loadingImg'); // 画像要素取得
+          const loadingContainer = document.getElementById('loading'); // 親要素取得
+
+          // 指定したIDの要素が存在するか確認
+          if (!loadingImg || !loadingContainer) {
+              console.error("Target elements not found in the DOM!");
+              return;
+          }
+
+          // 位置を更新する関数
+          function updateImagePosition() {
+              const windowHeight = document.documentElement.clientHeight; // 表示画面の高さ
+              const windowWidth = document.documentElement.clientWidth;  // 表示画面の幅
+
+              // 画像のサイズ基準で中心を計算
+              const topPosition = (windowHeight / 2) - (loadingImg.offsetHeight / 2);
+              const leftPosition = (windowWidth / 2) - (loadingImg.offsetWidth / 2);
+
+              // 動的にスタイルを更新
+              loadingImg.style.top = `${topPosition}px`; // 上下位置
+              loadingImg.style.left = `${leftPosition}px`; // 左右位置
+          }
+
+          // ウィンドウのスクロールやリサイズに応じて位置を更新
+          window.addEventListener('scroll', updateImagePosition);
+          window.addEventListener('resize', updateImagePosition);
+
+          // 初期位置を設定
+          updateImagePosition();
+      });
+    </script>
     <h1 class="display-1 text-primary">{{title}}</h1>
     <p class="h6 no-wrap">
       <a href="{% url 'kosu_main' %}" >工数MENUへ</a>　　

@@ -1,6 +1,3 @@
-// ローディング画面のアニメーション変更時は1度ローディング画面を表示してから
-// しばらく持ってから再度ローディング画面のアニメーションが任意の挙動か確認すること
-
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('dataForm');
     const responseArea = document.getElementById('responseArea');
@@ -8,9 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingText = document.querySelector('#loading p');
     const loadingImg = document.querySelector('#loading img');
 
+    // ボタンのクリックイベントを設定
     document.querySelectorAll('button').forEach(button => {
         button.addEventListener('click', async (event) => {
-            showLoading();
+            showLoading(); // ローディング画面を表示
 
             try {
                 const formData = new FormData(form);
@@ -34,18 +32,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error(err);
                 responseArea.innerHTML = '<p class="text-danger">通信エラーが発生しました。</p>';
             } finally {
-                hideLoading();
+                hideLoading(); // 最後にローディング画面を非表示
             }
         });
     });
 
+    // ローディング画面を表示
     function showLoading() {
         resetAnimations();
-        loading.style.display = "grid";
-        loadingText.style.display = "block";
-        loadingImg.style.display = "block";
+        loading.style.visibility = "visible"; // visibilityをvisibleに設定
+        loadingText.style.opacity = "1"; // テキストを完全に表示
+        loadingImg.style.opacity = "1"; // 画像を完全に表示
     }
 
+    // アニメーションをリセット
     function resetAnimations() {
         loading.getAnimations().forEach(animation => animation.cancel());
         loadingText.getAnimations().forEach(animation => animation.cancel());
@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingImg.style.display = "block";
     }
 
+    // ローディング画面を非表示
     function hideLoading() {
         const loadingAnimation = loading.animate(
             [
@@ -96,10 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         Promise.all([loadingAnimation.finished, loadingTextAnimation.finished, loadingImgAnimation.finished])
             .then(() => {
-                loading.style.display = "none";
-                loading.style.opacity = "1";
-
-                resetAnimations();
+                loading.style.visibility = "hidden"; // 最後にvisibilityをhiddenにする
             });
     }
 });
