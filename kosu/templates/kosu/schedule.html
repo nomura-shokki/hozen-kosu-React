@@ -12,7 +12,7 @@
     <script src="{% static 'kosu/js/schedule_switching.js' %}"></script>
   </head>
   <body class="container">
-    <div id="loading" style="visibility: hidden;"> <!-- 非表示にしておく -->
+    <div id="loading" style="visibility: hidden;">
       <div class="item">
         <img id="loadingImg" src="{% static 'kosu/img/helmet.png' %}">
       </div>
@@ -31,12 +31,17 @@
 
           // 位置を更新する関数
           function updateImagePosition() {
-              const windowHeight = document.documentElement.clientHeight; // 表示画面の高さ
-              const windowWidth = document.documentElement.clientWidth;  // 表示画面の幅
-
+              const displayHeight = document.documentElement.clientHeight; // 表示画面の高さ
+              const displayWidth = document.documentElement.clientWidth;  // 表示画面の幅]
+              const windowHeight = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+              const windowWidth = window.scrollX || document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+              const imgHeight = loadingImg.offsetHeight;
+              const imgWidth = loadingImg.offsetWidth;
+              console.log(windowHeight);
+              console.log(displayHeight);
               // 画像のサイズ基準で中心を計算
-              const topPosition = (windowHeight / 2) - (loadingImg.offsetHeight / 2);
-              const leftPosition = (windowWidth / 2) - (loadingImg.offsetWidth / 2);
+              const topPosition = (displayHeight / 2) - (imgHeight / 2);
+              const leftPosition = (displayWidth / 2) - (imgWidth / 2);
 
               // 動的にスタイルを更新
               loadingImg.style.top = `${topPosition}px`; // 上下位置

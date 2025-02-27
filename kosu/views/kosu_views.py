@@ -1934,6 +1934,8 @@ def schedule(request):
   if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
     # カレンダー更新時の処理
     if  "update" in request.POST:
+      import time
+      time.sleep(10)
       # 年取得
       year = int(request.POST['year'])
       # 月取得

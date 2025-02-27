@@ -110,14 +110,21 @@ input.big {
 
 
 #loading {
-  position: relative; /* 子要素(#loading img)の基準 */
+  background-color: #888888; /* 背景色を灰色に設定 */
+  position: fixed; /* 画面全体に固定 */
+  top: 0; /* 画面の上から配置 */
+  left: 0; /* 画面の左から配置 */
+  width: 100%; /* 画面全体の幅を占有 */
+  height: 100%; /* 画面全体の高さを占有 */
   visibility: hidden; /* 初期状態で非表示 */
+  z-index: 9999; /* 他の要素より前面に表示 */
 }
+
 
 #loading img {
   animation: sway 2s infinite ease-in-out; 
   position: absolute; /* 親(#loading)を基準に配置される */
-  width: 30vw; /* 画面幅の30% */
+  width: 50vw; /* 画面幅の30% */
   height: auto; /* アスペクト比を保持 */
   object-fit: cover; 
 }
