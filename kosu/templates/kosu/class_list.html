@@ -8,15 +8,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/class_list.css' %}">
   </head>
   <body class="container">
-    <div id="success-message">
-    <div id="loading" style="display: none;">
+    <div id="loading" style="visibility: hidden;">
       <div class="item">
-        <img src="{% static 'kosu/img/helmet.png' %}">
+        <img id="loadingImg" src="{% static 'kosu/img/helmet.png' %}">
       </div>
       <p>Loading...</p>
     </div>
+    <script src="{% static 'kosu/js/img_center.js' %}"></script>
     <h1 class="display-5 text-danger">{{title}}</h1>
     <p class="h6"><a href="{% url 'team_main' %}" class="text-danger">班員MENUへ</a></p>
     <form id="dataForm">
@@ -34,65 +35,66 @@
       <button type="button" name="update" id="update" class="btn btn-link"></button>
       <p>工数データが入力されている日付を選択すると詳細を閲覧できます。</p>
       <p>※この画面は大量のデータを扱うため動作が重くなっています。</p>
-      <div id="responseArea">
-      <table class="table table-bordered border-dark table-custom">
-        <tr>
-          <td rowspan="2" class="no-wrap" style="text-align:center;">氏名</td>
-          {% for d, w in day_list %}
-            {% if w == "土" %}
-              <td class="table-light_blue no-wrap" style="text-align:center;">
-            {% else %}
-              {% if w == "日" %}
-                <td class="table-pink no-wrap" style="text-align:center;">
-              {% else %}
-                <td class="no-wrap" style="text-align:center;">
-              {% endif %}
-            {% endif %}
-                {{d}}日
-              </td>
-          {% endfor %}
-        </tr>
-        <tr>
-          {% for d in week_list %}
-            {% if d == "土" %}
-              <td class="table-light_blue no-wrap" style="text-align:center;">
-            {% else %}
-              {% if d == "日" %}
-                <td class="table-pink no-wrap" style="text-align:center;">
-              {% else %}
-                <td class="no-wrap" style="text-align:center;">
-              {% endif %}
-            {% endif %}
-                {{d}}
-              </td>
-          {% endfor %}
-        </tr>
-
-        {% for m in ok_list %}
+      <div id="responseArea" style="overflow-x: scroll; overflow-y: scroll;">
+        <table class="table table-bordered border-dark">
           <tr>
-            {% for k in m %}
-              {% if forloop.first %}
-                <td class="no-wrap" style="text-align:center;">
-                  {{k}}
+            <td></td>
+            {% for d, w in day_list %}
+              {% if w == "土" %}
+                <td class="table-light_blue no-wrap" style="text-align:center;">
               {% else %}
-                {% if k.judgement == True %}
-                  <td class="table-green no-wrap fs-5" style="text-align:center;">
-                    <a href="{% url 'class_detail' k.id %}">OK</a>
+                {% if w == "日" %}
+                  <td class="table-pink no-wrap" style="text-align:center;">
                 {% else %}
-                  {% if k.judgement == False %}
-                    <td class="no-wrap fs-5" style="text-align:center;">
-                      <a href="{% url 'class_detail' k.id %}">NG</a>
-                  {% else %}
-                    <td class="no-wrap fs-5" style="text-align:center;">
-                      NG
-                  {% endif %}
+                  <td class="no-wrap" style="text-align:center;">
                 {% endif %}
               {% endif %}
+                  {{d}}日
                 </td>
             {% endfor %}
           </tr>
-        {% endfor %}
-      </table>
+          <tr>
+            <td></td>
+            {% for d in week_list %}
+              {% if d == "土" %}
+                <td class="table-light_blue no-wrap" style="text-align:center;">
+              {% else %}
+                {% if d == "日" %}
+                  <td class="table-pink no-wrap" style="text-align:center;">
+                {% else %}
+                  <td class="no-wrap" style="text-align:center;">
+                {% endif %}
+              {% endif %}
+                  {{d}}
+                </td>
+            {% endfor %}
+          </tr>
+
+          {% for m in ok_list %}
+            <tr>
+              {% for k in m %}
+                {% if forloop.first %}
+                  <td class="no-wrap" style="text-align:center;">
+                    {{k}}
+                {% else %}
+                  {% if k.judgement == True %}
+                    <td class="table-green no-wrap fs-5" style="text-align:center;">
+                      <a href="{% url 'class_detail' k.id %}">OK</a>
+                  {% else %}
+                    {% if k.judgement == False %}
+                      <td class="no-wrap fs-5" style="text-align:center;">
+                        <a href="{% url 'class_detail' k.id %}">NG</a>
+                    {% else %}
+                      <td class="no-wrap fs-5" style="text-align:center;">
+                        NG
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+                  </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </table>
       </div>
     </form>
     <script>

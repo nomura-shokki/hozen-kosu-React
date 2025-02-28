@@ -18,43 +18,7 @@
       </div>
       <p>Loading...</p>
     </div>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-          const loadingImg = document.getElementById('loadingImg'); // 画像要素取得
-          const loadingContainer = document.getElementById('loading'); // 親要素取得
-
-          // 指定したIDの要素が存在するか確認
-          if (!loadingImg || !loadingContainer) {
-              console.error("Target elements not found in the DOM!");
-              return;
-          }
-
-          // 位置を更新する関数
-          function updateImagePosition() {
-              const displayHeight = document.documentElement.clientHeight; // 表示画面の高さ
-              const displayWidth = document.documentElement.clientWidth;  // 表示画面の幅
-              const windowHeight = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
-              const windowWidth = window.scrollX || document.documentElement.scrollLeft || document.body.scrollLeft || 0;
-              const imgHeight = loadingImg.offsetHeight;
-              const imgWidth = loadingImg.offsetWidth;
- 
-              // 画像のサイズ基準で中心を計算
-              const topPosition = (displayHeight / 2) + windowHeight - (imgHeight / 2);
-              const leftPosition = (displayWidth / 2) + windowWidth - (imgWidth / 2);
-
-              // 動的にスタイルを更新
-              loadingImg.style.top = `${topPosition}px`; // 上下位置
-              loadingImg.style.left = `${leftPosition}px`; // 左右位置
-          }
-
-          // ウィンドウのスクロールやリサイズに応じて位置を更新
-          window.addEventListener('scroll', updateImagePosition);
-          window.addEventListener('resize', updateImagePosition);
-
-          // 初期位置を設定
-          updateImagePosition();
-      });
-    </script>
+    <script src="{% static 'kosu/js/img_center.js' %}"></script>
     <h1 class="display-1 text-primary">{{title}}</h1>
     <p class="h6 no-wrap">
       <a href="{% url 'kosu_main' %}" >工数MENUへ</a>　　
@@ -87,950 +51,950 @@
         <button type="button" name="default_work" id="update" class="btn btn-blue7 mt-2">デフォルト勤務入力</button>　　
         <button type="button" name="default_tyoku" id="update" class="btn btn-blue7 mt-2">直一括入力</button>
       </p>
-      <div id="responseArea">
-      <table class="table table-bordered border-dark">
-        <tr><p>　</p></tr>
-        <tr>
-          <th class="table-pink"><div class="text-center">日</div></th>
-          <th><div class="text-center">月</div></th>
-          <th><div class="text-center">火</div></th>
-          <th><div class="text-center">水</div></th>
-          <th><div class="text-center">木</div></th>
-          <th><div class="text-center">金</div></th>
-          <th class="table-light_blue"><div class="text-center">土</div></th>
-          <th><div class="text-center">直一括欄</div></tr>
-        <tr>
-          {% for i in day_list|slice:":7" %}
-          {% if forloop.first %}
-          <td class="table-pink">
-          {% else %}
-          {% if forloop.last %}
-          <td class="table-light_blue">
-          {% else %}
-          <td>
-          {% endif %}
-          {% endif %}
-            <div class="text-center fw-bold">{{i}}</div>
-          </td>
-          {% endfor %}
-          <td rowspan="4">
-            <div class="text-center fw-bold">
-              <br><br><br><br>{{form.tyoku_all_1}}
+      <div id="responseArea" style="overflow-x: scroll;">
+        <table class="table table-bordered border-dark">
+          <tr><p>　</p></tr>
+          <tr>
+            <th class="table-pink"><div class="text-center">日</div></th>
+            <th><div class="text-center">月</div></th>
+            <th><div class="text-center">火</div></th>
+            <th><div class="text-center">水</div></th>
+            <th><div class="text-center">木</div></th>
+            <th><div class="text-center">金</div></th>
+            <th class="table-light_blue"><div class="text-center">土</div></th>
+            <th><div class="text-center">直一括欄</div></tr>
+          <tr>
+            {% for i in day_list|slice:":7" %}
+            {% if forloop.first %}
+            <td class="table-pink">
+            {% else %}
+            {% if forloop.last %}
+            <td class="table-light_blue">
+            {% else %}
+            <td>
+            {% endif %}
+            {% endif %}
+              <div class="text-center fw-bold">{{i}}</div>
+            </td>
+            {% endfor %}
+            <td rowspan="4">
+              <div class="text-center fw-bold">
+                <br><br><br><br>{{form.tyoku_all_1}}
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="table-pink">
+              {% if day_list.0 != '' %}<div class="text-center">{{form.day1}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.1 != '' %}<div class="text-center">{{form.day2}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.2 != '' %}<div class="text-center">{{form.day3}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.3 != '' %}<div class="text-center">{{form.day4}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.4 != '' %}<div class="text-center">{{form.day5}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.5 != '' %}<div class="text-center">{{form.day6}}</div>{% endif %}
+            </td>
+            <td class="table-light_blue">
+              {% if day_list.6 != '' %}<div class="text-center">{{form.day7}}</div>{% endif %}
+            </td>
+          </tr>
+
+          <tr>
+            <td class="table-pink">
+              {% if day_list.0 != '' %}<div class="text-center">{{form.tyoku1}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.1 != '' %}<div class="text-center">{{form.tyoku2}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.2 != '' %}<div class="text-center">{{form.tyoku3}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.3 != '' %}<div class="text-center">{{form.tyoku4}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.4 != '' %}<div class="text-center">{{form.tyoku5}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.5 != '' %}<div class="text-center">{{form.tyoku6}}</div>{% endif %}
+            </td>
+            <td class="table-light_blue">
+              {% if day_list.6 != '' %}<div class="text-center">{{form.tyoku7}}</div>{% endif %}
+            </td>
+          </tr>
+
+          <tr>
+            {% if OK_NG_list.0 == True %}
+            <td class="table-green">
+            {% else %}
+            <td class="table-pink">
+            {% endif %}
+            {% if day_list.0 != '' %}
+            <div class="text-center">
+            {% for i in time_list.0 %}
+              {{i}}<br>
+            {% endfor %}
             </div>
-          </td>
-        </tr>
-
-        <tr>
-          <td class="table-pink">
-            {% if day_list.0 != '' %}<div class="text-center">{{form.day1}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.1 != '' %}<div class="text-center">{{form.day2}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.2 != '' %}<div class="text-center">{{form.day3}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.3 != '' %}<div class="text-center">{{form.day4}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.4 != '' %}<div class="text-center">{{form.day5}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.5 != '' %}<div class="text-center">{{form.day6}}</div>{% endif %}
-          </td>
-          <td class="table-light_blue">
-            {% if day_list.6 != '' %}<div class="text-center">{{form.day7}}</div>{% endif %}
-          </td>
-        </tr>
-
-        <tr>
-          <td class="table-pink">
-            {% if day_list.0 != '' %}<div class="text-center">{{form.tyoku1}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.1 != '' %}<div class="text-center">{{form.tyoku2}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.2 != '' %}<div class="text-center">{{form.tyoku3}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.3 != '' %}<div class="text-center">{{form.tyoku4}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.4 != '' %}<div class="text-center">{{form.tyoku5}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.5 != '' %}<div class="text-center">{{form.tyoku6}}</div>{% endif %}
-          </td>
-          <td class="table-light_blue">
-            {% if day_list.6 != '' %}<div class="text-center">{{form.tyoku7}}</div>{% endif %}
-          </td>
-        </tr>
-
-        <tr>
-          {% if OK_NG_list.0 == True %}
-          <td class="table-green">
-          {% else %}
-          <td class="table-pink">
-          {% endif %}
-          {% if day_list.0 != '' %}
-          <div class="text-center">
-          {% for i in time_list.0 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.1 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.1 != '' %}
-          <div class="text-center">
-          {% for i in time_list.1 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.2 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.2 != '' %}
-          <div class="text-center">
-          {% for i in time_list.2 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.3 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.3 != '' %}
-          <div class="text-center">
-          {% for i in time_list.3 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.4 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.4 != '' %}
-          <div class="text-center">
-          {% for i in time_list.4 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.5 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.5 != '' %}
-          <div class="text-center">
-          {% for i in time_list.5 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.6 == True %}
-          <td class="table-green">
-          {% else %}
-          <td class="table-light_blue">
-          {% endif %}
-          {% if day_list.6 != '' %}
-          <div class="text-center">
-          {% for i in time_list.6 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        </tr>
-
-        <tr>
-          {% for i in day_list|slice:"7:14" %}
-          {% if forloop.first %}
-          <td class="table-pink">
-          {% else %}
-          {% if forloop.last %}
-          <td class="table-light_blue">
-          {% else %}
-          <td>
-          {% endif %}
-          {% endif %}
-            <div class="text-center fw-bold">{{i}}</div>
-          </td>
-          {% endfor %}
-          <td rowspan="4">
-            <div class="text-center fw-bold">
-              <br><br><br><br>{{form.tyoku_all_2}}
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.1 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.1 != '' %}
+            <div class="text-center">
+            {% for i in time_list.1 %}
+              {{i}}<br>
+            {% endfor %}
             </div>
-          </td>
-        </tr>
-
-        <tr>
-          <td class="table-pink">
-            {% if day_list.7 != '' %}<div class="text-center">{{form.day8}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.8 != '' %}<div class="text-center">{{form.day9}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.9 != '' %}<div class="text-center">{{form.day10}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.10 != '' %}<div class="text-center">{{form.day11}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.11 != '' %}<div class="text-center">{{form.day12}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.13 != '' %}<div class="text-center">{{form.day13}}</div>{% endif %}
-          </td>
-          <td class="table-light_blue">
-            {% if day_list.13 != '' %}<div class="text-center">{{form.day14}}</div>{% endif %}
-          </td>
-        </tr>
-
-        <tr>
-          <td class="table-pink">
-            {% if day_list.7 != '' %}<div class="text-center">{{form.tyoku8}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.8 != '' %}<div class="text-center">{{form.tyoku9}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.9 != '' %}<div class="text-center">{{form.tyoku10}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.10 != '' %}<div class="text-center">{{form.tyoku11}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.11 != '' %}<div class="text-center">{{form.tyoku12}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.12 != '' %}<div class="text-center">{{form.tyoku13}}</div>{% endif %}
-          </td>
-          <td class="table-light_blue">
-            {% if day_list.13 != '' %}<div class="text-center">{{form.tyoku14}}</div>{% endif %}
-          </td>
-        </tr>
-
-        <tr>
-          {% if OK_NG_list.7 == True %}
-          <td class="table-green">
-          {% else %}
-          <td class="table-pink">
-          {% endif %}
-          {% if day_list.7 != '' %}
-          <div class="text-center">
-          {% for i in time_list.7 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.8 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.8 != '' %}
-          <div class="text-center">
-          {% for i in time_list.8 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.9 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.9 != '' %}
-          <div class="text-center">
-          {% for i in time_list.9 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.10 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.10 != '' %}
-          <div class="text-center">
-          {% for i in time_list.10 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.11 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.11 != '' %}
-          <div class="text-center">
-          {% for i in time_list.11 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.12 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.12 != '' %}
-          <div class="text-center">
-          {% for i in time_list.12 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.13 == True %}
-          <td class="table-green">
-          {% else %}
-          <td class="table-light_blue">
-          {% endif %}
-          {% if day_list.13 != '' %}
-          <div class="text-center">
-          {% for i in time_list.13 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        </tr>
-
-        <tr>
-          {% for i in day_list|slice:"14:21" %}
-          {% if forloop.first %}
-          <td class="table-pink">
-          {% else %}
-          {% if forloop.last %}
-          <td class="table-light_blue">
-          {% else %}
-          <td>
-          {% endif %}
-          {% endif %}
-            <div class="text-center fw-bold">{{i}}</div>
-          </td>
-          {% endfor %}
-          <td rowspan="4">
-            <div class="text-center fw-bold">
-              <br><br><br><br>{{form.tyoku_all_3}}
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.2 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.2 != '' %}
+            <div class="text-center">
+            {% for i in time_list.2 %}
+              {{i}}<br>
+            {% endfor %}
             </div>
-          </td>
-        </tr>
-
-        <tr>
-          <td class="table-pink">
-            {% if day_list.14 != '' %}<div class="text-center">{{form.day15}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.15 != '' %}<div class="text-center">{{form.day16}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.16 != '' %}<div class="text-center">{{form.day17}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.17 != '' %}<div class="text-center">{{form.day18}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.18 != '' %}<div class="text-center">{{form.day19}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.19 != '' %}<div class="text-center">{{form.day20}}</div>{% endif %}
-          </td>
-          <td class="table-light_blue">
-            {% if day_list.20 != '' %}<div class="text-center">{{form.day21}}</div>{% endif %}
-          </td>
-        </tr>
-
-        <tr>
-          <td class="table-pink">
-            {% if day_list.14 != '' %}<div class="text-center">{{form.tyoku15}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.15 != '' %}<div class="text-center">{{form.tyoku16}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.16 != '' %}<div class="text-center">{{form.tyoku17}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.17 != '' %}<div class="text-center">{{form.tyoku18}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.18 != '' %}<div class="text-center">{{form.tyoku19}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.19 != '' %}<div class="text-center">{{form.tyoku20}}</div>{% endif %}
-          </td>
-          <td class="table-light_blue">
-            {% if day_list.20 != '' %}<div class="text-center">{{form.tyoku21}}</div>{% endif %}
-          </td>
-        </tr>
-
-        <tr>
-          {% if OK_NG_list.14 == True %}
-          <td class="table-green">
-          {% else %}
-          <td class="table-pink">
-          {% endif %}
-          {% if day_list.14 != '' %}
-          <div class="text-center">
-          {% for i in time_list.14 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.15 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.15 != '' %}
-          <div class="text-center">
-          {% for i in time_list.15 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.16 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.16 != '' %}
-          <div class="text-center">
-          {% for i in time_list.16 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.17 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.17 != '' %}
-          <div class="text-center">
-          {% for i in time_list.17 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.18 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.18 != '' %}
-          <div class="text-center">
-          {% for i in time_list.18 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.19 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.19 != '' %}
-          <div class="text-center">
-          {% for i in time_list.19 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.20 == True %}
-          <td class="table-green">
-          {% else %}
-          <td class="table-light_blue">
-          {% endif %}
-          {% if day_list.20 != '' %}
-          <div class="text-center">
-          {% for i in time_list.20 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        </tr>
-
-        <tr>
-          {% for i in day_list|slice:"21:28" %}
-          {% if forloop.first %}
-          <td class="table-pink">
-          {% else %}
-          {% if forloop.last %}
-          <td class="table-light_blue">
-          {% else %}
-          <td>
-          {% endif %}
-          {% endif %}
-            <div class="text-center fw-bold">{{i}}</div>
-          </td>
-          {% endfor %}
-          <td rowspan="4">
-            <div class="text-center fw-bold">
-              <br><br><br><br>{{form.tyoku_all_4}}
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.3 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.3 != '' %}
+            <div class="text-center">
+            {% for i in time_list.3 %}
+              {{i}}<br>
+            {% endfor %}
             </div>
-          </td>
-        </tr>
-
-        <tr>
-          <td class="table-pink">
-            {% if day_list.21 != '' %}<div class="text-center">{{form.day22}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.22 != '' %}<div class="text-center">{{form.day23}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.23 != '' %}<div class="text-center">{{form.day24}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.24 != '' %}<div class="text-center">{{form.day25}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.25 != '' %}<div class="text-center">{{form.day26}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.26 != '' %}<div class="text-center">{{form.day27}}</div>{% endif %}
-          </td>
-          <td class="table-light_blue">
-            {% if day_list.27 != '' %}<div class="text-center">{{form.day28}}</div>{% endif %}
-          </td>
-        </tr>
-
-        <tr>
-          <td class="table-pink">
-            {% if day_list.21 != '' %}<div class="text-center">{{form.tyoku22}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.22 != '' %}<div class="text-center">{{form.tyoku23}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.23 != '' %}<div class="text-center">{{form.tyoku24}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.24 != '' %}<div class="text-center">{{form.tyoku25}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.25 != '' %}<div class="text-center">{{form.tyoku26}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.26 != '' %}<div class="text-center">{{form.tyoku27}}</div>{% endif %}
-          </td>
-          <td class="table-light_blue">
-            {% if day_list.27 != '' %}<div class="text-center">{{form.tyoku28}}</div>{% endif %}
-          </td>
-        </tr>
-
-        <tr>
-          {% if OK_NG_list.21 == True %}
-          <td class="table-green">
-          {% else %}
-          <td class="table-pink">
-          {% endif %}
-          {% if day_list.21 != '' %}
-          <div class="text-center">
-          {% for i in time_list.21 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.22 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.22 != '' %}
-          <div class="text-center">
-          {% for i in time_list.22 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.23 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.23 != '' %}
-          <div class="text-center">
-          {% for i in time_list.23 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.24 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.24 != '' %}
-          <div class="text-center">
-          {% for i in time_list.24 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.25 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.25 != '' %}
-          <div class="text-center">
-          {% for i in time_list.25 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.26 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.26 != '' %}
-          <div class="text-center">
-          {% for i in time_list.26 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.27 == True %}
-          <td class="table-green">
-          {% else %}
-          <td class="table-light_blue">
-          {% endif %}
-          {% if day_list.27 != '' %}
-          <div class="text-center">
-          {% for i in time_list.27 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        </tr>
-
-        {% if day_list.28 != '' %}
-        <tr>
-          {% for i in day_list|slice:"28:35" %}
-          {% if forloop.first %}
-          <td class="table-pink">
-          {% else %}
-          {% if forloop.last %}
-          <td class="table-light_blue">
-          {% else %}
-          <td>
-          {% endif %}
-          {% endif %}
-            <div class="text-center fw-bold">{{i}}</div>
-          </td>
-          {% endfor %}
-          <td rowspan="4">
-            <div class="text-center fw-bold">
-              <br><br><br><br>{{form.tyoku_all_5}}
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.4 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.4 != '' %}
+            <div class="text-center">
+            {% for i in time_list.4 %}
+              {{i}}<br>
+            {% endfor %}
             </div>
-          </td>
-        </tr>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.5 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.5 != '' %}
+            <div class="text-center">
+            {% for i in time_list.5 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.6 == True %}
+            <td class="table-green">
+            {% else %}
+            <td class="table-light_blue">
+            {% endif %}
+            {% if day_list.6 != '' %}
+            <div class="text-center">
+            {% for i in time_list.6 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          </tr>
 
-        <tr>
-          <td class="table-pink">
-            {% if day_list.28 != '' %}<div class="text-center">{{form.day29}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.29 != '' %}<div class="text-center">{{form.day30}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.30 != '' %}<div class="text-center">{{form.day31}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.31 != '' %}<div class="text-center">{{form.day32}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.32 != '' %}<div class="text-center">{{form.day33}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.33 != '' %}<div class="text-center">{{form.day34}}</div>{% endif %}
-          </td>
-          <td class="table-light_blue">
-            {% if day_list.34 != '' %}<div class="text-center">{{form.day35}}</div>{% endif %}
-          </td>
-        </tr>
+          <tr>
+            {% for i in day_list|slice:"7:14" %}
+            {% if forloop.first %}
+            <td class="table-pink">
+            {% else %}
+            {% if forloop.last %}
+            <td class="table-light_blue">
+            {% else %}
+            <td>
+            {% endif %}
+            {% endif %}
+              <div class="text-center fw-bold">{{i}}</div>
+            </td>
+            {% endfor %}
+            <td rowspan="4">
+              <div class="text-center fw-bold">
+                <br><br><br><br>{{form.tyoku_all_2}}
+              </div>
+            </td>
+          </tr>
 
-        <tr>
-          <td class="table-pink">
-            {% if day_list.28 != '' %}<div class="text-center">{{form.tyoku29}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.29 != '' %}<div class="text-center">{{form.tyoku30}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.30 != '' %}<div class="text-center">{{form.tyoku31}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.31 != '' %}<div class="text-center">{{form.tyoku32}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.32 != '' %}<div class="text-center">{{form.tyoku33}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.33 != '' %}<div class="text-center">{{form.tyoku34}}</div>{% endif %}
-          </td>
-          <td class="table-light_blue">
-            {% if day_list.34 != '' %}<div class="text-center">{{form.tyoku35}}</div>{% endif %}
-          </td>
-        </tr>
+          <tr>
+            <td class="table-pink">
+              {% if day_list.7 != '' %}<div class="text-center">{{form.day8}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.8 != '' %}<div class="text-center">{{form.day9}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.9 != '' %}<div class="text-center">{{form.day10}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.10 != '' %}<div class="text-center">{{form.day11}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.11 != '' %}<div class="text-center">{{form.day12}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.13 != '' %}<div class="text-center">{{form.day13}}</div>{% endif %}
+            </td>
+            <td class="table-light_blue">
+              {% if day_list.13 != '' %}<div class="text-center">{{form.day14}}</div>{% endif %}
+            </td>
+          </tr>
 
-        <tr>
-          {% if OK_NG_list.28 == True %}
-          <td class="table-green">
-          {% else %}
-          <td class="table-pink">
-          {% endif %}
+          <tr>
+            <td class="table-pink">
+              {% if day_list.7 != '' %}<div class="text-center">{{form.tyoku8}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.8 != '' %}<div class="text-center">{{form.tyoku9}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.9 != '' %}<div class="text-center">{{form.tyoku10}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.10 != '' %}<div class="text-center">{{form.tyoku11}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.11 != '' %}<div class="text-center">{{form.tyoku12}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.12 != '' %}<div class="text-center">{{form.tyoku13}}</div>{% endif %}
+            </td>
+            <td class="table-light_blue">
+              {% if day_list.13 != '' %}<div class="text-center">{{form.tyoku14}}</div>{% endif %}
+            </td>
+          </tr>
+
+          <tr>
+            {% if OK_NG_list.7 == True %}
+            <td class="table-green">
+            {% else %}
+            <td class="table-pink">
+            {% endif %}
+            {% if day_list.7 != '' %}
+            <div class="text-center">
+            {% for i in time_list.7 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.8 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.8 != '' %}
+            <div class="text-center">
+            {% for i in time_list.8 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.9 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.9 != '' %}
+            <div class="text-center">
+            {% for i in time_list.9 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.10 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.10 != '' %}
+            <div class="text-center">
+            {% for i in time_list.10 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.11 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.11 != '' %}
+            <div class="text-center">
+            {% for i in time_list.11 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.12 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.12 != '' %}
+            <div class="text-center">
+            {% for i in time_list.12 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.13 == True %}
+            <td class="table-green">
+            {% else %}
+            <td class="table-light_blue">
+            {% endif %}
+            {% if day_list.13 != '' %}
+            <div class="text-center">
+            {% for i in time_list.13 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          </tr>
+
+          <tr>
+            {% for i in day_list|slice:"14:21" %}
+            {% if forloop.first %}
+            <td class="table-pink">
+            {% else %}
+            {% if forloop.last %}
+            <td class="table-light_blue">
+            {% else %}
+            <td>
+            {% endif %}
+            {% endif %}
+              <div class="text-center fw-bold">{{i}}</div>
+            </td>
+            {% endfor %}
+            <td rowspan="4">
+              <div class="text-center fw-bold">
+                <br><br><br><br>{{form.tyoku_all_3}}
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="table-pink">
+              {% if day_list.14 != '' %}<div class="text-center">{{form.day15}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.15 != '' %}<div class="text-center">{{form.day16}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.16 != '' %}<div class="text-center">{{form.day17}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.17 != '' %}<div class="text-center">{{form.day18}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.18 != '' %}<div class="text-center">{{form.day19}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.19 != '' %}<div class="text-center">{{form.day20}}</div>{% endif %}
+            </td>
+            <td class="table-light_blue">
+              {% if day_list.20 != '' %}<div class="text-center">{{form.day21}}</div>{% endif %}
+            </td>
+          </tr>
+
+          <tr>
+            <td class="table-pink">
+              {% if day_list.14 != '' %}<div class="text-center">{{form.tyoku15}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.15 != '' %}<div class="text-center">{{form.tyoku16}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.16 != '' %}<div class="text-center">{{form.tyoku17}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.17 != '' %}<div class="text-center">{{form.tyoku18}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.18 != '' %}<div class="text-center">{{form.tyoku19}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.19 != '' %}<div class="text-center">{{form.tyoku20}}</div>{% endif %}
+            </td>
+            <td class="table-light_blue">
+              {% if day_list.20 != '' %}<div class="text-center">{{form.tyoku21}}</div>{% endif %}
+            </td>
+          </tr>
+
+          <tr>
+            {% if OK_NG_list.14 == True %}
+            <td class="table-green">
+            {% else %}
+            <td class="table-pink">
+            {% endif %}
+            {% if day_list.14 != '' %}
+            <div class="text-center">
+            {% for i in time_list.14 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.15 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.15 != '' %}
+            <div class="text-center">
+            {% for i in time_list.15 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.16 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.16 != '' %}
+            <div class="text-center">
+            {% for i in time_list.16 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.17 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.17 != '' %}
+            <div class="text-center">
+            {% for i in time_list.17 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.18 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.18 != '' %}
+            <div class="text-center">
+            {% for i in time_list.18 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.19 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.19 != '' %}
+            <div class="text-center">
+            {% for i in time_list.19 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.20 == True %}
+            <td class="table-green">
+            {% else %}
+            <td class="table-light_blue">
+            {% endif %}
+            {% if day_list.20 != '' %}
+            <div class="text-center">
+            {% for i in time_list.20 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          </tr>
+
+          <tr>
+            {% for i in day_list|slice:"21:28" %}
+            {% if forloop.first %}
+            <td class="table-pink">
+            {% else %}
+            {% if forloop.last %}
+            <td class="table-light_blue">
+            {% else %}
+            <td>
+            {% endif %}
+            {% endif %}
+              <div class="text-center fw-bold">{{i}}</div>
+            </td>
+            {% endfor %}
+            <td rowspan="4">
+              <div class="text-center fw-bold">
+                <br><br><br><br>{{form.tyoku_all_4}}
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="table-pink">
+              {% if day_list.21 != '' %}<div class="text-center">{{form.day22}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.22 != '' %}<div class="text-center">{{form.day23}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.23 != '' %}<div class="text-center">{{form.day24}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.24 != '' %}<div class="text-center">{{form.day25}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.25 != '' %}<div class="text-center">{{form.day26}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.26 != '' %}<div class="text-center">{{form.day27}}</div>{% endif %}
+            </td>
+            <td class="table-light_blue">
+              {% if day_list.27 != '' %}<div class="text-center">{{form.day28}}</div>{% endif %}
+            </td>
+          </tr>
+
+          <tr>
+            <td class="table-pink">
+              {% if day_list.21 != '' %}<div class="text-center">{{form.tyoku22}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.22 != '' %}<div class="text-center">{{form.tyoku23}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.23 != '' %}<div class="text-center">{{form.tyoku24}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.24 != '' %}<div class="text-center">{{form.tyoku25}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.25 != '' %}<div class="text-center">{{form.tyoku26}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.26 != '' %}<div class="text-center">{{form.tyoku27}}</div>{% endif %}
+            </td>
+            <td class="table-light_blue">
+              {% if day_list.27 != '' %}<div class="text-center">{{form.tyoku28}}</div>{% endif %}
+            </td>
+          </tr>
+
+          <tr>
+            {% if OK_NG_list.21 == True %}
+            <td class="table-green">
+            {% else %}
+            <td class="table-pink">
+            {% endif %}
+            {% if day_list.21 != '' %}
+            <div class="text-center">
+            {% for i in time_list.21 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.22 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.22 != '' %}
+            <div class="text-center">
+            {% for i in time_list.22 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.23 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.23 != '' %}
+            <div class="text-center">
+            {% for i in time_list.23 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.24 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.24 != '' %}
+            <div class="text-center">
+            {% for i in time_list.24 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.25 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.25 != '' %}
+            <div class="text-center">
+            {% for i in time_list.25 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.26 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.26 != '' %}
+            <div class="text-center">
+            {% for i in time_list.26 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.27 == True %}
+            <td class="table-green">
+            {% else %}
+            <td class="table-light_blue">
+            {% endif %}
+            {% if day_list.27 != '' %}
+            <div class="text-center">
+            {% for i in time_list.27 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          </tr>
+
           {% if day_list.28 != '' %}
-          <div class="text-center">
-          {% for i in time_list.28 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.29 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.29 != '' %}
-          <div class="text-center">
-          {% for i in time_list.29 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.30 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.30 != '' %}
-          <div class="text-center">
-          {% for i in time_list.30 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.31 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.31 != '' %}
-          <div class="text-center">
-          {% for i in time_list.31 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.32 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.32 != '' %}
-          <div class="text-center">
-          {% for i in time_list.32 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.33 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
-          {% endif %}
-          {% if day_list.33 != '' %}
-          <div class="text-center">
-          {% for i in time_list.33 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        
-          {% if OK_NG_list.34 == True %}
-          <td class="table-green">
-          {% else %}
-          <td class="table-light_blue">
-          {% endif %}
-          {% if day_list.34 != '' %}
-          <div class="text-center">
-          {% for i in time_list.34 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-        </tr>
-        {% endif %}
+          <tr>
+            {% for i in day_list|slice:"28:35" %}
+            {% if forloop.first %}
+            <td class="table-pink">
+            {% else %}
+            {% if forloop.last %}
+            <td class="table-light_blue">
+            {% else %}
+            <td>
+            {% endif %}
+            {% endif %}
+              <div class="text-center fw-bold">{{i}}</div>
+            </td>
+            {% endfor %}
+            <td rowspan="4">
+              <div class="text-center fw-bold">
+                <br><br><br><br>{{form.tyoku_all_5}}
+              </div>
+            </td>
+          </tr>
 
-        {% if day_list.35 != '' %}
-        <tr>
-          {% for i in day_list|slice:"35:37" %}
-          {% if forloop.first %}
-          <td class="table-pink">
-          {% else %}
-          <td>
-          {% endif %}
-            <div class="text-center fw-bold">{{i}}</div>
-          </td>
-          {% endfor %}
-          <td><div class="text-center"></div></td>
-          <td><div class="text-center"></div></td>
-          <td><div class="text-center"></div></td>
-          <td><div class="text-center"></div></td>
-          <td class="table-light_blue"><div class="text-center"></div></td>
-          <td rowspan="4">
-            <div class="text-center fw-bold">
-              <br><br><br><br>{{form.tyoku_all_6}}
+          <tr>
+            <td class="table-pink">
+              {% if day_list.28 != '' %}<div class="text-center">{{form.day29}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.29 != '' %}<div class="text-center">{{form.day30}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.30 != '' %}<div class="text-center">{{form.day31}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.31 != '' %}<div class="text-center">{{form.day32}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.32 != '' %}<div class="text-center">{{form.day33}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.33 != '' %}<div class="text-center">{{form.day34}}</div>{% endif %}
+            </td>
+            <td class="table-light_blue">
+              {% if day_list.34 != '' %}<div class="text-center">{{form.day35}}</div>{% endif %}
+            </td>
+          </tr>
+
+          <tr>
+            <td class="table-pink">
+              {% if day_list.28 != '' %}<div class="text-center">{{form.tyoku29}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.29 != '' %}<div class="text-center">{{form.tyoku30}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.30 != '' %}<div class="text-center">{{form.tyoku31}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.31 != '' %}<div class="text-center">{{form.tyoku32}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.32 != '' %}<div class="text-center">{{form.tyoku33}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.33 != '' %}<div class="text-center">{{form.tyoku34}}</div>{% endif %}
+            </td>
+            <td class="table-light_blue">
+              {% if day_list.34 != '' %}<div class="text-center">{{form.tyoku35}}</div>{% endif %}
+            </td>
+          </tr>
+
+          <tr>
+            {% if OK_NG_list.28 == True %}
+            <td class="table-green">
+            {% else %}
+            <td class="table-pink">
+            {% endif %}
+            {% if day_list.28 != '' %}
+            <div class="text-center">
+            {% for i in time_list.28 %}
+              {{i}}<br>
+            {% endfor %}
             </div>
-          </td>
-        </tr>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.29 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.29 != '' %}
+            <div class="text-center">
+            {% for i in time_list.29 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.30 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.30 != '' %}
+            <div class="text-center">
+            {% for i in time_list.30 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.31 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.31 != '' %}
+            <div class="text-center">
+            {% for i in time_list.31 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.32 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.32 != '' %}
+            <div class="text-center">
+            {% for i in time_list.32 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.33 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.33 != '' %}
+            <div class="text-center">
+            {% for i in time_list.33 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          
+            {% if OK_NG_list.34 == True %}
+            <td class="table-green">
+            {% else %}
+            <td class="table-light_blue">
+            {% endif %}
+            {% if day_list.34 != '' %}
+            <div class="text-center">
+            {% for i in time_list.34 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+          </tr>
+          {% endif %}
 
-        <tr>
-          <td class="table-pink">
-            {% if day_list.35 != '' %}<div class="text-center">{{form.day36}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.36 != '' %}<div class="text-center">{{form.day37}}</div>{% endif %}
-          </td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td class="table-light_blue"></td>
-        </tr>
+          {% if day_list.35 != '' %}
+          <tr>
+            {% for i in day_list|slice:"35:37" %}
+            {% if forloop.first %}
+            <td class="table-pink">
+            {% else %}
+            <td>
+            {% endif %}
+              <div class="text-center fw-bold">{{i}}</div>
+            </td>
+            {% endfor %}
+            <td><div class="text-center"></div></td>
+            <td><div class="text-center"></div></td>
+            <td><div class="text-center"></div></td>
+            <td><div class="text-center"></div></td>
+            <td class="table-light_blue"><div class="text-center"></div></td>
+            <td rowspan="4">
+              <div class="text-center fw-bold">
+                <br><br><br><br>{{form.tyoku_all_6}}
+              </div>
+            </td>
+          </tr>
 
-        <tr>
-          <td class="table-pink">
-            {% if day_list.35 != '' %}<div class="text-center">{{form.tyoku36}}</div>{% endif %}
-          </td>
-          <td>
-            {% if day_list.36 != '' %}<div class="text-center">{{form.tyoku37}}</div>{% endif %}
-          </td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td class="table-light_blue"></td>
-        </tr>
+          <tr>
+            <td class="table-pink">
+              {% if day_list.35 != '' %}<div class="text-center">{{form.day36}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.36 != '' %}<div class="text-center">{{form.day37}}</div>{% endif %}
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="table-light_blue"></td>
+          </tr>
 
-        <tr>
-          {% if OK_NG_list.35 == True %}<td class="table-green">
-          {% else %}
-          {% if OK_NG_list.35 != True %}<td class="table-pink">
-          {% endif %}
-          {% endif %}
-          {% if day_list.35 != '' %}<div class="text-center">
-          {% for i in time_list.35 %}
-            {{i}}<br>
-          {% endfor %}
-          {% endif %}
-          </div></td>
+          <tr>
+            <td class="table-pink">
+              {% if day_list.35 != '' %}<div class="text-center">{{form.tyoku36}}</div>{% endif %}
+            </td>
+            <td>
+              {% if day_list.36 != '' %}<div class="text-center">{{form.tyoku37}}</div>{% endif %}
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="table-light_blue"></td>
+          </tr>
 
-          {% if OK_NG_list.36 == True %}
-          <td class="table-green">
-          {% else %}
-          <td>
+          <tr>
+            {% if OK_NG_list.35 == True %}<td class="table-green">
+            {% else %}
+            {% if OK_NG_list.35 != True %}<td class="table-pink">
+            {% endif %}
+            {% endif %}
+            {% if day_list.35 != '' %}<div class="text-center">
+            {% for i in time_list.35 %}
+              {{i}}<br>
+            {% endfor %}
+            {% endif %}
+            </div></td>
+
+            {% if OK_NG_list.36 == True %}
+            <td class="table-green">
+            {% else %}
+            <td>
+            {% endif %}
+            {% if day_list.36 != '' %}
+            <div class="text-center">
+            {% for i in time_list.36 %}
+              {{i}}<br>
+            {% endfor %}
+            </div>
+            {% endif %}
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="table-light_blue"></td>
+          </tr>
           {% endif %}
-          {% if day_list.36 != '' %}
-          <div class="text-center">
-          {% for i in time_list.36 %}
-            {{i}}<br>
-          {% endfor %}
-          </div>
-          {% endif %}
-          </td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td class="table-light_blue"></td>
-        </tr>
-        {% endif %}
-      </table>
+        </table>
       </div>
     </form>
     <script>

@@ -1,60 +1,59 @@
-<table class="table table-bordered border-dark table-custom">
-    <tr>
-      <td rowspan="2" class="no-wrap" style="text-align:center;">
-        氏名
-      </td>
-      {% for d, w in day_list %}
-        {% if w == "土" %}
-          <td class="table-light_blue no-wrap" style="text-align:center;">
+<table class="table table-bordered border-dark">
+  <tr>
+    <td></td>
+    {% for d, w in day_list %}
+      {% if w == "土" %}
+        <td class="table-light_blue no-wrap" style="text-align:center;">
+      {% else %}
+        {% if w == "日" %}
+          <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
-          {% if w == "日" %}
-            <td class="table-pink no-wrap" style="text-align:center;">
-          {% else %}
-            <td class="no-wrap" style="text-align:center;">
-          {% endif %}
+          <td class="no-wrap" style="text-align:center;">
         {% endif %}
-            {{d}}日
-          </td>
-      {% endfor %}
-    </tr>
-    <tr>
-      {% for d in week_list %}
-        {% if d == "土" %}
-          <td class="table-light_blue no-wrap" style="text-align:center;">
+      {% endif %}
+          {{d}}日
+        </td>
+    {% endfor %}
+  </tr>
+  <tr>
+    <td></td>
+    {% for d in week_list %}
+      {% if d == "土" %}
+        <td class="table-light_blue no-wrap" style="text-align:center;">
+      {% else %}
+        {% if d == "日" %}
+          <td class="table-pink no-wrap" style="text-align:center;">
         {% else %}
-          {% if d == "日" %}
-            <td class="table-pink no-wrap" style="text-align:center;">
-          {% else %}
-            <td class="no-wrap" style="text-align:center;">
-          {% endif %}
+          <td class="no-wrap" style="text-align:center;">
         {% endif %}
-            {{d}}
-          </td>
-      {% endfor %}
-    </tr>
+      {% endif %}
+          {{d}}
+        </td>
+    {% endfor %}
+  </tr>
 
-    {% for m in ok_list %}
-      <tr>
-        {% for k in m %}
-          {% if forloop.first %}
-            <td class="no-wrap" style="text-align:center;">
-              {{k}}
+  {% for m in ok_list %}
+    <tr>
+      {% for k in m %}
+        {% if forloop.first %}
+          <td class="no-wrap" style="text-align:center;">
+            {{k}}
+        {% else %}
+          {% if k.judgement == True %}
+            <td class="table-green no-wrap fs-5" style="text-align:center;">
+              <a href="{% url 'class_detail' k.id %}">OK</a>
           {% else %}
-            {% if k.judgement == True %}
-              <td class="table-green no-wrap fs-5" style="text-align:center;">
-                <a href="{% url 'class_detail' k.id %}">OK</a>
+            {% if k.judgement == False %}
+              <td class="no-wrap fs-5" style="text-align:center;">
+                <a href="{% url 'class_detail' k.id %}">NG</a>
             {% else %}
-              {% if k.judgement == False %}
-                <td class="no-wrap fs-5" style="text-align:center;">
-                  <a href="{% url 'class_detail' k.id %}">NG</a>
-              {% else %}
-                <td class="no-wrap fs-5" style="text-align:center;">
-                  NG
-              {% endif %}
+              <td class="no-wrap fs-5" style="text-align:center;">
+                NG
             {% endif %}
           {% endif %}
-            </td>
-        {% endfor %}
-      </tr>
-    {% endfor %}
+        {% endif %}
+          </td>
+      {% endfor %}
+    </tr>
+  {% endfor %}
 </table>
