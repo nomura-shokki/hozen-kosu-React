@@ -122,7 +122,6 @@ input.big {
 
 
 #loading img {
-  animation: sway 2s infinite ease-in-out; 
   position: absolute; /* 親(#loading)を基準に配置される */
   width: 40vw; /* 画面幅の30% */
   height: auto; /* アスペクト比を保持 */
@@ -148,4 +147,8 @@ input.big {
   100% {
     transform: rotate(10deg);
   }
+}
+
+.sway {
+  animation: sway 2s infinite ease-in-out;
 }
