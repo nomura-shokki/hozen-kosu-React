@@ -1,32 +1,37 @@
 #responseArea {
-  height: 400px;               /* 高さを400pxに固定 */
-  overflow-x: scroll;          /* 横スクロールを許可 */
-  overflow-y: scroll;          /* 縦スクロールを許可 */
-  border: 1px solid #000;      /* ボーダーを指定 */
+  height: 400px; /* 高さを400pxに固定 */
+  overflow-x: scroll; /* 横スクロールを許可 */
+  overflow-y: scroll; /* 縦スクロールを許可 */
+  border: 1px solid #000; /* ボーダーを指定 */
 }
 
 table {
   border-collapse: collapse;
   width: 100%;
+  border: 1px solid #000; /* テーブル全体にボーダーを追加 */
+}
+
+th, td {
+  border: 1px solid #000; /* 各セルにボーダーを追加 */
 }
 
 /* 1列目を固定 */
 th:first-child, td:first-child {
   position: sticky; /* スクロール時に固定 */
-  left: 0;          /* 固定位置を設定 */
-  z-index: 1;       /* 重なり順序の設定 */
+  left: 0; /* 固定位置を設定 */
+  z-index: 1; /* 重なり順序の設定 */
 }
 
 /* ヘッダー行を固定 (1行目) */
 tr:first-child th, tr:first-child td {
   position: sticky; /* 最上行のセルを固定 */
-  top: 0;           /* 固定位置を設定 */
-  z-index: 2;        /* 他の要素より優先する */
+  top: 0; /* 固定位置を設定 */
+  z-index: 2; /* 他の要素より優先する */
 }
 
 /* 2行目を固定 */
 tr:nth-child(2) th, tr:nth-child(2) td {
   position: sticky; /* 2行目のセルを固定 */
-  top: 44px;        /* ヘッダー行の高さ分だけ下にずらす (高さ調整が必要) */
-  z-index: 2;       /* 他の要素より優先する */
+  top: calc(var(--first-row-height)); /* 高さ調整 */
+  z-index: 2; /* 他の要素より優先する */
 }

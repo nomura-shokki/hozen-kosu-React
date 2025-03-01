@@ -3,12 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const responseArea = document.getElementById('responseArea');
     const loading = document.querySelector('#loading');
     const loadingText = document.querySelector('#loading p');
-    const loadingImg = document.querySelector('#loading img');
+    const loadingImg = document.querySelector('#loadingImg');
 
-    // ボタンのクリックイベントを設定
     document.querySelectorAll('button').forEach(button => {
         button.addEventListener('click', async (event) => {
-            showLoading(); // ローディング画面を表示
+            showLoading();
 
             try {
                 const formData = new FormData(form);
@@ -32,20 +31,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error(err);
                 responseArea.innerHTML = '<p class="text-danger">通信エラーが発生しました。</p>';
             } finally {
-                hideLoading(); // 最後にローディング画面を非表示
+                hideLoading();
             }
         });
     });
 
-    // ローディング画面を表示
     function showLoading() {
         resetAnimations();
-        loading.style.visibility = "visible"; // visibilityをvisibleに設定
-        loadingText.style.opacity = "1"; // テキストを完全に表示
-        loadingImg.style.opacity = "1"; // 画像を完全に表示
+        loading.style.visibility = "visible";
+        loadingText.style.display = "block";
+        loadingImg.style.display = "block";
+        loadingImg.classList.add('sway'); // クラスを追加
     }
 
-    // アニメーションをリセット
     function resetAnimations() {
         loading.getAnimations().forEach(animation => animation.cancel());
         loadingText.getAnimations().forEach(animation => animation.cancel());
@@ -57,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingImg.style.display = "block";
     }
 
-    // ローディング画面を非表示
     function hideLoading() {
         const loadingAnimation = loading.animate(
             [
@@ -97,7 +94,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         Promise.all([loadingAnimation.finished, loadingTextAnimation.finished, loadingImgAnimation.finished])
             .then(() => {
-                loading.style.visibility = "hidden"; // 最後にvisibilityをhiddenにする
+                loading.style.visibility = "hidden";
+                loading.style.opacity = "1";
+                loadingImg.classList.remove('sway'); // クラスを削除
+                resetAnimations();
             });
     }
 });
