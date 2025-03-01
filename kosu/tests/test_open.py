@@ -665,7 +665,7 @@ class Open_pages(TestCase):
 
 
 
-    # 工数入力可否(ショップ単位)ページ開きチェック
+    # 工数入力可否ページ開きチェック
     def test_class_list(self):
         # URL定義
         url = reverse('class_list')
@@ -674,8 +674,8 @@ class Open_pages(TestCase):
 
         # リクエストのレスポンスステータスコードが200(OK)であることを確認
         self.assertEqual(response.status_code, 200)
-        # レスポンスコンテンツに「工数入力可否(ショップ単位)」という文字列が含まれていることを確認
-        self.assertContains(response, '工数入力可否(ショップ単位)')
+        # レスポンスコンテンツに「工数入力可否」という文字列が含まれていることを確認
+        self.assertContains(response, '工数入力可否')
 
 
 
