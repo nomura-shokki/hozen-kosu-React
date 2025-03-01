@@ -2,17 +2,11 @@
   height: 400px; /* 高さを400pxに固定 */
   overflow-x: scroll; /* 横スクロールを許可 */
   overflow-y: scroll; /* 縦スクロールを許可 */
-  border: 1px solid #000; /* ボーダーを指定 */
 }
 
 table {
   border-collapse: collapse;
   width: 100%;
-  border: 1px solid #000; /* テーブル全体にボーダーを追加 */
-}
-
-th, td {
-  border: 1px solid #000; /* 各セルにボーダーを追加 */
 }
 
 /* 1列目を固定 */
