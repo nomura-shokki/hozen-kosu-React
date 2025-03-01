@@ -1725,7 +1725,7 @@ class ClassListView(FormView):
 
     # コンテキスト定義
     context.update({
-      'title': '工数入力可否(ショップ単位)',
+      'title': '工数入力可否',
       'shop_form': member_findForm(self.get_form_kwargs()['initial']),
       'schedule_form': schedule_timeForm(self.extra_initial),
       'day_list': zip(range(1, last_day_of_month.day + 1), week_list),
