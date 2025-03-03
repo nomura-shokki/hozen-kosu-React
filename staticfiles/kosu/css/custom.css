@@ -122,7 +122,6 @@ input.big {
 
 
 #loading img {
-  animation: sway 2s infinite ease-in-out; 
   position: absolute; /* 親(#loading)を基準に配置される */
   width: 40vw; /* 画面幅の30% */
   height: auto; /* アスペクト比を保持 */
@@ -130,13 +129,12 @@ input.big {
 }
 
 #loading p {
-  font-size: 2rem; 
-  font-family: var(--oswald-font); 
-  position: absolute; 
-  bottom: 10%; /* 下部から少し余裕を持たせる */
-  left: 50%; 
-  transform: translateX(-50%);
-  text-align: center;
+  font-size: clamp(1rem, 2.5vw, 2rem); /* 最小1rem, 画面幅に基づき2.5vw, 最大2rem */
+  font-family: var(--oswald-font); /* カスタムフォント "Oswald" を適用 */
+  position: absolute; /* 要素を親要素からの相対位置で配置 */
+  white-space: nowrap; /* 1行で表示させる */
+  overflow: hidden; /* はみ出し部分を非表示にする */
+  text-overflow: ellipsis; /* はみ出し部分を「...」で省略 */
 }
 
 @keyframes sway {
@@ -149,4 +147,8 @@ input.big {
   100% {
     transform: rotate(10deg);
   }
+}
+
+.sway {
+  animation: sway 2s infinite ease-in-out;
 }

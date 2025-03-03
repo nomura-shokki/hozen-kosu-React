@@ -54,6 +54,5 @@ urlpatterns = [
     path('inquiry_list/<int:num>',inquiry_views.inquiry_list, name = 'inquiry_list'),
     path('inquiry_display/<int:num>',inquiry_views.inquiry_display, name = 'inquiry_display'),
     path('inquiry_edit/<int:num>',inquiry_views.inquiry_edit, name = 'inquiry_edit'),
-    path('stopwatch', main_views.stopwatch, name = 'stopwatch'),
     ]
 
