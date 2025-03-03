@@ -1,158 +1,158 @@
 {% load static %}
 <!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{title}}</title>
-  <link rel="icon" type="image/x-icon" href="{% static 'kosu/img/memo.png' %}">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-  <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
-  <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
-  <script src="{% static 'kosu/js/before_comment.js' %}"></script>
-</head>
-<body class="container">
-  <h1 class="display-4 text-primary">{{title}}</h1>
-  <p class="h6">
-    <a href="{% url 'kosu_main' %}">工数MENUへ</a>
-  </p>
-  <p>　</p>
-  <form action="{% url 'all_kosu' num %}" method="post">
-    {% csrf_token %}
-    <table class="table-borderless">
-    <tr>
-      <th>ID：</th>
-      <td>{{form.identification}}</td>
-    </tr>
-    <tr>
-      <th>就業日：</th>
-      <td>
-        <div class="number-input-group">
-          <input type="date" class="form-control custom-border" name="start_day" id="start_day" style="width: 140px;" value={{default_start_day}}>
-          ～
-          <input type="date" class="form-control custom-border" name="end_day" id="end_day" style="width: 140px;" value={{default_end_day}}>
-        </div>
-      </td>
-    </tr>
-    <tr>
-      <th>氏名：</th>
-      <td>{{form.name}}</td>
-    </tr>
-    <tr>
-      <th>ショップ：</th>
-      <td>{{form.shop}}</td>
-    </tr>
-    <tr>
-      <th>直：</th>
-      <td>{{form.tyoku}}</td>
-    </tr>
-    <tr>
-      <th>勤務：</th>
-      <td>{{form.work}}</td>
-    </tr>
-    <tr>
-      <th>整合性：</th>
-      <td>{{form.OK_NG}}</td>
-    </tr>
-    <tr><th><td>
-        <input type="submit" value="検索" name="kosu_find" class="btn btn-blue7 mt-2">　　
-        <input type="submit" value="検索レコード全削除" name="kosu_delete" class="btn btn-blue7 mt-2" onclick="return confirmDelete();">
-      </td></th></tr>
-    </table>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'kosu/img/memo.png' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
+    <script src="{% static 'kosu/js/before_comment.js' %}"></script>
+  </head>
+  <body class="container">
+    <h1 class="display-4 text-primary">{{title}}</h1>
+    <p class="h6">
+      <a href="{% url 'kosu_main' %}">工数MENUへ</a>
+    </p>
     <p>　</p>
-    <div class="table-responsive">
-      <table class="table text-nowrap table-custom">
+    <form action="{% url 'all_kosu' num %}" method="post">
+      {% csrf_token %}
+      <table class="table-borderless">
         <tr>
-          <th style="text-align:center;">ID</th>
-          <th style="text-align:center;">就業日</th>
-          <th style="text-align:center;">氏名</th>
-          <th style="text-align:center;">直</th>
-          <th style="text-align:center;">勤務</th>
-          <th style="text-align:center;">整合性</th>
-          <th style="text-align:center;">詳細リンク</th>
-          <th style="text-align:center;">削除リンク</th>
+          <th>ID：</th>
+          <td>{{form.identification}}</td>
         </tr>
-        {% for i in data %}
         <tr>
-          <td style="text-align:center;">
-            {{i.id}}
-          </td>
-          <td style="text-align:center;">
-            {{i.work_day2|date:"Y-m-d"}}
-          </td>
-          <td style="text-align:center;">
-            {{i.name}}
-          </td>
-          <td style="text-align:center;">
-            {% if i.tyoku2 == "1" %}1直{% endif %}
-            {% if i.tyoku2 == "2" %}2直{% endif %}
-            {% if i.tyoku2 == "3" %}3直{% endif %}
-            {% if i.tyoku2 == "4" %}常昼{% endif %}
-          </td>
-          <td style="text-align:center;">
-            {{i.work_time}}
-          </td>
-          <td style="text-align:center;">
-            {% if i.judgement == True %}<b  class="text-primary">OK</b>{% endif %}
-            {% if i.judgement == False %}<b  class="text-danger">NG</b>{% endif %}
-          </td>
-          <td style="text-align:center;">
-            <a href="{% url 'all_kosu_detail' i.id %}">詳細</a>
-          </td>
-          <td style="text-align:center;">
-            <a href="{% url 'all_kosu_delete' i.id %}">削除</a>
+          <th>就業日：</th>
+          <td>
+            <div class="number-input-group">
+              <input type="date" class="form-control custom-border" name="start_day" id="start_day" style="width: 140px;" value={{default_start_day}}>
+              ～
+              <input type="date" class="form-control custom-border" name="end_day" id="end_day" style="width: 140px;" value={{default_end_day}}>
+            </div>
           </td>
         </tr>
-        {% endfor %}
-      </table>
-    </div>
-    <ul class="pagination justify-content-center">
-      {% if data.has_previous %}
-      <li class="page-item">
-        <a class="page-link" href="{% url 'all_kosu' 1 %}">
-          &laquo; 最初</a>
-      </li>
-      <li class="page-item">
-        <a class="page-link" 
-          href="{% url 'all_kosu' data.previous_page_number %}">
-          &laquo; 前</a>
-      </li>
-      {% else %}
-      <li class="page-item">
-        <a class="page-link">
-          &laquo; 最初</a>
-      </li>
-      <li class="page-item">
-        <a class="page-link">
-          &laquo; 前</a>
-      </li>
-      {% endif %}
-      <li class="page-item">
-        <a class="page-link">
-          {{data.number}}/{{data.paginator.num_pages}}</a>
-      </li>
-      {% if data.has_next %}
-      <li class="page-item">
-        <a class="page-link" 
-          href="{% url 'all_kosu' data.next_page_number %}">
+        <tr>
+          <th>氏名：</th>
+          <td>{{form.name}}</td>
+        </tr>
+        <tr>
+          <th>ショップ：</th>
+          <td>{{form.shop}}</td>
+        </tr>
+        <tr>
+          <th>直：</th>
+          <td>{{form.tyoku}}</td>
+        </tr>
+        <tr>
+          <th>勤務：</th>
+          <td>{{form.work}}</td>
+        </tr>
+        <tr>
+          <th>整合性：</th>
+          <td>{{form.OK_NG}}</td>
+        </tr>
+        <tr><th><td>
+            <input type="submit" value="検索" name="kosu_find" class="btn btn-blue7 mt-2">　　
+            <input type="submit" value="検索レコード全削除" name="kosu_delete" class="btn btn-blue7 mt-2" onclick="return confirmDelete();">
+          </td></th></tr>
+        </table>
+        <p>　</p>
+        <div class="table-responsive">
+          <table class="table text-nowrap table-custom">
+            <tr>
+              <th style="text-align:center;">ID</th>
+              <th style="text-align:center;">就業日</th>
+              <th style="text-align:center;">氏名</th>
+              <th style="text-align:center;">直</th>
+              <th style="text-align:center;">勤務</th>
+              <th style="text-align:center;">整合性</th>
+              <th style="text-align:center;">詳細リンク</th>
+              <th style="text-align:center;">削除リンク</th>
+            </tr>
+            {% for i in data %}
+              <tr>
+                <td style="text-align:center;">
+                  {{i.id}}
+                </td>
+                <td style="text-align:center;">
+                  {{i.work_day2|date:"Y-m-d"}}
+                </td>
+                <td style="text-align:center;">
+                  {{i.name}}
+                </td>
+                <td style="text-align:center;">
+                  {% if i.tyoku2 == "1" %}1直{% endif %}
+                  {% if i.tyoku2 == "2" %}2直{% endif %}
+                  {% if i.tyoku2 == "3" %}3直{% endif %}
+                  {% if i.tyoku2 == "4" %}常昼{% endif %}
+                </td>
+                <td style="text-align:center;">
+                  {{i.work_time}}
+                </td>
+                <td style="text-align:center;">
+                  {% if i.judgement == True %}<b  class="text-primary">OK</b>{% endif %}
+                  {% if i.judgement == False %}<b  class="text-danger">NG</b>{% endif %}
+                </td>
+                <td style="text-align:center;">
+                  <a href="{% url 'all_kosu_detail' i.id %}">詳細</a>
+                </td>
+                <td style="text-align:center;">
+                  <a href="{% url 'all_kosu_delete' i.id %}">削除</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </table>
+      </div>
+      <ul class="pagination justify-content-center">
+        {% if data.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="{% url 'all_kosu' 1 %}">
+            &laquo; 最初</a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" 
+            href="{% url 'all_kosu' data.previous_page_number %}">
+            &laquo; 前</a>
+        </li>
+        {% else %}
+        <li class="page-item">
+          <a class="page-link">
+            &laquo; 最初</a>
+        </li>
+        <li class="page-item">
+          <a class="page-link">
+            &laquo; 前</a>
+        </li>
+        {% endif %}
+        <li class="page-item">
+          <a class="page-link">
+            {{data.number}}/{{data.paginator.num_pages}}</a>
+        </li>
+        {% if data.has_next %}
+        <li class="page-item">
+          <a class="page-link" 
+            href="{% url 'all_kosu' data.next_page_number %}">
+              次&raquo;</a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" 
+            href="{% url 'all_kosu' data.paginator.num_pages %}">
+              最後&raquo;</a>
+        </li>
+        {% else %}
+        <li class="page-item">
+          <a class="page-link">
             次&raquo;</a>
-      </li>
-      <li class="page-item">
-        <a class="page-link" 
-          href="{% url 'all_kosu' data.paginator.num_pages %}">
+        </li>
+        <li class="page-item">
+          <a class="page-link">
             最後&raquo;</a>
-      </li>
-      {% else %}
-      <li class="page-item">
-        <a class="page-link">
-          次&raquo;</a>
-      </li>
-      <li class="page-item">
-        <a class="page-link">
-          最後&raquo;</a>
-      </li>
-      {% endif %}
-    </ul>
-  </form>
-</body>
+        </li>
+        {% endif %}
+      </ul>
+    </form>
+  </body>
 </html>
