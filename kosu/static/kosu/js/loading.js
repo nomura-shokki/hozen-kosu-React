@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const responseArea = document.getElementById('responseArea');
     const loading = document.querySelector('#loading');
     const loadingText = document.querySelector('#loading p');
-    const loadingImg = document.querySelector('#loadingImg'); // IDが変わったので更新
+    const loadingImg = document.querySelector('#loadingImg');
 
     document.querySelectorAll('button').forEach(button => {
         button.addEventListener('click', async (event) => {
@@ -38,9 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showLoading() {
         resetAnimations();
-        loading.style.visibility = "visible"; // `display` ではなく `visibility` を使用
-        loadingText.style.visibility = "visible";
-        loadingImg.style.visibility = "visible";
+        loading.style.visibility = "visible";
+        loadingText.style.display = "block";
+        loadingImg.style.display = "block";
+        loadingImg.classList.add('sway'); // クラスを追加
     }
 
     function resetAnimations() {
@@ -51,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loading.style.opacity = "1";
         loadingText.style.opacity = "1";
         loadingImg.style.opacity = "1";
-        loadingImg.style.visibility = "visible";
+        loadingImg.style.display = "block";
     }
 
     function hideLoading() {
@@ -93,9 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         Promise.all([loadingAnimation.finished, loadingTextAnimation.finished, loadingImgAnimation.finished])
             .then(() => {
-                loading.style.visibility = "hidden"; // `display` の代わりに `visibility` を使う
+                loading.style.visibility = "hidden";
                 loading.style.opacity = "1";
-
+                loadingImg.classList.remove('sway'); // クラスを削除
                 resetAnimations();
             });
     }

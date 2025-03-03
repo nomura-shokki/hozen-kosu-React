@@ -74,7 +74,7 @@
             <tr>
               {% for k in m %}
                 {% if forloop.first %}
-                  <td class="no-wrap" style="text-align:center;">
+                  <td class="table-yellow no-wrap" style="text-align:center;">
                     {{k}}
                 {% else %}
                   {% if k.judgement == True %}
@@ -103,5 +103,6 @@
     <script src="{% static 'kosu/js/loading.js' %}"></script>
     <script src="{% static 'kosu/js/class_list_change.js' %}"></script>
     <script src="{% static 'kosu/js/instantly_post.js' %}"></script>
+    <script src="{% static 'kosu/js/column_high.js' %}"></script>
   </body>
 </html>

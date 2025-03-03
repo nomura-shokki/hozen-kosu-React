@@ -669,6 +669,20 @@
 }
 
 
+.table-yellow {
+  --bs-table-color: #000;
+  --bs-table-bg: #fdff9a;
+  --bs-table-border-color: #000;
+  --bs-table-striped-bg: #fdff9a;
+  --bs-table-striped-color: #000;
+  --bs-table-active-bg: #fdff9a;
+  --bs-table-active-color: #000;
+  --bs-table-hover-bg: #fdff9a;
+  --bs-table-hover-color: #000;
+  color: var(--bs-table-color);
+  border-color: var(--bs-table-border-color);
+}
+
 
 .btn-pink1 {
   --bs-btn-color: #fff;
