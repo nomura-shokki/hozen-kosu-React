@@ -3,12 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const responseArea = document.getElementById('responseArea');
     const loading = document.querySelector('#loading');
     const loadingText = document.querySelector('#loading p');
-    const loadingImg = document.querySelector('#loading img');
+    const loadingImg = document.querySelector('#loadingImg'); // IDが変わったので更新
 
-    // ボタンのクリックイベントを設定
     document.querySelectorAll('button').forEach(button => {
         button.addEventListener('click', async (event) => {
-            showLoading(); // ローディング画面を表示
+            showLoading();
 
             try {
                 const formData = new FormData(form);
@@ -32,20 +31,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error(err);
                 responseArea.innerHTML = '<p class="text-danger">通信エラーが発生しました。</p>';
             } finally {
-                hideLoading(); // 最後にローディング画面を非表示
+                hideLoading();
             }
         });
     });
 
-    // ローディング画面を表示
     function showLoading() {
         resetAnimations();
-        loading.style.visibility = "visible"; // visibilityをvisibleに設定
-        loadingText.style.opacity = "1"; // テキストを完全に表示
-        loadingImg.style.opacity = "1"; // 画像を完全に表示
+        loading.style.visibility = "visible"; // `display` ではなく `visibility` を使用
+        loadingText.style.visibility = "visible";
+        loadingImg.style.visibility = "visible";
     }
 
-    // アニメーションをリセット
     function resetAnimations() {
         loading.getAnimations().forEach(animation => animation.cancel());
         loadingText.getAnimations().forEach(animation => animation.cancel());
@@ -54,10 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
         loading.style.opacity = "1";
         loadingText.style.opacity = "1";
         loadingImg.style.opacity = "1";
-        loadingImg.style.display = "block";
+        loadingImg.style.visibility = "visible";
     }
 
-    // ローディング画面を非表示
     function hideLoading() {
         const loadingAnimation = loading.animate(
             [
@@ -97,7 +93,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         Promise.all([loadingAnimation.finished, loadingTextAnimation.finished, loadingImgAnimation.finished])
             .then(() => {
-                loading.style.visibility = "hidden"; // 最後にvisibilityをhiddenにする
+                loading.style.visibility = "hidden"; // `display` の代わりに `visibility` を使う
+                loading.style.opacity = "1";
+
+                resetAnimations();
             });
     }
 });
