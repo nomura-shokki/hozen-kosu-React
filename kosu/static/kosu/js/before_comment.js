@@ -4,5 +4,6 @@ function confirm_edit_admin() {return confirm('アプリ設定を変更します
 function confirmDelete_def() {return confirm('この操作は全員の工数入力に大きく影響します。本当に削除しますか？');}
 function confirm_edit_work() {return confirm('作業を変更します');}
 function confirm_edit_day() {return confirm('就業日を変更します');}
+function confirm_edit_date() {return confirm('工数データを編集します');}
 function confirmDelete_member() {return confirm('異動・退社の場合は編集画面でショップを"異動・退社"に変更して人員データの削除は実施しないで下さい。削除する人員の工数データや問い合わせデータがある場合にはバックアップを実施しましたか？');}
 function confirm_edit_member() {return confirm('人員情報を登録します。');}

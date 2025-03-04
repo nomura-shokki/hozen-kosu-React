@@ -1553,7 +1553,7 @@ def detail(request, num):
     for def_t in range(len(time_list_start)):
       if def_t + 1 not in selected_num:
         # 工数区分定義と作業詳細が空欄でない場合の処理
-        if not def_time[def_t] == '' and detail_time[def_t] == '':
+        if not (def_time[def_t] == '' and detail_time[def_t] == ''):
           # 休憩時間は作業時間被りから除外
           if def_time[def_t] != '休憩':
             # 作業時間の時と分取得 
