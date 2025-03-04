@@ -836,15 +836,15 @@ def input(request):
 
   # 初期値を設定するリスト作成
   default_list = {'work' : request.session.get('error_work', work_default),
-                 'work2' : request.session.get('error_work', work_default),
-                 'tyoku' : request.session.get('error_tyoku', tyoku_default),
-                 'tyoku2' : request.session.get('error_tyoku', tyoku_default),
-                 'tomorrow_check' : request.session.get('tomorrow_check', False),
-                 'kosu_def_list': request.session.get('error_def', ''),
-                 'work_detail' : request.session.get('error_detail', ''),
-                 'over_work' : request.session.get('error_over_work', over_work_default),
-                 'break_change' : break_change_default,
-                 'def_prediction' : member_obj.def_prediction} 
+                  'work2' : request.session.get('error_work', work_default),
+                  'tyoku' : request.session.get('error_tyoku', tyoku_default),
+                  'tyoku2' : request.session.get('error_tyoku', tyoku_default),
+                  'tomorrow_check' : request.session.get('tomorrow_check', False),
+                  'kosu_def_list': request.session.get('error_def', ''),
+                  'work_detail' : request.session.get('error_detail', ''),
+                  'over_work' : request.session.get('error_over_work', over_work_default),
+                  'break_change' : break_change_default,
+                  'def_prediction' : member_obj.def_prediction} 
 
   # 時刻取得時の初期値の定義追加あれば追加
   if 'def_default' in locals():
@@ -1593,10 +1593,10 @@ def detail(request, num):
       end_time = request.POST.get('end_time{}'.format(d))
 
       # 入力エラー検出
-      response = kosu_edit_check(start_time, end_time, edit_id, num, request)
+      response = kosu_edit_check(start_time, end_time, d, num, request)
       if response:
         return response
- 
+
       # 作業開始、終了の時と分取得
       start_time_hour, start_time_min = time_index(start_time)
       end_time_hour, end_time_min = time_index(end_time)
@@ -1639,8 +1639,8 @@ def detail(request, num):
     # 作業内容データの内容を上書きして更新
     Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
       work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
-                                                 'detail_work' : detail_list_summarize(detail_list), \
-                                                 'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
+                                                'detail_work' : detail_list_summarize(detail_list), \
+                                                'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
 
     # このページ読み直し
     return redirect(to = '/detail/{}'.format(num))
@@ -2245,7 +2245,7 @@ def schedule(request):
 
 # 残業管理画面定義
 def over_time(request):
-   # セッションにログインした従業員番号がない場合の処理
+  # セッションにログインした従業員番号がない場合の処理
   if not request.session.get('login_No'):
     # 未ログインならログインページへ飛ぶ
     return redirect('/login')
