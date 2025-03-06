@@ -41,6 +41,7 @@ MIDDLEWARE = [
     'kosu.middleware.clear_session_middleware.kosuClearMiddleware',
     'kosu.middleware.clear_session_middleware.memberClearMiddleware',
     'kosu.middleware.clear_session_middleware.teamClearMiddleware',
+    'kosu.middleware.clear_session_middleware.ClearMessagesOnPageChangeMiddleware',
 ]
 
 SESSION_COOKIE_AGE = 315360000

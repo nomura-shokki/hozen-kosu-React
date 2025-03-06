@@ -1,4 +1,5 @@
 from django.utils.deprecation import MiddlewareMixin
+from django.contrib.messages import get_messages
 
 
 
@@ -34,3 +35,23 @@ class teamClearMiddleware(MiddlewareMixin):
         del request.session['find_team_day']
       if 'find_employee_no2' in request.session:
         del request.session['find_employee_no2']
+
+
+
+class ClearMessagesOnPageChangeMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        # セッションに保存された前回のURLを取得
+        previous_url = request.session.get('_previous_url')
+
+        # 現在のURLを取得
+        current_url = request.path
+
+        # 前回のURLと現在のURLが異なる場合のみ、メッセージを消去
+        if previous_url and previous_url != current_url:
+            if hasattr(request, '_messages'):
+                storage = get_messages(request)
+                list(storage)
+                storage.used = True
+
+        # 現在のURLをセッションに保存（次回リクエスト時に使用するため）
+        request.session['_previous_url'] = current_url

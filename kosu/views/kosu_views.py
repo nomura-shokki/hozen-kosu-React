@@ -34,7 +34,6 @@ from ..utils.kosu_utils import kosu_sort
 from ..utils.kosu_utils import default_work_time
 from ..utils.kosu_utils import calendar_day
 from ..utils.kosu_utils import OK_NF_check
-from ..utils.kosu_utils import index_change
 from ..utils.kosu_utils import break_time_over
 from ..utils.kosu_utils import create_kosu
 from ..utils.kosu_utils import create_kosu_basic
@@ -61,7 +60,6 @@ from ..forms import schedule_timeForm
 from ..forms import scheduleForm
 from ..forms import all_kosu_findForm
 from ..forms import all_kosuForm
-
 
 
 
@@ -2552,156 +2550,63 @@ class AllKosuListView(ListView):
 
 
 
-# 工数編集画面定義
-def all_kosu_detail(request, num):
-  # 設定データ取得（最後の管理者データ）
-  admin_data_last = administrator_data.objects.order_by("id").last()
-
-  # セッションにログインした従業員番号がない場合（未ログイン）
-  if not request.session.get('login_No'):
-    return redirect('/login')
-
-  # ログイン者が問い合わせ担当者でない場合
-  login_no = str(request.session['login_No'])
-  if login_no not in (admin_data_last.administrator_employee_no1,
-                      admin_data_last.administrator_employee_no2,
-                      admin_data_last.administrator_employee_no3):
-    return redirect('/')
-
-  # ログイン者の情報を取得
-  try:
-    member_data = member.objects.get(employee_no=login_no)
-  except member.DoesNotExist:
-    # 該当セッションが無効の場合、セッション削除後ログインページへリダイレクト
-    request.session.clear()
-    return redirect('/login')
-
-  # 工数履歴データ取得
-  obj_get = Business_Time_graph.objects.get(id=num)
-
-  # 工数定義区分Verリスト（重複排除しID順ソート）
-  ver_list = kosu_division.objects.values_list('kosu_name', flat=True).order_by('id').distinct()
-  ver_choose = [[ver, ver] for ver in ver_list]
+# 全工数編集画面定義
+class AllKosuDetailView(FormView):
+  # テンプレート,フォーム定義
+  template_name = 'kosu/all_kosu_detail.html'
+  form_class = all_kosuForm
 
 
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_data = member_obj
 
-  # POSTリクエスト時の処理
-  if request.method == 'POST':
-    # フォーム定義(工数区分定義バージョン選択肢付属)
-    form = all_kosuForm(request.POST)
+    # 設定データ取得（最後の管理者データ）
+    admin_data_last = administrator_data.objects.order_by("id").last()
+    # ログイン者が問い合わせ担当者でない場合、メインMENUへ
+    login_no = str(request.session['login_No'])
+    if login_no not in (admin_data_last.administrator_employee_no1,
+                        admin_data_last.administrator_employee_no2,
+                        admin_data_last.administrator_employee_no3):
+      return redirect('/')
+
+    # 工数データ取得しできなければ一覧へ
+    num = self.kwargs.get('num')
+    try:
+      self.obj_get = Business_Time_graph.objects.get(id=num)
+    except Business_Time_graph.DoesNotExist:
+      return redirect('/all_kosu/1')
+
+    return super().dispatch(request, *args, **kwargs)
+
+
+  # フォーム初期値を定義
+  def get_form(self, form_class=None):
+    form = super().get_form(form_class)
+    # 工数定義区分Verリストを選択肢に設定
+    ver_list = kosu_division.objects.values_list('kosu_name', flat=True).order_by('id').distinct()
+    ver_choose = [[ver, ver] for ver in ver_list]
     form.fields['def_ver'].choices = ver_choose
-
-    # 作業内容の整形
-    time_work = ''.join(request.POST.get(f'time_work{i}', '') for i in range(24))
-    detail_work = '$'.join(request.POST.get(f'detail_work{i}', '') for i in range(24))
-
-    # 従業員番号チェック
-    employee_no = request.POST.get('employee_no', '')
-    if not member.objects.filter(employee_no=employee_no).exists():
-      messages.error(request, 'その従業員番号は人員データにありません。ERROR022')
-      return redirect(to=f'/all_kosu_detail/{num}')
-
-    # 必須項目（従業員番号、就業日）が空の場合
-    if not employee_no or not request.POST.get('work_day', ''):
-      messages.error(request, '従業員番号か就業日が未入力です。ERROR023')
-      return redirect(to=f'/all_kosu_detail/{num}')
-
-    # 作業内容の正規表現チェック
-    time_work_pattern = r'^[a-zA-Z#$]{12}$'
-    for i in range(24):
-      time_work_value = request.POST.get(f'time_work{i}', '')
-      if not re.fullmatch(time_work_pattern, time_work_value):
-        messages.error(request, f'{i}時台の作業内容の入力値が不適切です。ERROR024')
-        return redirect(to=f'/all_kosu_detail/{num}')
-
-    # 作業詳細の整合性チェック
-    for i in range(24):
-      detail_work_value = request.POST.get(f'detail_work{i}', '')
-      if detail_work_value.count('$') != 11:
-        messages.error(request, f'{i}時台の作業詳細の入力値が不適切です。ERROR025')
-        return redirect(to=f'/all_kosu_detail/{num}')
-
-    # 残業時間の整合性チェック
-    if int(request.POST.get('over_time', 0)) % 5 != 0:
-      messages.error(request, '残業の入力値が5の倍数ではありません。ERROR026')
-      return redirect(to=f'/all_kosu_detail/{num}')
-
-    # 休憩時間フォーマットチェック
-    breaktime_fields = ['breaktime', 'breaktime_over1', 'breaktime_over2', 'breaktime_over3']
-    breaktime_name = ['昼休憩', '残業休憩時間1', '残業休憩時間2', '残業休憩時間3']
-    breaktime_pattern = r'^#([0-9]{8})$'
-
-    for i, field in enumerate(breaktime_fields):
-      match = re.fullmatch(breaktime_pattern, request.POST.get(field, ''))
-      if not match:
-        messages.error(request, f'{breaktime_name[i]}の記入が#+数字8桁の形式になっていません。ERROR027')
-        return redirect(to=f'/all_kosu_detail/{num}')
-
-      # 時刻の範囲チェック（60進数、5分刻み）
-      number_part = match.group(1)
-      hours1, minutes1, hours2, minutes2 = map(int, [number_part[:2], number_part[2:4], number_part[4:6], number_part[6:]])
-      invalid_time = (
-        hours1 not in range(24) or minutes1 not in range(0, 60, 5) or
-        hours2 not in range(24) or minutes2 not in range(0, 60, 5)
-        )
-      if invalid_time:
-        messages.error(request, f'{breaktime_name[i]}の設定が60進数の入力でないか5分刻みの数字ではありません。ERROR028')
-        return redirect(to=f'/all_kosu_detail/{num}')
-
-    # 従業員番号・日付変更時の確認
-    original_employee_no = request.session['memory_No']
-    original_work_day = request.session['memory_day']
-    new_employee_no = request.POST['employee_no']
-    new_work_day = request.POST['work_day']
-
-    if new_employee_no != original_employee_no or new_work_day != original_work_day:
-      # 新しい日付に既存データがある場合はエラー
-      if Business_Time_graph.objects.filter(employee_no3=new_employee_no, work_day2=new_work_day).exists():
-        messages.error(request, 'その日付には既に工数データがあります。ERROR029')
-        return redirect(to=f'/all_kosu_detail/{num}')
-
-      # 元のデータを削除
-      obj_get.delete()
-
-    # 工数データの保存または更新
-    member_instance = member.objects.get(employee_no=new_employee_no)
-    Business_Time_graph.objects.update_or_create(
-      employee_no3=new_employee_no,
-      work_day2=new_work_day,
-      defaults={
-        'name': member_instance,
-        'def_ver2': request.POST['def_ver'],
-        'work_time': request.POST['work_time'],
-        'tyoku2': request.POST['tyoku'],
-        'time_work': time_work,
-        'detail_work': detail_work,
-        'over_time': request.POST['over_time'],
-        'breaktime': request.POST['breaktime'],
-        'breaktime_over1': request.POST['breaktime_over1'],
-        'breaktime_over2': request.POST['breaktime_over2'],
-        'breaktime_over3': request.POST['breaktime_over3'],
-        'judgement': 'judgement' in request.POST,
-        'break_change': 'break_change' in request.POST,
-        }
-    )
-
-    default_day = new_work_day
+    return form
 
 
+  # フォーム初期値定義
+  def get_initial(self):
+    # dispatch で取得した obj_get を利用
+    obj_get = self.obj_get
 
-  # GETリクエスト時の処理
-  else:
-    # データの初期値設定
-    default_day = obj_get.work_day2
-    request.session['memory_No'] = str(obj_get.employee_no3)
-    request.session['memory_day'] = str(obj_get.work_day2)
-
-    # 作業詳細の分割とリスト化
+    # フォーム初期値リスト作成
     detail_list = obj_get.detail_work.split('$')
     time_work_list = [obj_get.time_work[i * 12:(i + 1) * 12] for i in range(24)]
     detail_work_list = [detail_list[i * 12:(i + 1) * 12] for i in range(24)]
 
-    form_defaults = {
+    # フォーム初期値定義
+    initial_data = {
       'employee_no': obj_get.employee_no3,
       'def_ver': obj_get.def_ver2,
       'tyoku': obj_get.tyoku2,
@@ -2715,27 +2620,134 @@ def all_kosu_detail(request, num):
       'break_change': obj_get.break_change,
       }
 
-    # 作業時間と詳細をフォームデータに追加
+    # フォーム初期値追加
     for i in range(24):
-      form_defaults[f'time_work{i}'] = time_work_list[i]
-      form_defaults[f'detail_work{i}'] = '$'.join(detail_work_list[i])
+      initial_data[f'time_work{i}'] = time_work_list[i]
+      initial_data[f'detail_work{i}'] = '$'.join(detail_work_list[i])
 
-    form = all_kosuForm(form_defaults)
-    form.fields['def_ver'].choices = ver_choose
+    # セッションに保存
+    self.request.session['memory_No'] = str(obj_get.employee_no3)
+    self.request.session['memory_day'] = str(obj_get.work_day2)
 
-
-
-  # HTMLに渡す辞書
-  context = {
-    'title': '工数データ編集',
-    'form': form,
-    'default_day': str(default_day),
-    'num': num,
-    }
+    return initial_data
 
 
+  # コンテキストデータを設定
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
 
-  return render(request, 'kosu/all_kosu_detail.html', context)
+    context.update({
+      'title': '工数データ編集',
+      'default_day': self.request.session.get('memory_day', ''),
+      'num': self.kwargs['num']
+      })
+
+    return context
+
+
+  # フォームが有効な場合に呼び出されるメソッドをオーバーライド
+  def form_valid(self, form):
+    # 工数データID取得
+    num = self.kwargs['num']
+
+    # 作業内容の整形
+    time_work = ''.join(self.request.POST.get(f'time_work{i}', '') for i in range(24))
+    detail_work = '$'.join(self.request.POST.get(f'detail_work{i}', '') for i in range(24))
+
+    # 従業員番号チェック
+    employee_no = self.request.POST.get('employee_no', '')
+    if not member.objects.filter(employee_no=employee_no).exists():
+      messages.error(self.request, 'その従業員番号は人員データにありません。ERROR022')
+      return redirect(f'/all_kosu_detail/{num}')
+
+    # 必須項目（従業員番号、就業日）が空の場合
+    if not employee_no or not self.request.POST.get('work_day', ''):
+      messages.error(self.request, '従業員番号か就業日が未入力です。ERROR023')
+      return redirect(f'/all_kosu_detail/{num}')
+
+    # 作業内容の正規表現チェック
+    time_work_pattern = r'^[a-zA-Z#$]{12}$'
+    for i in range(24):
+      time_work_value = self.request.POST.get(f'time_work{i}', '')
+      if not re.fullmatch(time_work_pattern, time_work_value):
+        messages.error(self.request, f'{i}時台の作業内容の入力値が不適切です。ERROR024')
+        return redirect(f'/all_kosu_detail/{num}')
+
+    # 作業詳細の整合性チェック
+    for i in range(24):
+      detail_work_value = self.request.POST.get(f'detail_work{i}', '')
+      if detail_work_value.count('$') != 11:
+        messages.error(self.request, f'{i}時台の作業詳細の入力値が不適切です。ERROR025')
+        return redirect(f'/all_kosu_detail/{num}')
+
+    # 残業時間の整合性チェック
+    if int(self.request.POST.get('over_time', 0)) % 5 != 0:
+      messages.error(self.request, '残業の入力値が5の倍数ではありません。ERROR026')
+      return redirect(f'/all_kosu_detail/{num}')
+
+    # 休憩時間フォーマットチェック
+    breaktime_fields = ['breaktime', 'breaktime_over1', 'breaktime_over2', 'breaktime_over3']
+    breaktime_name = ['昼休憩', '残業休憩時間1', '残業休憩時間2', '残業休憩時間3']
+    breaktime_pattern = r'^#([0-9]{8})$'
+
+    # 休憩時間データ形状チェック
+    for i, field in enumerate(breaktime_fields):
+      match = re.fullmatch(breaktime_pattern, self.request.POST.get(field, ''))
+      if not match:
+        messages.error(self.request, f'{breaktime_name[i]}の記入が#+数字8桁の形式になっていません。ERROR027')
+        return redirect(f'/all_kosu_detail/{num}')
+
+      # 時刻の範囲チェック（60進数、5分刻み）
+      number_part = match.group(1)
+      hours1, minutes1, hours2, minutes2 = map(int, [number_part[:2], number_part[2:4], number_part[4:6], number_part[6:]])
+      invalid_time = (
+        hours1 not in range(24) or minutes1 not in range(0, 60, 5) or
+        hours2 not in range(24) or minutes2 not in range(0, 60, 5)
+        )
+      if invalid_time:
+        messages.error(self.request, f'{breaktime_name[i]}の設定が60進数の入力でないか5分刻みの数字ではありません。ERROR028')
+        return redirect(f'/all_kosu_detail/{num}')
+
+    # 従業員番号・日付変更時の確認
+    original_employee_no = self.request.session['memory_No']
+    original_work_day = self.request.session['memory_day']
+    new_employee_no = self.request.POST['employee_no']
+    new_work_day = self.request.POST['work_day']
+
+    # 新しい日付に既存データがある場合はリダイレクト
+    if new_employee_no != original_employee_no or new_work_day != original_work_day:
+      if Business_Time_graph.objects.filter(employee_no3=new_employee_no, work_day2=new_work_day).exists():
+        messages.error(self.request, 'その日付には既に工数データがあります。ERROR029')
+        return redirect(f'/all_kosu_detail/{num}')
+
+      # 元のデータを削除
+      obj_get = Business_Time_graph.objects.get(id=num)
+      obj_get.delete()
+
+    # 工数データの保存または更新
+    member_instance = member.objects.get(employee_no=new_employee_no)
+    Business_Time_graph.objects.update_or_create(
+      employee_no3=new_employee_no,
+      work_day2=new_work_day,
+      defaults={
+        'name': member_instance,
+        'def_ver2': self.request.POST['def_ver'],
+        'work_time': self.request.POST['work_time'],
+        'tyoku2': self.request.POST['tyoku'],
+        'time_work': time_work,
+        'detail_work': detail_work,
+        'over_time': self.request.POST['over_time'],
+        'breaktime': self.request.POST['breaktime'],
+        'breaktime_over1': self.request.POST['breaktime_over1'],
+        'breaktime_over2': self.request.POST['breaktime_over2'],
+        'breaktime_over3': self.request.POST['breaktime_over3'],
+        'judgement': 'judgement' in self.request.POST,
+        'break_change': 'break_change' in self.request.POST,
+        }
+        )
+
+    messages.success(self.request, '工数データを更新しました！')
+    return redirect(f'/all_kosu_detail/{num}')
 
 
 
