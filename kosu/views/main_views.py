@@ -2048,7 +2048,6 @@ def help(request):
   env = environ.Env()
   env.read_env(os.path.join(BASE_DIR, '.env'))
 
-
   # フォームを定義
   form = uploadForm(request.POST)
 
@@ -2069,37 +2068,31 @@ def help(request):
     else:
       display = False
       messages.error(request, 'パスワードが違います。ERROR081')
-   
+
 
 
   # データ読み込み
   if 'data_load' in request.POST:
-    
     # データ読み込み欄表示
     display = True
-
 
     # 人員ファイルが未選択時リダイレクト
     if 'member_file' not in request.FILES:
       messages.error(request, '人員ファイルが選択されていません。ERROR082')
       return redirect(to = '/help')
 
-
     # 工数区分定義ファイルが未選択時リダイレクト
     if 'def_file' not in request.FILES:
       messages.error(request, '工数区分定義ファイルが選択されていません。ERROR083')
       return redirect(to = '/help')
-
 
     # 工数区分定義ファイルが未選択時リダイレクト
     if 'setting_file' not in request.FILES:
       messages.error(request, '管理者設定ファイルが選択されていません。ERROR084')
       return redirect(to = '/help')
 
-
     # 人員ファイル定義
     uploaded_file = request.FILES['member_file']
-
     # 一時的なファイルをサーバー上に作成
     with open('member_file_path.xlsx', 'wb+') as destination:
 
