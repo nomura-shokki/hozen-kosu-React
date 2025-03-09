@@ -271,70 +271,6 @@ class KosuListView(ListView):
 
 #--------------------------------------------------------------------------------------------------------
 
-# 工数入力画面定義
-def input_another(request):
-
-  # ログイン情報を取得し、リダイレクトが必要な場合はリダイレクト
-  member_obj = get_member(request)
-  if isinstance(member_obj, HttpResponseRedirect):
-    return member_obj
-
-  # 今日の日時を変数に格納
-  kosu_today = datetime.date.today()
-  # フォーム初期値定義
-  new_work_day = kosu_today if request.session.get('day') is None else request.session['day']
-
-  # グラフ関連リスト定義
-  graph_item = ['{}:{}'.format(i, '00' if n == 0 else '05' if n == 5 else n) for i in range(24) for n in range(0, 60, 5)]
-  graph_list = []
-
-
-
-  # GET時の処理
-  if request.method == 'GET':
-    # 該当日に工数データがあるか確認
-    obj_filter = Business_Time_graph.objects.filter(employee_no3=member_obj.employee_no, work_day2=new_work_day)
-  # 該当日に工数データがある場合の処理
-  if obj_filter.exists():
-    # 工数データ取得
-    obj_get = obj_filter.first()
-
-
-
-
-
-
-
-
-  # HTMLに渡す辞書
-  context = {
-    'title': '工数登録',
-    'new_day': str(new_work_day),
-    'graph_list': graph_list,
-    'graph_item': graph_item,
-  }
-
-  """
-    'form': form,
-    'new_day': str(new_work_day),
-    'default_start_time': request.session.get('start_time', ''),
-    'default_end_time': default_end_time,
-    'def_library': def_library,
-    'def_n': def_n,
-    'OK_NG': ok_ng,
-    'time_total': time_total,
-    'default_total': default_total,
-    'obj_get': obj_get,
-    'obj_link': obj_link,
-    'time_display_list': time_display_list,
-    'member_obj': member_obj,
-    'show_message': show_message,
-    'def_alarm': request.session['input_def'] != new_def_Ver.kosu_name,
-  """
-
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/input.html', context)
-
 
 
 
@@ -474,45 +410,6 @@ def input(request):
       return redirect(to = '/input')
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    """
-
     # 指定日に工数データがある場合、工数データ取得
     obj_get = obj_filter.first() if obj_filter.exists() else ''
 
@@ -548,10 +445,7 @@ def input(request):
     # 指定日に工数データがない場合の処理
     else:
       # 休憩時間取得
-      breaktime = obj_get.breaktime
-      breaktime_over1 = obj_get.breaktime_over1
-      breaktime_over2 = obj_get.breaktime_over2
-      breaktime_over3 = obj_get.breaktime_over3
+      breaktime, breaktime_over1, breaktime_over2, breaktime_over3 = break_get(tyoku, request)
 
     # 休憩時間のインデックス＆日またぎ変数定義
     break_start1, break_end1, break_next_day1 = break_time_process(breaktime)
@@ -559,280 +453,50 @@ def input(request):
     break_start3, break_end3, break_next_day3 = break_time_process(breaktime_over2)
     break_start4, break_end4, break_next_day4 = break_time_process(breaktime_over3)
 
-    # 入力時間が日をまたいでいない場合の処理
-    if check == 0:
-      # 工数に被りがないかチェック
-      response = kosu_duplication_check(start_time_ind, end_time_ind, kosu_def, request)
-      if response:
-        return response
-
-    elif check == 1:
-      response = kosu_duplication_check(start_time_ind, 288, kosu_def, request)
-      if response:
-        return response
-
-      response = kosu_duplication_check(0, end_time_ind, kosu_def, request)          
-      if response:
-        return response
-
+    # 工数に被りがないかチェック
     ranges = [(start_time_ind, end_time_ind)] if check == 0 else [(start_time_ind, 288), (0, end_time_ind)]
     for start, end in ranges:
-        response = kosu_duplication_check(start, end, kosu_def, request)
-        if response:
-            return response
-
-      # 作業内容、作業詳細書き込み
-      kosu_def, detail_list = kosu_write(start_time_ind, end_time_ind, kosu_def, detail_list, request)
-
-      # 休憩変更チェックが入っていない時の処理
-      if break_change == 0:
-        # 各休憩時間の処理
-        for break_num in range(1, 5):
-          # 各変数の値を動的に取得
-          break_start = locals()[f'break_start{break_num}']
-          break_end = locals()[f'break_end{break_num}']
-          break_next_day = locals()[f'break_next_day{break_num}']
-
-          # 休憩時間分を工数データから削除
-          result = handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_list, member_obj, request)
-
-          # エラーが出た場合リダイレクト
-          if result is None:
-            return redirect(to='/input')
-          kosu_def, detail_list = result
-      """
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # 指定日に工数データがある場合の処理
-    if obj_filter.exists():
-      # 工数データ取得しリスト化
-      obj_get = obj_filter.first()
-      kosu_def = list(obj_get.time_work)
-      detail_list = obj_get.detail_work.split('$')
-
-      # 以前同日に打ち込んだ工数区分定義と違う場合リダイレクト
-      if obj_get.def_ver2 not in (request.session['input_def'], None, ''):
-        messages.error(request, '前に入力された工数と工数区分定義のVerが違います。ERROR010')
-        return redirect(to = '/input')
-
-
-      # 工数データに休憩時間データ無いか直が変更されている場合の処理
-      if obj_get.breaktime == None or obj_get.breaktime_over1 == None or \
-        obj_get.breaktime_over2 == None or obj_get.breaktime_over3 == None or \
-          obj_get.tyoku2 != tyoku:
-        # 休憩時間取得
-        breaktime, breaktime_over1, breaktime_over2, breaktime_over3 = break_get(tyoku, request)
-
-      # 工数データに休憩時間データある場合の処理
-      else:
-        # 休憩時間取得
-        breaktime = obj_get.breaktime
-        breaktime_over1 = obj_get.breaktime_over1
-        breaktime_over2 = obj_get.breaktime_over2
-        breaktime_over3 = obj_get.breaktime_over3
-
-      # 休憩時間のインデックス＆日またぎ変数定義
-      break_start1, break_end1, break_next_day1 = break_time_process(breaktime)
-      break_start2, break_end2, break_next_day2 = break_time_process(breaktime_over1)
-      break_start3, break_end3, break_next_day3 = break_time_process(breaktime_over2)
-      break_start4, break_end4, break_next_day4 = break_time_process(breaktime_over3)
-
-      # 入力時間が日をまたいでいない場合の処理
-      if check == 0:
-        # 工数に被りがないかチェック
-        response = kosu_duplication_check(start_time_ind, end_time_ind, kosu_def, request)
-        if response:
-          return response
-
-        # 作業内容、作業詳細書き込み
-        kosu_def, detail_list = kosu_write(start_time_ind, end_time_ind, kosu_def, detail_list, request)
-
-        # 休憩変更チェックが入っていない時の処理
-        if break_change == 0:
-          # 各休憩時間の処理
-          for break_num in range(1, 5):
-            # 各変数の値を動的に取得
-            break_start = locals()[f'break_start{break_num}']
-            break_end = locals()[f'break_end{break_num}']
-            break_next_day = locals()[f'break_next_day{break_num}']
-
-            # 休憩時間分を工数データから削除
-            result = handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_list, member_obj, request)
-
-            # エラーが出た場合リダイレクト
-            if result is None:
-              return redirect(to='/input')
-            kosu_def, detail_list = result
-
-      # 入力時間が日をまたいでいる場合の処理
-      elif check == 1:
-        # 工数に被りがないかチェック
-        response = kosu_duplication_check(start_time_ind, 288, kosu_def, request)
-        if response:
-          return response
-
-        response = kosu_duplication_check(0, end_time_ind, kosu_def, request)          
-        if response:
-          return response
-
-        # 作業内容、作業詳細書き込み
-        kosu_def, detail_list = kosu_write(start_time_ind, 288, kosu_def, detail_list, request)
-        kosu_def, detail_list = kosu_write(0, end_time_ind, kosu_def, detail_list, request)
-
-        # 休憩変更チェックが入っていない時の処理
-        if break_change == 0:
-          # 各休憩時間の処理
-          for break_num in range(1, 5):
-            # 各変数の値を動的に取得
-            break_start = locals()[f'break_start{break_num}']
-            break_end = locals()[f'break_end{break_num}']
-            break_next_day = locals()[f'break_next_day{break_num}']
-
-            # 休憩時間を削除
-            result = handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_list, member_obj, request)
-
-            # エラーが出た場合リダイレクト
-            if result is None:
-              return redirect(to='/input')
-            kosu_def, detail_list = result
-
-
-      # 作業内容データの内容を上書きして更新
-      Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-        work_day2 = work_day, defaults = {'def_ver2' : request.session['input_def'], \
-                                          'work_time' : work, \
-                                          'tyoku2' : tyoku, \
-                                          'time_work' : ''.join(kosu_def), \
-                                          'over_time' : request.POST['over_work'], \
-                                          'detail_work' : detail_list_summarize(detail_list),\
-                                          'breaktime' : breaktime, \
-                                          'breaktime_over1' : breaktime_over1, \
-                                          'breaktime_over2' : breaktime_over2, \
-                                          'breaktime_over3' : breaktime_over3, \
-                                          'judgement' : judgement_check(kosu_def, work, tyoku, member_obj, request.POST['over_work']), \
-                                          'break_change' : 'break_change' in request.POST})
-      
-    # 指定日に工数データがない場合の処理
-    else:
-      # 空の作業内容、詳細リスト作成
-      kosu_def = list(itertools.repeat('#', 288))
-      detail_list = list(itertools.repeat('', 288))
-
-      # 休憩時間取得
-      breaktime, breaktime_over1, breaktime_over2, breaktime_over3 = break_get(tyoku, request)
-
-      # 休憩時間のインデックス＆日またぎ変数定義
-      break_start1, break_end1, break_next_day1 = break_time_process(breaktime)
-      break_start2, break_end2, break_next_day2 = break_time_process(breaktime_over1)
-      break_start3, break_end3, break_next_day3 = break_time_process(breaktime_over2)
-      break_start4, break_end4, break_next_day4 = break_time_process(breaktime_over3)
-
-      # 入力時間が日をまたいでいない場合の処理
-      if check == 0:
-        # 作業内容、作業詳細書き込み
-        kosu_def, detail_list = kosu_write(start_time_ind, end_time_ind, kosu_def, detail_list, request)
-
-        # 休憩変更チェックが入っていない時の処理
-        if break_change == 0:
-          # 各休憩時間の処理
-          for break_num in range(1, 5):
-            # 各変数の値を動的に取得
-            break_start = locals()[f'break_start{break_num}']
-            break_end = locals()[f'break_end{break_num}']
-            break_next_day = locals()[f'break_next_day{break_num}']
-
-            # 休憩時間を削除
-            result = handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_list, member_obj, request)
-
-            # エラーが出た場合リダイレクト
-            if result is None:
-              return redirect(to='/input')
-            kosu_def, detail_list = result
-
-      # 入力時間が日をまたいでいる場合の処理
-      else:
-        # 作業内容、作業詳細書き込み
-        kosu_def, detail_list = kosu_write(start_time_ind, 288, kosu_def, detail_list, request)
-        kosu_def, detail_list = kosu_write(0, end_time_ind, kosu_def, detail_list, request)
-
-        # 休憩変更チェックが入っていない時の処理
-        if break_change == 0:
-          # 各休憩時間の処理
-          for break_num in range(1, 5):
-            # 各変数の値を動的に取得
-            break_start = locals()[f'break_start{break_num}']
-            break_end = locals()[f'break_end{break_num}']
-            break_next_day = locals()[f'break_next_day{break_num}']
-
-            # 休憩時間を削除
-            result = handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_list, member_obj, request)
-
-            # エラーが出た場合リダイレクト
-            if result is None:
-              return redirect(to='/input')
-            kosu_def, detail_list = result
-
-
-      # 指定のレコードにPOST送信された値を上書きする 
-      new = Business_Time_graph(employee_no3 = request.session['login_No'], \
-                                name = member.objects.get(employee_no = request.session['login_No']), \
-                                def_ver2 = request.session['input_def'], \
-                                work_day2 = work_day, \
-                                work_time = work,\
-                                tyoku2 = tyoku, \
-                                time_work = ''.join(kosu_def), \
-                                detail_work = detail_list_summarize(detail_list), \
-                                over_time = request.POST['over_work'], \
-                                breaktime = breaktime, \
-                                breaktime_over1 = breaktime_over1, \
-                                breaktime_over2 = breaktime_over2, \
-                                breaktime_over3 = breaktime_over3, \
-                                judgement = judgement_check(kosu_def, work, tyoku, member_obj, request.POST['over_work']), \
-                                break_change = 'break_change' in request.POST)
-
-      # 工数内容リストをセーブする
-      new.save()
+      response = kosu_duplication_check(start, end, kosu_def, request)
+      if response:
+        return response
+
+    # 作業内容、作業詳細書き込み
+    for start, end in ranges:
+      kosu_def, detail_list = kosu_write(start, end, kosu_def, detail_list, request)
+
+    # 休憩変更チェックが入っていない時の処理
+    if break_change == 0:
+      # 各休憩時間の処理
+      for break_num in range(1, 5):
+        # 各変数の値を動的に取得
+        break_start = locals()[f'break_start{break_num}']
+        break_end = locals()[f'break_end{break_num}']
+        break_next_day = locals()[f'break_next_day{break_num}']
+
+        # 休憩時間分を工数データから削除
+        result = handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_list, member_obj, request)
+
+        # エラーが出た場合リダイレクト
+        if result is None:
+          return redirect(to='/input')
+        kosu_def, detail_list = result
+
+
+    # 作業内容データの内容を上書きして更新
+    Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
+      work_day2 = work_day, defaults = {'name': member.objects.get(employee_no = request.session['login_No']), \
+                                        'def_ver2': request.session['input_def'], \
+                                        'work_time': work, \
+                                        'tyoku2': tyoku, \
+                                        'time_work': ''.join(kosu_def), \
+                                        'over_time': request.POST['over_work'], \
+                                        'detail_work': detail_list_summarize(detail_list),\
+                                        'breaktime': breaktime, \
+                                        'breaktime_over1': breaktime_over1, \
+                                        'breaktime_over2': breaktime_over2, \
+                                        'breaktime_over3': breaktime_over3, \
+                                        'judgement': judgement_check(kosu_def, work, tyoku, member_obj, request.POST['over_work']), \
+                                        'break_change': 'break_change' in request.POST})
 
 
     # 入力値をセッションに保存する
@@ -843,10 +507,8 @@ def input(request):
     # フォーム保持削除
     for key in ['error_tyoku', 'error_work', 'error_def', 'error_detail', 'error_over_work']:
       session_del(key, request)
-
     # 翌日チェックリセット
     request.session['tomorrow_check'] = False
-
     # 工数登録完了メッセージ出力
     show_message = True
     # POST記憶
@@ -2547,7 +2209,7 @@ def over_time(request):
     if i != '':
       # ログイン者の工数データを該当日でフィルター 
       over_time_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                             work_day2 = datetime.date(year, month, i))
+                                                            work_day2 = datetime.date(year, month, i))
 
       # 工数データがない場合の処理
       if not over_time_filter.exists():
@@ -2587,8 +2249,6 @@ def over_time(request):
     'OK_NG_list' : OK_NG_list,
     'over_time_total' : over_time_total,
     }
-  
-
 
   # 指定したHTMLに辞書を渡して表示を完成させる
   return render(request, 'kosu/over_time.html', context)

@@ -5,6 +5,8 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from pathlib import Path
 from io import BytesIO
 import openpyxl
@@ -286,117 +288,91 @@ class MemberMainView(TemplateView):
 
 
 # 班員メイン画面定義
-def team_main(request):
-
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
+class TeamMainView(TemplateView):
+  # 使用するテンプレート定義
+  template_name = 'kosu/team_main.html'
 
 
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
 
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login') 
+    # ログイン者に権限がなければメインページに戻る
+    if member_obj.authority == False:
+      return redirect('/')
 
-  # ログイン者に権限がなければメインページに戻る
-  if data.authority == False:
-
-    return redirect(to = '/')
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
 
 
-  # 今日の日時を変数に格納
-  today = datetime.date.today()
+  # コンテキストデータを設定
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
 
-  # フォロー表示変数定義
-  follow_display = False
+    request = self.request
 
-  # 日付リスト初期状態定義
-  day_list = []
-  # 日付リスト作成ループ
-  for d in range(1, 8):
-    # 日付リストに今日から1週間前までの日付を入れる
-    day_list.append(today - datetime.timedelta(days=d))
+    # 今日の日時を変数に格納
+    today = datetime.date.today()
 
-  # ログイン者の班員登録あるか確認
-  team_filter = team_member.objects.filter(employee_no5 = request.session['login_No'])
+    # フォロー表示変数定義
+    follow_display = False
 
-  # ログイン者の班員登録がある場合の処理
-  if team_filter.count() != 0:
-    # ログイン者の班員情報取得
-    team_get = team_member.objects.get(employee_no5 = request.session['login_No'])
+    # 日付リスト初期状態定義
+    day_list = [today - datetime.timedelta(days=d) for d in range(1, 8)]
 
-    # フォロー表示
-    follow_display = team_get.follow
+    # ログイン者の班員登録あるか確認
+    team_filter = team_member.objects.filter(employee_no5=request.session['login_No'])
 
-    # 班員フォロー用リスト定義
-    team_list = []
-    # 班員フォロー用リスト作成するループ
-    for t in range(1, 16):
-      # ログイン者の班員情報がある場合の処理
-      if eval('team_get.member{}'.format(t)) != '':
-        # 班員が人員情報にいるか確認
-        member_name_filter = member.objects.filter(employee_no =  eval('team_get.member{}'.format(t)))
+    # ログイン者の班員登録がある場合の処理
+    if team_filter.exists():
+      # ログイン者の班員情報取得
+      team_get = team_member.objects.get(employee_no5=request.session['login_No'])
 
-        # 人員登録がある場合の処理
-        if member_name_filter.count() != 0:
-          # 班員の人員情報取得
-          member_name_get = member.objects.get(employee_no =  eval('team_get.member{}'.format(t)))
+      # フォロー表示
+      follow_display = team_get.follow
 
-          # 班員の過去1週間の工数データが正しく入力されているか確認するループ
-          for ind, dd in enumerate(day_list):
-            # 班員の工数データが該当日にあるか確認
-            kosu_filter = Business_Time_graph.objects.filter(employee_no3 = eval('team_get.member{}'.format(t)), \
-                                                             work_day2 = dd)
-            
-            # 班員の工数データが該当日にあった場合の処理
-            if kosu_filter.count() != 0:
-              # 班員の該当日の工数データ取得
-              kosu_get = Business_Time_graph.objects.get(employee_no3 = eval('team_get.member{}'.format(t)), \
-                                                         work_day2 = dd)
-              
-              # 昨日の工数データが3直以外で整合性NGの場合の処理
-              if kosu_get.tyoku2 != '3' and ind == 0 and kosu_get.judgement != True:
-                # 班員フォーローリストにコメント追加
-                team_list.append('{}氏の工数未入力があります。'.format(member_name_get.name))
+      # 班員フォロー用リスト作成
+      team_list = []
+      for t in range(1, 16):
+        member_no = eval(f'team_get.member{t}')
+        if member_no:
+          member_name_filter = member.objects.filter(employee_no=member_no)
+          if member_name_filter.exists():
+            member_name_get = member_name_filter.first()
+            for ind, dd in enumerate(day_list):
+              kosu_filter = Business_Time_graph.objects.filter(
+                employee_no3=member_no,
+                work_day2=dd
+                )
+              if kosu_filter.exists():
+                kosu_get = kosu_filter.first()
+                if kosu_get.tyoku2 != '3' and ind == 0 and not kosu_get.judgement:
+                  team_list.append(f'{member_name_get.name}氏の工数未入力があります。')
+                  break
+                if not kosu_get.judgement and ind != 0:
+                  team_list.append(f'{member_name_get.name}氏の工数未入力があります。')
+                  break
+              else:
+                team_list.append(f'{member_name_get.name}氏の工数未入力があります。')
                 break
+    else:
+      # ログイン者の班員登録がない場合の処理
+      team_list = []
 
-              # 2日以前の工数データが整合性NGの場合の処理
-              if kosu_get.judgement != True and ind != 0:
-                # 班員フォーローリストにコメント追加
-                team_list.append('{}氏の工数未入力があります。'.format(member_name_get.name))
-                break
+    # コンテキストにデータを格納
+    context.update({
+      'title': '班員MENU',
+      'data': self.member_obj,
+      'team': team_list,
+      'follow_display': follow_display,
+      })
 
-            # 班員の工数データが該当日にない場合の処理
-            else:
-              # 班員フォーローリストにコメント追加
-              team_list.append('{}氏の工数未入力があります。'.format(member_name_get.name))
-              break
-
-  # ログイン者の班員登録がない場合の処理
-  else:
-    # 班員情報に空を入れる
-    team_list = []
-
-
-
-  # HTMLに渡す辞書
-  context = {
-    'title' : '班員MENU',
-    'data' : data,
-    'team' : team_list,
-    'follow_display' : follow_display,
-    }
-
-
-
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/team_main.html', context)
+    return context
 
 
 
@@ -441,7 +417,40 @@ def inquiry_main(request):
   # 指定したHTMLに辞書を渡して表示を完成させる
   return render(request, 'kosu/inquiry_main.html', context)
 
+class InquirMainView(TemplateView):
+  # 使用するテンプレート定義
+  template_name = 'kosu/inquiry_main.html'
+    
 
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
+
+    # ログイン者に権限がなければメインページに戻る
+    if member_obj.authority == False:
+      return redirect('/')
+
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
+    
+
+
+  # コンテキストデータを設定
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+
+    # HTMLに渡す辞書
+    context.update({
+        'title': '問い合わせMENU',
+        'data': self.member_obj,
+    })
+
+    return context
 
 
 
@@ -817,12 +826,6 @@ def administrator_menu(request):
         work_day2__gte=request.POST['data_day'], 
         work_day2__lte=request.POST['data_day2']
     )
-
-    # 工数区分処理用記号リスト用意
-    str_list = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-                'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b',
-                'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
-                'q', 'r', 's', 't', 'u', 'v', 'w', 'x',]
 
     # Excelに書き出すためのデータを準備
     data = []
@@ -1312,26 +1315,26 @@ def administrator_menu(request):
 
       # Excelからデータ読み込み
       new_data = team_member(employee_no5 = ws.cell(row = i + 1, column = 1).value, \
-                             member1 = ws.cell(row = i + 1, column = 2).value, \
-                             member2 = ws.cell(row = i + 1, column = 3).value, \
-                             member3 = ws.cell(row = i + 1, column = 4).value, \
-                             member4 = ws.cell(row = i + 1, column = 5).value, \
-                             member5 = ws.cell(row = i + 1, column = 6).value, \
-                             member6 = ws.cell(row = i + 1, column = 7).value, \
-                             member7 = ws.cell(row = i + 1, column = 8).value, \
-                             member8 = ws.cell(row = i + 1, column = 9).value, \
-                             member9 = ws.cell(row = i + 1, column = 10).value, \
-                             member10 = ws.cell(row = i + 1, column = 11).value, \
-                             member11 = ws.cell(row = i + 1, column = 12).value, \
-                             member12 = ws.cell(row = i + 1, column = 13).value, \
-                             member13 = ws.cell(row = i + 1, column = 14).value, \
-                             member14 = ws.cell(row = i + 1, column = 15).value, \
-                             member15 = ws.cell(row = i + 1, column = 16).value, \
-                             follow = ws.cell(row = i + 1, column = 17).value, \
-                            ) 
+                              member1 = ws.cell(row = i + 1, column = 2).value, \
+                              member2 = ws.cell(row = i + 1, column = 3).value, \
+                              member3 = ws.cell(row = i + 1, column = 4).value, \
+                              member4 = ws.cell(row = i + 1, column = 5).value, \
+                              member5 = ws.cell(row = i + 1, column = 6).value, \
+                              member6 = ws.cell(row = i + 1, column = 7).value, \
+                              member7 = ws.cell(row = i + 1, column = 8).value, \
+                              member8 = ws.cell(row = i + 1, column = 9).value, \
+                              member9 = ws.cell(row = i + 1, column = 10).value, \
+                              member10 = ws.cell(row = i + 1, column = 11).value, \
+                              member11 = ws.cell(row = i + 1, column = 12).value, \
+                              member12 = ws.cell(row = i + 1, column = 13).value, \
+                              member13 = ws.cell(row = i + 1, column = 14).value, \
+                              member14 = ws.cell(row = i + 1, column = 15).value, \
+                              member15 = ws.cell(row = i + 1, column = 16).value, \
+                              follow = ws.cell(row = i + 1, column = 17).value, \
+                              ) 
 
       new_data.save()
- 
+
     # 一時ファイル削除
     os.remove('team_file_path.xlsx')
 
@@ -1351,33 +1354,32 @@ def administrator_menu(request):
 
 
     # Excelに書き込み(項目名)
-    headers = [
-        '工数区分定義Ver名', '工数区分名1', '定義1', '作業内容1', '工数区分名2', '定義2', '作業内容2',
-        '工数区分名3', '定義3', '作業内容3', '工数区分名4', '定義4', '作業内容4',
-        '工数区分名5', '定義5', '作業内容5', '工数区分名6', '定義6', '作業内容6',
-        '工数区分名7', '定義7', '作業内容7', '工数区分名8', '定義8', '作業内容8',
-        '工数区分名9', '定義9', '作業内容9', '工数区分名10', '定義10', '作業内容10',
-        '工数区分名11', '定義11', '作業内容11', '工数区分名12', '定義12', '作業内容12',
-        '工数区分名13', '定義13', '作業内容13', '工数区分名14', '定義14', '作業内容14',
-        '工数区分名15', '定義15', '作業内容15', '工数区分名16', '定義16', '作業内容16',
-        '工数区分名17', '定義17', '作業内容17', '工数区分名18', '定義18', '作業内容18',
-        '工数区分名19', '定義19', '作業内容19', '工数区分名20', '定義20', '作業内容20',
-        '工数区分名21', '定義21', '作業内容21', '工数区分名22', '定義22', '作業内容22',
-        '工数区分名23', '定義23', '作業内容23', '工数区分名24', '定義24', '作業内容24',
-        '工数区分名25', '定義25', '作業内容25', '工数区分名26', '定義26', '作業内容26',
-        '工数区分名27', '定義27', '作業内容27', '工数区分名28', '定義28', '作業内容28',
-        '工数区分名29', '定義29', '作業内容29', '工数区分名30', '定義30', '作業内容30',
-        '工数区分名31', '定義31', '作業内容31', '工数区分名32', '定義32', '作業内容32',
-        '工数区分名33', '定義33', '作業内容33', '工数区分名34', '定義34', '作業内容34',
-        '工数区分名35', '定義35', '作業内容35', '工数区分名36', '定義36', '作業内容36',
-        '工数区分名37', '定義37', '作業内容37', '工数区分名38', '定義38', '作業内容38',
-        '工数区分名39', '定義39', '作業内容39', '工数区分名40', '定義40', '作業内容40',
-        '工数区分名41', '定義41', '作業内容41', '工数区分名42', '定義42', '作業内容42',
-        '工数区分名43', '定義43', '作業内容43', '工数区分名44', '定義44', '作業内容44',
-        '工数区分名45', '定義45', '作業内容45', '工数区分名46', '定義46', '作業内容46',
-        '工数区分名47', '定義47', '作業内容47', '工数区分名48', '定義48', '作業内容48',
-        '工数区分名49', '定義49', '作業内容49', '工数区分名50', '定義50', '作業内容50',
-        ]
+    headers = ['工数区分定義Ver名', '工数区分名1', '定義1', '作業内容1', '工数区分名2', '定義2', '作業内容2',
+                '工数区分名3', '定義3', '作業内容3', '工数区分名4', '定義4', '作業内容4',
+                '工数区分名5', '定義5', '作業内容5', '工数区分名6', '定義6', '作業内容6',
+                '工数区分名7', '定義7', '作業内容7', '工数区分名8', '定義8', '作業内容8',
+                '工数区分名9', '定義9', '作業内容9', '工数区分名10', '定義10', '作業内容10',
+                '工数区分名11', '定義11', '作業内容11', '工数区分名12', '定義12', '作業内容12',
+                '工数区分名13', '定義13', '作業内容13', '工数区分名14', '定義14', '作業内容14',
+                '工数区分名15', '定義15', '作業内容15', '工数区分名16', '定義16', '作業内容16',
+                '工数区分名17', '定義17', '作業内容17', '工数区分名18', '定義18', '作業内容18',
+                '工数区分名19', '定義19', '作業内容19', '工数区分名20', '定義20', '作業内容20',
+                '工数区分名21', '定義21', '作業内容21', '工数区分名22', '定義22', '作業内容22',
+                '工数区分名23', '定義23', '作業内容23', '工数区分名24', '定義24', '作業内容24',
+                '工数区分名25', '定義25', '作業内容25', '工数区分名26', '定義26', '作業内容26',
+                '工数区分名27', '定義27', '作業内容27', '工数区分名28', '定義28', '作業内容28',
+                '工数区分名29', '定義29', '作業内容29', '工数区分名30', '定義30', '作業内容30',
+                '工数区分名31', '定義31', '作業内容31', '工数区分名32', '定義32', '作業内容32',
+                '工数区分名33', '定義33', '作業内容33', '工数区分名34', '定義34', '作業内容34',
+                '工数区分名35', '定義35', '作業内容35', '工数区分名36', '定義36', '作業内容36',
+                '工数区分名37', '定義37', '作業内容37', '工数区分名38', '定義38', '作業内容38',
+                '工数区分名39', '定義39', '作業内容39', '工数区分名40', '定義40', '作業内容40',
+                '工数区分名41', '定義41', '作業内容41', '工数区分名42', '定義42', '作業内容42',
+                '工数区分名43', '定義43', '作業内容43', '工数区分名44', '定義44', '作業内容44',
+                '工数区分名45', '定義45', '作業内容45', '工数区分名46', '定義46', '作業内容46',
+                '工数区分名47', '定義47', '作業内容47', '工数区分名48', '定義48', '作業内容48',
+                '工数区分名49', '定義49', '作業内容49', '工数区分名50', '定義50', '作業内容50',
+                ]
     ws.append(headers)
 
 
