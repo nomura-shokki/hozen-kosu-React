@@ -170,7 +170,7 @@ class MemberNewView(CreateView):
         return redirect(to='/new')
 
     # POSTしたショップがボデーか組立の場合の処理
-    if request.POST['shop'] in ['W1', 'W2', 'A1', 'A2', '組長以上(W,A)']:
+    if request.POST['shop'] in ['W1', 'W2', 'A1', 'A2', 'J', '組長以上(W,A)']:
         # 休憩時間用文字列定義
         break_times = ['#11401240', '#17201735', '#23350035', '#04350450',
                       '#14101510', '#22002215', '#04150515', '#09150930',
@@ -291,7 +291,7 @@ class MemberEditView(UpdateView):
       return redirect(to=f'/member_edit/{self.kwargs["num"]}')
     
     # デフォルトの休憩時間リスト指定
-    if shop in ['W1', 'W2', 'A1', 'A2', '組長以上(W,A)']:
+    if shop in ['W1', 'W2', 'A1', 'A2', 'J', '組長以上(W,A)']:
       break_times = ['#11401240', '#17201735', '#23350035', '#04350450',
                       '#14101510', '#22002215', '#04150515', '#09150930',
                       '#23500050', '#06400655', '#12551355', '#17551810',

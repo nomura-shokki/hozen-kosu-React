@@ -93,7 +93,7 @@ def adjust_end_index_for_work_shift(graph_end_index, work_shift, shop):
   # 入力直が2直の場合の処理
   elif work_shift == '2':
     # ログイン者のショップがボデーか組立で入力され終わりのインデックスが240以下である場合の処理(工数入力が20:00以前の場合)
-    if shop in ['W1', 'W2', 'A1', 'A2', '組長以上(W,A)'] and graph_end_index <= 240:
+    if shop in ['W1', 'W2', 'A1', 'A2', 'J', '組長以上(W,A)'] and graph_end_index <= 240:
       # 工数の入力され終わりのインデックスで240を返す(20:00を返す)
       return 240
     
@@ -123,7 +123,7 @@ def adjust_end_index_for_work_shift(graph_end_index, work_shift, shop):
 # 工数データの表示調整関数(3直の場合)
 def adjust_end_index_for_night_shift(graph_end_index, work_shift, shop):
   # ログイン者のショップがボデーか組立で3直の場合の処理
-  if shop in ['W1', 'W2', 'A1', 'A2', '組長以上(W,A)'] and work_shift == '3':
+  if shop in ['W1', 'W2', 'A1', 'A2', 'J', '組長以上(W,A)'] and work_shift == '3':
     # 工数が入力され終わりのインデックスと152で大きい方を返す(4:40以降の場合そこまで表示)
     return max(graph_end_index, 152)
   
@@ -238,7 +238,7 @@ def handle_work_shift(request, member_obj, new_work_day):
     # 2直がPOSTされてログイン者のショップがボデーか組立の場合の処理
     elif obj_get.tyoku2 == '2' and (member_obj.shop == 'W1' or \
       member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)'):
+        member_obj.shop == 'J' or member_obj.shop == '組長以上(W,A)'):
       # 作業開始時間更新
       request.session['start_time'] = '11:10'
       # 作業終了時間更新
@@ -256,7 +256,7 @@ def handle_work_shift(request, member_obj, new_work_day):
     # 3直がPOSTされてログイン者のショップがボデーか組立の場合の処理
     elif obj_get.tyoku2 == '3' and (member_obj.shop == 'W1' or \
       member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)'):
+        member_obj.shop == 'J' or member_obj.shop == '組長以上(W,A)'):
       # 作業開始時間更新
       request.session['start_time'] = '19:50'
       # 作業終了時間更新
@@ -522,7 +522,7 @@ def judgement_check(kosu_def, work, tyoku, member_obj, over_work):
   # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで1直の場合の処理
   if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
     member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-      member_obj.shop == '組長以上(W,A)') and \
+      member_obj.shop == 'J' or member_obj.shop == '組長以上(W,A)') and \
       tyoku == '1':
     # 半前年休時、工数合計と残業に整合性がある場合の処理
     if work == '半前年休' and kosu_total - int(over_work) == 230:
@@ -537,7 +537,7 @@ def judgement_check(kosu_def, work, tyoku, member_obj, over_work):
   # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで2直の場合の処理
   if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
     member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-      member_obj.shop == '組長以上(W,A)') and \
+      member_obj.shop == 'J' or member_obj.shop == '組長以上(W,A)') and \
       tyoku == '2':
     # 半前年休時、工数合計と残業に整合性がある場合の処理
     if work == '半前年休' and kosu_total - int(over_work) == 290:
@@ -552,7 +552,7 @@ def judgement_check(kosu_def, work, tyoku, member_obj, over_work):
   # ログイン者の登録ショップが三組三交替Ⅱ甲乙丙番Cで3直の場合の処理
   if (member_obj.shop == 'W1' or member_obj.shop == 'W2' or \
     member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-      member_obj.shop == '組長以上(W,A)') and \
+      member_obj.shop == 'J' or member_obj.shop == '組長以上(W,A)') and \
       tyoku == '3':
     # 半前年休時、工数合計と残業に整合性がある場合の処理
     if work == '半前年休' and kosu_total - int(over_work) == 230:
@@ -688,7 +688,7 @@ def kosu_sort(obj_get, member_obj):
     del detail_list[288:]
 
   # 2直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
+  elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == 'J' or member_obj.shop == '組長以上(W,A)') \
         and obj_get.tyoku2 == '2':
     # 作業内容と作業詳細のリストを9時からの表示に変える
     del kosu_def[:108]
@@ -706,7 +706,7 @@ def kosu_sort(obj_get, member_obj):
     del detail_list[288:]
 
   # 3直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == '組長以上(W,A)') \
+  elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or member_obj.shop == 'J' or member_obj.shop == '組長以上(W,A)') \
         and obj_get.tyoku2 == '3':
     # 作業内容と作業詳細のリストを18時からの表示に変える
     del kosu_def[:216]
@@ -783,22 +783,22 @@ def default_work_time(obj_get, member_obj):
           obj_get.work_time == '半後年休':
     default_total = 195
   elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半前年休':
+        member_obj.shop == 'J' or member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半前年休':
     default_total = 230
   elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半後年休':
+        member_obj.shop == 'J' or member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半後年休':
     default_total = 240
   elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半前年休':
+        member_obj.shop == 'J' or member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半前年休':
     default_total = 290
   elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半後年休':
+        member_obj.shop == 'J' or member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半後年休':
     default_total = 180
   elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半前年休':
+        member_obj.shop == 'J' or member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半前年休':
     default_total = 230
   elif (member_obj.shop == 'W1' or member_obj.shop == 'W2' or member_obj.shop == 'A1' or member_obj.shop == 'A2' or \
-        member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半後年休':
+        member_obj.shop == 'J' or member_obj.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半後年休':
     default_total = 240
   elif obj_get.tyoku2 == '4' and obj_get.work_time == '半前年休':
     default_total = 230
