@@ -1359,15 +1359,15 @@ def administrator_menu(request):
         def_data_get.delete()
 
       # Excelからデータを読み込む
-      data = {
+      def_data = {
         'kosu_name': ws.cell(row=i+1, column=1).value
         }
       for n in range(1, 51):
-        data[f'kosu_title_{n}'] = ws.cell(row=i+1, column=n*3-1).value
-        data[f'kosu_division_1_{n}'] = ws.cell(row=i+1, column=n*3).value
-        data[f'kosu_division_2_{n}'] = ws.cell(row=i+1, column=n*3+1).value
+        def_data[f'kosu_title_{n}'] = ws.cell(row=i+1, column=n*3-1).value
+        def_data[f'kosu_division_1_{n}'] = ws.cell(row=i+1, column=n*3).value
+        def_data[f'kosu_division_2_{n}'] = ws.cell(row=i+1, column=n*3+1).value
 
-      new_data = kosu_division(**data)
+      new_data = kosu_division(**def_data)
       new_data.save()
 
     # 一時ファイル削除
@@ -1867,332 +1867,45 @@ def help(request):
         def_obj_filter = kosu_division.objects.filter(kosu_name = ws1.cell(row = i + 1, column = 1).value)
 
         # 工数定義区分データに指定従業員番号がある場合の処理
-        if def_obj_filter.count() != 0:
+        if def_obj_filter.exists():
           # 指定従工数定義区分データ取得
           def_obj_get = kosu_division.objects.get(kosu_name = ws1.cell(row = i + 1, column = 1).value)
           # 取得した工数定義区分データを消す
           def_obj_get.delete()
 
-        new_data1 = kosu_division(kosu_name = ws1.cell(row = i + 1, column = 1).value, \
-                                  kosu_title_1 = ws1.cell(row = i + 1, column = 2).value, \
-                                  kosu_division_1_1 = ws1.cell(row = i + 1, column = 3).value, \
-                                  kosu_division_2_1 = ws1.cell(row = i + 1, column = 4).value, \
-                                  kosu_title_2 = ws1.cell(row = i + 1, column = 5).value, \
-                                  kosu_division_1_2 = ws1.cell(row = i + 1, column = 6).value, \
-                                  kosu_division_2_2 = ws1.cell(row = i + 1, column = 7).value, \
-                                  kosu_title_3 = ws1.cell(row = i + 1, column = 8).value, \
-                                  kosu_division_1_3 = ws1.cell(row = i + 1, column = 9).value, \
-                                  kosu_division_2_3 = ws1.cell(row = i + 1, column = 10).value, \
-                                  kosu_title_4 = ws1.cell(row = i + 1, column = 11).value, \
-                                  kosu_division_1_4 = ws1.cell(row = i + 1, column = 12).value, \
-                                  kosu_division_2_4 = ws1.cell(row = i + 1, column = 13).value, \
-                                  kosu_title_5 = ws1.cell(row = i + 1, column = 14).value, \
-                                  kosu_division_1_5 = ws1.cell(row = i + 1, column = 15).value, \
-                                  kosu_division_2_5 = ws1.cell(row = i + 1, column = 16).value, \
-                                  kosu_title_6 = ws1.cell(row = i + 1, column = 17).value, \
-                                  kosu_division_1_6 = ws1.cell(row = i + 1, column = 18).value, \
-                                  kosu_division_2_6 = ws1.cell(row = i + 1, column = 19).value, \
-                                  kosu_title_7 = ws1.cell(row = i + 1, column = 20).value, \
-                                  kosu_division_1_7 = ws1.cell(row = i + 1, column = 21).value, \
-                                  kosu_division_2_7 = ws1.cell(row = i + 1, column = 22).value, \
-                                  kosu_title_8 = ws1.cell(row = i + 1, column = 23).value, \
-                                  kosu_division_1_8 = ws1.cell(row = i + 1, column = 24).value, \
-                                  kosu_division_2_8 = ws1.cell(row = i + 1, column = 25).value, \
-                                  kosu_title_9 = ws1.cell(row = i + 1, column = 26).value, \
-                                  kosu_division_1_9 = ws1.cell(row = i + 1, column = 27).value, \
-                                  kosu_division_2_9 = ws1.cell(row = i + 1, column = 28).value, \
-                                  kosu_title_10 = ws1.cell(row = i + 1, column = 29).value, \
-                                  kosu_division_1_10 = ws1.cell(row = i + 1, column = 30).value, \
-                                  kosu_division_2_10 = ws1.cell(row = i + 1, column = 31).value, \
-                                  kosu_title_11 = ws1.cell(row = i + 1, column = 32).value, \
-                                  kosu_division_1_11 = ws1.cell(row = i + 1, column = 33).value, \
-                                  kosu_division_2_11 = ws1.cell(row = i + 1, column = 34).value, \
-                                  kosu_title_12 = ws1.cell(row = i + 1, column = 35).value, \
-                                  kosu_division_1_12 = ws1.cell(row = i + 1, column = 36).value, \
-                                  kosu_division_2_12 = ws1.cell(row = i + 1, column = 37).value, \
-                                  kosu_title_13 = ws1.cell(row = i + 1, column = 38).value, \
-                                  kosu_division_1_13 = ws1.cell(row = i + 1, column = 39).value, \
-                                  kosu_division_2_13 = ws1.cell(row = i + 1, column = 40).value, \
-                                  kosu_title_14 = ws1.cell(row = i + 1, column = 41).value, \
-                                  kosu_division_1_14 = ws1.cell(row = i + 1, column = 42).value, \
-                                  kosu_division_2_14 = ws1.cell(row = i + 1, column = 43).value, \
-                                  kosu_title_15 = ws1.cell(row = i + 1, column = 44).value, \
-                                  kosu_division_1_15 = ws1.cell(row = i + 1, column = 45).value, \
-                                  kosu_division_2_15 = ws1.cell(row = i + 1, column = 46).value, \
-                                  kosu_title_16 = ws1.cell(row = i + 1, column = 47).value, \
-                                  kosu_division_1_16 = ws1.cell(row = i + 1, column = 48).value, \
-                                  kosu_division_2_16 = ws1.cell(row = i + 1, column = 49).value, \
-                                  kosu_title_17 = ws1.cell(row = i + 1, column = 50).value, \
-                                  kosu_division_1_17 = ws1.cell(row = i + 1, column = 51).value, \
-                                  kosu_division_2_17 = ws1.cell(row = i + 1, column = 52).value, \
-                                  kosu_title_18 = ws1.cell(row = i + 1, column = 53).value, \
-                                  kosu_division_1_18 = ws1.cell(row = i + 1, column = 54).value, \
-                                  kosu_division_2_18 = ws1.cell(row = i + 1, column = 55).value, \
-                                  kosu_title_19 = ws1.cell(row = i + 1, column = 56).value, \
-                                  kosu_division_1_19 = ws1.cell(row = i + 1, column = 57).value, \
-                                  kosu_division_2_19 = ws1.cell(row = i + 1, column = 58).value, \
-                                  kosu_title_20 = ws1.cell(row = i + 1, column = 59).value, \
-                                  kosu_division_1_20 = ws1.cell(row = i + 1, column = 60).value, \
-                                  kosu_division_2_20 = ws1.cell(row = i + 1, column = 61).value, \
-                                  kosu_title_21 = ws1.cell(row = i + 1, column = 62).value, \
-                                  kosu_division_1_21 = ws1.cell(row = i + 1, column = 63).value, \
-                                  kosu_division_2_21 = ws1.cell(row = i + 1, column = 64).value, \
-                                  kosu_title_22 = ws1.cell(row = i + 1, column = 65).value, \
-                                  kosu_division_1_22 = ws1.cell(row = i + 1, column = 66).value, \
-                                  kosu_division_2_22 = ws1.cell(row = i + 1, column = 67).value, \
-                                  kosu_title_23 = ws1.cell(row = i + 1, column = 68).value, \
-                                  kosu_division_1_23 = ws1.cell(row = i + 1, column = 69).value, \
-                                  kosu_division_2_23 = ws1.cell(row = i + 1, column = 70).value, \
-                                  kosu_title_24 = ws1.cell(row = i + 1, column = 71).value, \
-                                  kosu_division_1_24 = ws1.cell(row = i + 1, column = 72).value, \
-                                  kosu_division_2_24 = ws1.cell(row = i + 1, column = 73).value, \
-                                  kosu_title_25 = ws1.cell(row = i + 1, column = 74).value, \
-                                  kosu_division_1_25 = ws1.cell(row = i + 1, column = 75).value, \
-                                  kosu_division_2_25 = ws1.cell(row = i + 1, column = 76).value, \
-                                  kosu_title_26 = ws1.cell(row = i + 1, column = 77).value, \
-                                  kosu_division_1_26 = ws1.cell(row = i + 1, column = 78).value, \
-                                  kosu_division_2_26 = ws1.cell(row = i + 1, column = 79).value, \
-                                  kosu_title_27 = ws1.cell(row = i + 1, column = 80).value, \
-                                  kosu_division_1_27 = ws1.cell(row = i + 1, column = 81).value, \
-                                  kosu_division_2_27 = ws1.cell(row = i + 1, column = 82).value, \
-                                  kosu_title_28 = ws1.cell(row = i + 1, column = 83).value, \
-                                  kosu_division_1_28 = ws1.cell(row = i + 1, column = 84).value, \
-                                  kosu_division_2_28 = ws1.cell(row = i + 1, column = 85).value, \
-                                  kosu_title_29 = ws1.cell(row = i + 1, column = 86).value, \
-                                  kosu_division_1_29 = ws1.cell(row = i + 1, column = 87).value, \
-                                  kosu_division_2_29 = ws1.cell(row = i + 1, column = 88).value, \
-                                  kosu_title_30 = ws1.cell(row = i + 1, column = 89).value, \
-                                  kosu_division_1_30 = ws1.cell(row = i + 1, column = 90).value, \
-                                  kosu_division_2_30 = ws1.cell(row = i + 1, column = 91).value, \
-                                  kosu_title_31 = ws1.cell(row = i + 1, column = 92).value, \
-                                  kosu_division_1_31 = ws1.cell(row = i + 1, column = 93).value, \
-                                  kosu_division_2_31 = ws1.cell(row = i + 1, column = 94).value, \
-                                  kosu_title_32 = ws1.cell(row = i + 1, column = 95).value, \
-                                  kosu_division_1_32 = ws1.cell(row = i + 1, column = 96).value, \
-                                  kosu_division_2_32 = ws1.cell(row = i + 1, column = 97).value, \
-                                  kosu_title_33 = ws1.cell(row = i + 1, column = 98).value, \
-                                  kosu_division_1_33 = ws1.cell(row = i + 1, column = 99).value, \
-                                  kosu_division_2_33 = ws1.cell(row = i + 1, column = 100).value, \
-                                  kosu_title_34 = ws1.cell(row = i + 1, column = 101).value, \
-                                  kosu_division_1_34 = ws1.cell(row = i + 1, column = 102).value, \
-                                  kosu_division_2_34 = ws1.cell(row = i + 1, column = 103).value, \
-                                  kosu_title_35 = ws1.cell(row = i + 1, column = 104).value, \
-                                  kosu_division_1_35 = ws1.cell(row = i + 1, column = 105).value, \
-                                  kosu_division_2_35 = ws1.cell(row = i + 1, column = 106).value, \
-                                  kosu_title_36 = ws1.cell(row = i + 1, column = 107).value, \
-                                  kosu_division_1_36 = ws1.cell(row = i + 1, column = 108).value, \
-                                  kosu_division_2_36 = ws1.cell(row = i + 1, column = 109).value, \
-                                  kosu_title_37 = ws1.cell(row = i + 1, column = 110).value, \
-                                  kosu_division_1_37 = ws1.cell(row = i + 1, column = 111).value, \
-                                  kosu_division_2_37 = ws1.cell(row = i + 1, column = 112).value, \
-                                  kosu_title_38 = ws1.cell(row = i + 1, column = 113).value, \
-                                  kosu_division_1_38 = ws1.cell(row = i + 1, column = 114).value, \
-                                  kosu_division_2_38 = ws1.cell(row = i + 1, column = 115).value, \
-                                  kosu_title_39 = ws1.cell(row = i + 1, column = 116).value, \
-                                  kosu_division_1_39 = ws1.cell(row = i + 1, column = 117).value, \
-                                  kosu_division_2_39 = ws1.cell(row = i + 1, column = 118).value, \
-                                  kosu_title_40 = ws1.cell(row = i + 1, column = 119).value, \
-                                  kosu_division_1_40 = ws1.cell(row = i + 1, column = 120).value, \
-                                  kosu_division_2_40 = ws1.cell(row = i + 1, column = 121).value, \
-                                  kosu_title_41 = ws1.cell(row = i + 1, column = 122).value, \
-                                  kosu_division_1_41 = ws1.cell(row = i + 1, column = 123).value, \
-                                  kosu_division_2_41 = ws1.cell(row = i + 1, column = 124).value, \
-                                  kosu_title_42 = ws1.cell(row = i + 1, column = 125).value, \
-                                  kosu_division_1_42 = ws1.cell(row = i + 1, column = 126).value, \
-                                  kosu_division_2_42 = ws1.cell(row = i + 1, column = 127).value, \
-                                  kosu_title_43 = ws1.cell(row = i + 1, column = 128).value, \
-                                  kosu_division_1_43 = ws1.cell(row = i + 1, column = 129).value, \
-                                  kosu_division_2_43 = ws1.cell(row = i + 1, column = 130).value, \
-                                  kosu_title_44 = ws1.cell(row = i + 1, column = 131).value, \
-                                  kosu_division_1_44 = ws1.cell(row = i + 1, column = 132).value, \
-                                  kosu_division_2_44 = ws1.cell(row = i + 1, column = 133).value, \
-                                  kosu_title_45 = ws1.cell(row = i + 1, column = 134).value, \
-                                  kosu_division_1_45 = ws1.cell(row = i + 1, column = 135).value, \
-                                  kosu_division_2_45 = ws1.cell(row = i + 1, column = 136).value, \
-                                  kosu_title_46 = ws1.cell(row = i + 1, column = 137).value, \
-                                  kosu_division_1_46 = ws1.cell(row = i + 1, column = 138).value, \
-                                  kosu_division_2_46 = ws1.cell(row = i + 1, column = 139).value, \
-                                  kosu_title_47 = ws1.cell(row = i + 1, column = 140).value, \
-                                  kosu_division_1_47 = ws1.cell(row = i + 1, column = 141).value, \
-                                  kosu_division_2_47 = ws1.cell(row = i + 1, column = 142).value, \
-                                  kosu_title_48 = ws1.cell(row = i + 1, column = 143).value, \
-                                  kosu_division_1_48 = ws1.cell(row = i + 1, column = 144).value, \
-                                  kosu_division_2_48 = ws1.cell(row = i + 1, column = 145).value, \
-                                  kosu_title_49 = ws1.cell(row = i + 1, column = 146).value, \
-                                  kosu_division_1_49 = ws1.cell(row = i + 1, column = 147).value, \
-                                  kosu_division_2_49 = ws1.cell(row = i + 1, column = 148).value, \
-                                  kosu_title_50 = ws1.cell(row = i + 1, column = 149).value, \
-                                  kosu_division_1_50 = ws1.cell(row = i + 1, column = 150).value, \
-                                  kosu_division_2_50 = ws1.cell(row = i + 1, column = 151).value)
+        # Excelからデータを読み込む
+        def_data = {
+          'kosu_name': ws.cell(row=i+1, column=1).value
+          }
+        for n in range(1, 51):
+          def_data[f'kosu_title_{n}'] = ws.cell(row=i+1, column=n*3-1).value
+          def_data[f'kosu_division_1_{n}'] = ws.cell(row=i+1, column=n*3).value
+          def_data[f'kosu_division_2_{n}'] = ws.cell(row=i+1, column=n*3+1).value
 
+        new_data1 = kosu_division(**def_data)
         new_data1.save()
-
 
     # 工数定義区分データにレコードがない場合の処理
     else:
       # Excelからデータを読み込み
       for i in range(1, data_num):
-        new_data1 = kosu_division(kosu_name = ws1.cell(row = i + 1, column = 1).value, \
-                                  kosu_title_1 = ws1.cell(row = i + 1, column = 2).value, \
-                                  kosu_division_1_1 = ws1.cell(row = i + 1, column = 3).value, \
-                                  kosu_division_2_1 = ws1.cell(row = i + 1, column = 4).value, \
-                                  kosu_title_2 = ws1.cell(row = i + 1, column = 5).value, \
-                                  kosu_division_1_2 = ws1.cell(row = i + 1, column = 6).value, \
-                                  kosu_division_2_2 = ws1.cell(row = i + 1, column = 7).value, \
-                                  kosu_title_3 = ws1.cell(row = i + 1, column = 8).value, \
-                                  kosu_division_1_3 = ws1.cell(row = i + 1, column = 9).value, \
-                                  kosu_division_2_3 = ws1.cell(row = i + 1, column = 10).value, \
-                                  kosu_title_4 = ws1.cell(row = i + 1, column = 11).value, \
-                                  kosu_division_1_4 = ws1.cell(row = i + 1, column = 12).value, \
-                                  kosu_division_2_4 = ws1.cell(row = i + 1, column = 13).value, \
-                                  kosu_title_5 = ws1.cell(row = i + 1, column = 14).value, \
-                                  kosu_division_1_5 = ws1.cell(row = i + 1, column = 15).value, \
-                                  kosu_division_2_5 = ws1.cell(row = i + 1, column = 16).value, \
-                                  kosu_title_6 = ws1.cell(row = i + 1, column = 17).value, \
-                                  kosu_division_1_6 = ws1.cell(row = i + 1, column = 18).value, \
-                                  kosu_division_2_6 = ws1.cell(row = i + 1, column = 19).value, \
-                                  kosu_title_7 = ws1.cell(row = i + 1, column = 20).value, \
-                                  kosu_division_1_7 = ws1.cell(row = i + 1, column = 21).value, \
-                                  kosu_division_2_7 = ws1.cell(row = i + 1, column = 22).value, \
-                                  kosu_title_8 = ws1.cell(row = i + 1, column = 23).value, \
-                                  kosu_division_1_8 = ws1.cell(row = i + 1, column = 24).value, \
-                                  kosu_division_2_8 = ws1.cell(row = i + 1, column = 25).value, \
-                                  kosu_title_9 = ws1.cell(row = i + 1, column = 26).value, \
-                                  kosu_division_1_9 = ws1.cell(row = i + 1, column = 27).value, \
-                                  kosu_division_2_9 = ws1.cell(row = i + 1, column = 28).value, \
-                                  kosu_title_10 = ws1.cell(row = i + 1, column = 29).value, \
-                                  kosu_division_1_10 = ws1.cell(row = i + 1, column = 30).value, \
-                                  kosu_division_2_10 = ws1.cell(row = i + 1, column = 31).value, \
-                                  kosu_title_11 = ws1.cell(row = i + 1, column = 32).value, \
-                                  kosu_division_1_11 = ws1.cell(row = i + 1, column = 33).value, \
-                                  kosu_division_2_11 = ws1.cell(row = i + 1, column = 34).value, \
-                                  kosu_title_12 = ws1.cell(row = i + 1, column = 35).value, \
-                                  kosu_division_1_12 = ws1.cell(row = i + 1, column = 36).value, \
-                                  kosu_division_2_12 = ws1.cell(row = i + 1, column = 37).value, \
-                                  kosu_title_13 = ws1.cell(row = i + 1, column = 38).value, \
-                                  kosu_division_1_13 = ws1.cell(row = i + 1, column = 39).value, \
-                                  kosu_division_2_13 = ws1.cell(row = i + 1, column = 40).value, \
-                                  kosu_title_14 = ws1.cell(row = i + 1, column = 41).value, \
-                                  kosu_division_1_14 = ws1.cell(row = i + 1, column = 42).value, \
-                                  kosu_division_2_14 = ws1.cell(row = i + 1, column = 43).value, \
-                                  kosu_title_15 = ws1.cell(row = i + 1, column = 44).value, \
-                                  kosu_division_1_15 = ws1.cell(row = i + 1, column = 45).value, \
-                                  kosu_division_2_15 = ws1.cell(row = i + 1, column = 46).value, \
-                                  kosu_title_16 = ws1.cell(row = i + 1, column = 47).value, \
-                                  kosu_division_1_16 = ws1.cell(row = i + 1, column = 48).value, \
-                                  kosu_division_2_16 = ws1.cell(row = i + 1, column = 49).value, \
-                                  kosu_title_17 = ws1.cell(row = i + 1, column = 50).value, \
-                                  kosu_division_1_17 = ws1.cell(row = i + 1, column = 51).value, \
-                                  kosu_division_2_17 = ws1.cell(row = i + 1, column = 52).value, \
-                                  kosu_title_18 = ws1.cell(row = i + 1, column = 53).value, \
-                                  kosu_division_1_18 = ws1.cell(row = i + 1, column = 54).value, \
-                                  kosu_division_2_18 = ws1.cell(row = i + 1, column = 55).value, \
-                                  kosu_title_19 = ws1.cell(row = i + 1, column = 56).value, \
-                                  kosu_division_1_19 = ws1.cell(row = i + 1, column = 57).value, \
-                                  kosu_division_2_19 = ws1.cell(row = i + 1, column = 58).value, \
-                                  kosu_title_20 = ws1.cell(row = i + 1, column = 59).value, \
-                                  kosu_division_1_20 = ws1.cell(row = i + 1, column = 60).value, \
-                                  kosu_division_2_20 = ws1.cell(row = i + 1, column = 61).value, \
-                                  kosu_title_21 = ws1.cell(row = i + 1, column = 62).value, \
-                                  kosu_division_1_21 = ws1.cell(row = i + 1, column = 63).value, \
-                                  kosu_division_2_21 = ws1.cell(row = i + 1, column = 64).value, \
-                                  kosu_title_22 = ws1.cell(row = i + 1, column = 65).value, \
-                                  kosu_division_1_22 = ws1.cell(row = i + 1, column = 66).value, \
-                                  kosu_division_2_22 = ws1.cell(row = i + 1, column = 67).value, \
-                                  kosu_title_23 = ws1.cell(row = i + 1, column = 68).value, \
-                                  kosu_division_1_23 = ws1.cell(row = i + 1, column = 69).value, \
-                                  kosu_division_2_23 = ws1.cell(row = i + 1, column = 70).value, \
-                                  kosu_title_24 = ws1.cell(row = i + 1, column = 71).value, \
-                                  kosu_division_1_24 = ws1.cell(row = i + 1, column = 72).value, \
-                                  kosu_division_2_24 = ws1.cell(row = i + 1, column = 73).value, \
-                                  kosu_title_25 = ws1.cell(row = i + 1, column = 74).value, \
-                                  kosu_division_1_25 = ws1.cell(row = i + 1, column = 75).value, \
-                                  kosu_division_2_25 = ws1.cell(row = i + 1, column = 76).value, \
-                                  kosu_title_26 = ws1.cell(row = i + 1, column = 77).value, \
-                                  kosu_division_1_26 = ws1.cell(row = i + 1, column = 78).value, \
-                                  kosu_division_2_26 = ws1.cell(row = i + 1, column = 79).value, \
-                                  kosu_title_27 = ws1.cell(row = i + 1, column = 80).value, \
-                                  kosu_division_1_27 = ws1.cell(row = i + 1, column = 81).value, \
-                                  kosu_division_2_27 = ws1.cell(row = i + 1, column = 82).value, \
-                                  kosu_title_28 = ws1.cell(row = i + 1, column = 83).value, \
-                                  kosu_division_1_28 = ws1.cell(row = i + 1, column = 84).value, \
-                                  kosu_division_2_28 = ws1.cell(row = i + 1, column = 85).value, \
-                                  kosu_title_29 = ws1.cell(row = i + 1, column = 86).value, \
-                                  kosu_division_1_29 = ws1.cell(row = i + 1, column = 87).value, \
-                                  kosu_division_2_29 = ws1.cell(row = i + 1, column = 88).value, \
-                                  kosu_title_30 = ws1.cell(row = i + 1, column = 89).value, \
-                                  kosu_division_1_30 = ws1.cell(row = i + 1, column = 90).value, \
-                                  kosu_division_2_30 = ws1.cell(row = i + 1, column = 91).value, \
-                                  kosu_title_31 = ws1.cell(row = i + 1, column = 92).value, \
-                                  kosu_division_1_31 = ws1.cell(row = i + 1, column = 93).value, \
-                                  kosu_division_2_31 = ws1.cell(row = i + 1, column = 94).value, \
-                                  kosu_title_32 = ws1.cell(row = i + 1, column = 95).value, \
-                                  kosu_division_1_32 = ws1.cell(row = i + 1, column = 96).value, \
-                                  kosu_division_2_32 = ws1.cell(row = i + 1, column = 97).value, \
-                                  kosu_title_33 = ws1.cell(row = i + 1, column = 98).value, \
-                                  kosu_division_1_33 = ws1.cell(row = i + 1, column = 99).value, \
-                                  kosu_division_2_33 = ws1.cell(row = i + 1, column = 100).value, \
-                                  kosu_title_34 = ws1.cell(row = i + 1, column = 101).value, \
-                                  kosu_division_1_34 = ws1.cell(row = i + 1, column = 102).value, \
-                                  kosu_division_2_34 = ws1.cell(row = i + 1, column = 103).value, \
-                                  kosu_title_35 = ws1.cell(row = i + 1, column = 104).value, \
-                                  kosu_division_1_35 = ws1.cell(row = i + 1, column = 105).value, \
-                                  kosu_division_2_35 = ws1.cell(row = i + 1, column = 106).value, \
-                                  kosu_title_36 = ws1.cell(row = i + 1, column = 107).value, \
-                                  kosu_division_1_36 = ws1.cell(row = i + 1, column = 108).value, \
-                                  kosu_division_2_36 = ws1.cell(row = i + 1, column = 109).value, \
-                                  kosu_title_37 = ws1.cell(row = i + 1, column = 110).value, \
-                                  kosu_division_1_37 = ws1.cell(row = i + 1, column = 111).value, \
-                                  kosu_division_2_37 = ws1.cell(row = i + 1, column = 112).value, \
-                                  kosu_title_38 = ws1.cell(row = i + 1, column = 113).value, \
-                                  kosu_division_1_38 = ws1.cell(row = i + 1, column = 114).value, \
-                                  kosu_division_2_38 = ws1.cell(row = i + 1, column = 115).value, \
-                                  kosu_title_39 = ws1.cell(row = i + 1, column = 116).value, \
-                                  kosu_division_1_39 = ws1.cell(row = i + 1, column = 117).value, \
-                                  kosu_division_2_39 = ws1.cell(row = i + 1, column = 118).value, \
-                                  kosu_title_40 = ws1.cell(row = i + 1, column = 119).value, \
-                                  kosu_division_1_40 = ws1.cell(row = i + 1, column = 120).value, \
-                                  kosu_division_2_40 = ws1.cell(row = i + 1, column = 121).value, \
-                                  kosu_title_41 = ws1.cell(row = i + 1, column = 122).value, \
-                                  kosu_division_1_41 = ws1.cell(row = i + 1, column = 123).value, \
-                                  kosu_division_2_41 = ws1.cell(row = i + 1, column = 124).value, \
-                                  kosu_title_42 = ws1.cell(row = i + 1, column = 125).value, \
-                                  kosu_division_1_42 = ws1.cell(row = i + 1, column = 126).value, \
-                                  kosu_division_2_42 = ws1.cell(row = i + 1, column = 127).value, \
-                                  kosu_title_43 = ws1.cell(row = i + 1, column = 128).value, \
-                                  kosu_division_1_43 = ws1.cell(row = i + 1, column = 129).value, \
-                                  kosu_division_2_43 = ws1.cell(row = i + 1, column = 130).value, \
-                                  kosu_title_44 = ws1.cell(row = i + 1, column = 131).value, \
-                                  kosu_division_1_44 = ws1.cell(row = i + 1, column = 132).value, \
-                                  kosu_division_2_44 = ws1.cell(row = i + 1, column = 133).value, \
-                                  kosu_title_45 = ws1.cell(row = i + 1, column = 134).value, \
-                                  kosu_division_1_45 = ws1.cell(row = i + 1, column = 135).value, \
-                                  kosu_division_2_45 = ws1.cell(row = i + 1, column = 136).value, \
-                                  kosu_title_46 = ws1.cell(row = i + 1, column = 137).value, \
-                                  kosu_division_1_46 = ws1.cell(row = i + 1, column = 138).value, \
-                                  kosu_division_2_46 = ws1.cell(row = i + 1, column = 139).value, \
-                                  kosu_title_47 = ws1.cell(row = i + 1, column = 140).value, \
-                                  kosu_division_1_47 = ws1.cell(row = i + 1, column = 141).value, \
-                                  kosu_division_2_47 = ws1.cell(row = i + 1, column = 142).value, \
-                                  kosu_title_48 = ws1.cell(row = i + 1, column = 143).value, \
-                                  kosu_division_1_48 = ws1.cell(row = i + 1, column = 144).value, \
-                                  kosu_division_2_48 = ws1.cell(row = i + 1, column = 145).value, \
-                                  kosu_title_49 = ws1.cell(row = i + 1, column = 146).value, \
-                                  kosu_division_1_49 = ws1.cell(row = i + 1, column = 147).value, \
-                                  kosu_division_2_49 = ws1.cell(row = i + 1, column = 148).value, \
-                                  kosu_title_50 = ws1.cell(row = i + 1, column = 149).value, \
-                                  kosu_division_1_50 = ws1.cell(row = i + 1, column = 150).value, \
-                                  kosu_division_2_50 = ws1.cell(row = i + 1, column = 151).value)
+        # Excelからデータを読み込む
+        def_data = {
+          'kosu_name': ws.cell(row=i+1, column=1).value
+          }
+        for n in range(1, 51):
+          def_data[f'kosu_title_{n}'] = ws.cell(row=i+1, column=n*3-1).value
+          def_data[f'kosu_division_1_{n}'] = ws.cell(row=i+1, column=n*3).value
+          def_data[f'kosu_division_2_{n}'] = ws.cell(row=i+1, column=n*3+1).value
 
+        new_data1 = kosu_division(**def_data)
         new_data1.save()
-
 
     # 一時ファイル削除
     os.remove('def_file_path.xlsx')
 
 
-
-    # 工数定義区分ファイル定義
+    # 管理者設定ファイル定義
     uploaded_file = request.FILES['setting_file']
 
     # 一時的なファイルをサーバー上に作成
@@ -2224,19 +1937,19 @@ def help(request):
     for i in range(1, data_num):
       # Excelからデータを読み込み
       new_data2 = administrator_data(menu_row = ws2.cell(row = i + 1, column = 1).value, \
-                                     administrator_employee_no1 = ws2.cell(row = i + 1, column = 2).value, \
-                                     administrator_employee_no2 = ws2.cell(row = i + 1, column = 3).value, \
-                                     administrator_employee_no3 = ws2.cell(row = i + 1, column = 4).value, \
-                                     pop_up1 = ws2.cell(row = i + 1, column = 5).value, \
-                                     pop_up_id1 = ws2.cell(row = i + 1, column = 6).value, \
-                                     pop_up2 = ws2.cell(row = i + 1, column = 7).value, \
-                                     pop_up_id2 = ws2.cell(row = i + 1, column = 8).value, \
-                                     pop_up3 = ws2.cell(row = i + 1, column = 9).value, \
-                                     pop_up_id3 = ws2.cell(row = i + 1, column = 10).value, \
-                                     pop_up4 = ws2.cell(row = i + 1, column = 11).value, \
-                                     pop_up_id4 = ws2.cell(row = i + 1, column = 12).value, \
-                                     pop_up5 = ws2.cell(row = i + 1, column = 13).value, \
-                                     pop_up_id5 = ws2.cell(row = i + 1, column = 14).value)
+                                    administrator_employee_no1 = ws2.cell(row = i + 1, column = 2).value, \
+                                    administrator_employee_no2 = ws2.cell(row = i + 1, column = 3).value, \
+                                    administrator_employee_no3 = ws2.cell(row = i + 1, column = 4).value, \
+                                    pop_up1 = ws2.cell(row = i + 1, column = 5).value, \
+                                    pop_up_id1 = ws2.cell(row = i + 1, column = 6).value, \
+                                    pop_up2 = ws2.cell(row = i + 1, column = 7).value, \
+                                    pop_up_id2 = ws2.cell(row = i + 1, column = 8).value, \
+                                    pop_up3 = ws2.cell(row = i + 1, column = 9).value, \
+                                    pop_up_id3 = ws2.cell(row = i + 1, column = 10).value, \
+                                    pop_up4 = ws2.cell(row = i + 1, column = 11).value, \
+                                    pop_up_id4 = ws2.cell(row = i + 1, column = 12).value, \
+                                    pop_up5 = ws2.cell(row = i + 1, column = 13).value, \
+                                    pop_up_id5 = ws2.cell(row = i + 1, column = 14).value)
       new_data2.save()
 
 
@@ -2246,7 +1959,7 @@ def help(request):
 
     # このページをリダイレクト
     return redirect(to = '/login')
-  
+
 
 
   # HTMLに渡す辞書
@@ -2255,8 +1968,6 @@ def help(request):
     'form' : form,
     'display' : display,
     }
-  
-
 
   # 指定したHTMLに辞書を渡して表示を完成させる
   return render(request, 'kosu/help.html', context)
