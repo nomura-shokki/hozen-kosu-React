@@ -4,7 +4,7 @@
         {
             "label": "Run WSL with Venv",
             "type": "shell",
-            "command": "bash -c 'cd /mnt/c/Users/yuya/Desktop/django_project_another/hozen_kosu_another && source /mnt/c/Users/yuya/Desktop/django_project_another/venv/bin/activate && exec bash'",
+            "command": "bash -c 'cd ${workspaceFolder} && source ${workspaceFolder}/../venv/bin/activate && exec bash'",
             "problemMatcher": [],
             "presentation": {
                 "echo": true,
@@ -15,4 +15,3 @@
         }
     ]
 }
-

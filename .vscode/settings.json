@@ -1,9 +1,9 @@
 {
-    // 仮想環境のパスを指定
-    "python.venvPath": "/mnt/c/Users/yuya/Desktop/django_project_another/venv",
+    // 仮想環境のパスを動的に指定
+    "python.venvPath": "${workspaceFolder}/../venv",
 
-    // デフォルトのPythonインタープリターのパスを指定
-    "python.defaultInterpreterPath": "/mnt/c/Users/yuya/Desktop/django_project_another/venv/bin/python3",
+    // デフォルトのPythonインタープリターのパスを動的に指定
+    "python.defaultInterpreterPath": "${workspaceFolder}/../venv/bin/python3",
 
     // ターミナルでPythonスクリプトを実行するとき、仮想環境を自動で有効化
     "python.terminal.activateEnvironment": true,
@@ -14,7 +14,7 @@
             "path": "/usr/bin/bash",
             "args": [
                 "-c",
-                "cd ${workspaceFolder} && source /mnt/c/Users/yuya/Desktop/django_project_another/venv/bin/activate && exec bash"
+                "cd ${workspaceFolder} && source ${workspaceFolder}/../venv/bin/activate && exec bash"
             ]
         }
     },
