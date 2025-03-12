@@ -1,28 +1,35 @@
 {
     // 仮想環境のパスを指定
-    // "${workspaceFolder}"は現在のプロジェクトのルートディレクトリ
-    "python.venvPath": "${workspaceFolder}/../venv",
+    "python.venvPath": "/mnt/c/Users/yuya/Desktop/django_project_another/venv",
 
     // デフォルトのPythonインタープリターのパスを指定
-    "python.defaultInterpreterPath": "${workspaceFolder}/../venv/Scripts/python.exe",
+    "python.defaultInterpreterPath": "/mnt/c/Users/yuya/Desktop/django_project_another/venv/bin/python3",
 
-    // この設定がtrueの場合、VSCodeのターミナルでPythonスクリプトを実行するときに自動的に仮想環境を有効にする
+    // ターミナルでPythonスクリプトを実行するとき、仮想環境を自動で有効化
     "python.terminal.activateEnvironment": true,
 
-    // ターミナルのプロファイル設定
-    // Windows環境でPowerShellをカスタマイズ
-    "terminal.integrated.profiles.windows": {
-        "PowerShell": {
-            "source": "PowerShell",                 // PowerShellを使用す
-            "icon": "terminal-powershell",          // ターミナルアイコンを設定
-            "args": [                               // PowerShellの起動時に指定する引数
-                "-NoExit",                          // 起動後に終了しないよう
-                "-Command",                         // コマンドを指定
-                "& {Set-Location -Path \"${workspaceFolder}\"; ../venv/Scripts/Activate.ps1}" // 仮想環境を有効にする
+    // Linux用ターミナルプロファイルを設定
+    "terminal.integrated.profiles.linux": {
+        "WSL": {
+            "path": "/usr/bin/bash",
+            "args": [
+                "-c",
+                "cd ${workspaceFolder} && source /mnt/c/Users/yuya/Desktop/django_project_another/venv/bin/activate && exec bash"
             ]
         }
     },
 
-    // デフォルトのターミナルプロファイルをPowerShellに設定
-    "terminal.integrated.defaultProfile.windows": "PowerShell"
+    // デフォルトのターミナルプロファイルをWSLに設定
+    "terminal.integrated.defaultProfile.linux": "WSL",
+
+    // Windows用ターミナルプロファイル（必要に応じて）
+    "terminal.integrated.profiles.windows": {
+        "WSL": {
+            "path": "C:\\WINDOWS\\System32\\wsl.exe",
+            "args": []
+        }
+    },
+
+    // Windows環境でのデフォルトターミナルをWSLに設定
+    "terminal.integrated.defaultProfile.windows": "WSL"
 }
