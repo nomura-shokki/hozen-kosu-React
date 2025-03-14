@@ -46,9 +46,8 @@ def kosu_def(request):
 
   # POST時の処理
   if (request.method == 'POST'):
-
     # 検索欄が空欄の場合の処理
-    if request.POST['kosu_def_list'] == '':
+    if request.POST['kosu_def_list'] in ["", None]:
       # エラーメッセージ出力
       messages.error(request, '確認する定義区分が選択されていません。ERROR038')
       # このページをリダイレクト
@@ -236,7 +235,12 @@ class DefListView(ListView):
       return redirect('/')
 
     # ページネーション設定データの取得
-    page_num = administrator_data.objects.order_by("id").last().menu_row
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      page_num = administrator_data(menu_row=20).menu_row
+    else:
+      page_num = last_record.menu_row
 
     # 工数区分表示用のオブジェクト取得
     obj = kosu_division.objects.all().order_by('kosu_name').reverse()

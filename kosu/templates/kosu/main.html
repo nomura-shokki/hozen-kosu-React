@@ -18,53 +18,53 @@
       <p class="h5 mb-0 no-wrap">こんにちは、{{data.name}}さん。</p>
     </div>
     {% if pop_up_display == True %}
-      {% if pop_up.pop_up1 != "" %}
+      {% if pop_up.pop_up1 != null %}
         <p class="h6 mt-4">
           <a href="{% url 'inquiry_display' pop_up.pop_up_id1 %}" class="text-danger">{{pop_up.pop_up1}}</a>
         </p>
       {% endif %}
-      {% if pop_up.pop_up2 != "" %}
+      {% if pop_up.pop_up2 != null %}
         <p class="h6 mt-4 text-danger">
           <a href="{% url 'inquiry_display' pop_up.pop_up_id2 %}" class="text-danger">{{pop_up.pop_up2}}</a>
         </p>
       {% endif %}
-      {% if pop_up.pop_up3 != "" %}
+      {% if pop_up.pop_up3 != null %}
         <p class="h6 mt-4 text-danger">
           <a href="{% url 'inquiry_display' pop_up.pop_up_id3 %}" class="text-danger">{{pop_up.pop_up3}}</a>
         </p>
       {% endif %}
-      {% if pop_up.pop_up4 != "" %}
+      {% if pop_up.pop_up4 != null %}
         <p class="h6 mt-4 text-danger">
           <a href="{% url 'inquiry_display' pop_up.pop_up_id4 %}" class="text-danger">{{pop_up.pop_up4}}</a>
         </p>
       {% endif %}
-      {% if pop_up.pop_up5 != "" %}
+      {% if pop_up.pop_up5 != null %}
         <p class="h6 mt-4 text-danger">
           <a href="{% url 'inquiry_display' pop_up.pop_up_id5 %}" class="text-danger">{{pop_up.pop_up5}}</a>
         </p>
       {% endif %}
     {% endif %}
-    {% if data.pop_up1 != "" %}
+    {% if data.pop_up1 != null %}
       <p class="h6 mt-4 text-danger">
         <a href="{% url 'inquiry_display' data.pop_up_id1 %}" class="text-danger">{{data.pop_up1}}</a>
       </p>
     {% endif %}
-    {% if data.pop_up2 != "" %}
+    {% if data.pop_up2 != null %}
       <p class="h6 mt-4 text-danger">
         <a href="{% url 'inquiry_display' data.pop_up_id2 %}" class="text-danger">{{data.pop_up2}}</a>
       </p>
     {% endif %}
-    {% if data.pop_up3 != "" %}
+    {% if data.pop_up3 != null %}
       <p class="h6 mt-4 text-danger">
         <a href="{% url 'inquiry_display' data.pop_up_id3 %}" class="text-danger">{{data.pop_up3}}</a>
       </p>
     {% endif %}
-    {% if data.pop_up4 != "" %}
+    {% if data.pop_up4 != null %}
       <p class="h6 mt-4 text-danger">
         <a href="{% url 'inquiry_display' data.pop_up_id4 %}" class="text-danger">{{data.pop_up4}}</a>
       </p>
     {% endif %}
-    {% if data.pop_up5 != "" %}
+    {% if data.pop_up5 != null %}
       <p class="h6 mt-4 text-danger">
         <a href="{% url 'inquiry_display' data.pop_up_id5 %}" class="text-danger">{{data.pop_up5}}</a>
       </p>

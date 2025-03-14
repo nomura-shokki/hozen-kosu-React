@@ -42,7 +42,13 @@ class MemberPageView(ListView):
       return redirect('/')
 
     # 設定情報取得
-    self.page_num = administrator_data.objects.order_by("id").last()
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      self.page_num = administrator_data(menu_row=20).menu_row
+    else:
+      self.page_num = last_record.menu_row
+
     self.menu_row = self.page_num.menu_row  # menu_row 属性にアクセス
     # 親クラスへ情報送信
     return super().dispatch(request, *args, **kwargs)

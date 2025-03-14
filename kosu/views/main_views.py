@@ -60,7 +60,7 @@ class LoginView(FormView):
     # フォームから送信された値を取得
     find = form.cleaned_data['employee_no4']
     # 従業員番号が空の場合、リダイレクト
-    if find == '':
+    if find in ["", None]:
       messages.error(self.request, '従業員番号を入力して下さい。ERROR047')
       return redirect('/login')
 
@@ -128,7 +128,12 @@ class MainView(TemplateView):
     request = self.request
 
     # 設定データ取得
-    default_data = administrator_data.objects.order_by("id").last()
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      default_data = administrator_data(menu_row=20)
+    else:
+      default_data = last_record
 
     # 問い合わせ担当者従業員番号がログイン者の従業員番号と一致している場合、ポップアップ表示設定
     pop_up_display = default_data.administrator_employee_no1 == str(request.session['login_No']) or \
@@ -455,7 +460,12 @@ def administrator_menu(request):
 
 
   # 設定データ取得
-  default_data = administrator_data.objects.order_by("id").last()
+  last_record = administrator_data.objects.order_by("id").last()
+  if last_record is None:
+    # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+    default_data = administrator_data(menu_row=20)
+  else:
+    default_data = last_record
 
   # 設定データの最新のレコードのID取得
   record_id = default_data.id
@@ -543,7 +553,7 @@ def administrator_menu(request):
   # 工数情報バックアップ処理
   if 'kosu_backup' in request.POST:
     # 日付指定空の場合の処理
-    if request.POST['data_day'] == '' or request.POST['data_day2'] == '':
+    if request.POST['data_day'] in ["", None] or request.POST['data_day2'] in ["", None]:
       # エラーメッセージ出力
       messages.error(request, 'バックアップする日付を指定してください。ERROR063')
       # このページをリダイレクト
@@ -715,7 +725,7 @@ def administrator_menu(request):
   # 工数定義区分予測データ出力
   if 'prediction_data' in request.POST:
     # 日付指定空の場合の処理
-    if request.POST['data_day'] == '' or request.POST['data_day2'] == '':
+    if request.POST['data_day'] in ["", None] or request.POST['data_day2'] in ["", None]:
       # エラーメッセージ出力
       messages.error(request, '日付を指定してください。ERROR067')
       # このページをリダイレクト
@@ -807,7 +817,7 @@ def administrator_menu(request):
   # 工数データ削除
   if 'kosu_delete' in request.POST:
     # 日付指定空の場合の処理
-    if request.POST['data_day'] == '' or request.POST['data_day2'] == '':
+    if request.POST['data_day'] in ["", None] or request.POST['data_day2'] in ["", None]:
       # エラーメッセージ出力
       messages.error(request, '削除する日付を指定してください。ERROR069')
       # このページをリダイレクト

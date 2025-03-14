@@ -66,35 +66,39 @@ def inquiry_new(request):
     # 最新の問い合わせデータ取得
     inquiry_data_id = inquiry_data.objects.order_by("id").last()
     # 設定データ取得
-    default_data = administrator_data.objects.order_by("id").last()
-    
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      default_data = administrator_data(menu_row=20)
+    else:
+      default_data = last_record
 
     # ポップアップ1空の場合の処理
-    if default_data.pop_up1 == '':
+    if default_data.pop_up1 in ["", None]:
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
                          defaults = {'pop_up_id1' : inquiry_data_id.id,
                                      'pop_up1' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
       
-    elif default_data.pop_up2 == '':
+    elif default_data.pop_up2 in ["", None]:
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
                          defaults = {'pop_up_id2' : inquiry_data_id.id,
                                      'pop_up2' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
 
-    elif default_data.pop_up3 == '':
+    elif default_data.pop_up3 in ["", None]:
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
                          defaults = {'pop_up_id3' : inquiry_data_id.id,
                                      'pop_up3' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
 
-    elif default_data.pop_up4 == '':
+    elif default_data.pop_up4 in ["", None]:
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
                          defaults = {'pop_up_id4' : inquiry_data_id.id,
                                      'pop_up4' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
 
-    elif default_data.pop_up5 == '':
+    elif default_data.pop_up5 in ["", None]:
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
                          defaults = {'pop_up_id5' : inquiry_data_id.id,
@@ -148,7 +152,7 @@ def inquiry_list(request, num):
 
   # 問い合わせ履歴のある従業員番号リスト作成
   employee_no_list = inquiry_data.objects.values_list('employee_no2', flat=True)\
-                     .order_by('employee_no2').distinct()
+                                                      .order_by('employee_no2').distinct()
   
   # 名前リスト定義
   name_list = [['', '']]
@@ -166,8 +170,12 @@ def inquiry_list(request, num):
       pass
 
   # 設定データ取得
-  default_data = administrator_data.objects.order_by("id").last()
-
+  last_record = administrator_data.objects.order_by("id").last()
+  if last_record is None:
+    # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+    default_data = administrator_data(menu_row=20)
+  else:
+    default_data = last_record
 
   # ログイン者が問い合わせ担当者である場合の処理
   if default_data.administrator_employee_no1 == str(request.session['login_No']) or \
@@ -180,7 +188,7 @@ def inquiry_list(request, num):
   # ログイン者が問い合わせ担当者でない場合の処理
   else:
 
-     # ボタン非表示設定
+    # ボタン非表示設定
     button_display = False
 
 
@@ -193,7 +201,12 @@ def inquiry_list(request, num):
                                        employee_no2__contains = request.POST['name_list']).order_by('id').reverse()
 
     # 設定データ取得
-    page_num = administrator_data.objects.order_by("id").last()
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      page_num = administrator_data(menu_row=20)
+    else:
+      page_num = last_record
 
     # 1ページごとのデータ取得
     page = Paginator(data, page_num.menu_row)
@@ -208,12 +221,16 @@ def inquiry_list(request, num):
 
   # 検索時以外の時の処理
   else:
-
     # 問い合わせデータ取得
     data = inquiry_data.objects.all().order_by('id').reverse()
 
     # 設定データ取得
-    page_num = administrator_data.objects.order_by("id").last()
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      page_num = administrator_data(menu_row=20)
+    else:
+      page_num = last_record
 
     # 1ページごとのデータ取得
     page = Paginator(data, page_num.menu_row)
@@ -317,8 +334,12 @@ def inquiry_display(request, num):
 
 
   # 設定データ取得
-  default_data = administrator_data.objects.order_by("id").last()
-
+  last_record = administrator_data.objects.order_by("id").last()
+  if last_record is None:
+    # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+    default_data = administrator_data(menu_row=20)
+  else:
+    default_data = last_record
 
   # ポップアップのデータと一致する場合の処理
   if data.pop_up_id1 == str(num):
@@ -360,7 +381,7 @@ def inquiry_display(request, num):
   data = member.objects.get(employee_no = request.session['login_No'])
 
   # ポップアップ1が空の場合の処理
-  if data.pop_up1 =='':
+  if data.pop_up1 in ['', None]:
     #ポップアップ2の内容をポップアップ1へ移行
     member.objects.update_or_create(employee_no = request.session['login_No'], \
                       defaults = {'pop_up_id1' : data.pop_up_id2,
@@ -372,7 +393,7 @@ def inquiry_display(request, num):
   data = member.objects.get(employee_no = request.session['login_No'])
 
   # ポップアップ2が空の場合の処理
-  if data.pop_up2 =='':
+  if data.pop_up2 in ['', None]:
     #ポップアップ3の内容をポップアップ2へ移行
     member.objects.update_or_create(employee_no = request.session['login_No'], \
                       defaults = {'pop_up_id2' : data.pop_up_id3,
@@ -384,7 +405,7 @@ def inquiry_display(request, num):
   data = member.objects.get(employee_no = request.session['login_No'])
 
   # ポップアップ3が空の場合の処理
-  if data.pop_up3 =='':
+  if data.pop_up3 in ['', None]:
     #ポップアップ4の内容をポップアップ3へ移行
     member.objects.update_or_create(employee_no = request.session['login_No'], \
                       defaults = {'pop_up_id3' : data.pop_up_id4,
@@ -396,7 +417,7 @@ def inquiry_display(request, num):
   data = member.objects.get(employee_no = request.session['login_No'])
 
   # ポップアップ4が空の場合の処理
-  if data.pop_up4 =='':
+  if data.pop_up4 in ['', None]:
     #ポップアップ5の内容をポップアップ4へ移行
     member.objects.update_or_create(employee_no = request.session['login_No'], \
                       defaults = {'pop_up_id4' : data.pop_up_id5,
@@ -450,7 +471,7 @@ def inquiry_display(request, num):
     default_data = administrator_data.objects.order_by("id").last()
 
     # ポップアップ1が空の場合の処理
-    if default_data.pop_up1 =='':
+    if default_data.pop_up1 in ['', None]:
       #ポップアップ2の内容をポップアップ1へ移行
       administrator_data.objects.update_or_create(id = default_data.id, \
                         defaults = {'pop_up_id1' : default_data.pop_up_id2,
@@ -463,7 +484,7 @@ def inquiry_display(request, num):
 
 
     # ポップアップ2が空の場合の処理
-    if default_data.pop_up2 =='':
+    if default_data.pop_up2 in ['', None]:
       #ポップアップ3の内容をポップアップ2へ移行
       administrator_data.objects.update_or_create(id = default_data.id, \
                         defaults = {'pop_up_id2' : default_data.pop_up_id3,
@@ -476,7 +497,7 @@ def inquiry_display(request, num):
 
 
     # ポップアップ3が空の場合の処理
-    if default_data.pop_up3 =='':
+    if default_data.pop_up3 in ['', None]:
       #ポップアップ4の内容をポップアップ3へ移行
       administrator_data.objects.update_or_create(id = default_data.id, \
                         defaults = {'pop_up_id3' : default_data.pop_up_id4,
@@ -489,7 +510,7 @@ def inquiry_display(request, num):
 
 
     # ポップアップ4が空の場合の処理
-    if default_data.pop_up4 =='':
+    if default_data.pop_up4 in ['', None]:
       #ポップアップ5の内容をポップアップ4へ移行
       administrator_data.objects.update_or_create(id = default_data.id, \
                         defaults = {'pop_up_id4' : default_data.pop_up_id5,
@@ -601,41 +622,45 @@ def inquiry_edit(request, num):
     member_obj_get = member.objects.get(employee_no = obj_get.employee_no2)
 
     # 設定情報取得
-    administrator_obj_get = administrator_data.objects.order_by("id").last()
-
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      administrator_obj_get = administrator_data(menu_row=20)
+    else:
+      administrator_obj_get = last_record
 
     # 問い合わせが編集前後で変更がある場合の処理
     if obj_get.inquiry != request.POST['inquiry']:
       # ポップアップ1が空の場合の処理
-      if administrator_obj_get.pop_up1 == '':
+      if administrator_obj_get.pop_up1 in ["", None]:
         # ポップアップにコメント書き込み
         administrator_data.objects.update_or_create(id = administrator_obj_get.id, \
-                                   defaults = {'pop_up1' : 'ID{}の問い合わせが編集されました。'.format(num),
-                                               'pop_up_id1' : num})
+                                                    defaults = {'pop_up1' : 'ID{}の問い合わせが編集されました。'.format(num),
+                                                                'pop_up_id1' : num})
         
       # ポップアップ2が空の場合の処理
-      elif administrator_obj_get.pop_up2 == '':
+      elif administrator_obj_get.pop_up2 in ["", None]:
         # ポップアップにコメント書き込み
         administrator_data.objects.update_or_create(id = administrator_obj_get.id, \
                                    defaults = {'pop_up2' : 'ID{}の問い合わせが編集されました。'.format(num),
                                                'pop_up_id2' : num})
 
       # ポップアップ3が空の場合の処理
-      elif administrator_obj_get.pop_up3 == '':
+      elif administrator_obj_get.pop_up3 in ["", None]:
         # ポップアップにコメント書き込み
         administrator_data.objects.update_or_create(id = administrator_obj_get.id, \
                                    defaults = {'pop_up3' : 'ID{}の問い合わせが編集されました。'.format(num),
                                                'pop_up_id3' : num})
 
       # ポップアップ4が空の場合の処理
-      elif administrator_obj_get.pop_up4 == '':
+      elif administrator_obj_get.pop_up4 in ["", None]:
         # ポップアップにコメント書き込み
         administrator_data.objects.update_or_create(id = administrator_obj_get.id, \
                                    defaults = {'pop_up4' : 'ID{}の問い合わせが編集されました。'.format(num),
                                                'pop_up_id4' : num})
 
       # ポップアップ5が空の場合の処理
-      elif administrator_obj_get.pop_up5 == '':
+      elif administrator_obj_get.pop_up5 in ["", None]:
         # ポップアップにコメント書き込み
         administrator_data.objects.update_or_create(id = administrator_obj_get.id, \
                                    defaults = {'pop_up5' : 'ID{}の問い合わせが編集されました。'.format(num),
@@ -647,35 +672,35 @@ def inquiry_edit(request, num):
       # 回答が編集前後で変更がある場合の処理
       if obj_get.answer != request.POST['answer']:
         # ポップアップ1が空の場合の処理
-        if member_obj_get.pop_up1 == '':
+        if member_obj_get.pop_up1 in ["", None]:
           # ポップアップにコメント書き込み
           member.objects.update_or_create(employee_no = obj_get.employee_no2, \
                                           defaults = {'pop_up1' : 'ID{}の問い合わせに回答が来ています。'.format(num), \
                                                       'pop_up_id1' : num})
 
         # ポップアップ2が空の場合の処理
-        elif member_obj_get.pop_up2 == '':
+        elif member_obj_get.pop_up2 in ["", None]:
           # ポップアップにコメント書き込み
           member.objects.update_or_create(employee_no = obj_get.employee_no2, \
                                           defaults = {'pop_up2' : 'ID{}の問い合わせに回答が来ています。'.format(num), \
                                                       'pop_up_id2' : num})
 
         # ポップアップ3が空の場合の処理
-        elif member_obj_get.pop_up3 == '':
+        elif member_obj_get.pop_up3 in ["", None]:
           # ポップアップにコメント書き込み
           member.objects.update_or_create(employee_no = obj_get.employee_no2, \
                                           defaults = {'pop_up3' : 'ID{}の問い合わせに回答が来ています。'.format(num), \
                                                       'pop_up_id3' : num})
           
         # ポップアップ4が空の場合の処理
-        elif member_obj_get.pop_up4 == '':
+        elif member_obj_get.pop_up4 in ["", None]:
           # ポップアップにコメント書き込み
           member.objects.update_or_create(employee_no = obj_get.employee_no2, \
                                           defaults = {'pop_up4' : 'ID{}の問い合わせに回答が来ています。'.format(num), \
                                                       'pop_up_id4' : num})
 
         # ポップアップ5が空の場合の処理
-        elif member_obj_get.pop_up5 == '':
+        elif member_obj_get.pop_up5 in ["", None]:
           # ポップアップにコメント書き込み
           member.objects.update_or_create(employee_no = obj_get.employee_no2, \
                                           defaults = {'pop_up5' : 'ID{}の問い合わせに回答が来ています。'.format(num), \
@@ -752,7 +777,7 @@ def inquiry_edit(request, num):
     data = member.objects.get(employee_no = obj_get.employee_no2)
 
     # ポップアップ1が空の場合の処理
-    if data.pop_up1 =='':
+    if data.pop_up1 in ['', None]:
       #ポップアップ2の内容をポップアップ1へ移行
       member.objects.update_or_create(employee_no = obj_get.employee_no2, \
                         defaults = {'pop_up_id1' : data.pop_up_id2,
@@ -764,7 +789,7 @@ def inquiry_edit(request, num):
       data = member.objects.get(employee_no = obj_get.employee_no2)
 
     # ポップアップ2が空の場合の処理
-    if data.pop_up2 =='':
+    if data.pop_up2 in ['', None]:
       #ポップアップ3の内容をポップアップ2へ移行
       member.objects.update_or_create(employee_no = obj_get.employee_no2, \
                         defaults = {'pop_up_id2' : data.pop_up_id3,
@@ -776,7 +801,7 @@ def inquiry_edit(request, num):
       data = member.objects.get(employee_no = obj_get.employee_no2)
 
     # ポップアップ3が空の場合の処理
-    if data.pop_up3 =='':
+    if data.pop_up3 in ['', None]:
       #ポップアップ4の内容をポップアップ3へ移行
       member.objects.update_or_create(employee_no = obj_get.employee_no2, \
                         defaults = {'pop_up_id3' : data.pop_up_id4,
@@ -788,7 +813,7 @@ def inquiry_edit(request, num):
       data = member.objects.get(employee_no = obj_get.employee_no2)
 
     # ポップアップ4が空の場合の処理
-    if data.pop_up4 =='':
+    if data.pop_up4 in ['', None]:
       #ポップアップ5の内容をポップアップ4へ移行
       member.objects.update_or_create(employee_no = obj_get.employee_no2, \
                         defaults = {'pop_up_id4' : data.pop_up_id5,
@@ -798,7 +823,12 @@ def inquiry_edit(request, num):
     
 
     # 設定データ取得
-    default_data = administrator_data.objects.order_by("id").last()
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      default_data = administrator_data(menu_row=20)
+    else:
+      default_data = last_record
 
     # ポップアップのIDが空でない場合の処理
     if default_data.pop_up_id1 != '':
@@ -850,7 +880,7 @@ def inquiry_edit(request, num):
     default_data = administrator_data.objects.order_by("id").last()
 
     # ポップアップ1が空の場合の処理
-    if default_data.pop_up1 == '':
+    if default_data.pop_up1 in ["", None]:
       #ポップアップ2の内容をポップアップ1へ移行
       administrator_data.objects.update_or_create(id = default_data.id, \
                         defaults = {'pop_up_id1' : default_data.pop_up_id2,
@@ -863,7 +893,7 @@ def inquiry_edit(request, num):
 
 
     # ポップアップ2が空の場合の処理
-    if default_data.pop_up2 == '':
+    if default_data.pop_up2 in ["", None]:
       #ポップアップ3の内容をポップアップ2へ移行
       administrator_data.objects.update_or_create(id = default_data.id, \
                         defaults = {'pop_up_id2' : default_data.pop_up_id3,
@@ -876,7 +906,7 @@ def inquiry_edit(request, num):
 
 
     # ポップアップ3が空の場合の処理
-    if default_data.pop_up3 == '':
+    if default_data.pop_up3 in ["", None]:
       #ポップアップ4の内容をポップアップ3へ移行
       administrator_data.objects.update_or_create(id = default_data.id, \
                         defaults = {'pop_up_id3' : default_data.pop_up_id4,
@@ -889,7 +919,7 @@ def inquiry_edit(request, num):
 
 
     # ポップアップ4が空の場合の処理
-    if default_data.pop_up4 == '':
+    if default_data.pop_up4 in ["", None]:
       #ポップアップ5の内容をポップアップ4へ移行
       administrator_data.objects.update_or_create(id = default_data.id, \
                         defaults = {'pop_up_id4' : default_data.pop_up_id5,

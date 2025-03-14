@@ -181,7 +181,13 @@ class KosuListView(ListView):
     # 今日の日付を取得
     self.kosu_today = datetime.date.today()
     # 設定情報取得
-    self.page_num = administrator_data.objects.order_by("id").last()
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      self.page_num = administrator_data(menu_row=20)
+    else:
+      self.page_num = last_record
+
     # 全データ確認表示フラグを設定
     self.display_open = str(request.session['login_No']) in (
       self.page_num.administrator_employee_no1,
@@ -525,7 +531,7 @@ def input(request):
     obj_filter, tyoku, work = double_form(request.session['login_No'], request.POST['work_day'], request)
 
     # 残業未入力の場合リダイレクト
-    if request.POST['over_work'] == '':
+    if request.POST['over_work'] in ["", None]:
       messages.error(request, '残業が未入力です。登録できませんでした。ERROR011')
       return redirect(to = '/input')
     
@@ -1170,7 +1176,7 @@ def detail(request, num):
     # 工数区分定義の選択リスト作成
     choices_list = ''
     # 工数区分定義リストに項目追加
-    if def_time[k] == '':
+    if def_time[k] in ["", None]:
       choices_list += '<option value="{}" selected>{}</option>'.format('#', '-')
     else:
       choices_list += '<option value="{}">{}</option>'.format('#', '-')
@@ -1222,12 +1228,12 @@ def detail(request, num):
   # 就業日変更時の処理
   if "edit_day" in request.POST:
     # 指定日が空欄の場合、リダイレクト
-    if request.POST['kosu_day'] == '':
+    if request.POST['kosu_day'] in ["", None]:
       messages.error(request, '変更する日付を指定して下さい。ERROR016')
       return redirect(to = '/detail/{}'.format(num))
 
     # 残業空欄の場合、リダイレクト
-    if request.POST['over_time'] == '':
+    if request.POST['over_time'] in ["", None]:
       messages.error(request, '残業は空欄で登録できません。ERROR017')
       return redirect(to = '/detail/{}'.format(num))
 
@@ -1263,7 +1269,7 @@ def detail(request, num):
     end_time = request.POST['end_time']
 
     # 時間指定を空でPOSTした場合、リダイレクト
-    if start_time == '' or end_time == '':
+    if start_time in ["", None] or end_time in ["", None]:
       messages.error(request, '時間が指定されていません。ERROR019')
       return redirect(to = '/detail/{}'.format(num))
     
@@ -1445,7 +1451,7 @@ def detail(request, num):
     for def_t in range(len(time_list_start)):
       if def_t + 1 not in selected_num:
         # 工数区分定義と作業詳細が空欄でない場合の処理
-        if not (def_time[def_t] == '' and detail_time[def_t] == ''):
+        if not (def_time[def_t] in ["", None] and detail_time[def_t] in ["", None]):
           # 休憩時間は作業時間被りから除外
           if def_time[def_t] != '休憩':
             # 作業時間の時と分取得 
@@ -2034,7 +2040,7 @@ def schedule(request):
                                                         work_day2 = datetime.date(year, month, day_list[i]))
 
             # 更新後、就業が消されていて工数データが空であればレコードを消す
-            if record_del.work_time == '' and record_del.over_time == 0 and \
+            if record_del.work_time in ["", None] and record_del.over_time == 0 and \
               record_del.time_work == '#'*288:
 
               # レコード削除
@@ -2459,7 +2465,13 @@ class AllKosuDetailView(FormView):
     self.member_data = member_obj
 
     # 設定データ取得（最後の管理者データ）
-    admin_data_last = administrator_data.objects.order_by("id").last()
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      admin_data_last = administrator_data(menu_row=20)
+    else:
+      admin_data_last = last_record
+
     # ログイン者が問い合わせ担当者でない場合、メインMENUへ
     login_no = str(request.session['login_No'])
     if login_no not in (admin_data_last.administrator_employee_no1,
@@ -2662,7 +2674,12 @@ class AllKosuDeleteView(DeleteView):
   # リクエストを処理するメソッドをオーバーライド
   def dispatch(self, request, *args, **kwargs):
     # 設定データ取得
-    page_num = administrator_data.objects.order_by("id").last()
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      page_num = administrator_data(menu_row=20)
+    else:
+      page_num = last_record
 
     # ログイン者が問い合わせ担当者でない場合、メインページに飛ぶ
     if str(request.session['login_No']) not in (page_num.administrator_employee_no1,

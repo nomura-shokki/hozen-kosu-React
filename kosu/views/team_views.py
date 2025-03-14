@@ -224,7 +224,7 @@ class TeamGraphView(TemplateView):
   # POST時の処理
   def post(self, request, *args, **kwargs):
     # 日付指定ない場合、リダイレクト
-    if 'team_day' not in request.POST or request.POST['team_day'] == '':
+    if 'team_day' not in request.POST or request.POST['team_day'] in ["", None]:
       messages.error(request, '日付を指定してから検索して下さい。ERROR43')
       return redirect('/team_graph')
 
@@ -244,7 +244,7 @@ class TeamGraphView(TemplateView):
 
     # 班員の従業員番号を定義
     for i in range(1, 16):
-      if eval('obj.member{}'.format(i)) == '':
+      if eval('obj.member{}'.format(i)) in ["", None]:
         exec('obj_member{}=0'.format(i))
       else:
         exec('obj_member{}=obj.member{}'.format(i, i))
@@ -381,7 +381,13 @@ class TeamKosuListView(ListView):
     obj = Business_Time_graph.objects.filter(**filters).order_by('work_day2').reverse()
 
     # 設定データ取得
-    page_num = administrator_data.objects.order_by("id").last().menu_row
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      page_num = administrator_data(menu_row=20).menu_row
+    else:
+      page_num = last_record.menu_row
+
     # ページネーション
     paginator = Paginator(obj, page_num)
 
@@ -812,7 +818,7 @@ def team_calendar(request):
 
     # 班員データに空があった場合0を定義
     for i in range(1, 16):
-      if eval('team_obj.member{}'.format(i)) == '':
+      if eval('team_obj.member{}'.format(i)) in ["", None]:
         exec('team_obj_member{}=0'.format(i))
       else:
         exec('team_obj_member{}=team_obj.member{}'.format(i, i))
@@ -1444,7 +1450,7 @@ def team_over_time(request):
   # POST時の処理
   if (request.method == 'POST'):
     # 検索項目に空欄がある場合の処理
-    if request.POST['year'] == '' or request.POST['month'] == '':
+    if request.POST['year'] in ["", None] or request.POST['month'] in ["", None]:
       # エラーメッセージ出力
       messages.error(request, '表示年月に未入力箇所があります。ERROR044')
       # このページをリダイレクト
