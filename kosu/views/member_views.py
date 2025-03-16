@@ -49,7 +49,7 @@ class MemberPageView(ListView):
     else:
       self.page_num = last_record.menu_row
 
-    self.menu_row = self.page_num.menu_row  # menu_row 属性にアクセス
+    self.menu_row = self.page_num
     # 親クラスへ情報送信
     return super().dispatch(request, *args, **kwargs)
 

@@ -1681,7 +1681,6 @@ def administrator_menu(request):
 
 # ヘルプ画面定義
 def help(request):
-
   # ルートディレクトリを取得
   BASE_DIR = Path(__file__).resolve().parent.parent
   # 環境変数ファイルを読み込む
@@ -1726,11 +1725,6 @@ def help(request):
       messages.error(request, '工数区分定義ファイルが選択されていません。ERROR083')
       return redirect(to = '/help')
 
-    # 工数区分定義ファイルが未選択時リダイレクト
-    if 'setting_file' not in request.FILES:
-      messages.error(request, '管理者設定ファイルが選択されていません。ERROR084')
-      return redirect(to = '/help')
-
     # 人員ファイル定義
     uploaded_file = request.FILES['member_file']
     # 一時的なファイルをサーバー上に作成
@@ -1742,13 +1736,10 @@ def help(request):
 
     # 一時ファイルを開く
     wb = openpyxl.load_workbook('member_file_path.xlsx')
-
     # 一番最初のシートを指定
     ws = wb.worksheets[0]
-
     # レコード数取得
     data_num = ws.max_row
-
 
     # 人員データにレコードがある場合の処理
     if member.objects.exists():
@@ -1843,15 +1834,12 @@ def help(request):
 
         new_data.save()
 
-
     # 一時ファイル削除
     os.remove('member_file_path.xlsx')
 
 
-
     # 工数定義区分ファイル定義
     uploaded_file = request.FILES['def_file']
-
     # 一時的なファイルをサーバー上に作成
     with open('def_file_path.xlsx', 'wb+') as destination:
 
@@ -1861,13 +1849,10 @@ def help(request):
 
     # 一時ファイルを開く
     wb1 = openpyxl.load_workbook('def_file_path.xlsx')
-
     # 一番最初のシートを指定
     ws1 = wb1.worksheets[0]
-
     # レコード数取得
     data_num = ws1.max_row
-
 
     # 工数定義区分データにレコードがある場合の処理
     if kosu_division.objects.exists():
@@ -1915,59 +1900,7 @@ def help(request):
     os.remove('def_file_path.xlsx')
 
 
-    # 管理者設定ファイル定義
-    uploaded_file = request.FILES['setting_file']
-
-    # 一時的なファイルをサーバー上に作成
-    with open('setting_file_path.xlsx', 'wb+') as destination:
-
-      # アップロードしたファイルを一時ファイルに書き込み
-      for chunk in uploaded_file.chunks():
-        destination.write(chunk)
-
-    # 一時ファイルを開く
-    wb2 = openpyxl.load_workbook('setting_file_path.xlsx')
-
-    # 一番最初のシートを指定
-    ws2 = wb2.worksheets[0]
-
-    # レコード数取得
-    data_num = ws2.max_row
-
-
-    # 管理者設定データにレコードがある場合の処理
-    if administrator_data.objects.exists():
-      # 管理者設定データ取得
-      setting_obj_get = administrator_data.objects.all()
-      # 取得した管理者設定データを消す
-      setting_obj_get.delete()
-
-
-    # Excelからデータを読み込むループ
-    for i in range(1, data_num):
-      # Excelからデータを読み込み
-      new_data2 = administrator_data(menu_row = ws2.cell(row = i + 1, column = 1).value, \
-                                    administrator_employee_no1 = ws2.cell(row = i + 1, column = 2).value, \
-                                    administrator_employee_no2 = ws2.cell(row = i + 1, column = 3).value, \
-                                    administrator_employee_no3 = ws2.cell(row = i + 1, column = 4).value, \
-                                    pop_up1 = ws2.cell(row = i + 1, column = 5).value, \
-                                    pop_up_id1 = ws2.cell(row = i + 1, column = 6).value, \
-                                    pop_up2 = ws2.cell(row = i + 1, column = 7).value, \
-                                    pop_up_id2 = ws2.cell(row = i + 1, column = 8).value, \
-                                    pop_up3 = ws2.cell(row = i + 1, column = 9).value, \
-                                    pop_up_id3 = ws2.cell(row = i + 1, column = 10).value, \
-                                    pop_up4 = ws2.cell(row = i + 1, column = 11).value, \
-                                    pop_up_id4 = ws2.cell(row = i + 1, column = 12).value, \
-                                    pop_up5 = ws2.cell(row = i + 1, column = 13).value, \
-                                    pop_up_id5 = ws2.cell(row = i + 1, column = 14).value)
-      new_data2.save()
-
-
-    # 一時ファイル削除
-    os.remove('setting_file_path.xlsx')
-
-
-    # このページをリダイレクト
+    # ログインページへ
     return redirect(to = '/login')
 
 
