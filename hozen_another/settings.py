@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'bootstrap4',
     'bootstrap_datepicker_plus',
     'kosu',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -117,4 +118,9 @@ CSRF_TRUSTED_ORIGINS = ['https://hozen-kosu-another-c6e2gyeraydpdnhq.japaneast-0
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# RedisのURL
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
+# 結果のバックエンド
+CELERY_RESULT_BACKEND = 'django-db'
 
