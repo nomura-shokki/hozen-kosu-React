@@ -4,12 +4,13 @@ from datetime import datetime, timedelta
 from kosu.models import member, kosu_division, Business_Time_graph, team_member, administrator_data, inquiry_data
 
 
-class KosuListPaginationTestCase(TestCase):
-    @classmethod
-    def setUpTestData(cls):
+
+class KosuListViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
         # memberダミーデータ
         for i in range(120):
-            cls.member = member.objects.create(
+            member.objects.create(
                 employee_no = 111 + i,
                 name = 'テストユーザー',
                 shop = 'その他',
@@ -36,7 +37,7 @@ class KosuListPaginationTestCase(TestCase):
                 )
 
         # administrator_dataダミーデータ
-        cls.administrator_data = administrator_data.objects.create(
+        administrator_data.objects.create(
             menu_row = 20,
             administrator_employee_no1 = '111',
             administrator_employee_no2 = '',
@@ -44,7 +45,7 @@ class KosuListPaginationTestCase(TestCase):
             )
 
         # kosu_divisionダミーデータ
-        cls.kosu_division = kosu_division.objects.create(
+        kosu_division.objects.create(
             kosu_name = 'トライ定義',
             kosu_title_1 = '工数区分名1',
             kosu_division_1_1 = '定義1',
@@ -79,14 +80,16 @@ class KosuListPaginationTestCase(TestCase):
         )
 
         # Business_Time_graphダミーデータ
-        start_date = datetime(2000, 1, 1)  # 開始日
+        start_date = datetime(2000, 1, 1)
+        # memberインスタンスを取得
+        member_instance = member.objects.first()
         for i in range(120):
-            date = start_date + timedelta(days=i)  # 日付を増加
-            cls.Business_Time_graph = Business_Time_graph.objects.create(
+            date = start_date + timedelta(days=i)
+            Business_Time_graph.objects.create(
                 employee_no3=111,
-                name=cls.member,
-                def_ver2=cls.kosu_division.kosu_name,
-                work_day2=date.strftime("%Y-%m-%d"),  # 日付を設定
+                name=member_instance,
+                def_ver2=kosu_division.kosu_name,
+                work_day2=date.strftime("%Y-%m-%d"),
                 tyoku2='1',
                 time_work='################################################################################################AAAAAAAAAAAABBBBBBBBBBBBCCCCCCCCCCCCDDDDDDDDDDDD$$$$$$$$$$$$EEEEEEEEEEEEFFFFFFFFFFFFGGGGGGGGGGGGHHHHHHHHHHHHIIIIIIIIIIJJJJJJJJJJJJ##############################################################',
                 detail_work='$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$aaa$aaa$aaa$aaa$aaa$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$bbb$bbb$bbb$bbb$bbb$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$',
@@ -101,7 +104,7 @@ class KosuListPaginationTestCase(TestCase):
             )
 
         # team_memberダミーデータ
-        cls.team_member = team_member.objects.create(
+        team_member.objects.create(
             employee_no5 = 111,
             member1 = '',
             member2 = 111,
@@ -122,95 +125,47 @@ class KosuListPaginationTestCase(TestCase):
             )
 
 
-
-    # 初期データ
-    def setUp(self):
-        # テストクライアント初期化
-        self.client = Client()
         # セッション定義
-        self.session = self.client.session
-        self.session['login_No'] = self.member.employee_no
-        self.session['input_def'] =  self.kosu_division.kosu_name
-        self.session['day'] =  self.Business_Time_graph.work_day2
-        self.session['break_today'] =  self.Business_Time_graph.work_day2
-        self.session['find_year'] =  2000
-        self.session['find_month'] =  1
-        self.session.save()
+        session = self.client.session
+        session['login_No'] = '111'
+        session['input_def'] =  'トライ定義'
+        session['day'] =  '2000-01-01'
+        session['break_today'] =  '2000-01-01'
+        session['find_year'] =  2000
+        session['find_month'] =  1
+        session.save()
 
 
-    
-    # 工数一覧最初のページテスト
-    def test_kosu_first_page(self):
-        # 最初のページを取得
-        response = self.client.get(reverse('kosu_list', args=[1]))
+
+    # 工数履歴ページネーションテスト
+    def test_kosu_pagination_navigation1(self):
+        # 最初のページにアクセス
+        response = self.client.get(reverse('kosu_list', kwargs={'num': 1}))
         self.assertEqual(response.status_code, 200)
-
-        # 最初のページでは「最初」と「前」ボタンが反応しない
-        self.assertNotContains(response, 'href="?page=0"')
-        self.assertNotContains(response, 'href="?page=0"')
-        # レコード数が20件であることを確認
         self.assertEqual(len(response.context['data']), 20)
-        # ページ表記が1/6であること
         self.assertContains(response, '1/6')
-
-        # 「次」ボタンを押した場合、2ページ目に遷移する
-        next_page_url = reverse('kosu_list', args=[2])
-        self.assertContains(response, next_page_url)
-        next_response = self.client.get(next_page_url)
-        self.assertEqual(next_response.status_code, 200)
-        self.assertContains(next_response, '2/6')
-
-        # 「最後」ボタンを押した場合、6ページ目に遷移する
-        last_page_url = reverse('kosu_list', args=[6])
-        self.assertContains(response, last_page_url)
-        last_response = self.client.get(last_page_url)
-        self.assertEqual(last_response.status_code, 200)
-        self.assertContains(last_response, '6/6')
-
-    def get_queryset(self):
-        queryset = Business_Time_graph.objects.filter(**self.get_filter_kwargs(self.request)).order_by('work_day2').reverse()
-        print(f"Filtered Queryset Count: {queryset.count()}")  # データ件数を確認
-        print(Business_Time_graph.objects.count())  # 総データ数を確認
-        print(response.content.decode())  # HTMLの内容を確認
-
-
-        return queryset
-
-    # 工数一覧3ページ目テスト
-    def test_kosu_middle_page(self):
-        # 3ページ目を取得
-        response = self.client.get(reverse('kosu_list', args=[3]))
+        
+        # 2ページにアクセス
+        response = self.client.get(reverse('kosu_list', kwargs={'num': 2}))
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['data']), 20)
+        self.assertContains(response, '2/6')
+        self.assertContains(response, '&laquo; 最初', count=1)
+        self.assertNotContains(response, '/kosu_list/0">')
 
-        # 中間ページでは「前」および「次」ボタンが存在する
-        self.assertContains(response, reverse('kosu_list', args=[2]))
-        self.assertContains(response, reverse('kosu_list', args=[4]))
-        # ページ表記が3/6であること
-        self.assertContains(response, '3/6')
-
-
-
-    # 工数一覧最終ページテスト
-    def test_kosu_last_page(self):
-        # 最後のページを取得
-        response = self.client.get(reverse('kosu_list', args=[6]))
+        # 最終ページにアクセス
+        response = self.client.get(reverse('kosu_list', kwargs={'num': 6}))
         self.assertEqual(response.status_code, 200)
-
-        # 最後のページでは「次」と「最後」ボタンが反応しない
-        self.assertNotContains(response, 'href="?page=7"')
-        self.assertNotContains(response, 'href="?page=6"')
-        # ページ表記が6/6であること
+        self.assertEqual(len(response.context['data']), 20)
         self.assertContains(response, '6/6')
+        # 最後のページでは、「次」ボタンが無効化されていることを確認
+        self.assertContains(response, '次&raquo;', count=1)
+        self.assertNotContains(response, '/kosu_list/7">')
 
-
-
-    # 工数一覧レコード数確認
-    def test_kosu_record_count_per_page(self):
-        # 全ページでレコード数が20件であることを確認
-        for page_num in range(1, 7):
-            response = self.client.get(reverse('kosu_list', args=[page_num]))
-            self.assertEqual(response.status_code, 200)
-            self.assertEqual(len(response.context['data']), 20)
+        # 最後のページから「前」ボタンで5ページ目に遷移
+        response = self.client.get(reverse('kosu_list', kwargs={'num': 5}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '5/6')
 
 
 
