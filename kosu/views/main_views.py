@@ -5,8 +5,6 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from pathlib import Path
 from io import BytesIO
 import openpyxl
@@ -17,7 +15,6 @@ import os
 import time
 import environ
 import urllib.parse
-import unicodedata
 from ..utils.kosu_utils import kosu_division_dictionary
 from ..utils.kosu_utils import get_member
 from ..utils.main_utils import has_non_halfwidth_characters
@@ -30,7 +27,6 @@ from ..models import administrator_data
 from ..forms import loginForm
 from ..forms import administrator_data_Form
 from ..forms import uploadForm
-from kosu.tasks import kosu_backup
 
 
 
@@ -554,43 +550,91 @@ def administrator_menu(request):
 
   # 工数情報バックアップ処理
   if 'kosu_backup' in request.POST:
-    # 日付指定のバリデーション
+    # 日付指定空の場合の処理
     if request.POST['data_day'] in ["", None] or request.POST['data_day2'] in ["", None]:
+      # エラーメッセージ出力
       messages.error(request, 'バックアップする日付を指定してください。ERROR063')
-      return redirect(to='/administrator')
+      # このページをリダイレクト
+      return redirect(to = '/administrator')
 
-    if request.POST['data_day'] > request.POST['data_day2']:
+    # 読み込み開始日が終了日を超えている場合の処理
+    if request.POST['data_day'] > request.POST['data_day2'] :
+      # エラーメッセージ出力
       messages.error(request, '読み込み開始日が終了日を超えています。ERROR064')
-      return redirect(to='/administrator')
+      # このページをリダイレクト
+      return redirect(to = '/administrator')
 
-    # Celeryタスクを非同期で実行
-    task = kosu_backup.delay(request.POST['data_day'], request.POST['data_day2'])
 
-    # タスクの完了を待機
-    for _ in range(1800):
-      if task.ready():
-        break
-      time.sleep(1)
+    # 新しいExcelブック作成
+    wb = openpyxl.Workbook()
+    # 書き込みシート選択
+    ws = wb.active
+    # 工数データ取得
+    kosu_data = Business_Time_graph.objects.filter(work_day2__gte = request.POST['data_day'], work_day2__lte = request.POST['data_day2'])
 
-    # タスクが失敗または完了しなかった場合の処理
-    if not task.successful():
-      messages.error(request, 'バックアップ処理中にエラーが発生しました。もう一度お試しください。')
-      return redirect(to='/administrator')
+    # Excelに書き込み(項目名)
+    headers = [
+      '従業員番号', 
+      '氏名', 
+      '工数区分定義Ver', 
+      '就業日', 
+      '直', 
+      '作業内容',
+      '作業詳細', 
+      '残業時間', 
+      '昼休憩時間', 
+      '残業休憩時間1', 
+      '残業休憩時間2',
+      '残業休憩時間3', 
+      '就業形態', 
+      '工数入力OK_NG',
+      '休憩変更チェック',
+      ]
+    ws.append(headers)
 
-    # ファイルを自動ダウンロードさせる
-    file_path = task.get()  # タスクの返却値であるファイルパスを取得
+    # Excelに書き込み(データ)
+    for item in kosu_data:
+      row = [
+        item.employee_no3, 
+        str(item.name), 
+        item.def_ver2, 
+        item.work_day2,
+        item.tyoku2, 
+        item.time_work, 
+        item.detail_work, 
+        item.over_time,
+        item.breaktime, 
+        item.breaktime_over1, 
+        item.breaktime_over2,
+        item.breaktime_over3, 
+        item.work_time, 
+        item.judgement,
+        item.break_change,
+        ]
+      ws.append(row)
 
-    # ファイルパスが不正でないか確認
-    if not os.path.exists(file_path):
-      messages.error(request, 'バックアップファイルが正しく生成されませんでした。もう一度お試しください。')
-      return redirect(to='/administrator')
-    with open(file_path, 'rb') as f:
-      response = HttpResponse(
-        f.read(),
+    # メモリ上にExcelファイルを作成し、BytesIOオブジェクトに保存
+    excel_file = BytesIO()
+    wb.save(excel_file)
+    excel_file.seek(0)
+
+    # ファイル名を設定
+    filename = f'工数データバックアップ_{request.POST["data_day"]}.xlsx'
+
+    # URLエンコーディングされたファイル名を生成
+    quoted_filename = urllib.parse.quote(filename)
+    
+
+    # HttpResponseを作成してファイルをダウンロードさせる
+    response = HttpResponse(
+        excel_file.read(),
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-      response['Content-Disposition'] = f'attachment; filename=backup_{request.POST["data_day"]}_to_{request.POST["data_day2"]}.xlsx'
-      return response
+    )
+    # Content-Dispositionヘッダーを設定
+    response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{quoted_filename}'
+    
+    return response
+
 
 
 

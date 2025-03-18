@@ -54,5 +54,7 @@ urlpatterns = [
     path('inquiry_list/<int:num>',inquiry_views.inquiry_list, name='inquiry_list'),
     path('inquiry_display/<int:num>',inquiry_views.inquiry_display, name='inquiry_display'),
     path('inquiry_edit/<int:num>',inquiry_views.inquiry_edit, name='inquiry_edit'),
+    path('check_backup/<str:task_id>/', main_views.check_backup_status, name='check_backup_status'),
+    path('download/<str:filename>/', main_views.download_file, name='download_file'),
     ]
 
