@@ -1,10 +1,9 @@
-from django.shortcuts import render
-from django.shortcuts import redirect
+from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
+from django_q.tasks import result, async_task
 from pathlib import Path
 from io import BytesIO
 import openpyxl
@@ -12,7 +11,6 @@ import pandas as pd
 import datetime
 import math
 import os
-import time
 import environ
 import urllib.parse
 from ..utils.kosu_utils import kosu_division_dictionary
@@ -24,9 +22,7 @@ from ..models import kosu_division
 from ..models import team_member
 from ..models import inquiry_data
 from ..models import administrator_data
-from ..forms import loginForm
-from ..forms import administrator_data_Form
-from ..forms import uploadForm
+from ..forms import loginForm, administrator_data_Form, uploadForm
 
 
 
@@ -550,92 +546,24 @@ def administrator_menu(request):
 
   # 工数情報バックアップ処理
   if 'kosu_backup' in request.POST:
-    # 日付指定空の場合の処理
+    # 日付指定が空の場合、リダイレクト
     if request.POST['data_day'] in ["", None] or request.POST['data_day2'] in ["", None]:
-      # エラーメッセージ出力
       messages.error(request, 'バックアップする日付を指定してください。ERROR063')
-      # このページをリダイレクト
-      return redirect(to = '/administrator')
+      return redirect(to='/administrator')
 
-    # 読み込み開始日が終了日を超えている場合の処理
-    if request.POST['data_day'] > request.POST['data_day2'] :
-      # エラーメッセージ出力
+    # 読み込み開始日が終了日を超えている場合、リダイレクト
+    if request.POST['data_day'] > request.POST['data_day2']:
       messages.error(request, '読み込み開始日が終了日を超えています。ERROR064')
-      # このページをリダイレクト
-      return redirect(to = '/administrator')
+      return redirect(to='/administrator')
 
+    # 非同期タスクをキューに追加
+    task_id = async_task(
+      "kosu.views.tasks.backup_kosu_data",
+      request.POST['data_day'],
+      request.POST['data_day2']
+      )
 
-    # 新しいExcelブック作成
-    wb = openpyxl.Workbook()
-    # 書き込みシート選択
-    ws = wb.active
-    # 工数データ取得
-    kosu_data = Business_Time_graph.objects.filter(work_day2__gte = request.POST['data_day'], work_day2__lte = request.POST['data_day2'])
-
-    # Excelに書き込み(項目名)
-    headers = [
-      '従業員番号', 
-      '氏名', 
-      '工数区分定義Ver', 
-      '就業日', 
-      '直', 
-      '作業内容',
-      '作業詳細', 
-      '残業時間', 
-      '昼休憩時間', 
-      '残業休憩時間1', 
-      '残業休憩時間2',
-      '残業休憩時間3', 
-      '就業形態', 
-      '工数入力OK_NG',
-      '休憩変更チェック',
-      ]
-    ws.append(headers)
-
-    # Excelに書き込み(データ)
-    for item in kosu_data:
-      row = [
-        item.employee_no3, 
-        str(item.name), 
-        item.def_ver2, 
-        item.work_day2,
-        item.tyoku2, 
-        item.time_work, 
-        item.detail_work, 
-        item.over_time,
-        item.breaktime, 
-        item.breaktime_over1, 
-        item.breaktime_over2,
-        item.breaktime_over3, 
-        item.work_time, 
-        item.judgement,
-        item.break_change,
-        ]
-      ws.append(row)
-
-    # メモリ上にExcelファイルを作成し、BytesIOオブジェクトに保存
-    excel_file = BytesIO()
-    wb.save(excel_file)
-    excel_file.seek(0)
-
-    # ファイル名を設定
-    filename = f'工数データバックアップ_{request.POST["data_day"]}.xlsx'
-
-    # URLエンコーディングされたファイル名を生成
-    quoted_filename = urllib.parse.quote(filename)
-    
-
-    # HttpResponseを作成してファイルをダウンロードさせる
-    response = HttpResponse(
-        excel_file.read(),
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-    # Content-Dispositionヘッダーを設定
-    response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{quoted_filename}'
-    
-    return response
-
-
+    return redirect(to='/administrator')
 
 
   # 工数データ読み込み
@@ -1920,3 +1848,31 @@ def help(request):
 
 #--------------------------------------------------------------------------------------------------------
 
+
+
+
+
+def download_backup_file(request, task_id):
+    # タスク結果を取得
+    task_result = result(task_id)
+
+    if task_result is None:
+        return JsonResponse({"success": False, "message": "タスクがまだ完了していません。"})
+
+    if not task_result.get("success"):
+        return JsonResponse({"success": False, "message": task_result.get("error", "未知のエラーが発生しました")})
+
+    # ファイル内容とファイル名を取得
+    file_content = task_result["file_content"]
+    filename = task_result["filename"]
+
+    # URLエンコーディングされたファイル名を生成
+    quoted_filename = urllib.parse.quote(filename)
+
+    # HttpResponseを作成してファイルをダウンロードさせる
+    response = HttpResponse(
+        file_content.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{quoted_filename}'
+    return response

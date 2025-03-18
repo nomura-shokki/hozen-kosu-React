@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'bootstrap4',
     'bootstrap_datepicker_plus',
     'kosu',
+    'django_q',
 ]
 
 MIDDLEWARE = [
@@ -82,6 +83,20 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': '5432',
     }
+}
+
+Q_CLUSTER = {
+    'name': 'hozen_another',
+    'workers': 4,  # ワーカー数
+    'recycle': 500,
+    'timeout': 1800,
+    'django_redis': 'default',
+    'sync': False,
+    'redis': {
+        'host': '127.0.0.1',
+        'port': 6379,
+        'db': 0,
+    },
 }
 
 AUTH_PASSWORD_VALIDATORS = [
