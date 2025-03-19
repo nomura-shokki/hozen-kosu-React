@@ -5,6 +5,8 @@ from .models import Business_Time_graph
 
 
 
+
+
 # 工数データバックアップ非同期処理
 def generate_kosu_backup(data_day, data_day2):
   # 新しいExcelブック作成
@@ -48,3 +50,4 @@ def generate_kosu_backup(data_day, data_day2):
 
   # ファイルパスを返却
   return filepath
+  

@@ -9,6 +9,7 @@ from io import BytesIO
 import openpyxl
 import pandas as pd
 import datetime
+import time
 import math
 import os
 import environ
@@ -427,7 +428,7 @@ class InquirMainView(TemplateView):
 #--------------------------------------------------------------------------------------------------------
 
 
-import time
+
 
 
 # 管理者画面定義
@@ -587,6 +588,7 @@ def administrator_menu(request):
         return redirect(to='/administrator')
 
       time.sleep(1)  # 1秒間隔でタスク状態を確認
+
 
 
   # 工数データ読み込み
@@ -1613,8 +1615,6 @@ def administrator_menu(request):
     'form' : form,
     'load_form' : load_form,
     }
-  
-
 
   # 指定したHTMLに辞書を渡して表示を完成させる
   return render(request, 'kosu/administrator_menu.html', context)
@@ -1871,39 +1871,3 @@ def help(request):
 
 #--------------------------------------------------------------------------------------------------------
 
-
-
-
-
-from django.http import HttpResponse
-from django_q.tasks import result
-import urllib.parse
-
-def download_backup_file(request, task_id):
-    # タスク結果を取得
-    task_result = result(task_id)
-
-    # タスクがまだ未完了の場合
-    if task_result is None:
-        messages.error(request, 'バックアップ処理がまだ完了していません。しばらく待ってリロードしてください。')
-        return redirect(to='/administrator')
-
-    # 処理失敗時
-    if not task_result.get("success"):
-        messages.error(request, f'バックアップ処理に失敗しました: {task_result.get("error", "未知のエラー")}')
-        return redirect(to='/administrator')
-
-    # ファイル内容とファイル名を取得
-    file_content = task_result["file_content"]
-    filename = task_result["filename"]
-
-    # URLエンコーディングされたファイル名を生成
-    quoted_filename = urllib.parse.quote(filename)
-
-    # HttpResponseを作成してファイルをダウンロードさせる
-    response = HttpResponse(
-        file_content.getvalue(),
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-    response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{quoted_filename}'
-    return response
