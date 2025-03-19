@@ -85,18 +85,18 @@ DATABASES = {
     }
 }
 
+# Django Q の設定
 Q_CLUSTER = {
-    'name': 'hozen_another',
-    'workers': 4,  # ワーカー数
-    'recycle': 500,
+    'name': 'DjangoQ',
+    'workers': 4,  # 同時に動かすワーカー数（環境に応じて調整）
+    'recycle': 2000,
     'timeout': 1800,
-    'django_redis': 'default',
-    'sync': False,
+    'retry': 60,
     'redis': {
-        'host': '127.0.0.1',
-        'port': 6379,
-        'db': 0,
-    },
+        'host': 'localhost',  # Redisサーバーのホスト名
+        'port': 6379,         # Redisポート番号
+        'db': 0,              # Redisデータベース番号
+    }
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -132,4 +132,6 @@ CSRF_TRUSTED_ORIGINS = ['https://hozen-kosu-another-c6e2gyeraydpdnhq.japaneast-0
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-
+# バックアップファイル保存先指定
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

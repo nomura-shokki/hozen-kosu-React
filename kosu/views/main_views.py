@@ -427,7 +427,7 @@ class InquirMainView(TemplateView):
 #--------------------------------------------------------------------------------------------------------
 
 
-
+import time
 
 
 # 管理者画面定義
@@ -546,24 +546,47 @@ def administrator_menu(request):
 
   # 工数情報バックアップ処理
   if 'kosu_backup' in request.POST:
-    # 日付指定が空の場合、リダイレクト
     if request.POST['data_day'] in ["", None] or request.POST['data_day2'] in ["", None]:
       messages.error(request, 'バックアップする日付を指定してください。ERROR063')
       return redirect(to='/administrator')
 
-    # 読み込み開始日が終了日を超えている場合、リダイレクト
     if request.POST['data_day'] > request.POST['data_day2']:
       messages.error(request, '読み込み開始日が終了日を超えています。ERROR064')
       return redirect(to='/administrator')
 
-    # 非同期タスクをキューに追加
+    # 非同期タスクを開始
     task_id = async_task(
-      "kosu.views.tasks.backup_kosu_data",
+      'kosu.tasks.generate_kosu_backup',
       request.POST['data_day'],
       request.POST['data_day2']
       )
 
-    return redirect(to='/administrator')
+    # タスク完了までポーリングして待機
+    timeout = 1800  # 最大待機時間（秒）
+    start_time = time.time()
+    while True:
+      task_result = result(task_id)
+      if task_result:
+        # タスクが完了したらExcelファイルを返却
+        with open(task_result, 'rb') as file:
+          response = HttpResponse(
+            file.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+          response['Content-Disposition'] = f'attachment; filename="kosu_backup_{request.POST["data_day"]}_{request.POST["data_day2"]}.xlsx"'
+
+        # ファイル削除処理
+        if os.path.exists(task_result):
+          os.remove(task_result)
+
+        return response
+
+      if time.time() - start_time > timeout:
+        # タイムアウトの場合、エラーメッセージを表示
+        messages.error(request, 'バックアップ処理がタイムアウトしました。')
+        return redirect(to='/administrator')
+
+      time.sleep(1)  # 1秒間隔でタスク状態を確認
 
 
   # 工数データ読み込み
@@ -1852,15 +1875,23 @@ def help(request):
 
 
 
+from django.http import HttpResponse
+from django_q.tasks import result
+import urllib.parse
+
 def download_backup_file(request, task_id):
     # タスク結果を取得
     task_result = result(task_id)
 
+    # タスクがまだ未完了の場合
     if task_result is None:
-        return JsonResponse({"success": False, "message": "タスクがまだ完了していません。"})
+        messages.error(request, 'バックアップ処理がまだ完了していません。しばらく待ってリロードしてください。')
+        return redirect(to='/administrator')
 
+    # 処理失敗時
     if not task_result.get("success"):
-        return JsonResponse({"success": False, "message": task_result.get("error", "未知のエラーが発生しました")})
+        messages.error(request, f'バックアップ処理に失敗しました: {task_result.get("error", "未知のエラー")}')
+        return redirect(to='/administrator')
 
     # ファイル内容とファイル名を取得
     file_content = task_result["file_content"]

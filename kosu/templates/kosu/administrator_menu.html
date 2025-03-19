@@ -11,34 +11,6 @@
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
     <script src="{% static 'kosu/js/before_comment.js' %}"></script>
     <script src="{% static 'kosu/js/display.js' %}"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-          // 「バックアップ」ボタンを取得
-          const backupButton = document.querySelector('input[name="kosu_backup"]');
-          
-          // 「バックアップ」ボタンが存在する場合
-          if (backupButton) {
-              // ボタンのクリックイベントを監視
-              backupButton.addEventListener('click', function(event) {
-                  // フォームのデフォルト送信を停止
-                  event.preventDefault();
-                  
-                  // 自動ダウンロードリンクを取得
-                  const downloadLink = document.getElementById('auto-download-link');
-                  
-                  // ダウンロードリンクが存在する場合
-                  if (downloadLink) {
-                      // 自動クリックを試行
-                      downloadLink.click();
-                  } else {
-                      console.error("ダウンロードリンクが見つかりませんでした。");
-                  }
-              });
-          } else {
-              console.error("バックアップボタンが見つかりませんでした。");
-          }
-      });
-    </script>
   </head>
   <body class="container" id="display">
     <h1 class="display-1 text-dark">{{title}}</h1>
@@ -46,7 +18,7 @@
     <p>　</p>
     {% for message in messages %}
       <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
-        <p  class="text-danger">
+        <p class="text-danger">
           {{ message }}
         </p>
       </div>
@@ -70,10 +42,6 @@
             工数データバックアップ
           </th>
           <td>
-            <p>
-              自動でダウンロードが開始されない場合は
-              <a id="auto-download-link" href="/download/backup/1bba78d325334c438f617c94678b1626">こちら</a> をクリックしてください。
-            </p>
             <div class="number-input-group">
               <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day" id="data_day">～
               <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day2" id="data_day2">

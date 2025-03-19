@@ -5,6 +5,8 @@ from .views import member_views
 from .views import team_views
 from .views import def_views
 from .views import inquiry_views
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 
@@ -52,8 +54,8 @@ urlpatterns = [
   path('inquiry_list/<int:num>',inquiry_views.inquiry_list, name='inquiry_list'),
   path('inquiry_display/<int:num>',inquiry_views.inquiry_display, name='inquiry_display'),
   path('inquiry_edit/<int:num>',inquiry_views.inquiry_edit, name='inquiry_edit'),
-  path('download/backup/<str:task_id>/', main_views.download_backup_file, name='download_backup'),
   path('dynamic-choices/', kosu_views.dynamic_choices, name='dynamic_choices'),
   path('all-choices/', kosu_views.all_choices, name='all_choices'),
   ]
 
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
