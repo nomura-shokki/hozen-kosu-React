@@ -3,13 +3,11 @@ from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
-from django_q.tasks import result, async_task
 from pathlib import Path
 from io import BytesIO
 import openpyxl
 import pandas as pd
 import datetime
-import time
 import math
 import os
 import environ
@@ -542,52 +540,6 @@ def administrator_menu(request):
     
     # フォームにPOST値を入れて定義
     form = administrator_data_Form(request.POST)
-
-
-
-  # 工数情報バックアップ処理
-  if 'kosu_backup' in request.POST:
-    if request.POST['data_day'] in ["", None] or request.POST['data_day2'] in ["", None]:
-      messages.error(request, 'バックアップする日付を指定してください。ERROR063')
-      return redirect(to='/administrator')
-
-    if request.POST['data_day'] > request.POST['data_day2']:
-      messages.error(request, '読み込み開始日が終了日を超えています。ERROR064')
-      return redirect(to='/administrator')
-
-    # 非同期タスクを開始
-    task_id = async_task(
-      'kosu.tasks.generate_kosu_backup',
-      request.POST['data_day'],
-      request.POST['data_day2']
-      )
-
-    # タスク完了までポーリングして待機
-    timeout = 1800  # 最大待機時間（秒）
-    start_time = time.time()
-    while True:
-      task_result = result(task_id)
-      if task_result:
-        # タスクが完了したらExcelファイルを返却
-        with open(task_result, 'rb') as file:
-          response = HttpResponse(
-            file.read(),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            )
-          response['Content-Disposition'] = f'attachment; filename="kosu_backup_{request.POST["data_day"]}_{request.POST["data_day2"]}.xlsx"'
-
-        # ファイル削除処理
-        if os.path.exists(task_result):
-          os.remove(task_result)
-
-        return response
-
-      if time.time() - start_time > timeout:
-        # タイムアウトの場合、エラーメッセージを表示
-        messages.error(request, 'バックアップ処理がタイムアウトしました。')
-        return redirect(to='/administrator')
-
-      time.sleep(1)  # 1秒間隔でタスク状態を確認
 
 
 
@@ -1335,7 +1287,7 @@ def administrator_menu(request):
     # 一時ファイル削除
     os.remove('def_file_path.xlsx')
 
-  
+
 
   # お問い合わせバックアップ処理
   if 'inquiry_backup' in request.POST:
@@ -1389,7 +1341,7 @@ def administrator_menu(request):
     response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{quoted_filename}'
     
     return response
-  
+
 
 
   # お問い合わせ読み込み
@@ -1525,7 +1477,7 @@ def administrator_menu(request):
     response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{quoted_filename}'
     
     return response
-  
+
 
 
   # 設定情報読み込み

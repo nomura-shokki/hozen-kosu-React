@@ -1,23 +1,23 @@
+// 画面表示時にふわっと表示
 document.addEventListener('DOMContentLoaded', () => {
-    const heading = document.querySelector('#display');
-  
-    if (heading) {
-      const keyframes = [
-        {
-          opacity: 0,
-          transform: 'translateY(40px)'
-        },
-        {
-          opacity: 1,
-          transform: 'translateY(0)'
-        }
-      ];
-      const options = {
-        duration: 1000,
-        easing: 'ease'
-      };
-  
-      heading.animate(keyframes, options);
-    }
-  });
-  
+  const heading = document.querySelector('#display');
+
+  if (heading) {
+    const keyframes = [
+      {
+        opacity: 0,
+        transform: 'translateY(40px)'
+      },
+      {
+        opacity: 1,
+        transform: 'translateY(0)'
+      }
+    ];
+    const options = {
+      duration: 1000,
+      easing: 'ease'
+    };
+
+    heading.animate(keyframes, options);
+  }
+});

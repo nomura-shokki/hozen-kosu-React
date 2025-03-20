@@ -88,15 +88,11 @@ DATABASES = {
 # Django Q の設定
 Q_CLUSTER = {
     'name': 'DjangoQ',
-    'workers': 4,  # 同時に動かすワーカー数（環境に応じて調整）
+    'workers': 4,
     'recycle': 2000,
     'timeout': 1800,
     'retry': 60,
-    'redis': {
-        'host': 'localhost',  # Redisサーバーのホスト名
-        'port': 6379,         # Redisポート番号
-        'db': 0,              # Redisデータベース番号
-    }
+    'orm': 'default'
 }
 
 AUTH_PASSWORD_VALIDATORS = [

@@ -35,7 +35,8 @@
         </td></th></tr>
         <tr><th>
           <h1 class="display-6 text-dark">データ管理</h1>
-          <small>(バックアップを押すとデータがPCにダウンロードされます)</small>
+          <p><small>バックアップは大量のデータを扱うため非同期処理になっています</small></p>
+          <p><small>ページが処理中になっていなくとも裏でバックアップ動作していますのでバックアップボタンを連打しないでください</small></p>
         </th></tr>
         <tr>
           <th>
@@ -47,7 +48,7 @@
               <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day2" id="data_day2">
             </div>
             <br>
-            <input type="submit" value="バックアップ" name=kosu_backup class="btn btn-gray2 mt-2">
+            <input type="button" value="バックアップ" id="start-backup1" class="btn btn-gray2 mt-2">
             <input type="submit" value="工数定義区分予測データ出力" name=prediction_data class="btn btn-gray2 mt-2">
             <input type="submit" value="削除" name=kosu_delete onclick="return confirmDelete_all();" class="btn btn-gray2 mt-2">
           </td>
@@ -178,5 +179,6 @@
         </tr>
       </form>
     </table>
+    <script src="{% static 'kosu/js/asynchronous_backup.js' %}"></script>
   </body>
 </html>
