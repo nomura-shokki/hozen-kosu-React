@@ -44,7 +44,7 @@ class LoginView(FormView):
   # リクエストを処理するメソッドをオーバーライド
   def dispatch(self, request, *args, **kwargs):
     # ログイン済みならメイン画面にリダイレクト
-    if request.session.get('login_No'):
+    if request.session.get('login_No') and request.session.get('input_def'):
       return redirect(self.success_url)
     return super().dispatch(request, *args, **kwargs)
 
@@ -70,7 +70,13 @@ class LoginView(FormView):
       self.request.session['login_No'] = find
       # 使用する工数区分を読み込む（最新のもの）
       def_Ver = kosu_division.objects.order_by("id").last()
-      self.request.session['input_def'] = def_Ver.kosu_name
+
+      # 工数区分定義が存在しない場合、リダイレクト
+      if not def_Ver:
+        messages.error(self.request, '利用可能な工数区分がありません。ERROR052')
+        return redirect('/login')
+      else:
+        self.request.session['input_def'] = def_Ver.kosu_name
 
       # メインページにリダイレクト
       return redirect(self.success_url)
@@ -623,98 +629,6 @@ def administrator_menu(request):
 
     # 一時ファイル削除
     os.remove('kosu_file_path.xlsx')
-
-
-
-  # 工数定義区分予測データ出力
-  if 'prediction_data' in request.POST:
-    # 日付指定空の場合の処理
-    if request.POST['data_day'] in ["", None] or request.POST['data_day2'] in ["", None]:
-      # エラーメッセージ出力
-      messages.error(request, '日付を指定してください。ERROR067')
-      # このページをリダイレクト
-      return redirect('/administrator')
-
-    # 削除開始日が終了日を超えている場合の処理
-    if request.POST['data_day'] > request.POST['data_day2']:
-      # エラーメッセージ出力
-      messages.error(request, '開始日が終了日を超えています。ERROR068')
-      # このページをリダイレクト
-      return redirect('/administrator')
-
-    
-    # 期間内の工数データ取得
-    kosu_filter = Business_Time_graph.objects.filter(
-        work_day2__gte=request.POST['data_day'], 
-        work_day2__lte=request.POST['data_day2']
-    )
-
-    # Excelに書き出すためのデータを準備
-    data = []
-    # 取得した工数データを処理
-    for kosu in kosu_filter:
-      # 作業内容をリストに解凍
-      kosu_list = list(kosu.time_work)
-      # 作業詳細をリストに解凍
-      detail_list = kosu.detail_work.split('$')
-      # 工数定義区分取得
-      def_filter = kosu_division.objects.filter(kosu_name=kosu.def_ver2)
-      print(kosu.id)
-      # リストの長さ取得
-      max_length = max(len(kosu_list), len(detail_list))
-      # 1要素ごとにExcelに書き込み
-      for i in range(max_length):
-        # 工数定義区分がある場合の処理
-        if def_filter.exists():
-          # 工数定義区分リスト作成
-          choices_list, def_n = kosu_division_dictionary(kosu.def_ver2)
-
-          # 作業内容を工数区分定義に変換
-          for k in choices_list:
-            # 工数区分定義の記号と作業内容が同じ場合の処理
-            if k[0] == kosu_list[i]:
-              # 作業詳細が空欄でない場合の処理
-              if detail_list[i] != '':
-                # 作業内容と作業詳細をセットで定義
-                row = [
-                    k[1] if i < len(kosu_list) else '',
-                    detail_list[i] if i < len(detail_list) else '',
-                ]
-                # 作業内容と作業詳細を書き込み
-                data.append(row)
-                #ループから抜ける
-                break
-
-    # DataFrameに変換
-    df = pd.DataFrame(data, columns=['工数定義区分', '作業詳細'])
-
-    # フィルタリング条件に基づいて不要な行を削除
-    df = df[~df['工数定義区分'].isin(['', '#', '$'])]
-    df = df[df['作業詳細'] != '']
-
-    # 工数定義区分と作業詳細の重複行を削除
-    df = df.drop_duplicates(subset=['工数定義区分', '作業詳細'], keep='first')
-
-    # メモリ上にExcelファイルを作成
-    excel_file = BytesIO()
-    with pd.ExcelWriter(excel_file, engine='openpyxl') as writer:
-      df.to_excel(writer, index=False)
-
-    # バッファの位置を先頭に戻す
-    excel_file.seek(0)
-
-    # ファイル名を設定
-    filename = "data.xlsx"
-    quoted_filename = urllib.parse.quote(filename)
-
-    # HttpResponseを作成してファイルをダウンロードさせる
-    response = HttpResponse(
-        excel_file.read(),
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-    response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{quoted_filename}'
-
-    return response
 
 
 
@@ -1772,12 +1686,12 @@ def help(request):
 
         # Excelからデータを読み込む
         def_data = {
-          'kosu_name': ws.cell(row=i+1, column=1).value
+          'kosu_name': ws1.cell(row=i+1, column=1).value
           }
         for n in range(1, 51):
-          def_data[f'kosu_title_{n}'] = ws.cell(row=i+1, column=n*3-1).value
-          def_data[f'kosu_division_1_{n}'] = ws.cell(row=i+1, column=n*3).value
-          def_data[f'kosu_division_2_{n}'] = ws.cell(row=i+1, column=n*3+1).value
+          def_data[f'kosu_title_{n}'] = ws1.cell(row=i+1, column=n*3-1).value
+          def_data[f'kosu_division_1_{n}'] = ws1.cell(row=i+1, column=n*3).value
+          def_data[f'kosu_division_2_{n}'] = ws1.cell(row=i+1, column=n*3+1).value
 
         new_data1 = kosu_division(**def_data)
         new_data1.save()
@@ -1788,12 +1702,12 @@ def help(request):
       for i in range(1, data_num):
         # Excelからデータを読み込む
         def_data = {
-          'kosu_name': ws.cell(row=i+1, column=1).value
+          'kosu_name': ws1.cell(row=i+1, column=1).value
           }
         for n in range(1, 51):
-          def_data[f'kosu_title_{n}'] = ws.cell(row=i+1, column=n*3-1).value
-          def_data[f'kosu_division_1_{n}'] = ws.cell(row=i+1, column=n*3).value
-          def_data[f'kosu_division_2_{n}'] = ws.cell(row=i+1, column=n*3+1).value
+          def_data[f'kosu_title_{n}'] = ws1.cell(row=i+1, column=n*3-1).value
+          def_data[f'kosu_division_1_{n}'] = ws1.cell(row=i+1, column=n*3).value
+          def_data[f'kosu_division_2_{n}'] = ws1.cell(row=i+1, column=n*3+1).value
 
         new_data1 = kosu_division(**def_data)
         new_data1.save()

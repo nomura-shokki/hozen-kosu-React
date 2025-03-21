@@ -35,12 +35,14 @@
         </td></th></tr>
         <tr><th>
           <h1 class="display-6 text-dark">データ管理</h1>
-          <p><small>バックアップは大量のデータを扱うため非同期処理になっています</small></p>
-          <p><small>ページが処理中になっていなくとも裏でバックアップ動作していますのでバックアップボタンを連打しないでください</small></p>
+          <p class="fs-6 text-danger"><small>下記のデータ処理は大量のデータを扱うため非同期処理になっています</small></p>
+          <p class="fs-6 text-danger"><small>ページが処理中になっていなくとも裏でバックアップ動作していますのでバックアップボタンを連打しないでください</small></p>
         </th></tr>
+      </form>
         <tr>
           <th>
-            工数データバックアップ
+            <p>工数データバックアップ</p>
+            <p class="fs-6 text-danger"><small>予測データ出力は非常に処理が重いので1週間程度の期間までにすることを推奨します</small></p>
           </th>
           <td>
             <div class="number-input-group">
@@ -48,11 +50,12 @@
               <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day2" id="data_day2">
             </div>
             <br>
-            <input type="button" value="バックアップ" id="start-backup1" class="btn btn-gray2 mt-2">
-            <input type="submit" value="工数定義区分予測データ出力" name=prediction_data class="btn btn-gray2 mt-2">
+            <input type="button" value="バックアップ" id="start-asynchronous1" class="btn btn-gray2 mt-2">
+            <input type="submit" value="工数定義区分予測データ出力" id="start-asynchronous2" class="btn btn-gray2 mt-2">
             <input type="submit" value="削除" name=kosu_delete onclick="return confirmDelete_all();" class="btn btn-gray2 mt-2">
           </td>
         </tr>
+      <form action="{% url 'administrator' %}" method="post" enctype="multipart/form-data">
         <tr>
           <th>
             工数データロードファイルパス
