@@ -63,16 +63,17 @@
           </td>
         </tr>
         {% if data.administrator == True %}
-        <tr>
-          <th>
-            管理者
-          </th>
-          <td>
-            <div class="form-check form-check-inline custom-checkbox">
-              {{form.administrator}}
-            </div>
-          </td>
-        </tr>
+          <tr>
+            <th>
+              管理者
+            </th>
+            <td>
+              <div class="form-check form-check-inline custom-checkbox">
+                {{form.administrator}}
+              </div>
+            </td>
+          </tr>
+        {% endif %}
         <tr hidden>
           <th>
             休憩
@@ -96,7 +97,6 @@
             {{form.break_time4_over3}}
           </td>
         </tr>
-        {% endif %}
         <tr><th><td>
           <input type="submit" value="登録" class="btn btn-yellow3 mt-2" name="member_new" onclick="return confirm_edit_member();">
         </td></th></tr>

@@ -145,9 +145,27 @@ def generate_prediction(data_day, data_day2):
 #--------------------------------------------------------------------------------------------------------
 
 
+from django_q.tasks import async_task
+from .models import Business_Time_graph, AsyncTask  # 必要なモデルをインポート
 
+def delete_kosu_data(data_day, data_day2, task_id):
+    """
+    非同期で指定された日付範囲の工数データを削除するタスク。
+    """
+    try:
+        # 工数データ取得
+        kosu_obj = Business_Time_graph.objects.filter(work_day2__gte=data_day, work_day2__lte=data_day2)
+        # 取得した工数データを削除
+        deleted_count = kosu_obj.delete()
 
-
-
-
-
+        # 成功したステータスを記録する
+        AsyncTask.objects.filter(task_id=task_id).update(
+            status='success',
+            result=f'Deleted {deleted_count[0]} records.',
+        )
+    except Exception as e:
+        # エラー時のステータスと結果記録
+        AsyncTask.objects.filter(task_id=task_id).update(
+            status='error',
+            result=str(e),
+        )

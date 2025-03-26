@@ -63,7 +63,8 @@ urlpatterns = [
   path('check_kosu_prediction_status', asynchronous_views.check_task_status, name='check_kosu_prediction_status'),
   path('download_kosu_backup', asynchronous_views.download_file, name='download_kosu_backup'),
   path('download_kosu_prediction', asynchronous_views.download_file, name='download_kosu_prediction'),
-  path("delete_kosu_data_async/", main_views.delete_kosu_data_async, name="delete_kosu_data_async"),
+  path('start_kosu_delete', asynchronous_views.start_kosu_delete, name='start_kosu_delete'),
+  path('check_kosu_delete_status', asynchronous_views.check_kosu_delete_status, name='check_kosu_delete_status'),
   ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -137,3 +137,16 @@ document.getElementById('start-asynchronous2').addEventListener('click', () => {
     });
   });
 });
+
+
+document.getElementById('start-asynchronous3').addEventListener('click', () => {
+  /**
+   * 工数データの削除を開始するリスナー。
+   * タスクが成功するまで進行状況を監視し、完了後にポップアップを表示。
+   */
+  startBackup('/start_kosu_delete', (taskId) => { // `/start_kosu_delete` APIでタスク開始
+    monitorTaskStatus(`/check_kosu_delete_status?task_id=${taskId}`, () => {
+      alert('削除が完了しました。'); // 削除完了後にポップアップを表示
+    });
+  });
+});

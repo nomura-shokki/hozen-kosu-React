@@ -87,12 +87,10 @@ DATABASES = {
 
 # Django Q の設定
 Q_CLUSTER = {
-    'name': 'DjangoQ',
-    'workers': 4,
+    'orm': 'default',
+    'workers': 4, 
     'recycle': 2000,
     'timeout': 1800,
-    'retry': 60,
-    'orm': 'default'
 }
 
 AUTH_PASSWORD_VALIDATORS = [

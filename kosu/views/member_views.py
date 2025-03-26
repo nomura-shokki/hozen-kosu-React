@@ -127,18 +127,18 @@ class MemberNewView(CreateView):
   def dispatch(self, request, *args, **kwargs):
     # ログインしていない場合ログイン画面へ
     if not request.session.get('login_No'):
-        return redirect('/login')
+      return redirect('/login')
 
     # 人員情報取得(取得できない場合セッション削除しログイン画面へ)
     try:
-        self.data = member.objects.get(employee_no=request.session['login_No'])
+      self.data = member.objects.get(employee_no=request.session['login_No'])
     except member.DoesNotExist:
-        request.session.clear()
-        return redirect(to='/login')
+      request.session.clear()
+      return redirect(to='/login')
 
     # 権限がないユーザーの場合ログイン画面へ
     if not self.data.authority:
-        return redirect(to='/')
+      return redirect(to='/')
 
     # 親クラスへ情報送信
     return super().dispatch(request, *args, **kwargs)
@@ -147,22 +147,22 @@ class MemberNewView(CreateView):
   # フォームの初期値を設定するメソッド
   def get_initial(self):
     initial_values = {
-        'break_time1': '#00000000',
-        'break_time1_over1': '#00000000',
-        'break_time1_over2': '#00000000',
-        'break_time1_over3': '#00000000',
-        'break_time2': '#00000000',
-        'break_time2_over1': '#00000000',
-        'break_time2_over2': '#00000000',
-        'break_time2_over3': '#00000000',
-        'break_time3': '#00000000',
-        'break_time3_over1': '#00000000',
-        'break_time3_over2': '#00000000',
-        'break_time3_over3': '#00000000',
-        'break_time4': '#00000000',
-        'break_time4_over1': '#00000000',
-        'break_time4_over2': '#00000000',
-        'break_time4_over3': '#00000000',
+      'break_time1': '#00000000',
+      'break_time1_over1': '#00000000',
+      'break_time1_over2': '#00000000',
+      'break_time1_over3': '#00000000',
+      'break_time2': '#00000000',
+      'break_time2_over1': '#00000000',
+      'break_time2_over2': '#00000000',
+      'break_time2_over3': '#00000000',
+      'break_time3': '#00000000',
+      'break_time3_over1': '#00000000',
+      'break_time3_over2': '#00000000',
+      'break_time3_over3': '#00000000',
+      'break_time4': '#00000000',
+      'break_time4_over1': '#00000000',
+      'break_time4_over2': '#00000000',
+      'break_time4_over3': '#00000000',
     }
     return initial_values
 
@@ -172,22 +172,22 @@ class MemberNewView(CreateView):
     request = self.request
     # POSTした従業員番号が既に登録されている場合エラー出力
     if member.objects.filter(employee_no=request.POST['employee_no']).exists():
-        messages.error(request, '入力した従業員番号はすでに登録があるので登録できません。ERROR041')
-        return redirect(to='/new')
+      messages.error(request, '入力した従業員番号はすでに登録があるので登録できません。ERROR041')
+      return redirect(to='/new')
 
     # POSTしたショップがボデーか組立の場合の処理
     if request.POST['shop'] in ['W1', 'W2', 'A1', 'A2', 'J', '組長以上(W,A)']:
-        # 休憩時間用文字列定義
-        break_times = ['#11401240', '#17201735', '#23350035', '#04350450',
-                      '#14101510', '#22002215', '#04150515', '#09150930',
-                      '#23500050', '#06400655', '#12551355', '#17551810',
-                      '#12001300', '#19001915', '#01150215', '#06150630']
+      # 休憩時間用文字列定義
+      break_times = ['#11401240', '#17201735', '#23350035', '#04350450',
+                    '#14101510', '#22002215', '#04150515', '#09150930',
+                    '#23500050', '#06400655', '#12551355', '#17551810',
+                    '#12001300', '#19001915', '#01150215', '#06150630']
     else:
-        # 休憩時間用文字列定義
-        break_times = ['#10401130', '#15101520', '#20202110', '#01400150',
-                      '#17501840', '#22302240', '#03400430', '#09000910',
-                      '#01400230', '#07050715', '#12151305', '#17351745',
-                      '#12001300', '#19001915', '#01150215', '#06150630']
+      # 休憩時間用文字列定義
+      break_times = ['#10401130', '#15101520', '#20202110', '#01400150',
+                    '#17501840', '#22302240', '#03400430', '#09000910',
+                    '#01400230', '#07050715', '#12151305', '#17351745',
+                    '#12001300', '#19001915', '#01150215', '#06150630']
     # 休憩時間設定
     new_member = form.save(commit=False)
     new_member.break_time1 = break_times[0]
@@ -212,13 +212,22 @@ class MemberNewView(CreateView):
     return redirect(to='/member/1')
 
 
+  # フォームバリデーションが失敗した際の処理
+  def form_invalid(self, form):
+    request = self.request
+    messages.error(request, f'バリテーションエラーが発生しました。IT担当者に連絡してください。{form.errors} ERROR053')
+    # バリデーションエラーをターミナルに出力
+    print("バリデーションエラー: ", form.errors)
+    return redirect(to='/new')
+
+
   # コンテキストデータを取得するメソッドをオーバーライド
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
     context.update({
-        'title': '人員登録',
-        'data': self.data,
-        'form_link': reverse_lazy('member_new')
+      'title': '人員登録',
+      'data': self.data,
+      'form_link': reverse_lazy('member_new')
     })
     return context
 
