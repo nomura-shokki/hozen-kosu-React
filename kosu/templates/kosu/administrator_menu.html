@@ -39,148 +39,146 @@
           <p class="fs-6 text-danger"><small>ページが処理中になっていなくとも裏でバックアップ動作していますのでバックアップボタンを連打しないでください</small></p>
         </th></tr>
       </form>
-        <tr>
-          <th>
-            <p>工数データバックアップ</p>
-            <p class="fs-6 text-danger"><small>予測データ出力は非常に処理が重いので1週間程度の期間までにすることを推奨します</small></p>
-          </th>
-          <td>
-            <div class="number-input-group">
-              <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day" id="data_day">～
-              <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day2" id="data_day2">
-            </div>
-            <br>
-            <input type="button" value="バックアップ" id="start-asynchronous1" class="btn btn-gray2 mt-2">
-            <input type="submit" value="工数定義区分予測データ出力" id="start-asynchronous2" class="btn btn-gray2 mt-2">
-            <input type="submit" value="削除" id="start-asynchronous3" onclick="return confirmDelete_all();" class="btn btn-gray2 mt-2">
-          </td>
-        </tr>
-        <tr>
-          <th>
-            工数データロードファイルパス
-          </th>
-          <td>
-            {{load_form.kosu_file}}
-            <input type="submit" value="ロード" id="start-asynchronous4" class="btn btn-gray2 mt-2">
-          </td>
-        </tr>
-        <tr><th><td>
-          　
-        </td></th></tr>
-      <form action="{% url 'administrator' %}" method="post" enctype="multipart/form-data">
-        <tr>
-          <th>
-            人員情報バックアップ
-          </th>
-          <td>
-            <input type="submit" value="バックアップ" name=member_backup class="btn btn-gray2 mt-2">
-          </td>
-        </tr>
-        <tr>
-          <th>
-            人員情報ロードファイルパス
-          </th>
-          <td>
-            {{load_form.member_file}}
-            <input type="submit" value="ロード" name=member_load class="btn btn-gray2 mt-2">
-          </td>
-        </tr>
-        <tr>
-          <th></th>
-          <td>
-            同一従業員番号があった場合上書きする　　
-            <input type="checkbox" id="overwrite_check" name="overwrite_check" class="big">
-          </td>
-        </tr>
-        <tr>
-          <th></th>
-          <td>
-            <small>
-              (上書きした場合、全工数と問い合わせデータの氏名削除。バックアップ後実施のこと)
-            </small>
-          </td>
-        </tr>
-        <tr><th><td>
-          　
-        </td></th></tr>
-        <tr>
-          <th>
-            班員情報バックアップ
-          </th>
-          <td>
-            <input type="submit" value="バックアップ" name=team_backup class="btn btn-gray2 mt-2">
-          </td>
-        </tr>
-        <tr>
-          <th>
-            班員情報ロードファイルパス
-          </th>
-          <td>
-            {{load_form.team_file}}
-            <input type="submit" value="ロード" name=team_load class="btn btn-gray2 mt-2">
-          </td>
-        </tr>
-        <tr><th><td>
-          　
-        </td></th></tr>
-        <tr>
-          <th>
-            工数区分定義バックアップ
-          </th>
-          <td>
-            <input type="submit" value="バックアップ" name=def_backup class="btn btn-gray2 mt-2">
-          </td>
-        </tr>
-        <tr>
-          <th>
-            工数区分定義ロードファイルパス
-          </th>
-          <td>
-            {{load_form.def_file}}
-            <input type="submit" value="ロード" name=def_load class="btn btn-gray2 mt-2">
-          </td>
-        </tr>
-        <tr><th><td>
-          　
-        </td></th></tr>
-        <tr>
-          <th>
-            お問い合わせバックアップ
-          </th>
-          <td>
-            <input type="submit" value="バックアップ" name=inquiry_backup class="btn btn-gray2 mt-2">
-          </td>
-        </tr>
-        <tr>
-          <th>
-            お問い合わせロードファイルパス
-          </th>
-          <td>
-            {{load_form.inquiry_file}}
-            <input type="submit" value="ロード" name=inquiry_load class="btn btn-gray2 mt-2">
-          </td>
-        </tr>
-        <tr><th><td>
-          　
-        </td></th></tr>
-        <tr>
-          <th>
-            管理者設定バックアップ
-          </th>
-          <td>
-            <input type="submit" value="バックアップ" name=setting_backup class="btn btn-gray2 mt-2">
-          </td>
-        </tr>
-        <tr>
-          <th>
-            管理者設定ロードファイルパス
-          </th>
-          <td>
-            {{load_form.setting_file}}
-            <input type="submit" value="ロード" name=setting_load class="btn btn-gray2 mt-2">
-          </td>
-        </tr>
-      </form>
+      <tr>
+        <th>
+          <p>工数データバックアップ</p>
+          <p class="fs-6 text-danger"><small>予測データ出力は非常に処理が重いので1週間程度の期間までにすることを推奨します</small></p>
+        </th>
+        <td>
+          <div class="number-input-group">
+            <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day" id="data_day">～
+            <input type="date" class="form-control custom-border" style="width: 150px;" name="data_day2" id="data_day2">
+          </div>
+          <br>
+          <input type="button" value="バックアップ" id="start-asynchronous1" class="btn btn-gray2 mt-2">
+          <input type="submit" value="工数定義区分予測データ出力" id="start-asynchronous2" class="btn btn-gray2 mt-2">
+          <input type="submit" value="削除" id="start-asynchronous3" onclick="return confirmDelete_all();" class="btn btn-gray2 mt-2">
+        </td>
+      </tr>
+      <tr>
+        <th>
+          工数データロードファイルパス
+        </th>
+        <td>
+          {{load_form.kosu_file}}
+          <input type="submit" value="ロード" id="start-asynchronous4" class="btn btn-gray2 mt-2">
+        </td>
+      </tr>
+      <tr><th><td>
+        　
+      </td></th></tr>
+      <tr>
+        <th>
+          人員情報バックアップ
+        </th>
+        <td>
+          <input type="submit" value="バックアップ" name=member_backup class="btn btn-gray2 mt-2">
+        </td>
+      </tr>
+      <tr>
+        <th>
+          人員情報ロードファイルパス
+        </th>
+        <td>
+          {{load_form.member_file}}
+          <input type="submit" value="ロード" name=member_load class="btn btn-gray2 mt-2">
+        </td>
+      </tr>
+      <tr>
+        <th></th>
+        <td>
+          同一従業員番号があった場合上書きする　　
+          <input type="checkbox" id="overwrite_check" name="overwrite_check" class="big">
+        </td>
+      </tr>
+      <tr>
+        <th></th>
+        <td>
+          <small>
+            (上書きした場合、全工数と問い合わせデータの氏名削除。バックアップ後実施のこと)
+          </small>
+        </td>
+      </tr>
+      <tr><th><td>
+        　
+      </td></th></tr>
+      <tr>
+        <th>
+          班員情報バックアップ
+        </th>
+        <td>
+          <input type="submit" value="バックアップ" name=team_backup class="btn btn-gray2 mt-2">
+        </td>
+      </tr>
+      <tr>
+        <th>
+          班員情報ロードファイルパス
+        </th>
+        <td>
+          {{load_form.team_file}}
+          <input type="submit" value="ロード" name=team_load class="btn btn-gray2 mt-2">
+        </td>
+      </tr>
+      <tr><th><td>
+        　
+      </td></th></tr>
+      <tr>
+        <th>
+          工数区分定義バックアップ
+        </th>
+        <td>
+          <input type="submit" value="バックアップ" name=def_backup class="btn btn-gray2 mt-2">
+        </td>
+      </tr>
+      <tr>
+        <th>
+          工数区分定義ロードファイルパス
+        </th>
+        <td>
+          {{load_form.def_file}}
+          <input type="submit" value="ロード" name=def_load class="btn btn-gray2 mt-2">
+        </td>
+      </tr>
+      <tr><th><td>
+        　
+      </td></th></tr>
+      <tr>
+        <th>
+          お問い合わせバックアップ
+        </th>
+        <td>
+          <input type="submit" value="バックアップ" name=inquiry_backup class="btn btn-gray2 mt-2">
+        </td>
+      </tr>
+      <tr>
+        <th>
+          お問い合わせロードファイルパス
+        </th>
+        <td>
+          {{load_form.inquiry_file}}
+          <input type="submit" value="ロード" name=inquiry_load class="btn btn-gray2 mt-2">
+        </td>
+      </tr>
+      <tr><th><td>
+        　
+      </td></th></tr>
+      <tr>
+        <th>
+          管理者設定バックアップ
+        </th>
+        <td>
+          <input type="submit" value="バックアップ" name=setting_backup class="btn btn-gray2 mt-2">
+        </td>
+      </tr>
+      <tr>
+        <th>
+          管理者設定ロードファイルパス
+        </th>
+        <td>
+          {{load_form.setting_file}}
+          <input type="submit" value="ロード" name=setting_load class="btn btn-gray2 mt-2">
+        </td>
+      </tr>
     </table>
     <script src="{% static 'kosu/js/asynchronous_backup.js' %}"></script>
   </body>

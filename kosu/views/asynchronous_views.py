@@ -3,7 +3,7 @@ from django.utils.timezone import now
 import os
 import threading
 import uuid
-from ..tasks import generate_kosu_backup, generate_prediction, delete_kosu_data
+from ..tasks import generate_kosu_backup, generate_prediction, delete_kosu_data, load_kosu_file
 from ..models import AsyncTask
 
 
@@ -20,14 +20,16 @@ from ..models import AsyncTask
 def start_task(request, task_type):
   # POST時の処理
   if request.method == 'POST':
-    # 開始日と終了日取得
-    data_day = request.POST.get('data_day')
-    data_day2 = request.POST.get('data_day2')
+    # 日付指定のあるタスク実行時の処理
+    if task_type in ['kosu_backup', 'prediction', 'kosu_delete']:
+      # 開始日と終了日取得
+      data_day = request.POST.get('data_day')
+      data_day2 = request.POST.get('data_day2')
 
-    # 日付の範囲指定が正しくない場合エラー
-    error_response = validate_dates(data_day, data_day2)
-    if error_response:
-      return error_response
+      # 日付の範囲指定が正しくない場合エラー
+      error_response = validate_dates(data_day, data_day2)
+      if error_response:
+        return error_response
 
     # タスクID生成
     task_id = str(uuid.uuid4())
@@ -45,13 +47,25 @@ def start_task(request, task_type):
     elif task_type == 'kosu_delete':
       # 工数を削除する関数
       task_function = delete_kosu_data
+    elif task_type == 'kosu_load':
+      # ファイルを取得
+      kosu_file = request.FILES['kosu_file']
+      # 工数データをロードする関数
+      task_function = load_kosu_file
     else:
       # 無効なタスクタイプであればエラーを返却
       return JsonResponse({'status': 'error', 'message': '無効なタスクタイプです。'}, status=400)
 
-    # 非同期処理を実行するための新しいスレッド起動
-    thread = threading.Thread(target=handle_task, args=(task_id, task_function, data_day, data_day2))
-    thread.start()
+    # 日付指定のあるタスク実行時の処理
+    if task_type in ['kosu_backup', 'prediction', 'kosu_delete']:
+      # 非同期処理を実行するための新しいスレッド起動
+      thread = threading.Thread(target=handle_task1, args=(task_id, task_function, data_day, data_day2))
+      thread.start()
+    # 工数データロード時の処理
+    elif task_type == 'kosu_load':
+      # 非同期処理を実行するための新しいスレッド起動
+      thread = threading.Thread(target=handle_task2, args=(task_id, task_function, kosu_file))
+      thread.start()
 
     # タスクIDを返却し、非同期処理開始を通知
     return JsonResponse({'status': 'success', 'task_id': task_id})
@@ -69,8 +83,8 @@ def start_task(request, task_type):
 
 
 
-# 非同期タスク処理
-def handle_task(task_id, task_function, data_day, data_day2):
+# 非同期タスク処理(日付指定)
+def handle_task1(task_id, task_function, data_day, data_day2):
   try:
     # 工数バックアップor工数区分定義予測出力のタスクを実行し、ファイルパス取得
     file_path = task_function(data_day, data_day2)
@@ -79,6 +93,34 @@ def handle_task(task_id, task_function, data_day, data_day2):
     task = AsyncTask.objects.get(task_id=task_id)
     task.status = 'success'
     task.result = file_path
+    task.save()
+
+  except Exception as e:
+    # 処理中にエラーが発生した場合、 "error" に更新しエラーメッセージ保存
+    task = AsyncTask.objects.get(task_id=task_id)
+    task.status = 'error'
+    task.result = str(e)
+    task.save()
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+# 非同期タスク処理
+def handle_task2(task_id, task_function, kosu_file):
+  try:
+    # 工数バックアップor工数区分定義予測出力のタスクを実行し、ファイルパス取得
+    file_load = task_function(kosu_file)
+
+    # タスク結果更新
+    task = AsyncTask.objects.get(task_id=task_id)
+    task.status = 'success'
+    task.result = file_load
     task.save()
 
   except Exception as e:
@@ -173,5 +215,4 @@ def validate_dates(data_day, data_day2):
 
 
 #--------------------------------------------------------------------------------------------------------
-
 

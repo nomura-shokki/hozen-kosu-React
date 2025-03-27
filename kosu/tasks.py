@@ -2,7 +2,8 @@ import os
 from django.conf import settings
 import openpyxl
 import pandas as pd
-from .models import Business_Time_graph, kosu_division
+import tempfile
+from .models import Business_Time_graph, kosu_division, member
 from .utils.kosu_utils import kosu_division_dictionary
 
 
@@ -161,5 +162,86 @@ def delete_kosu_data(data_day, data_day2):
 
 
 #--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数データロード非同期処理
+def load_kosu_file(file_obj):
+  try:
+    # 一時ファイルを作成
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
+      # ファイルを書き込む
+      for chunk in file_obj.chunks():
+          temp_file.write(chunk)
+
+      # ファイル名を保存して `with` ブロック終了後も利用可能にする
+      temp_file_path = temp_file.name
+
+    # ファイルを開く（`with` を抜けても temp_file_path は有効）
+    wb = openpyxl.load_workbook(temp_file_path)
+    ws = wb.worksheets[0]
+
+    # ヘッダー定義
+    expected_headers = [
+      '従業員番号', '氏名', '工数区分定義Ver', '就業日', '直',
+      '作業内容', '作業詳細', '残業時間', '昼休憩時間',
+      '残業休憩時間1', '残業休憩時間2', '残業休憩時間3',
+      '就業形態', '工数入力OK_NG', '休憩変更チェック',
+      ]
+    # ファイル内ヘッダー取得
+    actual_headers = [ws.cell(1, col).value for col in range(1, len(expected_headers) + 1)]
+    # 
+    if actual_headers != expected_headers:
+      os.remove(temp_file_path)  # 一時ファイル削除
+      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None
+
+    # データをループで読み込む
+    for i in range(2, ws.max_row + 1):  # データは2行目から
+      employee_no = ws.cell(row=i, column=1).value
+      work_day2 = ws.cell(row=i, column=4).value
+
+      # もし既に同一データが存在するなら削除
+      existing_data = Business_Time_graph.objects.filter(
+        employee_no3=employee_no, work_day2=work_day2
+        )
+      if existing_data.exists():
+        existing_data.delete()
+
+      # 新データをインスタンスとして作成してDBに保存
+      Business_Time_graph.objects.create(
+        employee_no3=employee_no,
+        name=member.objects.get(employee_no=employee_no),
+        def_ver2=ws.cell(row=i, column=3).value,
+        work_day2=work_day2,
+        tyoku2=ws.cell(row=i, column=5).value,
+        time_work=ws.cell(row=i, column=6).value,
+        detail_work=ws.cell(row=i, column=7).value,
+        over_time=ws.cell(row=i, column=8).value,
+        breaktime=ws.cell(row=i, column=9).value,
+        breaktime_over1=ws.cell(row=i, column=10).value,
+        breaktime_over2=ws.cell(row=i, column=11).value,
+        breaktime_over3=ws.cell(row=i, column=12).value,
+        work_time=ws.cell(row=i, column=13).value,
+        judgement=ws.cell(row=i, column=14).value,
+        break_change=ws.cell(row=i, column=15).value,
+        )
+
+    # 最後に一時ファイルを削除
+    os.remove(temp_file_path)
+    return {'status': 'success'}, None
+
+  except Exception as e:
+    if 'temp_file_path' in locals():  # 一時ファイルが存在する場合は削除
+      os.remove(temp_file_path)
+    return {'status': 'error', 'message': str(e)}, None
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
 
 

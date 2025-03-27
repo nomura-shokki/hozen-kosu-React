@@ -6,21 +6,14 @@ from django.views.generic.edit import FormView
 from pathlib import Path
 from io import BytesIO
 import openpyxl
-import pandas as pd
 import datetime
 import math
 import os
 import environ
 import urllib.parse
-from ..utils.kosu_utils import kosu_division_dictionary
 from ..utils.kosu_utils import get_member
 from ..utils.main_utils import has_non_halfwidth_characters
-from ..models import member
-from ..models import Business_Time_graph
-from ..models import kosu_division
-from ..models import team_member
-from ..models import inquiry_data
-from ..models import administrator_data
+from ..models import member, Business_Time_graph, kosu_division, team_member, inquiry_data, administrator_data
 from ..forms import loginForm, administrator_data_Form, uploadForm
 
 
@@ -546,89 +539,6 @@ def administrator_menu(request):
     
     # フォームにPOST値を入れて定義
     form = administrator_data_Form(request.POST)
-
-
-
-  # 工数データ読み込み
-  if 'kosu_load' in request.POST:
-    # 工数データファイルが未選択時の処理
-    if 'kosu_file' not in request.FILES:
-      # エラーメッセージ出力
-      messages.error(request, '工数データファイルが選択されていません。ERROR065')
-      # このページをリダイレクト
-      return redirect(to = '/administrator')
-
-    # POSTされたファイルパスを変数に入れる
-    file_path = request.FILES['kosu_file']
-
-
-    # 一時的なファイルをサーバー上に作成
-    with open('kosu_file_path.xlsx', 'wb+') as destination:
-      # アップロードしたファイルを一時ファイルに書き込み
-      for chunk in file_path.chunks():
-        destination.write(chunk)
-
-    # 指定Excelを開く
-    wb = openpyxl.load_workbook('kosu_file_path.xlsx')
-    # 書き込みシート選択
-    ws = wb.worksheets[0]
-
-    # 読み込むファイルが正しいファイルでない場合の処理
-    if ws.cell(1, 1).value != '従業員番号' or ws.cell(1, 2).value != '氏名' or \
-      ws.cell(1, 3).value != '工数区分定義Ver' or ws.cell(1, 4).value != '就業日' or \
-      ws.cell(1, 5).value != '直' or ws.cell(1, 6).value != '作業内容' or \
-      ws.cell(1, 7).value != '作業詳細' or ws.cell(1, 8).value != '残業時間' or \
-      ws.cell(1, 9).value != '昼休憩時間' or ws.cell(1, 10).value != '残業休憩時間1' or \
-      ws.cell(1, 11).value != '残業休憩時間2' or ws.cell(1, 12).value != '残業休憩時間3' or \
-      ws.cell(1, 13).value != '就業形態' or ws.cell(1, 14).value != '工数入力OK_NG' or \
-      ws.cell(1, 15).value != '休憩変更チェック' :
-
-      # エラーメッセージ出力
-      messages.error(request, 'ロードしようとしたファイルは工数データバックアップではありません。ERROR066')
-      # このページをリダイレクト
-      return redirect(to = '/administrator')
-
-    # レコード数取得
-    data_num = ws.max_row
-
-    # Excelからデータを読み込こむループ
-    for i in range(1, data_num):
-      # 読み込み予定データと同一の日のデータが存在するか確認
-      kosu_data_filter = Business_Time_graph.objects.filter(employee_no3 = ws.cell(row = i + 1, column = 1).value, \
-                                                           work_day2 = ws.cell(row = i + 1, column = 4).value)
-      # 読み込み予定データと同一の日のデータが存在する場合の処理
-      if kosu_data_filter.count() != 0:
-        # 読み込み予定データと同一の日のデータを取得
-        kosu_data_get = Business_Time_graph.objects.get(employee_no3 = ws.cell(row = i + 1, column = 1).value, \
-                                                       work_day2 = ws.cell(row = i + 1, column = 4).value)
-        # 読み込み予定データと同一の日のデータを削除
-        kosu_data_get.delete()
-
-      # 人員データインスタンス取得
-      member_instance = member.objects.get(employee_no = ws.cell(row = i + 1, column = 1).value)
-
-      # Excelからデータを読み込こみ
-      new_data = Business_Time_graph(employee_no3 = ws.cell(row = i + 1, column = 1).value, \
-                                      name = member_instance, \
-                                      def_ver2 = ws.cell(row = i + 1, column = 3).value, \
-                                      work_day2 = ws.cell(row = i + 1, column = 4).value, \
-                                      tyoku2 = ws.cell(row = i + 1, column = 5).value, \
-                                      time_work = ws.cell(row = i + 1, column = 6).value, \
-                                      detail_work = ws.cell(row = i + 1, column = 7).value, \
-                                      over_time = ws.cell(row = i + 1, column = 8).value, \
-                                      breaktime = ws.cell(row = i + 1, column = 9).value, \
-                                      breaktime_over1 = ws.cell(row = i + 1, column = 10).value, \
-                                      breaktime_over2 = ws.cell(row = i + 1, column = 11).value, \
-                                      breaktime_over3 = ws.cell(row = i + 1, column = 12).value, \
-                                      work_time = ws.cell(row = i + 1, column = 13).value, \
-                                      judgement = ws.cell(row = i + 1, column = 14).value, \
-                                      break_change = ws.cell(row = i + 1, column = 15).value) 
-
-      # レコードセーブ
-      new_data.save()
-
-    # 一時ファイル削除
-    os.remove('kosu_file_path.xlsx')
 
 
 

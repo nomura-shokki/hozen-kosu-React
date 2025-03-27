@@ -18,53 +18,53 @@
       <p class="h5 mb-0 no-wrap">こんにちは、{{data.name}}さん。</p>
     </div>
     {% if pop_up_display == True %}
-      {% if pop_up.pop_up1 != null %}
+      {% if pop_up.pop_up1 and pop_up.pop_up1|length > 0 %}
         <p class="h6 mt-4">
           <a href="{% url 'inquiry_display' pop_up.pop_up_id1 %}" class="text-danger">{{pop_up.pop_up1}}</a>
         </p>
       {% endif %}
-      {% if pop_up.pop_up2 != null %}
+      {% if pop_up.pop_up2 and pop_up.pop_up2|length > 0 %}
         <p class="h6 mt-4 text-danger">
           <a href="{% url 'inquiry_display' pop_up.pop_up_id2 %}" class="text-danger">{{pop_up.pop_up2}}</a>
         </p>
       {% endif %}
-      {% if pop_up.pop_up3 != null %}
+      {% if pop_up.pop_up3 and pop_up.pop_up3|length > 0 %}
         <p class="h6 mt-4 text-danger">
           <a href="{% url 'inquiry_display' pop_up.pop_up_id3 %}" class="text-danger">{{pop_up.pop_up3}}</a>
         </p>
       {% endif %}
-      {% if pop_up.pop_up4 != null %}
+      {% if pop_up.pop_up4 and pop_up.pop_up4|length > 0 %}
         <p class="h6 mt-4 text-danger">
           <a href="{% url 'inquiry_display' pop_up.pop_up_id4 %}" class="text-danger">{{pop_up.pop_up4}}</a>
         </p>
       {% endif %}
-      {% if pop_up.pop_up5 != null %}
+      {% if pop_up.pop_up5 and pop_up.pop_up5|length > 0 %}
         <p class="h6 mt-4 text-danger">
           <a href="{% url 'inquiry_display' pop_up.pop_up_id5 %}" class="text-danger">{{pop_up.pop_up5}}</a>
         </p>
       {% endif %}
     {% endif %}
-    {% if data.pop_up1 != null %}
+    {% if data.pop_up1 and data.pop_up1|length > 0 %}
       <p class="h6 mt-4 text-danger">
         <a href="{% url 'inquiry_display' data.pop_up_id1 %}" class="text-danger">{{data.pop_up1}}</a>
       </p>
     {% endif %}
-    {% if data.pop_up2 != null %}
+    {% if data.pop_up2 and data.pop_up2|length > 0 %}
       <p class="h6 mt-4 text-danger">
         <a href="{% url 'inquiry_display' data.pop_up_id2 %}" class="text-danger">{{data.pop_up2}}</a>
       </p>
     {% endif %}
-    {% if data.pop_up3 != null %}
+    {% if data.pop_up3 and data.pop_up3|length > 0 %}
       <p class="h6 mt-4 text-danger">
         <a href="{% url 'inquiry_display' data.pop_up_id3 %}" class="text-danger">{{data.pop_up3}}</a>
       </p>
     {% endif %}
-    {% if data.pop_up4 != null %}
+    {% if data.pop_up4 and data.pop_up4|length > 0 %}
       <p class="h6 mt-4 text-danger">
         <a href="{% url 'inquiry_display' data.pop_up_id4 %}" class="text-danger">{{data.pop_up4}}</a>
       </p>
     {% endif %}
-    {% if data.pop_up5 != null %}
+    {% if data.pop_up5 and data.pop_up5|length > 0 %}
       <p class="h6 mt-4 text-danger">
         <a href="{% url 'inquiry_display' data.pop_up_id5 %}" class="text-danger">{{data.pop_up5}}</a>
       </p>
