@@ -1,14 +1,5 @@
 // 汎用的なバックアップ処理を開始する関数
 function startBackup(endpoint, monitorFunc) {
-  /**
-   * 指定されたエンドポイント（API）に非同期バックアップタスクを開始するリクエストを送信します。
-   * 開始日、終了日を取得し、それらをバックエンドに送信します。
-   * 非同期タスクの状態を監視する関数を実行します。
-   *
-   * @param {string} endpoint - 非同期タスクを開始するバックエンドAPIのURL。
-   * @param {function} monitorFunc - 非同期タスクの監視関数。
-   */
-
   // バックアップ期間の日付データをHTMLの入力フィールドから取得
   const dataDay = document.querySelector('input[name="data_day"]').value;
   const dataDay2 = document.querySelector('input[name="data_day2"]').value;
@@ -45,15 +36,6 @@ function startBackup(endpoint, monitorFunc) {
 
 // 汎用的なタスク進行状況監視関数
 function monitorTaskStatus(endpoint, downloadFunc) {
-  /**
-   * 非同期タスクの状態を監視する関数。
-   * 定期的にバックエンドAPIにリクエストを送り、タスクの状態を確認します。
-   * タスクが完了したらファイルのダウンロードを開始します。
-   *
-   * @param {string} endpoint - タスク状態を確認するバックエンドAPIのURL。
-   * @param {function} downloadFunc - ファイルダウンロードを行う関数。
-   */
-
   // 一定間隔でタスク状態を確認するためのタイマーを設定
   const interval = setInterval(() => {
     fetch(endpoint) // タスク状態を確認するためにGETリクエストを送信
@@ -80,14 +62,6 @@ function monitorTaskStatus(endpoint, downloadFunc) {
 
 // 汎用的なファイルダウンロード関数
 function downloadFile(endpoint, filePath) {
-  /**
-   * 指定されたファイルをユーザーにダウンロードさせる。
-   * 非同期タスクが完了した後に実行されます。
-   *
-   * @param {string} endpoint - ファイルダウンロードAPIのURL。
-   * @param {string} filePath - ダウンロードするファイルのパス。
-   */
-
   // 仮想リンク（<a> 要素）を作成しそのリンクをクリックすることでファイルをダウンロード
   const link = document.createElement('a');
   link.href = `${endpoint}?file_path=${encodeURIComponent(filePath)}`; // ダウンロード用のURL
@@ -97,13 +71,6 @@ function downloadFile(endpoint, filePath) {
 
 // CSRFトークン取得関数
 function getCsrfToken() {
-  /**
-   * CSRFトークンをHTML内の<input>要素から取得します。
-   * CSRFトークンはDjangoなどのバックエンドフレームワークでセキュリティに使用されます。
-   *
-   * @returns {string} - CSRFトークン。
-   */
-
   const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
   if (!token) {
     // CSRFトークンが見つからない場合はエラーメッセージをログに記録
@@ -114,10 +81,6 @@ function getCsrfToken() {
 
 // ボタンのクリックイベントリスナーを設定（バックアップ処理に対応）
 document.getElementById('start-asynchronous1').addEventListener('click', () => {
-  /**
-   * ボタンがクリックされた時にバックアップ処理を開始するリスナー。
-   * タスクが成功するまで進行状況を監視し、完了後にファイルをダウンロードします。
-   */
   startBackup('/start_kosu_backup', (taskId) => { // `/start_kosu_backup` APIでタスク開始
     monitorTaskStatus(`/check_kosu_backup_status?task_id=${taskId}`, (filePath) => {
       downloadFile('/download_kosu_backup', filePath); // 完了したタスクのファイルをダウンロード
@@ -127,10 +90,6 @@ document.getElementById('start-asynchronous1').addEventListener('click', () => {
 
 // ボタンのクリックイベントリスナーを設定（予測処理に対応）
 document.getElementById('start-asynchronous2').addEventListener('click', () => {
-  /**
-   * ボタンがクリックされた時に予測処理を開始するリスナー。
-   * タスクが成功するまで進行状況を監視し、完了後にファイルをダウンロードします。
-   */
   startBackup('/start_kosu_prediction', (taskId) => { // `/start_kosu_prediction` APIでタスク開始
     monitorTaskStatus(`/check_kosu_prediction_status?task_id=${taskId}`, (filePath) => {
       downloadFile('/download_kosu_prediction', filePath); // 完了したタスクのファイルをダウンロード
@@ -140,10 +99,6 @@ document.getElementById('start-asynchronous2').addEventListener('click', () => {
 
 
 document.getElementById('start-asynchronous3').addEventListener('click', () => {
-  /**
-   * 工数データの削除を開始するリスナー。
-   * タスクが成功するまで進行状況を監視し、完了後にポップアップを表示。
-   */
   startBackup('/start_kosu_delete', (taskId) => { // `/start_kosu_delete` APIでタスク開始
     monitorTaskStatus(`/check_kosu_delete_status?task_id=${taskId}`, () => {
       alert('削除が完了しました。'); // 削除完了後にポップアップを表示

@@ -293,7 +293,7 @@ def handle_work_shift(request, member_obj, new_work_day):
 
 
 
-# 時＆分　分離関数
+# 時＆分 分離関数
 def time_index(post_time):
   # 時間の区切りのインデックス取得
   post_index = post_time.index(':')
@@ -1115,7 +1115,7 @@ def get_member(request):
   except member.DoesNotExist:
     request.session.clear()
     return redirect('/login')
-  
+
 
 
 

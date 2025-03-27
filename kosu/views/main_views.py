@@ -632,30 +632,6 @@ def administrator_menu(request):
 
 
 
-  # 工数データ削除
-  if 'kosu_delete' in request.POST:
-    # 日付指定空の場合の処理
-    if request.POST['data_day'] in ["", None] or request.POST['data_day2'] in ["", None]:
-      # エラーメッセージ出力
-      messages.error(request, '削除する日付を指定してください。ERROR069')
-      # このページをリダイレクト
-      return redirect(to = '/administrator')
-
-    # 削除開始日が終了日を超えている場合の処理
-    if request.POST['data_day'] > request.POST['data_day2'] :
-      # エラーメッセージ出力
-      messages.error(request, '削除開始日が終了日を超えています。ERROR070')
-      # このページをリダイレクト
-      return redirect(to = '/administrator')
-
-
-    # 工数データ取得
-    kosu_obj = Business_Time_graph.objects.filter(work_day2__gte = request.POST['data_day'], work_day2__lte = request.POST['data_day2'])
-    # 取得した工数データを削除
-    kosu_obj.delete()
-
-
-
   # 人員情報バックアップ処理
   if 'member_backup' in request.POST:
     # 今日の日付取得

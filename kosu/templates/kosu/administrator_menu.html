@@ -55,19 +55,19 @@
             <input type="submit" value="削除" id="start-asynchronous3" onclick="return confirmDelete_all();" class="btn btn-gray2 mt-2">
           </td>
         </tr>
-      <form action="{% url 'administrator' %}" method="post" enctype="multipart/form-data">
         <tr>
           <th>
             工数データロードファイルパス
           </th>
           <td>
             {{load_form.kosu_file}}
-            <input type="submit" value="ロード" name=kosu_load class="btn btn-gray2 mt-2">
+            <input type="submit" value="ロード" id="start-asynchronous4" class="btn btn-gray2 mt-2">
           </td>
         </tr>
         <tr><th><td>
           　
         </td></th></tr>
+      <form action="{% url 'administrator' %}" method="post" enctype="multipart/form-data">
         <tr>
           <th>
             人員情報バックアップ

@@ -57,14 +57,14 @@ urlpatterns = [
   path('inquiry_edit/<int:num>',inquiry_views.inquiry_edit, name='inquiry_edit'),
   path('dynamic-choices/', kosu_views.dynamic_choices, name='dynamic_choices'),
   path('all-choices/', kosu_views.all_choices, name='all_choices'),
-  path('start_kosu_backup', lambda request: asynchronous_views.start_task(request, 'backup'), name='start_kosu_backup'),
+  path('start_kosu_backup', lambda request: asynchronous_views.start_task(request, 'kosu_backup'), name='start_kosu_backup'),
   path('start_kosu_prediction', lambda request: asynchronous_views.start_task(request, 'prediction'), name='start_kosu_prediction'),
+  path('start_kosu_delete', lambda request: asynchronous_views.start_task(request, 'kosu_delete'), name='start_kosu_delete'),
   path('check_kosu_backup_status', asynchronous_views.check_task_status, name='check_kosu_backup_status'),
   path('check_kosu_prediction_status', asynchronous_views.check_task_status, name='check_kosu_prediction_status'),
+  path('check_kosu_delete_status', asynchronous_views.check_task_status, name='check_kosu_delete_status'),
   path('download_kosu_backup', asynchronous_views.download_file, name='download_kosu_backup'),
   path('download_kosu_prediction', asynchronous_views.download_file, name='download_kosu_prediction'),
-  path('start_kosu_delete', asynchronous_views.start_kosu_delete, name='start_kosu_delete'),
-  path('check_kosu_delete_status', asynchronous_views.check_kosu_delete_status, name='check_kosu_delete_status'),
   ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
