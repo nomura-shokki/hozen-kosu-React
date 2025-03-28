@@ -1,40 +1,43 @@
-// 汎用的なバックアップ処理を開始する関数
-function startBackup(endpoint, monitorFunc) {
-  // バックアップ期間の日付データをHTMLの入力フィールドから取得
-  const dataDay = document.querySelector('input[name="data_day"]').value;
-  const dataDay2 = document.querySelector('input[name="data_day2"]').value;
+// バックアップ処理開始関数
+function startBackup(endpoint, monitorFunc, options = {}) {
+  const headers = {
+    'X-CSRFToken': getCsrfToken()
+  };
 
-  // 日付が入力されていない場合はユーザーにエラーメッセージを表示（必須チェック）
-  if (!dataDay || !dataDay2) {
-    alert("日付を指定してください。");
-    return; // 処理終了
+  let body = null;
+
+  if (options.requireDates) {
+    // 日付データをオプションで要求
+    const dataDay = document.querySelector('input[name="data_day"]').value;
+    const dataDay2 = document.querySelector('input[name="data_day2"]').value;
+
+    if (!dataDay || !dataDay2) {
+      alert("日付を指定してください。");
+      return;
+    }
+
+    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    body = `data_day=${encodeURIComponent(dataDay)}&data_day2=${encodeURIComponent(dataDay2)}`;
   }
 
-  // 非同期タスクを開始するためのPOSTリクエストを送信
   fetch(endpoint, {
-    method: 'POST', // HTTPメソッドはPOST
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded', // リクエストの形式（URLエンコード）
-      'X-CSRFToken': getCsrfToken() // CSRFトークンをヘッダーに追加してセキュリティを確保
-    },
-    // リクエストのボディに日付範囲データを送信（開始日と終了日）
-    body: `data_day=${encodeURIComponent(dataDay)}&data_day2=${encodeURIComponent(dataDay2)}`
+    method: 'POST',
+    headers: headers,
+    body: body
   })
-  .then(response => response.json()) // サーバーからの応答をJSON形式に変換
+  .then(response => response.json())
   .then(data => {
     if (data.status === 'success') {
-      // 非同期タスクIDを取得して進行状況監視関数を呼び出し
       const taskId = data.task_id;
-      monitorFunc(taskId); // 非同期タスクの状態を監視
+      monitorFunc(taskId);
     } else {
-      // サーバーからエラーメッセージが返却された場合は表示
       alert(data.message);
     }
   })
-  .catch(err => console.error('Error:', err)); // ネットワークエラーやその他のエラーをログに記録
+  .catch(err => console.error('Error:', err));
 }
 
-function uploadFile(endpoint, fileInputSelector, monitorFunc) {
+function uploadFile(endpoint, fileInputSelector, monitorFunc, fileKey) {
   const fileInput = document.querySelector(fileInputSelector); // ファイル入力要素の選択
   if (!fileInput.files.length) {
     alert("ファイルを選択してください。"); // ファイルが未選択の場合は警告
@@ -42,7 +45,7 @@ function uploadFile(endpoint, fileInputSelector, monitorFunc) {
   }
 
   const formData = new FormData();
-  formData.append('kosu_file', fileInput.files[0]); // ファイルをフォームデータに追加
+  formData.append(fileKey, fileInput.files[0]); // ファイルを指定されたキーでフォームデータに追加
 
   // CSRFトークンを取得して設定
   const csrfToken = getCsrfToken();
@@ -116,22 +119,21 @@ function getCsrfToken() {
   return token;
 }
 
-// ボタンのクリックイベントリスナーを設定（バックアップ処理に対応）
 document.getElementById('start-asynchronous1').addEventListener('click', () => {
-  startBackup('/start_kosu_backup', (taskId) => { // `/start_kosu_backup` APIでタスク開始
+  startBackup('/start_kosu_backup', (taskId) => {
     monitorTaskStatus(`/check_kosu_backup_status?task_id=${taskId}`, (data) => {
-      downloadFile('/download_kosu_backup', data.file_path); // 完了したタスクのファイルをダウンロード
+      downloadFile('/download_kosu_backup', data.file_path);
     });
-  });
+  }, { requireDates: true });
 });
 
 // ボタンのクリックイベントリスナーを設定（予測処理に対応）
 document.getElementById('start-asynchronous2').addEventListener('click', () => {
-  startBackup('/start_kosu_prediction', (taskId) => { // `/start_kosu_prediction` APIでタスク開始
+  startBackup('/start_kosu_prediction', (taskId) => {
     monitorTaskStatus(`/check_kosu_prediction_status?task_id=${taskId}`, (data) => {
-      downloadFile('/download_kosu_prediction', data.file_path); // 完了したタスクのファイルをダウンロード
+      downloadFile('/download_kosu_prediction', data.file_path);
     });
-  });
+  }, { requireDates: true });
 });
 
 
@@ -140,7 +142,7 @@ document.getElementById('start-asynchronous3').addEventListener('click', () => {
     monitorTaskStatus(`/check_kosu_delete_status?task_id=${taskId}`, () => {
       alert('削除が完了しました。'); // 削除完了後にポップアップを表示
     });
-  });
+  }, { requireDates: true });
 });
 
 document.getElementById('start-asynchronous4').addEventListener('click', () => {
@@ -148,11 +150,21 @@ document.getElementById('start-asynchronous4').addEventListener('click', () => {
     monitorTaskStatus(`/check_kosu_load_status?task_id=${taskId}`, () => {
       alert('ロードが完了しました！'); // 完了時にポップアップを表示
     });
+  }, 'kosu_file');
+});
+
+document.getElementById('start-asynchronous5').addEventListener('click', () => {
+  startBackup('/start_member_backup', (taskId) => {
+    monitorTaskStatus(`/check_member_backup_status?task_id=${taskId}`, (data) => {
+      downloadFile('/download_member_backup', data.file_path);
+    });
   });
 });
 
-
-
-
-
-
+document.getElementById('start-asynchronous6').addEventListener('click', () => {
+  uploadFile('/start_member_load', 'input[name="member_file"]', (taskId) => {
+    monitorTaskStatus(`/check_member_load_status?task_id=${taskId}`, () => {
+      alert('ロードが完了しました！');
+    });
+  }, 'member_file');
+});

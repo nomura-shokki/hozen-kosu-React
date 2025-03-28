@@ -1240,7 +1240,8 @@ def detail(request, num):
     # 日付に変更がある場合の処理
     if request.POST['kosu_day'] != str(obj_get.work_day2):
       # 指定日に工数データがあるか確認
-      obj_check = Business_Time_graph.objects.filter(work_day2 = request.POST['kosu_day'])
+      obj_check = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
+                                                     work_day2 = request.POST['kosu_day'])
 
       # 指定日に工数データがある場合、リダイレクト
       if obj_check.exists():
