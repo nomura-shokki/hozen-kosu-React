@@ -1,170 +1,179 @@
 // バックアップ処理開始関数
 function startBackup(endpoint, monitorFunc, options = {}) {
   const headers = {
-    'X-CSRFToken': getCsrfToken()
+    'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
   };
 
   let body = null;
 
+  // 日付の入力が必要な場合、日付を取得
   if (options.requireDates) {
-    // 日付データをオプションで要求
     const dataDay = document.querySelector('input[name="data_day"]').value;
     const dataDay2 = document.querySelector('input[name="data_day2"]').value;
 
+    // 必須の日付が未入力の場合、警告
     if (!dataDay || !dataDay2) {
       alert("日付を指定してください。");
       return;
     }
 
+    // POSTする際のContent-TypeをフォームデータをURLエンコードした形式に設定
     headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    // 日付データをURLエンコードして送信
     body = `data_day=${encodeURIComponent(dataDay)}&data_day2=${encodeURIComponent(dataDay2)}`;
   }
 
+  // サーバーにPOST送信
   fetch(endpoint, {
     method: 'POST',
     headers: headers,
     body: body
   })
-  .then(response => response.json())
+  .then(response => response.json()) // レスポンスJSONに変換
   .then(data => {
+    // タスク開始成功時の処理
     if (data.status === 'success') {
-      const taskId = data.task_id;
-      monitorFunc(taskId);
+      const taskId = data.task_id; // タスクID取得
+      monitorFunc(taskId); // タスク監視関数を呼び出し
     } else {
-      alert(data.message);
-    }
-  })
-  .catch(err => console.error('Error:', err));
-}
-
-function uploadFile(endpoint, fileInputSelector, monitorFunc, fileKey) {
-  const fileInput = document.querySelector(fileInputSelector); // ファイル入力要素の選択
-  if (!fileInput.files.length) {
-    alert("ファイルを選択してください。"); // ファイルが未選択の場合は警告
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append(fileKey, fileInput.files[0]); // ファイルを指定されたキーでフォームデータに追加
-
-  // CSRFトークンを取得して設定
-  const csrfToken = getCsrfToken();
-
-  fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'X-CSRFToken': csrfToken // CSRFトークンを設定
-    },
-    body: formData // フォームデータを送信
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.status === 'success') {
-      const taskId = data.task_id;
-      monitorFunc(taskId); // 成功時にタスク状態監視処理を開始
-    } else {
-      alert(data.message); // エラー発生時はメッセージを表示
+      alert(data.message); // エラーメッセージを通知
     }
   })
   .catch(err => console.error('Error:', err)); // ネットワークエラーなどをログに記録
 }
 
-// 汎用的なタスク進行状況監視関数
+
+
+// ファイルアップロード処理関数
+function uploadFile(endpoint, fileInputSelector, monitorFunc, fileKey) {
+  // ファイル入力要素取得
+  const fileInput = document.querySelector(fileInputSelector);
+  // ファイルが選択されていない場合、警告
+  if (!fileInput.files.length) {
+    alert("ファイルを選択してください。");
+    return;
+  }
+
+  const formData = new FormData(); // FormDataオブジェクトを作成
+  formData.append(fileKey, fileInput.files[0]); // ファイルを指定されたキーでFormDataに追加
+
+  const csrfToken = getCsrfToken(); // CSRFトークンを取得
+
+  // サーバーにファイルを送信
+  fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': csrfToken // CSRFトークンをヘッダーに設定
+    },
+    body: formData // ファイルを含むFormDataを送信
+  })
+  .then(response => response.json()) // レスポンスをJSONとしてパース
+  .then(data => {
+    if (data.status === 'success') {
+      const taskId = data.task_id; // タスクIDを取得
+      monitorFunc(taskId); // タスクの監視関数を呼び出し
+    } else {
+      alert(data.message); // エラーメッセージをアラートで通知
+    }
+  })
+  .catch(err => console.error('Error:', err)); // ネットワークエラーをログに記録
+}
+
+// タスクの進行状態を監視する汎用的な関数
 function monitorTaskStatus(endpoint, onSuccess, onError = null) {
   const interval = setInterval(() => {
-    fetch(endpoint)
-      .then(response => response.json())
+    fetch(endpoint) // 定期的に状態を確認するためにリクエストを送信
+      .then(response => response.json()) // レスポンスをJSONとしてパース
       .then(data => {
         if (data.status === 'success') { 
-          // 成功時にタイマーを停止し、成功後の処理を実行
-          clearInterval(interval);
+          clearInterval(interval); // 成功時には監視を停止
           if (onSuccess) {
-            onSuccess(data); // 完了時の成功コールバックを呼び出し
+            onSuccess(data); // 成功時のコールバックを呼び出す
           }
         } else if (data.status === 'error') { 
-          // エラー時にタイマーを停止し、エラーハンドリングを実行
-          clearInterval(interval);
+          clearInterval(interval); // エラー発生時にも監視を停止
           if (onError) {
-            onError(data); // 必要に応じてエラー処理を呼び出す
+            onError(data); // エラー処理が定義されていれば実行
           } else {
-            alert(data.message); // `onError`未指定ならエラー通知
+            alert(data.message); // エラーメッセージを表示
           }
         }
-        // タスクが "pending" の場合は処理を継続（何もしない）
+        // タスクが "pending" の場合は何もせず監視を続ける
       })
       .catch(err => {
-        // ネットワークエラー時にはタイマーを停止し、エラー内容を記録
-        clearInterval(interval);
-        console.error('Error:', err);
+        clearInterval(interval); // ネットワークエラー時には監視を停止
+        console.error('Error:', err); // エラーをログに記録
       });
-  }, 1000); // タスク状態を1秒間隔で確認
+  }, 1000); // 1秒間隔でタスク状態を確認
 }
 
-// 汎用的なファイルダウンロード関数
+// ファイルをダウンロードする汎用的な関数
 function downloadFile(endpoint, filePath) {
-  // 仮想リンク（<a> 要素）を作成しそのリンクをクリックすることでファイルをダウンロード
-  const link = document.createElement('a');
-  link.href = `${endpoint}?file_path=${encodeURIComponent(filePath)}`; // ダウンロード用のURL
-  link.download = ''; // ファイル名はサーバー側で設定されるため空にする
-  link.click(); // 仮想的なクリックイベントを発生させてダウンロードを開始
+  const link = document.createElement('a'); // 仮想的な<a>要素を作成
+  link.href = `${endpoint}?file_path=${encodeURIComponent(filePath)}`; // ダウンロードURLを設定
+  link.download = ''; // ファイル名はサーバー設定に委ねる（空の状態）
+  link.click(); // 仮想クリックでダウンロードを開始
 }
 
-// CSRFトークン取得関数
+// CSRFトークンを取得する関数
 function getCsrfToken() {
-  const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+  const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value; // CSRFトークンをフォームから取得
   if (!token) {
-    // CSRFトークンが見つからない場合はエラーメッセージをログに記録
-    console.error("CSRFトークンが見つかりません。");
+    console.error("CSRFトークンが見つかりません。"); // 見つからない場合はエラーログを記録
   }
   return token;
 }
 
+// ボタン操作によるバックアップ開始イベント（例：コスバックアップ）
 document.getElementById('start-asynchronous1').addEventListener('click', () => {
   startBackup('/start_kosu_backup', (taskId) => {
     monitorTaskStatus(`/check_kosu_backup_status?task_id=${taskId}`, (data) => {
-      downloadFile('/download_kosu_backup', data.file_path);
+      downloadFile('/download_kosu_backup', data.file_path); // 処理成功後、ダウンロードを開始
     });
-  }, { requireDates: true });
+  }, { requireDates: true }); // 日付指定が必要であるオプションを追加
 });
 
-// ボタンのクリックイベントリスナーを設定（予測処理に対応）
+// コス予測処理を開始
 document.getElementById('start-asynchronous2').addEventListener('click', () => {
   startBackup('/start_kosu_prediction', (taskId) => {
     monitorTaskStatus(`/check_kosu_prediction_status?task_id=${taskId}`, (data) => {
-      downloadFile('/download_kosu_prediction', data.file_path);
+      downloadFile('/download_kosu_prediction', data.file_path); // 処理完了後、予測結果をダウンロード
     });
   }, { requireDates: true });
 });
 
-
+// コス削除処理を開始
 document.getElementById('start-asynchronous3').addEventListener('click', () => {
-  startBackup('/start_kosu_delete', (taskId) => { // `/start_kosu_delete` APIでタスク開始
+  startBackup('/start_kosu_delete', (taskId) => {
     monitorTaskStatus(`/check_kosu_delete_status?task_id=${taskId}`, () => {
-      alert('削除が完了しました。'); // 削除完了後にポップアップを表示
+      alert('削除が完了しました。'); // 成功後にポップアップを表示
     });
   }, { requireDates: true });
 });
 
+// コスロード（ファイルアップロード）を開始
 document.getElementById('start-asynchronous4').addEventListener('click', () => {
   uploadFile('/start_kosu_load', 'input[name="kosu_file"]', (taskId) => {
     monitorTaskStatus(`/check_kosu_load_status?task_id=${taskId}`, () => {
-      alert('ロードが完了しました！'); // 完了時にポップアップを表示
+      alert('ロードが完了しました！'); // 成功通知
     });
   }, 'kosu_file');
 });
 
+// メンバーバックアップ処理を開始
 document.getElementById('start-asynchronous5').addEventListener('click', () => {
   startBackup('/start_member_backup', (taskId) => {
     monitorTaskStatus(`/check_member_backup_status?task_id=${taskId}`, (data) => {
-      downloadFile('/download_member_backup', data.file_path);
+      downloadFile('/download_member_backup', data.file_path); // 結果をダウンロード
     });
   });
 });
 
+// メンバーファイルのロード（ファイルアップロード）を開始
 document.getElementById('start-asynchronous6').addEventListener('click', () => {
   uploadFile('/start_member_load', 'input[name="member_file"]', (taskId) => {
     monitorTaskStatus(`/check_member_load_status?task_id=${taskId}`, () => {
-      alert('ロードが完了しました！');
+      alert('ロードが完了しました！'); // 成功を通知
     });
   }, 'member_file');
 });
