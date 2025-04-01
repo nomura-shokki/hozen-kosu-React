@@ -2,7 +2,9 @@ from django.http import JsonResponse, FileResponse
 import os
 import threading
 import uuid
-from ..tasks import generate_kosu_backup, generate_prediction, delete_kosu_data, load_kosu_file, generate_member_backup, load_member_file
+from ..tasks import generate_kosu_backup, generate_prediction, delete_kosu_data, load_kosu_file, \
+                    generate_member_backup, load_member_file, generate_team_backup, load_team_file, \
+                    generate_def_backup, load_def_file
 from ..models import AsyncTask
 
 
@@ -57,6 +59,20 @@ def start_task(request, task_type):
       member_file = request.FILES['member_file']
       task_function = load_member_file
       args = (request, member_file)
+    elif task_type == 'team_backup':
+      task_function = generate_team_backup
+      args = ()
+    elif task_type == 'team_load':
+      team_file = request.FILES['team_file']
+      task_function = load_team_file
+      args = (team_file,)
+    elif task_type == 'def_backup':
+      task_function = generate_def_backup
+      args = ()
+    elif task_type == 'def_load':
+      def_file = request.FILES['def_file']
+      task_function = load_def_file
+      args = (def_file,)
     else:
       # 無効なタスクタイプであればエラーを返却
       return JsonResponse({'status': 'error', 'message': '無効なタスクタイプです。'}, status=400)

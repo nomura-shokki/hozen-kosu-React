@@ -1,4 +1,4 @@
-// バックアップ処理開始関数
+// バックアップ開始関数
 function startBackup(endpoint, monitorFunc, options = {}) {
   const headers = {
     'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
@@ -36,15 +36,15 @@ function startBackup(endpoint, monitorFunc, options = {}) {
       const taskId = data.task_id; // タスクID取得
       monitorFunc(taskId); // タスク監視関数を呼び出し
     } else {
-      alert(data.message); // エラーメッセージを通知
+      alert(data.message); // エラーメッセージ出力
     }
   })
-  .catch(err => console.error('Error:', err)); // ネットワークエラーなどをログに記録
+  .catch(err => console.error('Error:', err)); // エラーを記録
 }
 
 
 
-// ファイルアップロード処理関数
+// ファイルアップロード関数
 function uploadFile(endpoint, fileInputSelector, monitorFunc, fileKey) {
   // ファイル入力要素取得
   const fileInput = document.querySelector(fileInputSelector);
@@ -54,10 +54,10 @@ function uploadFile(endpoint, fileInputSelector, monitorFunc, fileKey) {
     return;
   }
 
-  const formData = new FormData(); // FormDataオブジェクトを作成
-  formData.append(fileKey, fileInput.files[0]); // ファイルを指定されたキーでFormDataに追加
+  const formData = new FormData(); // FormData作成
+  formData.append(fileKey, fileInput.files[0]); // ファイルをFormDataに追加
 
-  const csrfToken = getCsrfToken(); // CSRFトークンを取得
+  const csrfToken = getCsrfToken(); // CSRFトークン取得
 
   // サーバーにファイルを送信
   fetch(endpoint, {
@@ -65,115 +65,202 @@ function uploadFile(endpoint, fileInputSelector, monitorFunc, fileKey) {
     headers: {
       'X-CSRFToken': csrfToken // CSRFトークンをヘッダーに設定
     },
-    body: formData // ファイルを含むFormDataを送信
+    body: formData // FormData送信
   })
-  .then(response => response.json()) // レスポンスをJSONとしてパース
+  .then(response => response.json()) // レスポンスJSONに変換
   .then(data => {
     if (data.status === 'success') {
-      const taskId = data.task_id; // タスクIDを取得
-      monitorFunc(taskId); // タスクの監視関数を呼び出し
+      const taskId = data.task_id; // タスクID取得
+      monitorFunc(taskId); // タスク監視関数呼び出し
     } else {
-      alert(data.message); // エラーメッセージをアラートで通知
+      alert(data.message); // エラー出力
     }
   })
-  .catch(err => console.error('Error:', err)); // ネットワークエラーをログに記録
+  .catch(err => console.error('Error:', err)); // エラーを記録
 }
 
-// タスクの進行状態を監視する汎用的な関数
+
+
+// タスク進行状態監視関数
 function monitorTaskStatus(endpoint, onSuccess, onError = null) {
   const interval = setInterval(() => {
     fetch(endpoint) // 定期的に状態を確認するためにリクエストを送信
-      .then(response => response.json()) // レスポンスをJSONとしてパース
+      .then(response => response.json()) // レスポンスJSONに変換
       .then(data => {
-        if (data.status === 'success') { 
-          clearInterval(interval); // 成功時には監視を停止
+        if (data.status === 'success') { // タスク成功時
+          clearInterval(interval); // 監視停止
           if (onSuccess) {
-            onSuccess(data); // 成功時のコールバックを呼び出す
+            onSuccess(data); // コールバックを呼び出す
           }
-        } else if (data.status === 'error') { 
-          clearInterval(interval); // エラー発生時にも監視を停止
+        } else if (data.status === 'error') { // タスクエラー時
+          clearInterval(interval); // 監視停止
           if (onError) {
             onError(data); // エラー処理が定義されていれば実行
           } else {
-            alert(data.message); // エラーメッセージを表示
+            alert(data.message); // エラー出力
           }
         }
-        // タスクが "pending" の場合は何もせず監視を続ける
+        // "pending" の場合は監視続行
       })
-      .catch(err => {
-        clearInterval(interval); // ネットワークエラー時には監視を停止
+      .catch(err => { // ネットワークエラー時
+        clearInterval(interval); // 監視停止
         console.error('Error:', err); // エラーをログに記録
       });
-  }, 1000); // 1秒間隔でタスク状態を確認
+  }, 1000); // 1秒間隔でタスク状態確認
 }
 
-// ファイルをダウンロードする汎用的な関数
+
+
+// ファイルダウンロード関数
 function downloadFile(endpoint, filePath) {
-  const link = document.createElement('a'); // 仮想的な<a>要素を作成
+  const link = document.createElement('a'); // 仮想リンク作成
   link.href = `${endpoint}?file_path=${encodeURIComponent(filePath)}`; // ダウンロードURLを設定
-  link.download = ''; // ファイル名はサーバー設定に委ねる（空の状態）
-  link.click(); // 仮想クリックでダウンロードを開始
+  link.download = ''; // ファイル名はサーバー設定に委ねる
+  link.click(); // 仮想リンククリックでダウンロード開始
 }
+
+
 
 // CSRFトークンを取得する関数
 function getCsrfToken() {
-  const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value; // CSRFトークンをフォームから取得
+  // CSRFトークンをフォームから取得
+  const token = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+  // トークン見つからない場合はエラーログ記録
   if (!token) {
-    console.error("CSRFトークンが見つかりません。"); // 見つからない場合はエラーログを記録
+    console.error("CSRFトークンが見つかりません。");
   }
   return token;
 }
 
-// ボタン操作によるバックアップ開始イベント（例：コスバックアップ）
-document.getElementById('start-asynchronous1').addEventListener('click', () => {
-  startBackup('/start_kosu_backup', (taskId) => {
-    monitorTaskStatus(`/check_kosu_backup_status?task_id=${taskId}`, (data) => {
-      downloadFile('/download_kosu_backup', data.file_path); // 処理成功後、ダウンロードを開始
+
+
+// 工数データバックアップボタン操作
+document.getElementById('start-asynchronous1').addEventListener('click', () => { // バックアップボタンを押すと処理開始
+  startBackup('/start_kosu_backup', (taskId) => { // バックアップ開始関数を呼ぶ
+    monitorTaskStatus(`/check_kosu_backup_status?task_id=${taskId}`, (data) => { // タスク監視関数を呼ぶ
+      downloadFile('/download_kosu_backup', data.file_path); // 処理成功後、ダウンロード
     });
-  }, { requireDates: true }); // 日付指定が必要であるオプションを追加
+  }, { requireDates: true }); // 日付指定オプション追加
 });
 
-// コス予測処理を開始
-document.getElementById('start-asynchronous2').addEventListener('click', () => {
-  startBackup('/start_kosu_prediction', (taskId) => {
-    monitorTaskStatus(`/check_kosu_prediction_status?task_id=${taskId}`, (data) => {
-      downloadFile('/download_kosu_prediction', data.file_path); // 処理完了後、予測結果をダウンロード
+
+
+// 工数区分定義予測データ出力ボタン操作
+document.getElementById('start-asynchronous2').addEventListener('click', () => { // 出力ボタンを押すと処理開始
+  startBackup('/start_kosu_prediction', (taskId) => { // バックアップ開始関数を呼ぶ
+    monitorTaskStatus(`/check_kosu_prediction_status?task_id=${taskId}`, (data) => { // タスク監視関数を呼ぶ
+      downloadFile('/download_kosu_prediction', data.file_path); // 処理完了後、ダウンロード
     });
-  }, { requireDates: true });
+  }, { requireDates: true }); // 日付指定オプション追加
 });
 
-// コス削除処理を開始
-document.getElementById('start-asynchronous3').addEventListener('click', () => {
-  startBackup('/start_kosu_delete', (taskId) => {
-    monitorTaskStatus(`/check_kosu_delete_status?task_id=${taskId}`, () => {
-      alert('削除が完了しました。'); // 成功後にポップアップを表示
+
+
+// 工数データ削除関数
+document.getElementById('start-asynchronous3').addEventListener('click', () => { // 削除ボタンを押すと処理開始
+  startBackup('/start_kosu_delete', (taskId) => { // バックアップ開始関数を呼ぶ
+    monitorTaskStatus(`/check_kosu_delete_status?task_id=${taskId}`, () => { // タスク監視関数を呼ぶ
+      alert('削除が完了しました。'); // 成功後、ポップアップ表示
     });
-  }, { requireDates: true });
+  }, { requireDates: true }); // 日付指定オプション追加
 });
 
-// コスロード（ファイルアップロード）を開始
-document.getElementById('start-asynchronous4').addEventListener('click', () => {
-  uploadFile('/start_kosu_load', 'input[name="kosu_file"]', (taskId) => {
-    monitorTaskStatus(`/check_kosu_load_status?task_id=${taskId}`, () => {
-      alert('ロードが完了しました！'); // 成功通知
+
+
+// 工数データロード関数
+document.getElementById('start-asynchronous4').addEventListener('click', () => { // ロードボタンを押すと処理開始
+  uploadFile('/start_kosu_load', 'input[name="kosu_file"]', (taskId) => { // ファイルアップロード開始関数を呼ぶ
+    monitorTaskStatus(`/check_kosu_load_status?task_id=${taskId}`, () => { // タスク監視関数を呼ぶ
+      alert('ロードが完了しました！'); // 成功後、ポップアップ表示
     });
-  }, 'kosu_file');
+  }, 'kosu_file'); // ファイルアップロードフォーム指定
 });
 
-// メンバーバックアップ処理を開始
-document.getElementById('start-asynchronous5').addEventListener('click', () => {
-  startBackup('/start_member_backup', (taskId) => {
-    monitorTaskStatus(`/check_member_backup_status?task_id=${taskId}`, (data) => {
-      downloadFile('/download_member_backup', data.file_path); // 結果をダウンロード
+
+
+// 人員データバックアップ関数
+document.getElementById('start-asynchronous5').addEventListener('click', () => { // バックアップボタンを押すと処理開始
+  startBackup('/start_member_backup', (taskId) => { // バックアップ開始関数を呼ぶ
+    monitorTaskStatus(`/check_member_backup_status?task_id=${taskId}`, (data) => { // タスク監視関数を呼ぶ
+      downloadFile('/download_member_backup', data.file_path); // 処理完了後、ダウンロード
     });
   });
 });
 
-// メンバーファイルのロード（ファイルアップロード）を開始
-document.getElementById('start-asynchronous6').addEventListener('click', () => {
-  uploadFile('/start_member_load', 'input[name="member_file"]', (taskId) => {
-    monitorTaskStatus(`/check_member_load_status?task_id=${taskId}`, () => {
-      alert('ロードが完了しました！'); // 成功を通知
+
+
+// 人員データロード関数
+document.getElementById('start-asynchronous6').addEventListener('click', () => { // ロードボタンを押すと処理開始
+  uploadFile('/start_member_load', 'input[name="member_file"]', (taskId) => { // ファイルアップロード開始関数を呼ぶ
+    monitorTaskStatus(`/check_member_load_status?task_id=${taskId}`, () => { // タスク監視関数を呼ぶ
+      alert('ロードが完了しました！'); // 成功後、ポップアップ表示
     });
-  }, 'member_file');
+  }, 'member_file'); // ファイルアップロードフォーム指定
 });
+
+
+
+// 班員データバックアップ関数
+document.getElementById('start-asynchronous7').addEventListener('click', () => { // バックアップボタンを押すと処理開始
+  startBackup('/start_team_backup', (taskId) => { // バックアップ開始関数を呼ぶ
+    monitorTaskStatus(`/check_team_backup_status?task_id=${taskId}`, (data) => { // タスク監視関数を呼ぶ
+      downloadFile('/download_team_backup', data.file_path); // 処理完了後、ダウンロード
+    });
+  });
+});
+
+
+
+// 班員データロード関数
+document.getElementById('start-asynchronous8').addEventListener('click', () => { // ロードボタンを押すと処理開始
+  uploadFile('/start_team_load', 'input[name="team_file"]', (taskId) => { // ファイルアップロード開始関数を呼ぶ
+    monitorTaskStatus(`/check_team_load_status?task_id=${taskId}`, () => { // タスク監視関数を呼ぶ
+      alert('ロードが完了しました！'); // 成功後、ポップアップ表示
+    });
+  }, 'team_file'); // ファイルアップロードフォーム指定
+});
+
+
+
+// 工数区分定義データバックアップ関数
+document.getElementById('start-asynchronous9').addEventListener('click', () => { // バックアップボタンを押すと処理開始
+  startBackup('/start_def_backup', (taskId) => { // バックアップ開始関数を呼ぶ
+    monitorTaskStatus(`/check_def_backup_status?task_id=${taskId}`, (data) => { // タスク監視関数を呼ぶ
+      downloadFile('/download_def_backup', data.file_path); // 処理完了後、ダウンロード
+    });
+  });
+});
+
+
+
+// 工数区分定義データロード関数
+document.getElementById('start-asynchronous10').addEventListener('click', () => { // ロードボタンを押すと処理開始
+  uploadFile('/start_def_load', 'input[name="def_file"]', (taskId) => { // ファイルアップロード開始関数を呼ぶ
+    monitorTaskStatus(`/check_def_load_status?task_id=${taskId}`, () => { // タスク監視関数を呼ぶ
+      alert('ロードが完了しました！'); // 成功後、ポップアップ表示
+    });
+  }, 'def_file'); // ファイルアップロードフォーム指定
+});
+
+
+
+// 問い合わせデータバックアップ関数
+document.getElementById('start-asynchronous11').addEventListener('click', () => { // バックアップボタンを押すと処理開始
+  startBackup('/start_inquiry_backup', (taskId) => { // バックアップ開始関数を呼ぶ
+    monitorTaskStatus(`/check_inquiry_backup_status?task_id=${taskId}`, (data) => { // タスク監視関数を呼ぶ
+      downloadFile('/download_inquiry_backup', data.file_path); // 処理完了後、ダウンロード
+    });
+  });
+});
+
+
+
+// 問い合わせデータロード関数
+document.getElementById('start-asynchronous12').addEventListener('click', () => { // ロードボタンを押すと処理開始
+  uploadFile('/start_inquiry_load', 'input[name="inquiry_file"]', (taskId) => { // ファイルアップロード開始関数を呼ぶ
+    monitorTaskStatus(`/check_inquiry_load_status?task_id=${taskId}`, () => { // タスク監視関数を呼ぶ
+      alert('ロードが完了しました！'); // 成功後、ポップアップ表示
+    });
+  }, 'inquiry_file'); // ファイルアップロードフォーム指定
+});
+

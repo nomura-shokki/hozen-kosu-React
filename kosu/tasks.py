@@ -4,7 +4,7 @@ import openpyxl
 import pandas as pd
 import tempfile
 import datetime
-from .models import Business_Time_graph, kosu_division, member
+from .models import Business_Time_graph, kosu_division, member, team_member
 from .utils.kosu_utils import kosu_division_dictionary
 
 
@@ -443,4 +443,254 @@ def load_member_file(request, file_obj):
 
 
 #--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 班員データバックアップ非同期処理
+def generate_team_backup():
+  # 今日の日付取得
+  today = datetime.date.today().strftime('%Y%m%d')
+  # 新しいExcelブック作成
+  wb = openpyxl.Workbook()
+  ws = wb.active
+
+  # ヘッダー作成
+  headers = [
+    '従業員番号', '班員1', '班員2', '班員3', '班員4', 
+    '班員5', '班員6', '班員7', '班員8', '班員9', '班員10',
+    '班員11', '班員12', '班員13', '班員14', '班員15',
+    'フォローON/OFF',
+    ]
+
+  ws.append(headers)
+
+  # 班員データ取得
+  team_data = team_member.objects.all()
+
+  # データ書き込み
+  for item in team_data:
+    row = [
+      item.employee_no5, item.member1, item.member2, item.member3, 
+      item.member4, item.member5, item.member6, item.member7, 
+      item.member8, item.member9, item.member10,item.member11, 
+      item.member12, item.member13, item.member14, item.member15,
+      item.follow, 
+      ]
+
+    ws.append(row)
+
+  # 保存先のディレクトリ確認・作成
+  media_dir = settings.MEDIA_ROOT
+  if not os.path.exists(media_dir):
+    os.makedirs(media_dir)
+
+  # ファイル名作成と保存
+  filename = f'班員データバックアップ_{today}.xlsx'
+  filepath = os.path.join(media_dir, filename)
+  wb.save(filepath)
+
+  # ファイルパスを返却
+  return filepath
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 班員データロード非同期処理
+def load_team_file(file_obj):
+  try:
+    # 一時ファイルを作成
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
+      # ファイルを書き込む
+      for chunk in file_obj.chunks():
+          temp_file.write(chunk)
+
+      # ファイル名保存
+      temp_file_path = temp_file.name
+
+    # ファイルを開く
+    wb = openpyxl.load_workbook(temp_file_path)
+    ws = wb.worksheets[0]
+
+    # ヘッダー定義
+    expected_headers = [
+      '従業員番号', '班員1', '班員2', '班員3', '班員4', 
+      '班員5', '班員6', '班員7', '班員8', '班員9', '班員10',
+      '班員11', '班員12', '班員13', '班員14', '班員15',
+      'フォローON/OFF',
+      ]
+
+    # ファイル内ヘッダー取得
+    actual_headers = [ws.cell(1, col).value for col in range(1, len(expected_headers) + 1)]
+    # ヘッダーのデータに相違がある場合、一時ファイル削除しエラーを返す
+    if actual_headers != expected_headers:
+      os.remove(temp_file_path)
+      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None
+
+    # データ読み込み
+    for i in range(2, ws.max_row + 1):
+      # 読み込み予定データと同一の従業員番号のデータが存在するか確認
+      team_data_filter = team_member.objects.filter(employee_no5=ws.cell(row = i, column = 1).value)
+      # 同一従業員番号のデータがあった場合データ削除
+      if team_data_filter.exists():
+        team_data_filter.delete()
+
+      # 新データをインスタンスとして作成してDBに保存
+      team_member.objects.create(
+        employee_no5=ws.cell(row=i, column=1).value,
+        member1=ws.cell(row=i, column=2).value,
+        member2=ws.cell(row=i, column=3).value,
+        member3=ws.cell(row=i, column=4).value,
+        member4=ws.cell(row=i, column=5).value,
+        member5=ws.cell(row=i, column=6).value,
+        member6=ws.cell(row=i, column=7).value,
+        member7=ws.cell(row=i, column=8).value,
+        member8=ws.cell(row=i, column=9).value,
+        member9=ws.cell(row=i, column=10).value,
+        member10=ws.cell(row=i, column=11).value,
+        member11=ws.cell(row=i, column=12).value,
+        member12=ws.cell(row=i, column=13).value,
+        member13=ws.cell(row=i, column=14).value,
+        member14=ws.cell(row=i, column=15).value,
+        member15=ws.cell(row=i, column=16).value,
+        follow=ws.cell(row=i, column=17).value,
+        )
+
+    # 一時ファイルを削除
+    os.remove(temp_file_path)
+    return {'status': 'success'}, None
+
+  except Exception as e:
+    # ロード処理ミスした際は一時ファイルがあれば削除しエラーを返す
+    if 'temp_file_path' in locals():
+      os.remove(temp_file_path)
+    return {'status': 'error', 'message': str(e)}, None
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数区分定義データバックアップ非同期処理
+def generate_def_backup():
+  # 今日の日付取得
+  today = datetime.date.today().strftime('%Y%m%d')
+  # 新しいExcelブック作成
+  wb = openpyxl.Workbook()
+  ws = wb.active
+
+  # ヘッダー作成
+  headers = ['工数区分定義Ver名'] + [item for i in range(1, 51) for item in [f'工数区分名{i}', f'定義{i}', f'作業内容{i}']]
+
+  ws.append(headers)
+
+  # 班員データ取得
+  def_data = kosu_division.objects.all()
+
+  # データ書き込み
+  for item in def_data:
+    row = [item.kosu_name] + \
+          [getattr(item, f'kosu_title_{i}') if j == 0 else getattr(item, f'kosu_division_{j}_{i}') 
+          for i in range(1, 51) for j in range(0, 3)]
+    ws.append(row)
+
+  # 保存先のディレクトリ確認・作成
+  media_dir = settings.MEDIA_ROOT
+  if not os.path.exists(media_dir):
+    os.makedirs(media_dir)
+
+  # ファイル名作成と保存
+  filename = f'工数区分定義データバックアップ_{today}.xlsx'
+  filepath = os.path.join(media_dir, filename)
+  wb.save(filepath)
+
+  # ファイルパスを返却
+  return filepath
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数区分定義データロード非同期処理
+def load_def_file(file_obj):
+  try:
+    # 一時ファイルを作成
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
+      # ファイルを書き込む
+      for chunk in file_obj.chunks():
+          temp_file.write(chunk)
+
+      # ファイル名保存
+      temp_file_path = temp_file.name
+
+    # ファイルを開く
+    wb = openpyxl.load_workbook(temp_file_path)
+    ws = wb.worksheets[0]
+
+    # ヘッダー定義
+    expected_headers = ['工数区分定義Ver名'] + [item for i in range(1, 51) for item in [f'工数区分名{i}', f'定義{i}', f'作業内容{i}']]
+
+    # ファイル内ヘッダー取得
+    actual_headers = [ws.cell(1, col).value for col in range(1, len(expected_headers) + 1)]
+    # ヘッダーのデータに相違がある場合、一時ファイル削除しエラーを返す
+    if actual_headers != expected_headers:
+      os.remove(temp_file_path)
+      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None
+
+    # データ読み込み
+    for i in range(2, ws.max_row + 1):
+      # 読み込み予定データと同一の工数区分定義データが存在するか確認
+      def_data_filter = kosu_division.objects.filter(kosu_name=ws.cell(row = i, column = 1).value)
+      # 同一工数区分定義データがあった場合データ削除
+      if def_data_filter.exists():
+        def_data_filter.delete()
+
+      # データ定義
+      def_data = {
+        'kosu_name': ws.cell(row=i, column=1).value
+        }
+      for n in range(1, 51):
+        def_data[f'kosu_title_{n}'] = ws.cell(row=i, column=n*3-1).value
+        def_data[f'kosu_division_1_{n}'] = ws.cell(row=i, column=n*3).value
+        def_data[f'kosu_division_2_{n}'] = ws.cell(row=i, column=n*3+1).value
+
+      new_data = kosu_division(**def_data)
+      new_data.save()
+
+    # 一時ファイルを削除
+    os.remove(temp_file_path)
+    return {'status': 'success'}, None
+
+  except Exception as e:
+    # ロード処理ミスした際は一時ファイルがあれば削除しエラーを返す
+    if 'temp_file_path' in locals():
+      os.remove(temp_file_path)
+    return {'status': 'error', 'message': str(e)}, None
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
 
