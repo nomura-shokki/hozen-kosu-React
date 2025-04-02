@@ -4,7 +4,7 @@ import openpyxl
 import pandas as pd
 import tempfile
 import datetime
-from .models import Business_Time_graph, kosu_division, member, team_member
+from .models import Business_Time_graph, kosu_division, member, team_member, inquiry_data
 from .utils.kosu_utils import kosu_division_dictionary
 
 
@@ -71,7 +71,7 @@ def generate_kosu_backup(data_day, data_day2):
 
 
 
-# 工数データバックアップ非同期処理
+# 工数区分定義予測データ出力非同期処理
 def generate_prediction(data_day, data_day2):
   # 期間内の工数データ取得
   kosu_filter = Business_Time_graph.objects.filter(
@@ -675,6 +675,121 @@ def load_def_file(file_obj):
 
       new_data = kosu_division(**def_data)
       new_data.save()
+
+    # 一時ファイルを削除
+    os.remove(temp_file_path)
+    return {'status': 'success'}, None
+
+  except Exception as e:
+    # ロード処理ミスした際は一時ファイルがあれば削除しエラーを返す
+    if 'temp_file_path' in locals():
+      os.remove(temp_file_path)
+    return {'status': 'error', 'message': str(e)}, None
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 問い合わせデータバックアップ非同期処理
+def generate_inquiry_backup():
+  # 今日の日付取得
+  today = datetime.date.today().strftime('%Y%m%d')
+  # 新しいExcelブック作成
+  wb = openpyxl.Workbook()
+  ws = wb.active
+
+  # ヘッダー作成
+  headers = [
+    '従業員番号', '氏名', '内容選択', '問い合わせ', '回答'
+    ]
+
+  ws.append(headers)
+
+  # 問い合わせデータ取得
+  inquiry = inquiry_data.objects.all()
+
+  # データ書き込み
+  for item in inquiry:
+    row = [
+        item.employee_no2, 
+        str(item.name), 
+        item.content_choice, 
+        item.inquiry, 
+        item.answer,
+      ]
+
+    ws.append(row)
+
+  # 保存先のディレクトリ確認・作成
+  media_dir = settings.MEDIA_ROOT
+  if not os.path.exists(media_dir):
+    os.makedirs(media_dir)
+
+  # ファイル名作成と保存
+  filename = f'問い合わせデータバックアップ_{today}.xlsx'
+  filepath = os.path.join(media_dir, filename)
+  wb.save(filepath)
+
+  # ファイルパスを返却
+  return filepath
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 問い合わせデータロード非同期処理
+def load_inquiry_file(file_obj):
+  try:
+    # 一時ファイルを作成
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
+      # ファイルを書き込む
+      for chunk in file_obj.chunks():
+          temp_file.write(chunk)
+
+      # ファイル名保存
+      temp_file_path = temp_file.name
+
+    # ファイルを開く
+    wb = openpyxl.load_workbook(temp_file_path)
+    ws = wb.worksheets[0]
+
+    # ヘッダー定義
+    expected_headers = [
+    '従業員番号', '氏名', '内容選択', '問い合わせ', '回答'
+      ]
+
+    # ファイル内ヘッダー取得
+    actual_headers = [ws.cell(1, col).value for col in range(1, len(expected_headers) + 1)]
+    # ヘッダーのデータに相違がある場合、一時ファイル削除しエラーを返す
+    if actual_headers != expected_headers:
+      os.remove(temp_file_path)
+      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None
+
+    # データ読み込み
+    for i in range(2, ws.max_row + 1):
+      # 従業員番号取得
+      employee_no = ws.cell(row=i, column=1).value
+
+      # 新データをインスタンスとして作成してDBに保存
+      inquiry_data.objects.create(
+        employee_no2=employee_no,
+        name=member.objects.get(employee_no=employee_no),
+        content_choice=ws.cell(row=i, column=3).value,
+        inquiry=ws.cell(row=i, column=4).value,
+        answer=ws.cell(row=i, column=5).value,
+        )
 
     # 一時ファイルを削除
     os.remove(temp_file_path)

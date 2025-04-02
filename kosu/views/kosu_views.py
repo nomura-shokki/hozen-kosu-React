@@ -48,12 +48,8 @@ from ..utils.kosu_utils import schedule_default
 from ..utils.kosu_utils import kosu_delete
 from ..utils.kosu_utils import kosu_edit_check
 from ..utils.kosu_utils import kosu_edit_write
-from ..utils.kosu_utils import get_indices
 from ..utils.kosu_utils import work_default
-from ..models import member
-from ..models import Business_Time_graph
-from ..models import kosu_division
-from ..models import administrator_data
+from ..models import member, Business_Time_graph, kosu_division, administrator_data, Operation_history
 from ..forms import input_kosuForm
 from ..forms import kosu_dayForm
 from ..forms import schedule_timeForm
@@ -428,6 +424,7 @@ def input(request):
 
     # 指定日に工数データがある場合の処理
     if obj_filter.exists():
+      kosu_check = '工数データ編集'
       # 以前同日に打ち込んだ工数区分定義と違う場合リダイレクト
       if obj_get.def_ver2 not in (request.session['input_def'], None, ''):
         messages.error(request, '前に入力された工数と工数区分定義のVerが違います。ERROR010')
@@ -450,6 +447,7 @@ def input(request):
 
     # 指定日に工数データがない場合の処理
     else:
+      kosu_check = '工数データ新規登録'
       # 休憩時間取得
       breaktime, breaktime_over1, breaktime_over2, breaktime_over3 = break_get(tyoku, request)
 
@@ -489,7 +487,7 @@ def input(request):
 
 
     # 作業内容データの内容を上書きして更新
-    Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
+    Business_Time_graph.objects.update_or_create(employee_no3=request.session['login_No'], \
       work_day2 = work_day, defaults = {'name': member.objects.get(employee_no = request.session['login_No']), \
                                         'def_ver2': request.session['input_def'], \
                                         'work_time': work, \
@@ -504,6 +502,22 @@ def input(request):
                                         'judgement': judgement_check(kosu_def, work, tyoku, member_obj, request.POST['over_work']), \
                                         'break_change': 'break_change' in request.POST})
 
+    # 入力内容記録
+    edit_comment = f"""{kosu_check}
+{work}:{dict(input_kosuForm.tyoku_list).get(tyoku, '')}
+作業時間:{start_time}～{end_time}
+工数データ:{def_work}
+{''.join(kosu_def)}
+作業詳細:{detail_work}
+{detail_list_summarize(detail_list)}
+残業時間:{request.POST['over_work']}
+休憩変更チェックBOX:{'break_change' in request.POST}
+"""
+    new_record = Operation_history(employee_no4=request.session['login_No'], \
+                                   name=member.objects.get(employee_no = request.session['login_No']), \
+                                   operation_models='Business_Time_graph', \
+                                   operation_detail=edit_comment)
+    new_record.save()
 
     # 入力値をセッションに保存する
     request.session['day'] = work_day

@@ -4,7 +4,7 @@ import threading
 import uuid
 from ..tasks import generate_kosu_backup, generate_prediction, delete_kosu_data, load_kosu_file, \
                     generate_member_backup, load_member_file, generate_team_backup, load_team_file, \
-                    generate_def_backup, load_def_file
+                    generate_def_backup, load_def_file, generate_inquiry_backup, load_inquiry_file
 from ..models import AsyncTask
 
 
@@ -73,6 +73,13 @@ def start_task(request, task_type):
       def_file = request.FILES['def_file']
       task_function = load_def_file
       args = (def_file,)
+    elif task_type == 'inquiry_backup':
+      task_function = generate_inquiry_backup
+      args = ()
+    elif task_type == 'inquiry_load':
+      inquiry_file = request.FILES['inquiry_file']
+      task_function = load_inquiry_file
+      args = (inquiry_file,)
     else:
       # 無効なタスクタイプであればエラーを返却
       return JsonResponse({'status': 'error', 'message': '無効なタスクタイプです。'}, status=400)

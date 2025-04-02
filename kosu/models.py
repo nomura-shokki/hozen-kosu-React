@@ -295,6 +295,8 @@ class inquiry_data(models.Model):
   content_choice = models.CharField('内容選択', choices=content_list, max_length=5)
   inquiry = models.TextField('問い合わせ')
   answer = models.TextField('回答', null=True, blank=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
 
   def __str__(self):
     return str(self.id) + str(self.name)
@@ -311,3 +313,15 @@ class AsyncTask(models.Model):
   result = models.TextField(null=True, blank=True)
   created_at = models.DateTimeField(auto_now_add=True)
   updated_at = models.DateTimeField(auto_now=True)
+
+
+
+class Operation_history(models.Model):
+  created_at = models.DateTimeField(auto_now_add=True)
+  employee_no4 = models.IntegerField('従業員番号')
+  name = models.ForeignKey(member, verbose_name='氏名', null=True, on_delete=models.SET_NULL)
+  operation_models = models.CharField('編集したモデル', null=True, blank=True)
+  operation_detail = models.TextField('編集詳細', null=True, blank=True)
+
+  def __str__(self):
+    return str(self.name) + str(self.created_at)

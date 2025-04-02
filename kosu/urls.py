@@ -69,6 +69,8 @@ urlpatterns = [
   path('start_team_load', lambda request: asynchronous_views.start_task(request, 'team_load'), name='start_team_load'), # 班員データロード非同期処理開始APIエンドポイント
   path('start_def_backup', lambda request: asynchronous_views.start_task(request, 'def_backup'), name='start_def_backup'),  # 工数区分定義データロード非同期処理開始APIエンドポイント
   path('start_def_load', lambda request: asynchronous_views.start_task(request, 'def_load'), name='start_def_load'), # 工数区分定義データロード非同期処理開始APIエンドポイント
+  path('start_inquiry_backup', lambda request: asynchronous_views.start_task(request, 'inquiry_backup'), name='start_inquiry_backup'),  #問い合わせデータロード非同期処理開始APIエンドポイント
+  path('start_inquiry_load', lambda request: asynchronous_views.start_task(request, 'inquiry_load'), name='start_inquiry_load'), # 問い合わせデータロード非同期処理開始APIエンドポイント
 
   path('check_kosu_backup_status', asynchronous_views.check_task_status, name='check_kosu_backup_status'), # 工数データバックアップ非同期処理監視APIエンドポイント
   path('check_kosu_prediction_status', asynchronous_views.check_task_status, name='check_kosu_prediction_status'), # 工数定義区分予測データ作成非同期処理監視APIエンドポイント
@@ -79,13 +81,16 @@ urlpatterns = [
   path('check_team_backup_status', asynchronous_views.check_task_status, name='check_team_backup_status'), # 班員データバックアップ非同期処理監視APIエンドポイント
   path('check_team_load_status', asynchronous_views.check_task_status, name='check_team_load_status'), # 班員データロード非同期処理監視APIエンドポイント
   path('check_def_backup_status', asynchronous_views.check_task_status, name='check_def_backup_status'), # 工数区分定義データバックアップ非同期処理監視APIエンドポイント
-  path('check_def_load_status', asynchronous_views.check_task_status, name='check_def_load_status'), # 班員データロード非同期処理監視APIエンドポイント
+  path('check_def_load_status', asynchronous_views.check_task_status, name='check_def_load_status'), # 工数区分定義データロード非同期処理監視APIエンドポイント
+  path('check_inquiry_backup_status', asynchronous_views.check_task_status, name='check_inquiry_backup_status'), # 問い合わせデータバックアップ非同期処理監視APIエンドポイント
+  path('check_inquiry_load_status', asynchronous_views.check_task_status, name='check_inquiry_load_status'), # 問い合わせデータロード非同期処理監視APIエンドポイント
 
   path('download_kosu_backup', asynchronous_views.download_file, name='download_kosu_backup'), # 工数データバックアップファイルダウンロード非同期処理APIエンドポイント
   path('download_kosu_prediction', asynchronous_views.download_file, name='download_kosu_prediction'), # 工数定義区分予測ファイルダウンロード非同期処理APIエンドポイント
   path('download_member_backup', asynchronous_views.download_file, name='download_member_backup'), # 人員データバックアップファイルダウンロード非同期処理APIエンドポイント
   path('download_team_backup', asynchronous_views.download_file, name='download_team_backup'), # 班員データバックアップファイルダウンロード非同期処理APIエンドポイント
   path('download_def_backup', asynchronous_views.download_file, name='download_def_backup'), # 工数区分定義データバックアップファイルダウンロード非同期処理APIエンドポイント
+  path('download_inquiry_backup', asynchronous_views.download_file, name='download_inquiry_backup'), # 問い合わせデータバックアップファイルダウンロード非同期処理APIエンドポイント
   ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
