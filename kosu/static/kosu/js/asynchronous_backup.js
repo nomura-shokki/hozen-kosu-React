@@ -264,3 +264,26 @@ document.getElementById('start-asynchronous12').addEventListener('click', () => 
   }, 'inquiry_file'); // ファイルアップロードフォーム指定
 });
 
+
+
+// 管理者設定データバックアップ関数
+document.getElementById('start-asynchronous13').addEventListener('click', () => { // バックアップボタンを押すと処理開始
+  startBackup('/start_setting_backup', (taskId) => { // バックアップ開始関数を呼ぶ
+    monitorTaskStatus(`/check_setting_backup_status?task_id=${taskId}`, (data) => { // タスク監視関数を呼ぶ
+      downloadFile('/download_setting_backup', data.file_path); // 処理完了後、ダウンロード
+    });
+  });
+});
+
+
+
+// 管理者設定データロード関数
+document.getElementById('start-asynchronous14').addEventListener('click', () => { // ロードボタンを押すと処理開始
+  uploadFile('/start_setting_load', 'input[name="setting_file"]', (taskId) => { // ファイルアップロード開始関数を呼ぶ
+    monitorTaskStatus(`/check_setting_load_status?task_id=${taskId}`, () => { // タスク監視関数を呼ぶ
+      alert('ロードが完了しました！'); // 成功後、ポップアップ表示
+    });
+  }, 'setting_file'); // ファイルアップロードフォーム指定
+});
+
+

@@ -25,7 +25,6 @@ from ..utils.kosu_utils import handle_get_request
 from ..utils.kosu_utils import handle_work_shift
 from ..utils.kosu_utils import time_index
 from ..utils.kosu_utils import break_time_process
-from ..utils.kosu_utils import kosu_duplication_check
 from ..utils.kosu_utils import kosu_write
 from ..utils.kosu_utils import detail_list_summarize
 from ..utils.kosu_utils import judgement_check
@@ -358,33 +357,56 @@ def input(request):
     # 休憩変更チェック状態
     break_change = 1 if 'break_change' in request.POST else 0
 
+    # 入力内容記録
+    edit_comment = f"""{work}:{dict(input_kosuForm.tyoku_list).get(tyoku, '')}
+作業時間:{start_time}～{end_time}
+工数データ:{def_work}
+作業詳細:{detail_work}
+残業時間:{request.POST['over_work']}
+休憩変更チェックBOX:{'break_change' in request.POST}
+"""
+    new_history = Operation_history(employee_no4=request.session['login_No'],
+                                    name=member.objects.get(employee_no = request.session['login_No']),
+                                    post_page='工数入力画面：工数入力',
+                                    operation_models='Business_Time_graph',
+                                    operation_detail=edit_comment)
 
     # 未入力チェック用の変数リスト
     values = [def_work, work, tyoku, start_time, end_time, request.POST.get('over_work')]
 
     # いずれかが None または 空文字列ならばエラーメッセージ出力してリダイレクト
     if any(v in (None, '') for v in values):
-        messages.error(request, '直、工数区分、勤務、残業、作業時間のいずれかが未入力です。工数登録できませんでした。ERROR002')
-        return redirect(to='/input')
+      messages.error(request, '直、工数区分、勤務、残業、作業時間のいずれかが未入力です。工数登録できませんでした。ERROR002')
+      new_history.status = 'ERROR002'
+      new_history.save()
+      return redirect(to='/input')
 
     # 作業詳細に'$'が含まれている場合リダイレクト
     if '$' in detail_work:
       messages.error(request, '作業詳細に『$』は使用できません。工数登録できませんでした。ERROR003')
+      new_history.status = 'ERROR003'
+      new_history.save()
       return redirect(to = '/input')
 
     # 作業詳細に文字数が100文字以上の場合リダイレクト
     if len(detail_work) >= 100:
       messages.error(request, '作業詳細は100文字以内で入力して下さい。工数登録できませんでした。ERROR004')
+      new_history.status = 'ERROR004'
+      new_history.save()
       return redirect(to = '/input')
 
     # 残業時間が15の倍数でない場合リダイレクト
     if int(request.POST['over_work'])%15 != 0 and work != '休出':
       messages.error(request, '残業時間が15分の倍数になっていません。工数登録できませんでした。ERROR005')
+      new_history.status = 'ERROR005'
+      new_history.save()
       return redirect(to = '/input')
 
     # 作業開始時間と作業終了時間が同じ場合リダイレクト
     if start_time == end_time:
       messages.error(request, '作業時間が誤っています。確認して下さい。ERROR006')
+      new_history.status = 'ERROR006'
+      new_history.save()
       return redirect(to = '/input')
 
     # 作業開始、終了の時と分取得
@@ -399,16 +421,22 @@ def input(request):
     # 作業開始時間が作業終了時間より遅い場合のリダイレクト
     if start_time_ind > end_time_ind and check == 0:
       messages.error(request, '作業開始時間が終了時間を越えています。翌日チェックを忘れていませんか？ERROR007')
+      new_history.status = 'ERROR007'
+      new_history.save()
       return redirect(to = '/input')
 
     # 1日以上の工数が入力された場合リダイレクト
     if start_time_ind <= end_time_ind and check == 1:
       messages.error(request, '1日以上の工数は入力できません。誤って翌日チェックを入れていませんか？ERROR008')
+      new_history.status = 'ERROR008'
+      new_history.save()
       return redirect(to = '/input')
 
     # 入力時間が21時間を超える場合リダイレクト
     if ((end_time_ind + 36) >= start_time_ind and check == 1) or ((end_time_ind - 252) >= start_time_ind and check == 0):
       messages.error(request, '作業時間が21時間を超えています。入力できません。ERROR009')
+      new_history.status = 'ERROR009'
+      new_history.save()
       return redirect(to = '/input')
 
 
@@ -428,6 +456,8 @@ def input(request):
       # 以前同日に打ち込んだ工数区分定義と違う場合リダイレクト
       if obj_get.def_ver2 not in (request.session['input_def'], None, ''):
         messages.error(request, '前に入力された工数と工数区分定義のVerが違います。ERROR010')
+        new_history.status = 'ERROR010'
+        new_history.save()
         return redirect(to = '/input')
 
       # 工数データに休憩時間データ無いか直が変更されている場合の処理
@@ -459,10 +489,19 @@ def input(request):
 
     # 工数に被りがないかチェック
     ranges = [(start_time_ind, end_time_ind)] if check == 0 else [(start_time_ind, 288), (0, end_time_ind)]
-    for start, end in ranges:
-      response = kosu_duplication_check(start, end, kosu_def, request)
-      if response:
-        return response
+
+    # 工数に被りがないかチェックするループ
+    for ind in ranges:
+      for kosu in range(ind[0], ind[1]):
+        # 工数データの要素が空でない場合の処理
+        if kosu_def[kosu] != '$':
+          if kosu_def[kosu] != '#':
+            # エラーメッセージ出力
+            messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR030')
+            new_history.status = 'ERROR030'
+            new_history.save()
+            # このページをリダイレクト
+            return redirect(to = '/input')
 
     # 作業内容、作業詳細書き込み
     for start, end in ranges:
@@ -482,6 +521,8 @@ def input(request):
 
         # エラーが出た場合リダイレクト
         if result is None:
+          new_history.status = 'ERROR031'
+          new_history.save()
           return redirect(to='/input')
         kosu_def, detail_list = result
 
@@ -502,22 +543,13 @@ def input(request):
                                         'judgement': judgement_check(kosu_def, work, tyoku, member_obj, request.POST['over_work']), \
                                         'break_change': 'break_change' in request.POST})
 
-    # 入力内容記録
-    edit_comment = f"""{kosu_check}
-{work}:{dict(input_kosuForm.tyoku_list).get(tyoku, '')}
-作業時間:{start_time}～{end_time}
-工数データ:{def_work}
-{''.join(kosu_def)}
-作業詳細:{detail_work}
-{detail_list_summarize(detail_list)}
-残業時間:{request.POST['over_work']}
-休憩変更チェックBOX:{'break_change' in request.POST}
-"""
-    new_record = Operation_history(employee_no4=request.session['login_No'], \
-                                   name=member.objects.get(employee_no = request.session['login_No']), \
-                                   operation_models='Business_Time_graph', \
-                                   operation_detail=edit_comment)
-    new_record.save()
+    # 操作履歴記録
+    new_history.status = 'OK'
+    edit_comment =f"""{kosu_check}
+""" + edit_comment + f"""{''.join(kosu_def)}
+{detail_list_summarize(detail_list)}"""
+    new_history.operation_detail = edit_comment
+    new_history.save()
 
     # 入力値をセッションに保存する
     request.session['day'] = work_day

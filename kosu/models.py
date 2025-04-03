@@ -320,8 +320,10 @@ class Operation_history(models.Model):
   created_at = models.DateTimeField(auto_now_add=True)
   employee_no4 = models.IntegerField('従業員番号')
   name = models.ForeignKey(member, verbose_name='氏名', null=True, on_delete=models.SET_NULL)
+  post_page = models.CharField('ページ', null=True, blank=True)
   operation_models = models.CharField('編集したモデル', null=True, blank=True)
+  status = models.CharField('結果', null=True, blank=True)
   operation_detail = models.TextField('編集詳細', null=True, blank=True)
 
   def __str__(self):
-    return str(self.name) + str(self.created_at)
+    return str(self.name) + '：' + str(self.created_at)

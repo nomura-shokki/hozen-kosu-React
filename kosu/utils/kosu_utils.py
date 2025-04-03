@@ -346,28 +346,6 @@ def break_time_process(breaktime_str):
 
 
 
-# 工数に被りチェック関数
-def kosu_duplication_check(start_ind, end_ind, kosu_def, request):
-  # 工数に被りがないかチェックするループ
-  for kosu in range(start_ind, end_ind):
-    # 工数データの要素が空でない場合の処理
-    if kosu_def[kosu] != '$':
-      if kosu_def[kosu] != '#':
-        # エラーメッセージ出力
-        messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR030')
-        # このページをリダイレクト
-        return redirect(to = '/input')
-
-
-
-
-
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
-
 # 工数書き込み関数
 def kosu_write(start_ind, end_ind, kosu_def, detail_list, request):
   # 作業内容と作業詳細を書き込むループ
