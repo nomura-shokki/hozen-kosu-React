@@ -2918,7 +2918,6 @@ class Page_form(TestCase):
 
     # 設定更新チェック
     def test_administrator_form(self):
-
         # フォームデータ定義(工数データ有、日またぎ無しの場合)
         form_data = {
             'menu_row': 50,
@@ -2930,8 +2929,8 @@ class Page_form(TestCase):
         
         # URLに対してPOSTリクエスト送信
         response = self.client.post(reverse('administrator'), form_data)
-        # レスポンスが成功（ステータスコード200）であることを確認
-        self.assertEqual(response.status_code, 200)
+        # レスポンスが成功（ステータスコード302）であることを確認
+        self.assertEqual(response.status_code, 302)
 
         # 設定情報取得
         updated_entry = administrator_data.objects.order_by("id").last()
