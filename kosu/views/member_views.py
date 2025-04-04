@@ -1,11 +1,13 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.views.generic import ListView
 from django.views.generic.edit import UpdateView, CreateView, DeleteView
 from django.urls import reverse_lazy
+from django.http import HttpResponseRedirect
 from ..models import member, Business_Time_graph, administrator_data, inquiry_data
 from ..forms import memberForm, member_findForm
+from ..utils.kosu_utils import get_member
 
 
 
@@ -26,16 +28,12 @@ class MemberPageView(ListView):
 
   # 画面処理前の初期設定
   def dispatch(self, request, *args, **kwargs):
-    # ログインしていない場合ログイン画面へ
-    if not request.session.get('login_No'):
-      return redirect('/login')
-
-    # 人員情報取得(取得できない場合セッション削除しログイン画面へ)
-    try:
-      self.data = member.objects.get(employee_no=request.session['login_No'])
-    except member.DoesNotExist:
-      request.session.clear()
-      return redirect('/login')
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.data = member_obj
     
     # 権限がないユーザーの場合ログイン画面へ
     if not self.data.authority:
@@ -125,16 +123,12 @@ class MemberNewView(CreateView):
 
   # リクエストを処理するメソッドをオーバーライド
   def dispatch(self, request, *args, **kwargs):
-    # ログインしていない場合ログイン画面へ
-    if not request.session.get('login_No'):
-      return redirect('/login')
-
-    # 人員情報取得(取得できない場合セッション削除しログイン画面へ)
-    try:
-      self.data = member.objects.get(employee_no=request.session['login_No'])
-    except member.DoesNotExist:
-      request.session.clear()
-      return redirect(to='/login')
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.data = member_obj
 
     # 権限がないユーザーの場合ログイン画面へ
     if not self.data.authority:
@@ -216,8 +210,6 @@ class MemberNewView(CreateView):
   def form_invalid(self, form):
     request = self.request
     messages.error(request, f'バリテーションエラーが発生しました。IT担当者に連絡してください。{form.errors} ERROR053')
-    # バリデーションエラーをターミナルに出力
-    print("バリデーションエラー: ", form.errors)
     return redirect(to='/new')
 
 
@@ -258,16 +250,12 @@ class MemberEditView(UpdateView):
 
   # リクエストを処理するメソッドをオーバーライド
   def dispatch(self, request, *args, **kwargs):
-    # ログインしていない場合ログイン画面へ
-    if not request.session.get('login_No'):
-      return redirect('/login')
-
-    # 人員情報取得(取得できない場合セッション削除しログイン画面へ)
-    try:
-      self.login_user = member.objects.get(employee_no=request.session['login_No'])
-    except member.DoesNotExist:
-      request.session.clear()
-      return redirect(to='/login')
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.login_user = member_obj
 
     # 権限がないユーザーの場合ログイン画面へ
     if not self.login_user.authority:
@@ -375,17 +363,12 @@ class MemberDeleteView(DeleteView):
 
   # リクエストを処理するメソッドをオーバーライド
   def dispatch(self, request, *args, **kwargs):
-    # 未ログインならログインページにリダイレクト
-    if not request.session.get('login_No'):
-      return redirect('/login')
-
-    try:
-      # ログイン者の情報取得
-      self.data = member.objects.get(employee_no=request.session['login_No'])
-    except member.DoesNotExist:
-      # ログイン者情報取得できない場合ログイン画面へ
-      request.session.clear()
-      return redirect(to='/login')
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.data = member_obj
 
     # ログイン者に権限がなければメインページにリダイレクト
     if not self.data.authority:

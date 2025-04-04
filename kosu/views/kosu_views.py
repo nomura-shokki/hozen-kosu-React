@@ -1,17 +1,14 @@
 from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.views.generic import ListView
-from django.views.generic.edit import UpdateView
-from django.views.generic.edit import DeleteView
-from django.views.generic.edit import FormView
+from django.views.generic.edit import UpdateView, DeleteView, FormView
 from django.db.models import Q
 from django.urls import reverse_lazy
-from django.http import HttpResponseRedirect
 import datetime
 import itertools
 import re
@@ -576,24 +573,39 @@ def input(request):
     # 直,勤務取得
     obj_filter, tyoku, work = double_form(request.session['login_No'], request.POST['work_day'], request)
 
+    # 入力内容記録
+    edit_comment = f'残業時間:{request.POST['over_work']}'
+    new_history = Operation_history(employee_no4=request.session['login_No'],
+                                    name=member.objects.get(employee_no = request.session['login_No']),
+                                    post_page='工数入力画面：残業入力',
+                                    operation_models='Business_Time_graph',
+                                    operation_detail=edit_comment)
+
     # 残業未入力の場合リダイレクト
     if request.POST['over_work'] in ["", None]:
       messages.error(request, '残業が未入力です。登録できませんでした。ERROR011')
+      new_history.status = 'ERROR011'
+      new_history.save()
       return redirect(to = '/input')
     
     # 残業時間が15の倍数でない場合リダイレクト
     if int(request.POST['over_work'])%15 != 0 and work != '休出':
       messages.error(request, '残業時間が15分の倍数になっていません。工数登録できませんでした。ERROR012')
+      new_history.status = 'ERROR012'
+      new_history.save()
       return redirect(to = '/input')
 
     # 休出時に残業時間が5の倍数でない場合リダイレクト
     if int(request.POST['over_work'])%5 != 0 and work == '休出':
       messages.error(request, '残業時間が5分の倍数になっていません。工数登録できませんでした。ERROR013')
+      new_history.status = 'ERROR013'
+      new_history.save()
       return redirect(to = '/input')
 
     
     # 工数データがある場合の処理
     if obj_filter.exists():
+      kosu_check = '工数データ編集'
       # 工数データ取得
       obj_get = obj_filter.first()
       # 残業を上書きして更新
@@ -604,6 +616,7 @@ def input(request):
 
     # 工数データがない場合の処理
     else:
+      kosu_check = '工数データ新規登録'
       # 工数データ作成し残業書き込み
       Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
                                                    work_day2 = request.POST['work_day'], \
@@ -611,6 +624,13 @@ def input(request):
                                                                'time_work' : '#'*288, \
                                                                'detail_work' : '$'*287, \
                                                                'over_time' : request.POST['over_work']})
+
+    # 操作履歴記録
+    new_history.status = 'OK'
+    edit_comment =f"""{kosu_check}
+""" + edit_comment
+    new_history.operation_detail = edit_comment
+    new_history.save()
 
     # 工数登録完了メッセージ非表示
     show_message = False
@@ -639,6 +659,16 @@ def input(request):
     # 工数区分定義予測設定を上書きして更新
     member.objects.update_or_create(employee_no = request.session['login_No'], \
                                     defaults = {'def_prediction': 'def_prediction' in request.POST})
+
+    # 入力内容記録
+    edit_comment = f'工数区分定義予測設定:{'def_prediction' in request.POST}'
+    new_history = Operation_history(employee_no4=request.session['login_No'],
+                                    name=member.objects.get(employee_no = request.session['login_No']),
+                                    post_page='工数入力画面：工数区分定義予測変更',
+                                    operation_models='member',
+                                    operation_detail=edit_comment,
+                                    status='OK',)
+    new_history.save()
 
     # 工数登録完了メッセージ非表示
     show_message = False
@@ -1683,7 +1713,7 @@ class KosuDeleteView(DeleteView):
 
 # 工数集計画面定義
 class KosuTotalView(FormView):
-  # 使用するテンプレート,フォーム,リダイレクト先定義
+  # テンプレート,フォーム,リダイレクト先定義
   template_name = 'kosu/total.html'
   form_class = kosu_dayForm
   success_url = 'total'
@@ -2536,7 +2566,7 @@ class AllKosuDetailView(FormView):
     return super().dispatch(request, *args, **kwargs)
 
 
-  # フォーム初期値を定義
+  # フォーム初期状態
   def get_form(self, form_class=None):
     form = super().get_form(form_class)
     # 工数定義区分Verリストを選択肢に設定

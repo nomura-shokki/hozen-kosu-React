@@ -1416,7 +1416,7 @@ def get_indices(data_list):
     indices.append((start, 288))
 
   return indices
-  
+
 
 
 

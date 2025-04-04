@@ -12,7 +12,7 @@ from django.conf.urls.static import static
 
 
 urlpatterns = [
-  path('help', main_views.help, name='help'), # ヘルプ画面
+  path('help', main_views.HelpView.as_view(), name='help'), # ヘルプ画面
   path('login', main_views.LoginView.as_view(), name='login'), # ログイン画面
   path('', main_views.MainView.as_view(), name='main'), # メイン画面
   path('kosu_main', main_views.KosuMainView.as_view(), name='kosu_main'), # 工数MENU画面
@@ -20,7 +20,7 @@ urlpatterns = [
   path('member_main', main_views.MemberMainView.as_view(), name='member_main'), # 人員MENU画面
   path('team_main', main_views.TeamMainView.as_view(), name='team_main'), # 班員MENU画面
   path('inquiry_main', main_views.InquirMainView.as_view(), name='inquiry_main'), # 問い合わせMENU画面
-  path('administrator', main_views.administrator_menu, name='administrator'), # 管理者MENU画面
+  path('administrator', main_views.AdministratorMenuView.as_view(), name='administrator'), # 管理者MENU画面
   path('all_kosu/<int:num>', kosu_views.AllKosuListView.as_view(), name='all_kosu'), # 全人員工数一覧画面(管理者用)
   path('all_kosu_detail/<int:num>', kosu_views.AllKosuDetailView.as_view(), name='all_kosu_detail'), # 工数データ詳細画面(管理者用)
   path('all_kosu_delete/<int:pk>', kosu_views.AllKosuDeleteView.as_view(), name='all_kosu_delete'), # 工数データ削除画面(管理者用)
@@ -45,12 +45,12 @@ urlpatterns = [
   path('team_over_time', team_views.team_over_time, name='team_over_time'), # 班員残業管理画面
   path('class_list', team_views.ClassListView.as_view(), name='class_list'), # ショップ単位工数入力状態可否画面
   path('class_detail/<int:num>', team_views.class_detail, name='class_detail'), # ショップ単位工数入力状態可否詳細画面
-  path('kosu_def', def_views.kosu_def, name='kosu_def'), # 工数気分定義内容確認画面
+  path('kosu_def', def_views.KosuDefView.as_view(), name='kosu_def'), # 工数気分定義内容確認画面
   path('kosu_Ver', def_views.kosu_Ver, name='kosu_Ver'), # 工数区分定義Ver切替画面
   path('def_list/<int:num>', def_views.DefListView.as_view(), name='def_list'), # 工数区分定義データ一覧画面
   path('def_new', def_views.DefNewView.as_view(), name='def_new'), # 工数区分定義新規登録画面
   path('def_edit/<int:num>', def_views.def_edit, name='def_edit'), # 工数区分定義編集画面
-  path('def_delete/<int:num>', def_views.def_delete, name='def_delete'), # 工数区分定義削除画面
+  path('def_delete/<int:pk>', def_views.KosuDivisionDeleteView.as_view(), name='def_delete'), # 工数区分定義削除画面
   path('inquiry_new', inquiry_views.inquiry_new, name='inquiry_new'), # 問い合わせ新規登録画面
   path('inquiry_list/<int:num>',inquiry_views.inquiry_list, name='inquiry_list'), # 問い合わせ一覧画面
   path('inquiry_display/<int:num>',inquiry_views.inquiry_display, name='inquiry_display'), # 問い合わせ詳細画面
