@@ -360,19 +360,32 @@ class KosuDivisionDeleteView(DeleteView):
     # ログイン者に権限がなければメインページに戻る
     if member_obj.administrator != True:
       return redirect('/')
-
     # 親クラスのdispatchメソッドを呼び出し
     return super().dispatch(request, *args, **kwargs)
 
 
   # コンテキストデータを取得するメソッドをオーバーライド
   def get_context_data(self, **kwargs):
+    # HTMLtable用リスト作成
+    obj = self.get_object()
+    delete_data = [['工数区分定義Ver', obj.kosu_name]]
+    for i in range(1, 51):
+      field_name1 = f'kosu_title_{i}'
+      field_name2 = f'kosu_division_1_{i}'
+      field_name3 = f'kosu_division_2_{i}'
+      value1 = getattr(obj, field_name1, '')
+      value2 = getattr(obj, field_name2, '')
+      value3 = getattr(obj, field_name3, '')
+      delete_data.append([f'工数区分名{i}', value1])
+      delete_data.append([f'定義{i}', value2])
+      delete_data.append([f'作業内容{i}', value3])
+      delete_data.append(['', ''])
+
     context = super().get_context_data(**kwargs)        
     context.update({
       'title': '工数区分定義削除',
       'id': self.kwargs['pk'],
-      'obj': self.get_object(),
-      'range': range(1, 51),
+      'delete_data': delete_data,
       })
     return context
 
