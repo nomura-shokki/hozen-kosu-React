@@ -24,11 +24,6 @@ def inquiry_new(request):
   if request.session.get('login_No', None) == None:
     return redirect(to = '/login')
 
-
-  # フォーム定義
-  form = inquiryForm()
-
-
   try:
     # ログイン者の情報取得
     data = member.objects.get(employee_no = request.session['login_No'])
@@ -39,6 +34,9 @@ def inquiry_new(request):
     request.session.clear()
     # ログインページに戻る
     return redirect(to = '/login')
+
+  # フォーム定義
+  form = inquiryForm()
 
 
 
@@ -77,32 +75,32 @@ def inquiry_new(request):
     if default_data.pop_up1 in ["", None]:
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
-                         defaults = {'pop_up_id1' : inquiry_data_id.id,
-                                     'pop_up1' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
+                                                  defaults = {'pop_up_id1' : inquiry_data_id.id,
+                                                              'pop_up1' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
       
     elif default_data.pop_up2 in ["", None]:
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
-                         defaults = {'pop_up_id2' : inquiry_data_id.id,
-                                     'pop_up2' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
+                                                  defaults = {'pop_up_id2' : inquiry_data_id.id,
+                                                              'pop_up2' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
 
     elif default_data.pop_up3 in ["", None]:
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
-                         defaults = {'pop_up_id3' : inquiry_data_id.id,
-                                     'pop_up3' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
+                                                  defaults = {'pop_up_id3' : inquiry_data_id.id,
+                                                              'pop_up3' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
 
     elif default_data.pop_up4 in ["", None]:
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
-                         defaults = {'pop_up_id4' : inquiry_data_id.id,
-                                     'pop_up4' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
+                                                  defaults = {'pop_up_id4' : inquiry_data_id.id,
+                                                              'pop_up4' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
 
     elif default_data.pop_up5 in ["", None]:
       # ポップアップ書き込み
       administrator_data.objects.update_or_create(id = default_data.id, \
-                         defaults = {'pop_up_id5' : inquiry_data_id.id,
-                                     'pop_up5' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
+                                                  defaults = {'pop_up_id5' : inquiry_data_id.id,
+                                                              'pop_up5' : '{}さんからの新しい問い合わせがあります。'.format(data.name)})
 
     # このページを読み直す
     return redirect(to='/inquiry_new')

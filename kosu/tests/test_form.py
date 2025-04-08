@@ -1416,9 +1416,9 @@ class Page_form(TestCase):
     def test_over_time_change_form(self):
         # フォームデータ定義
         form_data = {
-            'year': '2000',
+            'year': '2024',
             'month': '1',
-            'time_update': '表示切替',
+            'update': '',
             }
 
         # URLに対してPOSTリクエスト送信
@@ -1428,15 +1428,15 @@ class Page_form(TestCase):
 
         # 集計値が正しいか確認
         day_list = list(response.context['day_list'])
-        expected_list = ['', '', '', '', '', '', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+        expected_list = ['', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, '', '', '', '', '']
         self.assertEqual(day_list, expected_list)
 
 
         # フォームデータ定義
         form_data2 = {
-            'year': '2000',
+            'year': '2024',
             'month': '2',
-            'date_change': '表示切替',
+            'update': '',
             }
 
         # URLに対してPOSTリクエスト送信
@@ -1446,7 +1446,7 @@ class Page_form(TestCase):
 
         # 集計値が正しいか確認
         day_list = list(response.context['day_list'])
-        expected_list = ['', '', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, '', '', '', '', '', '']
+        expected_list = ['', '', '', '', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, '', '', '', '']
         self.assertEqual(day_list, expected_list)
 
 

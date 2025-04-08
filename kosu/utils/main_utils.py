@@ -1,4 +1,10 @@
 import unicodedata
+from ..models import member, Business_Time_graph, kosu_division, administrator_data, Operation_history
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
 
 
 
@@ -13,3 +19,34 @@ def has_non_halfwidth_characters(input_string):
       return True
 
     return False
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# データ変更記録関数
+def history_record(post_page, operation_models, status, operation_detail, request):
+  new_history = Operation_history(employee_no4=request.session['login_No'],
+                                  name=member.objects.get(employee_no = request.session['login_No']),
+                                  post_page=post_page,
+                                  operation_models=operation_models,
+                                  status=status,
+                                  operation_detail=operation_detail,)
+  new_history.save()
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
