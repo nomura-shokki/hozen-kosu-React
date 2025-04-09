@@ -1202,29 +1202,32 @@ class DetailView(View):
       def_choices_list, def_n = kosu_division_dictionary(obj_get.def_ver2)
     else:
       def_choices_list, def_n = kosu_division_dictionary(request.session['input_def'])
-    print(def_choices_list)
 
     # HTML表示用リスト作成
     time_display_list = []
     for k in range(len(self.time_list_start)):
       choices_list = ''
-      # 工数区分定義選択肢作成(空部分)
+      # 選択肢に空追加
       if self.def_time[k] in ["", None]:
         choices_list += '<option value="{}" selected>{}</option>'.format('#', '-')
       else:
         choices_list += '<option value="{}">{}</option>'.format('#', '-')
 
+      # 工数区分定義選択肢作成
       for i in range(def_n):
+        # 工数データの工数区分定義を選択状態にし選択肢作成
         if self.def_time[k] == def_choices_list[i][1]:
           choices_list += '<option value="{}" selected>{}</option>'.format(def_choices_list[i][0], def_choices_list[i][1])
         else:
           choices_list += '<option value="{}">{}</option>'.format(def_choices_list[i][0], def_choices_list[i][1])
 
+      # 選択肢の最後に休憩追加
       if self.def_time[k] == '休憩':
         choices_list += '<option value="{}" selected>{}</option>'.format('$', '休憩')
       else:
         choices_list += '<option value="{}">{}</option>'.format('$', '休憩')
 
+      # HTMLタグをまとめ
       row = [
         '<input class="your-time-field form-control custom-border controlled-input" style="width : 70px;" type="text" name="start_time{}" data-precision="5" value="{}">'.format(k + 1, self.time_list_start[k]) + '～' +
         '<input class="your-time-field form-control custom-border controlled-input" style="width : 70px;" type="text" name="end_time{}" data-precision="5" value="{}">'.format(k + 1, self.time_list_end[k]),
@@ -1233,16 +1236,22 @@ class DetailView(View):
         ]
       time_display_list.append(row)
 
+    # 次の日の工数データ取得
     next_record = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__gt=obj_get.work_day2).order_by('work_day2').first()
     has_next_record = next_record is not None
 
+    # 前日の工数データ取得
     before_record = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2__lt=obj_get.work_day2).order_by('-work_day2').first()
     has_before_record = before_record is not None
 
+    # 残業時間取得
     over_time_default = obj_get.over_time if obj_get.over_time not in ["", None] else 0
+    # 入力済み工数の合計取得
     time_total = 1440 - (work_list.count('#') * 5) - (work_list.count('$') * 5)
+    # 基準合計工数取得
     default_total = default_work_time(obj_get, member_obj)
 
+    # HTMLへの出力(共通部分)
     context = {
       'title': '工数詳細',
       'id': num,
@@ -1259,6 +1268,8 @@ class DetailView(View):
       }
     return context
 
+
+  # GET時の処理
   def get(self, request, num):
     context = self.common_context(request, num)
     if isinstance(context, redirect.__class__):  # セッションエラー時のリダイレクト処理
