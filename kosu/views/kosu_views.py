@@ -1176,6 +1176,8 @@ class TodayBreakTimeUpdateView(UpdateView):
 
 
 
+
+# 工数詳細確認画面定義
 class DetailView(View):
   # テンプレート定義
   template_name = 'kosu/detail.html'
@@ -1271,714 +1273,185 @@ class DetailView(View):
 
   # GET時の処理
   def get(self, request, num):
+    # 共通部分のHTMLへの出力使用
     context = self.common_context(request, num)
-    if isinstance(context, redirect.__class__):  # セッションエラー時のリダイレクト処理
+    # セッションエラー時のリダイレクト処理
+    if isinstance(context, redirect.__class__):
       return context
     return render(request, self.template_name, context)
 
+
+  # POST時の処理
   def post(self, request, num):
-      context = self.common_context(request, num)
-      if isinstance(context, redirect.__class__):  # セッションエラー時のリダイレクト処理
-        return context
+    # 共通部分のHTMLへの出力使用
+    context = self.common_context(request, num)
+    # セッションエラー時のリダイレクト処理
+    if isinstance(context, redirect.__class__):
+      return context
 
-      obj_get = context['obj_get']
-      member_obj = context['member_obj']
+    # 指定工数データ,人員データを共通処理より取得
+    obj_get = context['obj_get']
+    member_obj = context['member_obj']
 
-      if "edit_day" in request.POST:
-        if request.POST['kosu_day'] in ["", None]:
-          messages.error(request, '変更する日付を指定して下さい。ERROR016')
-          return redirect(to=f'/detail/{num}')
+    # 就業日変更時の処理
+    if "edit_day" in request.POST:
+      # 入力内容記録
+      edit_comment = f"""就業日:{request.POST['kosu_day']}
+直:{request.POST['tyoku']}
+勤務:{request.POST['work']}
+残業:{request.POST['over_time']}
+"""
 
-        if request.POST['over_time'] in ["", None]:
-          messages.error(request, '残業は空欄で登録できません。ERROR017')
-          return redirect(to=f'/detail/{num}')
-
-        if request.POST['kosu_day'] != str(obj_get.work_day2):
-          obj_check = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=request.POST['kosu_day'])
-          if obj_check.exists():
-            messages.error(request, '指定された日は既に工数データが存在します。指定日のデータを削除してから再度実行下さい。ERROR018')
-            return redirect(to=f'/detail/{num}')
-
-        Business_Time_graph.objects.update_or_create(id=num, defaults={
-          'work_day2': request.POST['kosu_day'],
-          'tyoku2': request.POST['tyoku'],
-          'work_time': request.POST['work'],
-          'over_time': request.POST['over_time'],
-          'judgement': judgement_check(list(obj_get.time_work), request.POST['work'], request.POST['tyoku'], member_obj, request.POST['over_time'])
-          })
+      # 日付指定しなければエラー出力
+      if request.POST['kosu_day'] in ["", None]:
+        messages.error(request, '変更する日付を指定して下さい。ERROR016')
+        history_record('工数編集画面：日付変更', 'Business_Time_graph', 'ERROR016', edit_comment, request)
         return redirect(to=f'/detail/{num}')
 
-      # 時間指定工数削除時の処理
-      if "kosu_delete" in request.POST:
-        # 作業内容と作業詳細を取得しリストに解凍
-        work_list = list(obj_get.time_work)
-        detail_list = obj_get.detail_work.split('$')
-        start_time = request.POST['start_time']
-        end_time = request.POST['end_time']
-
-        # 時間指定を空でPOSTした場合、リダイレクト
-        if start_time in ["", None] or end_time in ["", None]:
-          messages.error(request, '時間が指定されていません。ERROR019')
-          return redirect(to = '/detail/{}'.format(num))
-        
-        # 作業開始、終了の時と分取得
-        start_time_hour, start_time_min = time_index(start_time)
-        end_time_hour, end_time_min = time_index(end_time)
-
-        # 作業開始、終了時間のインデックス取得
-        start_indent = int(int(start_time_hour)*12 + int(start_time_min)/5)
-        end_indent = int(int(end_time_hour)*12 + int(end_time_min)/5)
-
-
-        # 翌日チェック状態
-        check = 1 if 'tomorrow_check' in request.POST else 0
-
-        # 削除開始時間が削除終了時間より遅い時間の場合、リダイレクト
-        if (start_indent > end_indent) and check == 0:
-          messages.error(request, '削除の開始時間が終了時間よりも遅い時間を指定されましたので処理できません。ERROR020')
-          return redirect(to = '/detail/{}'.format(num))
-
-        # 日を超えていない場合の処理
-        if check == 0:
-          # 指定された時間の作業内容と作業詳細を消す
-          work_list, detail_list = kosu_delete(start_indent, end_indent, work_list, detail_list)
-
-        # 日を超えている場合の処理
-        else:
-          # 指定された時間の作業内容と作業詳細を消す
-          work_list, detail_list = kosu_delete(start_indent, 288, work_list, detail_list)
-          work_list, detail_list = kosu_delete(0, end_indent, work_list, detail_list)
-
-        # 工数合計取得
-        kosu_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
-
-        # 作業内容データの内容を上書きして更新
-        Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-          work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
-                                                    'detail_work' : detail_list_summarize(detail_list), \
-                                                    'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
-
-        # このページ読み直し
-        return redirect(to = '/detail/{}'.format(num))
-
-
-
-      # 項目指定工数削除時の処理
-      if "item_delete" in request.POST:
-        # 項目削除釦の項目名取得
-        pressed_button = int(request.POST.get('item_delete'))
-
-        # 作業内容と作業詳細を取得しリストに解凍
-        work_list = list(obj_get.time_work)
-        detail_list = obj_get.detail_work.split('$')
-
-        # 日を跨いでいない時の処理
-        if self.kosu_list[pressed_button - 1] < self.kosu_list[pressed_button]:
-          # 指定された時間の作業内容と作業詳細を消す
-          work_list, detail_list = kosu_delete(self.kosu_list[pressed_button - 1], self.kosu_list[pressed_button], work_list, detail_list)
-
-        # 日を跨いでいる時の処理
-        else:
-          # 指定された時間の作業内容と作業詳細を消す
-          work_list, detail_list = kosu_delete(self.kosu_list[pressed_button - 1], 288, work_list, detail_list)
-          work_list, detail_list = kosu_delete(0, self.kosu_list[pressed_button], work_list, detail_list)
-
-        # 工数合計取得
-        kosu_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
-
-        # 作業内容データの内容を上書きして更新
-        Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-          work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
-                                                    'detail_work' : detail_list_summarize(detail_list), \
-                                                    'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
-
-        # このページ読み直し
-        return redirect(to = '/detail/{}'.format(num))
-
-
-
-      # 項目作業時間変更時の処理
-      if "item_edit" in request.POST:
-        # 項目名取得
-        pressed_button = request.POST.get('item_edit')
-        # 項目ID取得
-        edit_id = int(pressed_button[2 : ])
-
-        start_time = request.POST.get('start_time{}'.format(edit_id))
-        end_time = request.POST.get('end_time{}'.format(edit_id))
-
-        # 入力エラー検出
-        response = kosu_edit_check(start_time, end_time, edit_id, num, request)
-        if response:
-          return response
-
-        # 作業開始、終了の時と分取得
-        start_time_hour, start_time_min = time_index(start_time)
-        end_time_hour, end_time_min = time_index(end_time)
-
-        # 作業開始、終了時間のインデックス取得
-        start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
-        end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
-
-        # 作業内容と作業詳細を取得しリストに解凍
-        work_list = list(obj_get.time_work)
-        detail_list = obj_get.detail_work.split('$')
-
-
-        # 変更前の作業時間が日を跨いでいない時の処理
-        if self.kosu_list[edit_id - 1] < self.kosu_list[edit_id]:
-          # 指定された時間の作業内容と作業詳細を削除
-          work_list, detail_list = kosu_delete(self.kosu_list[edit_id - 1], self.kosu_list[edit_id], work_list, detail_list)
-
-        # 変更前の作業時間が日を跨いでいる時の処理
-        else:
-          # 指定された時間の作業内容と作業詳細を削除
-          work_list, detail_list = kosu_delete(self.kosu_list[edit_id - 1], 288, work_list, detail_list)
-          work_list, detail_list = kosu_delete(0, self.kosu_list[edit_id], work_list, detail_list)
-
-        # 変更後の作業時間が日を跨いでいない時の処理
-        if start_time_ind < end_time_ind:
-          # 工数編集書き込み
-          work_list, detail_list = kosu_edit_write(start_time_ind, end_time_ind, work_list, detail_list, edit_id, request)
-
-          # 工数変更ができなかった場合のリダイレクト処理
-          if work_list is None or detail_list is None:
-            return redirect(to='/detail/{}'.format(num))
-
-        # 変更後の作業時間が日を跨いでいる時の処理
-        else:
-          # 工数編集書き込み
-          work_list, detail_list = kosu_edit_write(start_time_ind, 288, work_list, detail_list,edit_id, request)
-          work_list, detail_list = kosu_edit_write(0, end_time_ind, work_list, detail_list, edit_id, request)
-
-          # 工数変更ができなかった場合のリダイレクト処理
-          if work_list is None or detail_list is None:
-            return redirect(to='/detail/{}'.format(num))
-
-        # 作業内容データの内容を上書きして更新
-        Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-          work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
-                                                    'detail_work' : detail_list_summarize(detail_list), \
-                                                    'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
-
-        # このページ読み直し
-        return redirect(to = '/detail/{}'.format(num))
-
-
-
-      # 項目作業時間一括変更時の処理
-      if "all_edit" in request.POST:
-        # 選択したチェックBOXの値取得
-        selected_num = [int(k[3:]) for k in request.POST.getlist('opperable')]
-
-        # 作業内容と作業詳細を取得しリストに解凍
-        work_list = list(obj_get.time_work)
-        detail_list = obj_get.detail_work.split('$')
-
-
-        # 工数入力インデックスリスト定義
-        index_list = []
-        break_index_list = []
-        # 工数入力インデックスリスト作成
-        for t in selected_num:
-          # 作業可部分の作業時間取得
-          start_time = request.POST.get('start_time{}'.format(t))
-          end_time = request.POST.get('end_time{}'.format(t))
-          # 作業時間の時と分取得
-          start_time_hour, start_time_min = time_index(start_time)
-          end_time_hour, end_time_min = time_index(end_time)
-          # 作業時間のインデックス取得
-          start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
-          end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
-
-          # 作業可部分の作業時間インデックス格納
-          for tt in range(start_time_ind, end_time_ind):
-            index_list.append(tt)
-
-        # 作業可以外の部分の作業時間インデックス取得
-        for def_t in range(len(self.time_list_start)):
-          if def_t + 1 not in selected_num:
-            # 工数区分定義と作業詳細が空欄でない場合の処理
-            if not (self.def_time[def_t] in ["", None] and self.detail_time[def_t] in ["", None]):
-              # 休憩時間は作業時間被りから除外
-              if self.def_time[def_t] != '休憩':
-                # 作業時間の時と分取得 
-                start_time_hour, start_time_min = time_index(self.time_list_start[def_t])
-                end_time_hour, end_time_min = time_index(self.time_list_end[def_t])
-                # 作業時間のインデックス取得
-                start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
-                end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
-
-                # 作業可以外の作業時間インデックス格納
-                for def_tt in range(start_time_ind, end_time_ind):
-                  index_list.append(def_tt)
-
-              # 休憩時間の処理
-              else:
-                # 作業時間の時と分取得 
-                start_time_hour, start_time_min = time_index(self.time_list_start[def_t])
-                end_time_hour, end_time_min = time_index(self.time_list_end[def_t])
-                # 作業時間のインデックス取得
-                start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
-                end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
-
-                # 休憩時間のインデックス取得
-                for def_tt in range(start_time_ind, end_time_ind):
-                  break_index_list.append(def_tt)
-
-        # 工数入力時間に被りがある場合、リダイレクト
-        if len(index_list) != len(set(index_list)):
-          messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR021')
-          return redirect(to = '/detail/{}'.format(num))
-
-
-        # 作業可部分の変更を書き込むループ
-        for d in selected_num:
-          # 作業時間取得
-          start_time = request.POST.get('start_time{}'.format(d))
-          end_time = request.POST.get('end_time{}'.format(d))
-
-          # 入力エラー検出
-          response = kosu_edit_check(start_time, end_time, d, num, request)
-          if response:
-            return response
-
-          # 作業開始、終了の時と分取得
-          start_time_hour, start_time_min = time_index(start_time)
-          end_time_hour, end_time_min = time_index(end_time)
-
-          # 作業開始、終了時間のインデックス取得
-          start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
-          end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
-
-
-          # 変更後の作業時間が日を跨いでいない時の処理
-          if start_time_ind < end_time_ind:
-            # 変更後の作業時間に工数データが入力されていないかチェック
-            for k in range(start_time_ind, end_time_ind):
-              # 作業内容、作業詳細書き込み
-              work_list[k] = request.POST.get('def_time{}'.format(d))
-              detail_list[k] = request.POST.get('detail_time{}'.format(d))
-                
-          # 変更後の作業時間が日を跨いでいる時の処理
-          else:
-            # 変更後の作業時間に工数データが入力されていないかチェック
-            for k in range(start_time_ind, 288):
-              # 作業内容、作業詳細書き込み
-              work_list[k] = request.POST.get('def_time{}'.format(d))
-              detail_list[k] = request.POST.get('detail_time{}'.format(d))
-
-            # 変更後の作業時間に工数データが入力されていないかチェック
-            for k in range(end_time_ind):
-              # 作業内容、作業詳細書き込み
-              work_list[k] = request.POST.get('def_time{}'.format(d))
-              detail_list[k] = request.POST.get('detail_time{}'.format(d))
-
-
-        # 工数が入力されていないインデックス取得
-        index_list_another = [item for item in range(288) if item not in index_list + break_index_list]
-        # 工数が入力されていない部分を消す
-        for del_k in index_list_another:
-          work_list[del_k] = '#'
-          detail_list[del_k] = ''
-
-        # 作業内容データの内容を上書きして更新
-        Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-          work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
-                                                    'detail_work' : detail_list_summarize(detail_list), \
-                                                    'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
-
-        # このページ読み直し
-        return redirect(to = '/detail/{}'.format(num))
-
-
-
-      # 次のデータへ
-      if "after" in request.POST:
-        # 前のデータ取得
-        obj_after = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                      work_day2__gt = obj_get.work_day2).order_by('work_day2').first()
-        # 前の工数詳細へ飛ぶ
-        return redirect(to = '/detail/{}'.format(obj_after.id))
-
-
-
-      # 前のデータへ
-      if "before" in request.POST:
-        # 前のデータ取得
-        obj_before = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                        work_day2__lt = obj_get.work_day2).order_by('-work_day2').first()
-        # 前の工数詳細へ飛ぶ
-        return redirect(to = '/detail/{}'.format(obj_before.id))
-
-
-      # 基本的なデータを取得してリロード
+      # 残業入力ない場合はエラー出力
+      if request.POST['over_time'] in ["", None]:
+        messages.error(request, '残業は空欄で登録できません。ERROR017')
+        history_record('工数編集画面：日付変更', 'Business_Time_graph', 'ERROR017', edit_comment, request)
+        return redirect(to=f'/detail/{num}')
+
+      # 指定した日に工数データがすでにある場合はエラー出力
+      if request.POST['kosu_day'] != str(obj_get.work_day2):
+        obj_check = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'], work_day2=request.POST['kosu_day'])
+        if obj_check.exists():
+          messages.error(request, '指定された日は既に工数データが存在します。指定日のデータを削除してから再度実行下さい。ERROR018')
+          history_record('工数編集画面：日付変更', 'Business_Time_graph', 'ERROR018', edit_comment, request)
+          return redirect(to=f'/detail/{num}')
+
+      # 編集内容を工数データに書き込み
+      Business_Time_graph.objects.update_or_create(id=num, defaults={
+        'work_day2': request.POST['kosu_day'],
+        'tyoku2': request.POST['tyoku'],
+        'work_time': request.POST['work'],
+        'over_time': request.POST['over_time'],
+        'judgement': judgement_check(list(obj_get.time_work), request.POST['work'], request.POST['tyoku'], member_obj, request.POST['over_time'])
+        })
+      # 操作履歴記録
+      history_record('工数編集画面：日付変更', 'Business_Time_graph', 'OK', edit_comment, request)
       return redirect(to=f'/detail/{num}')
 
 
+    # 時間指定工数削除時の処理
+    if "kosu_delete" in request.POST:
+      # 入力内容記録
+      edit_comment = f"""指定時間:{request.POST['start_time']}～{request.POST['end_time']}
+翌日チェック:{'tomorrow_check' in request.POST}
+"""
 
-# 工数詳細確認画面定義
-def detail(request, num):
-  # セッションにログインした従業員番号がない場合の処理
-  if not request.session.get('login_No'):
-    # 未ログインならログインページへ飛ぶ
-    return redirect('/login')
+      # 作業内容と作業詳細を取得しリストに解凍
+      work_list = list(obj_get.time_work)
+      detail_list = obj_get.detail_work.split('$')
+      start_time = request.POST['start_time']
+      end_time = request.POST['end_time']
 
-  try:
-    # ログイン者の情報取得
-    member_obj = member.objects.get(employee_no=request.session['login_No'])
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect('/login')
-
-  # 指定IDの工数履歴のレコードのオブジェクトを変数に入れる
-  obj_get = Business_Time_graph.objects.get(id = num)
-
-  # 作業内容と作業詳細を直に合わせて調整
-  work_list, detail_list = kosu_sort(obj_get, member_obj)
-
-  # HTML表示用リスト前準備リスト作成
-  def_time, detail_time, time_list_start, time_list_end, kosu_list = create_kosu_basic(work_list, detail_list, obj_get, member_obj, request)
-  
-  # 工数データに工数定義区分Verがある場合の処理
-  if obj_get.def_ver2 not in [None, '']:
-    # 工数区分定義リスト作成
-    def_choices_list, def_n = kosu_division_dictionary(obj_get.def_ver2)
-  # 工数データに工数定義区分Verがない場合の処理
-  else:
-    # 工数区分定義リスト作成
-    def_choices_list, def_n = kosu_division_dictionary(request.session['input_def'])
-
-
-  # HTML表示用リスト作成
-  time_display_list = []
-  for k in range(len(time_list_start)):
-    # 一時置きリスト定義
-    for_list = []
-
-    # 工数区分定義の選択リスト作成
-    choices_list = ''
-    # 工数区分定義リストに項目追加
-    if def_time[k] in ["", None]:
-      choices_list += '<option value="{}" selected>{}</option>'.format('#', '-')
-    else:
-      choices_list += '<option value="{}">{}</option>'.format('#', '-')
-
-    for i in range(def_n):
-      if def_time[k] == def_choices_list[i][1]:
-        choices_list += '<option value="{}" selected>{}</option>'.format(def_choices_list[i][0], def_choices_list[i][1])
-      else:
-        choices_list += '<option value="{}">{}</option>'.format(def_choices_list[i][0], def_choices_list[i][1])
-
-    if def_time[k] == '休憩':
-      choices_list += '<option value="{}" selected>{}</option>'.format('$', '休憩')
-    else:
-      choices_list += '<option value="{}">{}</option>'.format('$', '休憩')
-
-
-    for_list.append('<input class="your-time-field form-control custom-border controlled-input" style="width : 70px;" type="text" name="start_time{}" data-precision="5" value={}>'.format(k + 1, str(time_list_start[k])) + '～' + '<input class="your-time-field form-control custom-border controlled-input" style="width : 70px;" type="text" name="end_time{}" data-precision="5" value={}>'.format(k + 1, str(time_list_end[k])))
-    for_list.append('<select name="def_time{}" class="form-control custom-border mx-auto controlled-input" style="width : 210px;">'.format(k + 1) + choices_list + '</select>')
-    for_list.append('<input class="form-control custom-border mx-auto controlled-input" style="width : 210px;" type="text" name="detail_time{}" value="{}">'.format(k + 1, detail_time[k]))
-    time_display_list.append(for_list)
-
-  # 次の問い合わせデータ取得
-  next_record = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                   work_day2__gt = obj_get.work_day2).order_by('work_day2').first()
-  # 次の問い合わせデータあるか確認
-  has_next_record = next_record is not None
-
-  # 前の問い合わせデータ取得
-  before_record = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                     work_day2__lt = obj_get.work_day2).order_by('-work_day2').first()
-  # 前の問い合わせデータあるか確認
-  has_before_record = before_record is not None
-
-  # 残業時間初期値定義
-  if obj_get.over_time not in ["", None]:
-    over_time_default = obj_get.over_time
-  else:
-    over_time_default = 0
-
-
-  # 工数合計取得
-  time_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
-
-  # 基準合計工数取得
-  default_total = default_work_time(obj_get, member_obj)
-
-
-
-  # 就業日変更時の処理
-  if "edit_day" in request.POST:
-    # 指定日が空欄の場合、リダイレクト
-    if request.POST['kosu_day'] in ["", None]:
-      messages.error(request, '変更する日付を指定して下さい。ERROR016')
-      return redirect(to = '/detail/{}'.format(num))
-
-    # 残業空欄の場合、リダイレクト
-    if request.POST['over_time'] in ["", None]:
-      messages.error(request, '残業は空欄で登録できません。ERROR017')
-      return redirect(to = '/detail/{}'.format(num))
-
-    # 日付に変更がある場合の処理
-    if request.POST['kosu_day'] != str(obj_get.work_day2):
-      # 指定日に工数データがあるか確認
-      obj_check = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                     work_day2 = request.POST['kosu_day'])
-
-      # 指定日に工数データがある場合、リダイレクト
-      if obj_check.exists():
-        messages.error(request, '指定された日は既に工数データが存在します。指定日のデータを削除してから再度実行下さい。ERROR018')
+      # 時間指定を空でPOSTした場合、リダイレクト
+      if start_time in ["", None] or end_time in ["", None]:
+        messages.error(request, '時間が指定されていません。ERROR019')
+        history_record('工数編集画面：工数削除(時間指定)', 'Business_Time_graph', 'ERROR019', edit_comment, request)
         return redirect(to = '/detail/{}'.format(num))
-
-    # 作業内容データの内容を上書きして更新
-    Business_Time_graph.objects.update_or_create(id = num, \
-                                                defaults = {'work_day2' : request.POST['kosu_day'], \
-                                                            'tyoku2' : request.POST['tyoku'], \
-                                                            'work_time' : request.POST['work'], \
-                                                            'over_time' : request.POST['over_time'], \
-                                                            'judgement' : judgement_check(list(obj_get.time_work), request.POST['work'], request.POST['tyoku'], member_obj, request.POST['over_time'])})
-
-    # このページ読み直し
-    return redirect(to = '/detail/{}'.format(num))
-
-
-
-  # 時間指定工数削除時の処理
-  if "kosu_delete" in request.POST:
-    # 作業内容と作業詳細を取得しリストに解凍
-    work_list = list(obj_get.time_work)
-    detail_list = obj_get.detail_work.split('$')
-    start_time = request.POST['start_time']
-    end_time = request.POST['end_time']
-
-    # 時間指定を空でPOSTした場合、リダイレクト
-    if start_time in ["", None] or end_time in ["", None]:
-      messages.error(request, '時間が指定されていません。ERROR019')
-      return redirect(to = '/detail/{}'.format(num))
-    
-    # 作業開始、終了の時と分取得
-    start_time_hour, start_time_min = time_index(start_time)
-    end_time_hour, end_time_min = time_index(end_time)
-
-    # 作業開始、終了時間のインデックス取得
-    start_indent = int(int(start_time_hour)*12 + int(start_time_min)/5)
-    end_indent = int(int(end_time_hour)*12 + int(end_time_min)/5)
-
-
-    # 翌日チェック状態
-    check = 1 if 'tomorrow_check' in request.POST else 0
-
-    # 削除開始時間が削除終了時間より遅い時間の場合、リダイレクト
-    if (start_indent > end_indent) and check == 0:
-      messages.error(request, '削除の開始時間が終了時間よりも遅い時間を指定されましたので処理できません。ERROR020')
-      return redirect(to = '/detail/{}'.format(num))
-
-    # 日を超えていない場合の処理
-    if check == 0:
-      # 指定された時間の作業内容と作業詳細を消す
-      work_list, detail_list = kosu_delete(start_indent, end_indent, work_list, detail_list)
-
-    # 日を超えている場合の処理
-    else:
-      # 指定された時間の作業内容と作業詳細を消す
-      work_list, detail_list = kosu_delete(start_indent, 288, work_list, detail_list)
-      work_list, detail_list = kosu_delete(0, end_indent, work_list, detail_list)
-
-    # 工数合計取得
-    kosu_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
-
-    # 作業内容データの内容を上書きして更新
-    Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-      work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
-                                                 'detail_work' : detail_list_summarize(detail_list), \
-                                                 'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
-
-    # このページ読み直し
-    return redirect(to = '/detail/{}'.format(num))
-
-
-
-  # 項目指定工数削除時の処理
-  if "item_delete" in request.POST:
-    # 項目削除釦の項目名取得
-    pressed_button = int(request.POST.get('item_delete'))
-
-    # 作業内容と作業詳細を取得しリストに解凍
-    work_list = list(obj_get.time_work)
-    detail_list = obj_get.detail_work.split('$')
-
-    # 日を跨いでいない時の処理
-    if kosu_list[pressed_button - 1] < kosu_list[pressed_button]:
-      # 指定された時間の作業内容と作業詳細を消す
-      work_list, detail_list = kosu_delete(kosu_list[pressed_button - 1], kosu_list[pressed_button], work_list, detail_list)
-
-    # 日を跨いでいる時の処理
-    else:
-      # 指定された時間の作業内容と作業詳細を消す
-      work_list, detail_list = kosu_delete(kosu_list[pressed_button - 1], 288, work_list, detail_list)
-      work_list, detail_list = kosu_delete(0, kosu_list[pressed_button], work_list, detail_list)
-
-    # 工数合計取得
-    kosu_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
-
-    # 作業内容データの内容を上書きして更新
-    Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-      work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
-                                                 'detail_work' : detail_list_summarize(detail_list), \
-                                                 'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
-
-    # このページ読み直し
-    return redirect(to = '/detail/{}'.format(num))
-
-
-
-  # 項目作業時間変更時の処理
-  if "item_edit" in request.POST:
-    # 項目名取得
-    pressed_button = request.POST.get('item_edit')
-    # 項目ID取得
-    edit_id = int(pressed_button[2 : ])
-
-    start_time = request.POST.get('start_time{}'.format(edit_id))
-    end_time = request.POST.get('end_time{}'.format(edit_id))
-
-    # 入力エラー検出
-    response = kosu_edit_check(start_time, end_time, edit_id, num, request)
-    if response:
-      return response
-
-    # 作業開始、終了の時と分取得
-    start_time_hour, start_time_min = time_index(start_time)
-    end_time_hour, end_time_min = time_index(end_time)
-
-    # 作業開始、終了時間のインデックス取得
-    start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
-    end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
-
-    # 作業内容と作業詳細を取得しリストに解凍
-    work_list = list(obj_get.time_work)
-    detail_list = obj_get.detail_work.split('$')
-
-
-    # 変更前の作業時間が日を跨いでいない時の処理
-    if kosu_list[edit_id - 1] < kosu_list[edit_id]:
-      # 指定された時間の作業内容と作業詳細を削除
-      work_list, detail_list = kosu_delete(kosu_list[edit_id - 1], kosu_list[edit_id], work_list, detail_list)
-
-    # 変更前の作業時間が日を跨いでいる時の処理
-    else:
-      # 指定された時間の作業内容と作業詳細を削除
-      work_list, detail_list = kosu_delete(kosu_list[edit_id - 1], 288, work_list, detail_list)
-      work_list, detail_list = kosu_delete(0, kosu_list[edit_id], work_list, detail_list)
-
-    # 変更後の作業時間が日を跨いでいない時の処理
-    if start_time_ind < end_time_ind:
-      # 工数編集書き込み
-      work_list, detail_list = kosu_edit_write(start_time_ind, end_time_ind, work_list, detail_list, edit_id, request)
-
-      # 工数変更ができなかった場合のリダイレクト処理
-      if work_list is None or detail_list is None:
-        return redirect(to='/detail/{}'.format(num))
-
-    # 変更後の作業時間が日を跨いでいる時の処理
-    else:
-      # 工数編集書き込み
-      work_list, detail_list = kosu_edit_write(start_time_ind, 288, work_list, detail_list,edit_id, request)
-      work_list, detail_list = kosu_edit_write(0, end_time_ind, work_list, detail_list, edit_id, request)
-
-      # 工数変更ができなかった場合のリダイレクト処理
-      if work_list is None or detail_list is None:
-        return redirect(to='/detail/{}'.format(num))
-
-    # 作業内容データの内容を上書きして更新
-    Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-      work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
-                                                 'detail_work' : detail_list_summarize(detail_list), \
-                                                 'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
-
-    # このページ読み直し
-    return redirect(to = '/detail/{}'.format(num))
-
-
-
-  # 項目作業時間一括変更時の処理
-  if "all_edit" in request.POST:
-    # 選択したチェックBOXの値取得
-    selected_num = [int(k[3:]) for k in request.POST.getlist('opperable')]
-
-    # 作業内容と作業詳細を取得しリストに解凍
-    work_list = list(obj_get.time_work)
-    detail_list = obj_get.detail_work.split('$')
-
-
-    # 工数入力インデックスリスト定義
-    index_list = []
-    break_index_list = []
-    # 工数入力インデックスリスト作成
-    for t in selected_num:
-      # 作業可部分の作業時間取得
-      start_time = request.POST.get('start_time{}'.format(t))
-      end_time = request.POST.get('end_time{}'.format(t))
-      # 作業時間の時と分取得
+      
+      # 作業開始、終了の時と分取得
       start_time_hour, start_time_min = time_index(start_time)
       end_time_hour, end_time_min = time_index(end_time)
-      # 作業時間のインデックス取得
-      start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
-      end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
 
-      # 作業可部分の作業時間インデックス格納
-      for tt in range(start_time_ind, end_time_ind):
-        index_list.append(tt)
-
-    # 作業可以外の部分の作業時間インデックス取得
-    for def_t in range(len(time_list_start)):
-      if def_t + 1 not in selected_num:
-        # 工数区分定義と作業詳細が空欄でない場合の処理
-        if not (def_time[def_t] in ["", None] and detail_time[def_t] in ["", None]):
-          # 休憩時間は作業時間被りから除外
-          if def_time[def_t] != '休憩':
-            # 作業時間の時と分取得 
-            start_time_hour, start_time_min = time_index(time_list_start[def_t])
-            end_time_hour, end_time_min = time_index(time_list_end[def_t])
-            # 作業時間のインデックス取得
-            start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
-            end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
-
-            # 作業可以外の作業時間インデックス格納
-            for def_tt in range(start_time_ind, end_time_ind):
-              index_list.append(def_tt)
-
-          # 休憩時間の処理
-          else:
-            # 作業時間の時と分取得 
-            start_time_hour, start_time_min = time_index(time_list_start[def_t])
-            end_time_hour, end_time_min = time_index(time_list_end[def_t])
-            # 作業時間のインデックス取得
-            start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
-            end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
-
-            # 休憩時間のインデックス取得
-            for def_tt in range(start_time_ind, end_time_ind):
-              break_index_list.append(def_tt)
-
-    # 工数入力時間に被りがある場合、リダイレクト
-    if len(index_list) != len(set(index_list)):
-      messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR021')
-      return redirect(to = '/detail/{}'.format(num))
+      # 作業開始、終了時間のインデックス取得
+      start_indent = int(int(start_time_hour)*12 + int(start_time_min)/5)
+      end_indent = int(int(end_time_hour)*12 + int(end_time_min)/5)
 
 
-    # 作業可部分の変更を書き込むループ
-    for d in selected_num:
-      # 作業時間取得
-      start_time = request.POST.get('start_time{}'.format(d))
-      end_time = request.POST.get('end_time{}'.format(d))
+      # 翌日チェック状態
+      check = 1 if 'tomorrow_check' in request.POST else 0
+
+      # 削除開始時間が削除終了時間より遅い時間の場合、リダイレクト
+      if (start_indent > end_indent) and check == 0:
+        messages.error(request, '削除の開始時間が終了時間よりも遅い時間を指定されましたので処理できません。ERROR020')
+        history_record('工数編集画面：工数削除(時間指定)', 'Business_Time_graph', 'ERROR020', edit_comment, request)
+        return redirect(to = '/detail/{}'.format(num))
+
+      # 日を超えていない場合の処理
+      if check == 0:
+        # 指定された時間の作業内容と作業詳細を消す
+        work_list, detail_list = kosu_delete(start_indent, end_indent, work_list, detail_list)
+
+      # 日を超えている場合の処理
+      else:
+        # 指定された時間の作業内容と作業詳細を消す
+        work_list, detail_list = kosu_delete(start_indent, 288, work_list, detail_list)
+        work_list, detail_list = kosu_delete(0, end_indent, work_list, detail_list)
+
+      # 工数合計取得
+      kosu_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
+
+      # 作業内容データの内容を上書きして更新
+      Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
+        work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
+                                                  'detail_work' : detail_list_summarize(detail_list), \
+                                                  'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
+      # 操作履歴記録
+      history_record('工数編集画面：工数削除(時間指定)', 'Business_Time_graph', 'OK', edit_comment, request)
+      # このページ読み直し
+      return redirect(to=f'/detail/{num}')
+
+
+    # 項目指定工数削除時の処理
+    if "item_delete" in request.POST:
+      # 項目削除釦の項目名取得
+      pressed_button = int(request.POST.get('item_delete'))
+
+      # 入力内容記録
+      edit_comment = f'作業時間:{int(self.kosu_list[pressed_button-1])*5//60}:{str(int(self.kosu_list[pressed_button-1])*5%60).zfill(2)}～{int(self.kosu_list[pressed_button])*5//60}:{str(int(self.kosu_list[pressed_button])*5%60).zfill(2)}'
+
+      # 作業内容と作業詳細を取得しリストに解凍
+      work_list = list(obj_get.time_work)
+      detail_list = obj_get.detail_work.split('$')
+
+      # 日を跨いでいない時の処理
+      if self.kosu_list[pressed_button - 1] < self.kosu_list[pressed_button]:
+        # 指定された時間の作業内容と作業詳細を消す
+        work_list, detail_list = kosu_delete(self.kosu_list[pressed_button-1], self.kosu_list[pressed_button], work_list, detail_list)
+
+      # 日を跨いでいる時の処理
+      else:
+        # 指定された時間の作業内容と作業詳細を消す
+        work_list, detail_list = kosu_delete(self.kosu_list[pressed_button-1], 288, work_list, detail_list)
+        work_list, detail_list = kosu_delete(0, self.kosu_list[pressed_button], work_list, detail_list)
+
+      # 工数合計取得
+      kosu_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
+
+      # 作業内容データの内容を上書きして更新
+      Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
+        work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
+                                                  'detail_work' : detail_list_summarize(detail_list), \
+                                                  'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
+      # 操作履歴記録
+      history_record('工数編集画面：工数削除(項目指定)', 'Business_Time_graph', 'OK', edit_comment, request)
+      # このページ読み直し
+      return redirect(to=f'/detail/{num}')
+
+
+    # 項目作業時間変更時の処理
+    if "item_edit" in request.POST:
+      # 項目名取得
+      pressed_button = request.POST.get('item_edit')
+      # 項目ID取得
+      edit_id = int(pressed_button[2 : ])
+
+      start_time = request.POST.get('start_time{}'.format(edit_id))
+      end_time = request.POST.get('end_time{}'.format(edit_id))
+
+      # 入力内容記録
+      edit_comment = f"""作業時間:{start_time}～{end_time}
+作業内容:{request.POST.get('def_time{}'.format(edit_id))}
+作業詳細:{request.POST.get('detail_time{}'.format(edit_id))}
+"""
 
       # 入力エラー検出
-      response = kosu_edit_check(start_time, end_time, d, num, request)
+      response = kosu_edit_check(start_time, end_time, edit_id, num, edit_comment, '工数編集画面：項目編集', request)
       if response:
         return response
 
@@ -1990,84 +1463,209 @@ def detail(request, num):
       start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
       end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
 
+      # 作業内容と作業詳細を取得しリストに解凍
+      work_list = list(obj_get.time_work)
+      detail_list = obj_get.detail_work.split('$')
+
+
+      # 変更前の作業時間が日を跨いでいない時の処理
+      if self.kosu_list[edit_id - 1] < self.kosu_list[edit_id]:
+        # 指定された時間の作業内容と作業詳細を削除
+        work_list, detail_list = kosu_delete(self.kosu_list[edit_id - 1], self.kosu_list[edit_id], work_list, detail_list)
+
+      # 変更前の作業時間が日を跨いでいる時の処理
+      else:
+        # 指定された時間の作業内容と作業詳細を削除
+        work_list, detail_list = kosu_delete(self.kosu_list[edit_id - 1], 288, work_list, detail_list)
+        work_list, detail_list = kosu_delete(0, self.kosu_list[edit_id], work_list, detail_list)
 
       # 変更後の作業時間が日を跨いでいない時の処理
       if start_time_ind < end_time_ind:
-        # 変更後の作業時間に工数データが入力されていないかチェック
-        for k in range(start_time_ind, end_time_ind):
-          # 作業内容、作業詳細書き込み
-          work_list[k] = request.POST.get('def_time{}'.format(d))
-          detail_list[k] = request.POST.get('detail_time{}'.format(d))
-            
+        # 工数編集書き込み
+        work_list, detail_list = kosu_edit_write(start_time_ind, end_time_ind, work_list, detail_list, edit_id, request)
+
+        # 工数変更ができなかった場合のリダイレクト処理
+        if work_list is None or detail_list is None:
+          history_record('工数編集画面：項目編集', 'Business_Time_graph', 'ERROR037', edit_comment, request)
+          return redirect(to='/detail/{}'.format(num))
+
       # 変更後の作業時間が日を跨いでいる時の処理
       else:
-        # 変更後の作業時間に工数データが入力されていないかチェック
-        for k in range(start_time_ind, 288):
-          # 作業内容、作業詳細書き込み
-          work_list[k] = request.POST.get('def_time{}'.format(d))
-          detail_list[k] = request.POST.get('detail_time{}'.format(d))
+        # 工数編集書き込み
+        work_list, detail_list = kosu_edit_write(start_time_ind, 288, work_list, detail_list,edit_id, request)
+        work_list, detail_list = kosu_edit_write(0, end_time_ind, work_list, detail_list, edit_id, request)
 
-        # 変更後の作業時間に工数データが入力されていないかチェック
-        for k in range(end_time_ind):
-          # 作業内容、作業詳細書き込み
-          work_list[k] = request.POST.get('def_time{}'.format(d))
-          detail_list[k] = request.POST.get('detail_time{}'.format(d))
+        # 工数変更ができなかった場合のリダイレクト処理
+        if work_list is None or detail_list is None:
+          history_record('工数編集画面：項目編集', 'Business_Time_graph', 'ERROR037', edit_comment, request)
+          return redirect(to='/detail/{}'.format(num))
 
-
-    # 工数が入力されていないインデックス取得
-    index_list_another = [item for item in range(288) if item not in index_list + break_index_list]
-    # 工数が入力されていない部分を消す
-    for del_k in index_list_another:
-      work_list[del_k] = '#'
-      detail_list[del_k] = ''
-
-    # 作業内容データの内容を上書きして更新
-    Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-      work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
-                                                'detail_work' : detail_list_summarize(detail_list), \
-                                                'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
-
-    # このページ読み直し
-    return redirect(to = '/detail/{}'.format(num))
+      # 作業内容データの内容を上書きして更新
+      Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
+        work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
+                                                  'detail_work' : detail_list_summarize(detail_list), \
+                                                  'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
+      # 操作履歴記録
+      history_record('工数編集画面：項目編集', 'Business_Time_graph', 'OK', edit_comment, request)
+      # このページ読み直し
+      return redirect(to=f'/detail/{num}')
 
 
+    # 項目作業時間一括変更時の処理
+    if "all_edit" in request.POST:
+      # 選択したチェックBOXの値取得
+      selected_num = [int(k[3:]) for k in request.POST.getlist('opperable')]
 
-  # 次のデータへ
-  if "after" in request.POST:
-    # 前のデータ取得
-    obj_after = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                   work_day2__gt = obj_get.work_day2).order_by('work_day2').first()
-    # 前の工数詳細へ飛ぶ
-    return redirect(to = '/detail/{}'.format(obj_after.id))
-
-
-
-  # 前のデータへ
-  if "before" in request.POST:
-    # 前のデータ取得
-    obj_before = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                    work_day2__lt = obj_get.work_day2).order_by('-work_day2').first()
-    # 前の工数詳細へ飛ぶ
-    return redirect(to = '/detail/{}'.format(obj_before.id))
+      # 作業内容と作業詳細を取得しリストに解凍
+      work_list = list(obj_get.time_work)
+      detail_list = obj_get.detail_work.split('$')
 
 
+      # 工数入力インデックスリスト定義
+      index_list = []
+      break_index_list = []
+      edit_comment = """"""
+      # 工数入力インデックスリスト作成
+      for t in selected_num:
+        # 作業可部分の作業時間取得
+        start_time = request.POST.get('start_time{}'.format(t))
+        end_time = request.POST.get('end_time{}'.format(t))
+        # 作業時間の時と分取得
+        start_time_hour, start_time_min = time_index(start_time)
+        end_time_hour, end_time_min = time_index(end_time)
+        # 作業時間のインデックス取得
+        start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
+        end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
+        # 作業時間取得
+        edit_comment = edit_comment + f"""作業時間{t}:{start_time_hour}:{str(start_time_min).zfill(2)}～{end_time_hour}:{str(end_time_min).zfill(2)}
+業務区分定義{t}:{request.POST.get('def_time{}'.format(t))}
+作業詳細{t}:{request.POST.get('detail_time{}'.format(t))}
+"""
 
-  # HTMLに渡す辞書
-  context = {
-    'title' : '工数詳細',
-    'id' : num,
-    'obj_get' : obj_get,
-    'over_time_default' : over_time_default,
-    'now_day' : str(obj_get.work_day2),
-    'time_total' : time_total,
-    'default_total' : default_total,
-    'time_display_list' : time_display_list,
-    'has_next_record' : has_next_record,
-    'has_before_record' : has_before_record,
-    }
+        # 作業可部分の作業時間インデックス格納
+        for tt in range(start_time_ind, end_time_ind):
+          index_list.append(tt)
 
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/detail.html', context)
+      # 作業可以外の部分の作業時間インデックス取得
+      for def_t in range(len(self.time_list_start)):
+        if def_t + 1 not in selected_num:
+          # 工数区分定義と作業詳細が空欄でない場合の処理
+          if not (self.def_time[def_t] in ["", None] and self.detail_time[def_t] in ["", None]):
+            # 休憩時間は作業時間被りから除外
+            if self.def_time[def_t] not in ['休憩', '-']:
+              # 作業時間の時と分取得
+              start_time_hour, start_time_min = time_index(self.time_list_start[def_t])
+              end_time_hour, end_time_min = time_index(self.time_list_end[def_t])
+              # 作業時間のインデックス取得
+              start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
+              end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
+
+              # 作業可以外の作業時間インデックス格納
+              for def_tt in range(start_time_ind, end_time_ind):
+                index_list.append(def_tt)
+
+              # 作業時間取得
+              edit_comment = edit_comment + f"""作業時間{def_t+1}:{start_time_hour}:{str(start_time_min).zfill(2)}～{end_time_hour}:{str(end_time_min).zfill(2)}
+業務区分定義{def_t+1}:{self.def_time[def_t]}
+作業詳細{def_t+1}:{self.detail_time[def_t]}
+"""
+
+            # 休憩時間の処理
+            else:
+              # 作業時間の時と分取得 
+              start_time_hour, start_time_min = time_index(self.time_list_start[def_t])
+              end_time_hour, end_time_min = time_index(self.time_list_end[def_t])
+              # 作業時間のインデックス取得
+              start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
+              end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
+
+              # 休憩時間のインデックス取得
+              for def_tt in range(start_time_ind, end_time_ind):
+                break_index_list.append(def_tt)
+
+      # 工数入力時間に被りがある場合、リダイレクト
+      if len(index_list) != len(set(index_list)):
+        messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR021')
+        return redirect(to='/detail/{}'.format(num))
+
+      # 作業可部分の変更を書き込むループ
+      for d in selected_num:
+        # 作業時間取得
+        start_time = request.POST.get('start_time{}'.format(d))
+        end_time = request.POST.get('end_time{}'.format(d))
+
+        # 入力エラー検出
+        response = kosu_edit_check(start_time, end_time, d, num, edit_comment, '工数編集画面：一括編集', request)
+        if response:
+          return response
+        print(edit_comment)
+        # 作業開始、終了の時と分取得
+        start_time_hour, start_time_min = time_index(start_time)
+        end_time_hour, end_time_min = time_index(end_time)
+
+        # 作業開始、終了時間のインデックス取得
+        start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
+        end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
+
+
+        # 変更後の作業時間が日を跨いでいない時の処理
+        if start_time_ind < end_time_ind:
+          # 変更後の作業時間に工数データが入力されていないかチェック
+          for k in range(start_time_ind, end_time_ind):
+            # 作業内容、作業詳細書き込み
+            work_list[k] = request.POST.get('def_time{}'.format(d))
+            detail_list[k] = request.POST.get('detail_time{}'.format(d))
+              
+        # 変更後の作業時間が日を跨いでいる時の処理
+        else:
+          # 変更後の作業時間に工数データが入力されていないかチェック
+          for k in range(start_time_ind, 288):
+            # 作業内容、作業詳細書き込み
+            work_list[k] = request.POST.get('def_time{}'.format(d))
+            detail_list[k] = request.POST.get('detail_time{}'.format(d))
+
+          # 変更後の作業時間に工数データが入力されていないかチェック
+          for k in range(end_time_ind):
+            # 作業内容、作業詳細書き込み
+            work_list[k] = request.POST.get('def_time{}'.format(d))
+            detail_list[k] = request.POST.get('detail_time{}'.format(d))
+
+
+      # 工数が入力されていないインデックス取得
+      index_list_another = [item for item in range(288) if item not in index_list + break_index_list]
+      # 工数が入力されていない部分を消す
+      for del_k in index_list_another:
+        work_list[del_k] = '#'
+        detail_list[del_k] = ''
+
+      # 作業内容データの内容を上書きして更新
+      Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
+        work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
+                                                  'detail_work' : detail_list_summarize(detail_list), \
+                                                  'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
+      # このページ読み直し
+      return redirect(to=f'/detail/{num}')
+
+
+    # 次のデータへ
+    if "after" in request.POST:
+      # 前のデータ取得
+      obj_after = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
+                                                    work_day2__gt = obj_get.work_day2).order_by('work_day2').first()
+      # 前の工数詳細へ飛ぶ
+      return redirect(to=f'/detail/{obj_after.id}')
+
+
+    # 前のデータへ
+    if "before" in request.POST:
+      # 前のデータ取得
+      obj_before = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
+                                                      work_day2__lt = obj_get.work_day2).order_by('-work_day2').first()
+      # 前の工数詳細へ飛ぶ
+      return redirect(to=f'/detail/{obj_before.id}')
+
+    # 基本的なデータを取得してリロード
+    return redirect(to=f'/detail/{num}')
 
 
 
