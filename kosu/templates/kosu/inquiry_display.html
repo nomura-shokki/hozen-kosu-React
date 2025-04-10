@@ -56,15 +56,7 @@
             <td>　</td>
           {% endif %}
         </tr>
-          {% if data.administrator == True %}
-        <tr>
-          <td>　</td>
-        </tr>
-        <tr>
-          <td><input type="submit" value="編集" name="Registration" class="btn btn-pink5 mt-2"></td>
-        </tr>
-        {% endif %}
-        {% if data.administrator == False and himself == True %}
+        {% if data.administrator == True or himself == True %}
           <tr>
             <td>　</td>
           </tr>

@@ -1193,6 +1193,7 @@ class DetailView(View):
 
     # 工数データ取得
     obj_get = Business_Time_graph.objects.get(id=num)
+    self.day = obj_get.work_day2
 
     # 作業内容と作業詳細を直に合わせて調整
     work_list, detail_list = kosu_sort(obj_get, member_obj)
@@ -1204,6 +1205,8 @@ class DetailView(View):
       def_choices_list, def_n = kosu_division_dictionary(obj_get.def_ver2)
     else:
       def_choices_list, def_n = kosu_division_dictionary(request.session['input_def'])
+    # 記録用工数区分定義用リスト作成
+    self.display_def = def_choices_list + [['#', '-'], ['$', '休憩']]
 
     # HTML表示用リスト作成
     time_display_list = []
@@ -1524,7 +1527,9 @@ class DetailView(View):
       # 工数入力インデックスリスト定義
       index_list = []
       break_index_list = []
-      edit_comment = """"""
+      edit_comment = f"""就業日:{self.day}
+作業可項目:{selected_num}
+"""
       # 工数入力インデックスリスト作成
       for t in selected_num:
         # 作業可部分の作業時間取得
@@ -1538,7 +1543,7 @@ class DetailView(View):
         end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
         # 作業時間取得
         edit_comment = edit_comment + f"""作業時間{t}:{start_time_hour}:{str(start_time_min).zfill(2)}～{end_time_hour}:{str(end_time_min).zfill(2)}
-業務区分定義{t}:{request.POST.get('def_time{}'.format(t))}
+業務区分定義{t}:{next((item[1] for item in self.display_def if item[0] == request.POST.get('def_time{}'.format(t))), None)}
 作業詳細{t}:{request.POST.get('detail_time{}'.format(t))}
 """
 
@@ -1586,6 +1591,7 @@ class DetailView(View):
       # 工数入力時間に被りがある場合、リダイレクト
       if len(index_list) != len(set(index_list)):
         messages.error(request, '入力された作業時間には既に工数が入力されているので入力できません。ERROR021')
+        history_record('工数編集画面：一括編集', 'Business_Time_graph', 'ERROR021', edit_comment, request)
         return redirect(to='/detail/{}'.format(num))
 
       # 作業可部分の変更を書き込むループ
@@ -1598,7 +1604,7 @@ class DetailView(View):
         response = kosu_edit_check(start_time, end_time, d, num, edit_comment, '工数編集画面：一括編集', request)
         if response:
           return response
-        print(edit_comment)
+
         # 作業開始、終了の時と分取得
         start_time_hour, start_time_min = time_index(start_time)
         end_time_hour, end_time_min = time_index(end_time)
@@ -1643,6 +1649,8 @@ class DetailView(View):
         work_day2 = obj_get.work_day2, defaults = {'time_work' : ''.join(work_list), \
                                                   'detail_work' : detail_list_summarize(detail_list), \
                                                   'judgement' : judgement_check(work_list, obj_get.work_time, obj_get.tyoku2, member_obj, obj_get.over_time)})
+      # 操作履歴記録
+      history_record('工数編集画面：一括編集', 'Business_Time_graph', 'OK', edit_comment, request)
       # このページ読み直し
       return redirect(to=f'/detail/{num}')
 
@@ -1708,6 +1716,19 @@ class KosuDeleteView(DeleteView):
     context['time_display_list'] = time_display_list
     context['obj_get'] = obj_get
     return context
+
+
+  # フォームが有効な場合に呼び出されるメソッドをオーバーライド
+  def form_valid(self, form):
+    obj = self.get_object() 
+
+    # 操作履歴記録
+    edit_comment = f'就業日:{obj.work_day2}'
+    history_record('工数削除画面：工数削除', 'Business_Time_graph', 'OK', edit_comment, self.request)
+
+    # 工数削除
+    obj.delete()
+    return HttpResponseRedirect(self.success_url)
 
 
 

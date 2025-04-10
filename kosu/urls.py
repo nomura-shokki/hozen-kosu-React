@@ -51,9 +51,9 @@ urlpatterns = [
   path('def_new', def_views.DefNewView.as_view(), name='def_new'), # 工数区分定義新規登録画面
   path('def_edit/<int:pk>', def_views.def_edit, name='def_edit'), # 工数区分定義編集画面
   path('def_delete/<int:pk>', def_views.KosuDivisionDeleteView.as_view(), name='def_delete'), # 工数区分定義削除画面
-  path('inquiry_new', inquiry_views.inquiry_new, name='inquiry_new'), # 問い合わせ新規登録画面
-  path('inquiry_list/<int:num>',inquiry_views.inquiry_list, name='inquiry_list'), # 問い合わせ一覧画面
-  path('inquiry_display/<int:num>',inquiry_views.inquiry_display, name='inquiry_display'), # 問い合わせ詳細画面
+  path('inquiry_new', inquiry_views.InquiryNewView.as_view(), name='inquiry_new'), # 問い合わせ新規登録画面
+  path('inquiry_list/<int:num>',inquiry_views.InquiryListView.as_view(), name='inquiry_list'), # 問い合わせ一覧画面
+  path('inquiry_display/<int:num>',inquiry_views.InquiryDisplayView.as_view(), name='inquiry_display'), # 問い合わせ詳細画面
   path('inquiry_edit/<int:num>',inquiry_views.inquiry_edit, name='inquiry_edit'), # 問い合わせ編集画面
 
   path('dynamic-choices/', kosu_views.dynamic_choices, name='dynamic_choices'), # 作業詳細入力時の工数定義区分予測APIエンドポイント
