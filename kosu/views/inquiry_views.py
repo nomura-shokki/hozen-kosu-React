@@ -241,7 +241,7 @@ class InquiryDisplayView(TemplateView):
     # 人員情報なしor未ログインの場合ログイン画面へ
     if isinstance(member_obj, HttpResponseRedirect):
       return member_obj
-    self.member_obj = member_obj
+    self.data = member_obj
     # 親クラスのdispatchメソッドを呼び出し
     return super().dispatch(request, *args, **kwargs)
 
