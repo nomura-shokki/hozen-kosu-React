@@ -1908,12 +1908,10 @@ class KosuTotalView(FormView):
 #--------------------------------------------------------------------------------------------------------
 
 
-from django.views import View
-from django.http import JsonResponse
-from django.shortcuts import render, redirect
-from django.template.loader import render_to_string
-import datetime
 
+
+
+# 勤務入力画面定義
 class ScheduleView(View):
   # リクエストを処理するメソッドをオーバーライド
   def dispatch(self, request, *args, **kwargs):
@@ -1947,21 +1945,26 @@ class ScheduleView(View):
     # 工数入力時間表示
     OK_NG_list, time_list = work_default(self.day_list, year, month, self.member_obj, request)
 
+    # HTMLへの出力を返す
     return {
-        'member_obj': self.member_obj,
-        'year': year,
-        'month': month,
-        'day_list': self.day_list,
-        'form_default_list': form_default_list,
-        'default_list': default_list,
-        'OK_NG_list': OK_NG_list,
-        'time_list': time_list,
+      'member_obj': self.member_obj,
+      'year': year,
+      'month': month,
+      'day_list': self.day_list,
+      'form_default_list': form_default_list,
+      'default_list': default_list,
+      'OK_NG_list': OK_NG_list,
+      'time_list': time_list,
     }
+
 
   # GET処理
   def get(self, request):
+    # 共通部分のコンテキスト継承
     context_data = self.get_common_context(request)
-    if isinstance(context_data, HttpResponseRedirect):  # セッションエラーの場合
+
+    # レスポンス処理をしている場合、処理中断
+    if isinstance(context_data, HttpResponseRedirect):
       return context_data
 
     # GET時のフォーム作成
@@ -1979,36 +1982,46 @@ class ScheduleView(View):
     }
     return render(request, 'kosu/schedule.html', context)
 
+
   # POST処理
   def post(self, request):
+    # 非AJAXリクエストの場合、エラーを返す
     if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
       return JsonResponse({'error': 'Invalid request'}, status=400)
 
+    # 共通部分のコンテキスト継承
     context_data = self.get_common_context(request)
-    if isinstance(context_data, HttpResponseRedirect):  # セッションエラーの場合
+
+    # レスポンス処理をしている場合、処理中断
+    if isinstance(context_data, HttpResponseRedirect):
       return context_data
 
+    # カレンダー更新時の処理
     if "update" in request.POST:
+      # 年月取得しセッションに保存
       year = int(request.POST['year'])
       month = int(request.POST['month'])
       request.session['update_year'] = year
       request.session['update_month'] = month
 
+      # POST後のフォーム状態定義
       form2 = schedule_timeForm(request.POST)
       self.day_list = calendar_day(year, month)
       form_default_list = schedule_default(year, month, self.day_list, request)
       form = scheduleForm(form_default_list)
+      # 各マスの状態取得
       context_data['OK_NG_list'], context_data['time_list'] = work_default(self.day_list, year, month, self.member_obj, request)
 
+    # 直一括入力の処理
     elif "default_tyoku" in request.POST:
+      # 記録用リスト定義
+      day_history = []
       # 直を一括書き込み
       for ind, dd in enumerate([range(1, 6), range(8, 13), range(15, 20), range(22, 27), range(29, 34), range(36, 37)]):
         for i in dd:
           if self.day_list[i] != '':
-            # 工数データがあるか確認
             work_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
                             work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]))
-
             # 工数データがある場合の処理
             if work_filter.exists():
               # 工数データ取得
@@ -2016,10 +2029,11 @@ class ScheduleView(View):
               # 工数データに勤務情報がない場合
               if work_get.tyoku2 in (None, ''):
                 # 就業を上書き
-                Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-                  work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]), \
-                    defaults = {'tyoku2' : eval('request.POST["tyoku_all_{}"]'.format(ind + 1))})
-                
+                Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'],
+                  work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]),
+                    defaults = {'tyoku2': eval('request.POST["tyoku_all_{}"]'.format(ind + 1))})
+                day_history.append([f'{self.day_list[i]}日', eval('request.POST["tyoku_all_{}"]'.format(ind + 1))])
+
             # 工数データがない場合の処理
             else:
               # 従業員番号に該当するmemberインスタンスを取得
@@ -2027,40 +2041,45 @@ class ScheduleView(View):
               # 就業データ作成(空の工数データも入れる)
               Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
                 work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]), \
-                  defaults = {'name' : member_instance, \
-                              'tyoku2' : eval('request.POST["tyoku_all_{}"]'.format(ind + 1)), \
-                              'time_work' : '#'*288, \
-                              'detail_work' : '$'*287, \
-                              'over_time' : 0, \
-                              'judgement' : False})
+                  defaults = {'name': member_instance, \
+                              'tyoku2': eval('request.POST["tyoku_all_{}"]'.format(ind + 1)),
+                              'time_work': '#'*288, \
+                              'detail_work': '$'*287, \
+                              'over_time': 0, \
+                              'judgement': False})
+              day_history.append([f'{self.day_list[i]}日', eval('request.POST["tyoku_all_{}"]'.format(ind + 1))])
 
+      # POST後のフォーム状態定義
       form2 = schedule_timeForm(request.POST)
-      form_default_list = schedule_default(
-          context_data['year'], context_data['month'], context_data['day_list'], request)
+      form_default_list = schedule_default(context_data['year'], context_data['month'], context_data['day_list'], request)
       form = scheduleForm(form_default_list)
 
+      # 操作履歴記録
+      edit_comment = f"""月:{context_data['year']}年{context_data['month']}月
+{day_history}"""
+      history_record('勤務入力画面：直一括入力', 'Business_Time_graph', 'OK', edit_comment, self.request)
+
+    # デフォルト勤務入力の処理
     elif "default_work" in request.POST:
       # デフォルトの就業書き込み
       for i in range(37):
         if self.day_list[i] != '':
-          # 工数データがあるか確認
           work_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'],
                           work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]))
-
           # 工数データがある場合の処理
           if work_filter.exists():
             # 工数データ取得
             work_get = work_filter.first()
-
             # 工数データに勤務情報がない場合
             if work_get.work_time in (None, ''):
-              # 平日である場合の処理
+              # 平日の場合の処理
               if i in (1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 15, 16, 17, 18, 19, 22, 23, 24, 25, 26, 29, 30, 31, 32, 33, 36, 37):
                 # 就業を上書き
                 Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'],
                   work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]),
                     defaults = {'work_time' : '出勤'})
-
+              
+              # 休日の場合の処理
               else:
                 # 就業を上書き
                 Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'],
@@ -2071,7 +2090,7 @@ class ScheduleView(View):
           else:
             # 従業員番号に該当するmemberインスタンスを取得
             member_instance = member.objects.get(employee_no=request.session['login_No'])
-            # 平日である場合の処理
+            # 平日の場合の処理
             if i in (1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 15, 16, 17, 18, 19, 22, 23, 24, 25, 26, 29, 30, 31, 32, 33, 36, 37):
               # 就業データ作成(空の工数データも入れる)
               Business_Time_graph.objects.update_or_create(employee_no3=request.session['login_No'], \
@@ -2095,20 +2114,19 @@ class ScheduleView(View):
                               'over_time' : 0, \
                               'judgement' : True})
 
+      # POST後のフォーム状態定義
       form2 = schedule_timeForm(request.POST)
       form_default_list = schedule_default(
           context_data['year'], context_data['month'], context_data['day_list'], request)
       form = scheduleForm(form_default_list)
 
+    # 勤務登録時の処理
     elif "work_update" in request.POST:
-      print(self.day_list)
       # 就業を上書き
       for i in range(37):
         if self.day_list[i] != '':
-          # 工数データがあるか確認
-          work_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
+          work_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], 
                           work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]))
-
           # 工数データがある場合の処理
           if work_filter.exists():
             # 工数データ取得
@@ -2129,7 +2147,7 @@ class ScheduleView(View):
                           work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]))
 
             # 更新後、就業が消されていて工数データが空であればレコードを消す
-            if record_del.work_time in ["", None] and record_del.over_time == 0 and \
+            if record_del.work_time in ['', None] and record_del.over_time == 0 and \
               record_del.time_work == '#'*288:
 
               # レコード削除
@@ -2154,380 +2172,21 @@ class ScheduleView(View):
                             'over_time': 0,
                             'judgement': judgement})
 
+      # POST後のフォーム状態定義
       form2 = schedule_timeForm(request.POST)
-      form_default_list = schedule_default(
-          context_data['year'], context_data['month'], context_data['day_list'], request)
+      form_default_list = schedule_default(context_data['year'], context_data['month'], context_data['day_list'], request)
       form = scheduleForm(form_default_list)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     context = {
       'form': form,
       'form2': form2,
-      'day_list': context_data['day_list'],
+      'day_list': self.day_list,
       'OK_NG_list': context_data['OK_NG_list'],
       'time_list': context_data['time_list'],
     }
 
     html = render_to_string('kosu/schedule_table.html', context, request)
     return JsonResponse({'html': html})
-
-
-
-
-
-
-
-
-
-
-# カレンダー画面定義
-def schedule(request): 
-  # セッションにログインした従業員番号がない場合の処理
-  if not request.session.get('login_No'):
-    # 未ログインならログインページへ飛ぶ
-    return redirect('/login')
-
-  try:
-    # ログイン者の情報取得
-    member_obj = member.objects.get(employee_no=request.session['login_No'])
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect('/login')
-
-
-  # 本日の日付取得
-  today = datetime.date.today()
-
-
-
-  # POST時の処理
-  if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
-    # カレンダー更新時の処理
-    if  "update" in request.POST:
-      # 年取得
-      year = int(request.POST['year'])
-      # 月取得
-      month = int(request.POST['month'])
-
-      # 表示月をセッションに登録
-      request.session['update_year'] = year
-      request.session['update_month'] = month
-
-      # POST後のカレンダー設定フォームの初期値設定
-      default_list = {'year' : year, 'month' : month}
-      # POST後のカレンダー設定フォーム定義
-      form2 = schedule_timeForm(default_list)
-
-      # 日付リスト作成
-      day_list = calendar_day(year, month)
-
-      # 勤務フォーム初期値定義
-      form_default_list = schedule_default(year, month, day_list, request)
-      # 勤務フォーム定義
-      form = scheduleForm(form_default_list)
-
-      # カレンダー設定フォーム定義
-      form2 = schedule_timeForm(request.POST)
-
-      # 工数入力時間表示
-      OK_NG_list, time_list = work_default(day_list, year, month, member_obj, request)
-
-
-    # 直一括入力の処理
-    elif "default_tyoku" in request.POST:
-      # カレンダーの年、月取得
-      year = request.session.get('update_year', '')
-      month = request.session.get('update_month', '')
-
-      # 日付リスト作成
-      day_list = calendar_day(year, month)
-
-      # 直を一括書き込み
-      for ind, dd in enumerate([range(1, 6), range(8, 13), range(15, 20), range(22, 27), range(29, 34), range(36, 37)]):
-        for i in dd:
-          if day_list[i] != '':
-            # 工数データがあるか確認
-            work_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                            work_day2 = datetime.date(year, month, day_list[i]))
-
-            # 工数データがある場合の処理
-            if work_filter.exists():
-              # 工数データ取得
-              work_get = work_filter.first()
-              # ログイン者の情報取得
-              member_obj = member.objects.get(employee_no = request.session['login_No'])
-
-              # 工数データに勤務情報がない場合
-              if work_get.tyoku2 in (None, ''):
-                # 就業を上書き
-                Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-                  work_day2 = datetime.date(year, month, day_list[i]), \
-                    defaults = {'tyoku2' : eval('request.POST["tyoku_all_{}"]'.format(ind + 1))})
-                
-            # 工数データがない場合の処理
-            else:
-              # 従業員番号に該当するmemberインスタンスを取得
-              member_instance = member.objects.get(employee_no = request.session['login_No'])
-              # 就業データ作成(空の工数データも入れる)
-              Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-                work_day2 = datetime.date(year, month, day_list[i]), \
-                  defaults = {'name' : member_instance, \
-                              'tyoku2' : eval('request.POST["tyoku_all_{}"]'.format(ind + 1)), \
-                              'time_work' : '#'*288, \
-                              'detail_work' : '$'*287, \
-                              'over_time' : 0, \
-                              'judgement' : False})
-
-      # 勤務フォーム初期値定義
-      form_default_list = schedule_default(year, month, day_list, request)
-      # 勤務フォーム定義
-      form = scheduleForm(form_default_list)
-      # カレンダー設定フォーム定義
-      form2 = schedule_timeForm(request.POST)
-
-      # 工数入力時間表示
-      OK_NG_list, time_list = work_default(day_list, year, month, member_obj, request)
-
-
-
-    # デフォルト勤務入力の処理
-    elif "default_work" in request.POST:
-      # カレンダーの年、月取得
-      year = request.session.get('update_year', '')
-      month = request.session.get('update_month', '')
-
-      # 日付リスト作成
-      day_list = calendar_day(year, month)
-
-      # デフォルトの就業書き込み
-      for i in range(37):
-        if day_list[i] != '':
-          # 工数データがあるか確認
-          work_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                          work_day2 = datetime.date(year, month, day_list[i]))
-
-          # 工数データがある場合の処理
-          if work_filter.exists():
-            # 工数データ取得
-            work_get = work_filter.first()
-            # ログイン者の情報取得
-            member_obj = member.objects.get(employee_no = request.session['login_No'])
-
-            # 工数データに勤務情報がない場合
-            if work_get.work_time in (None, ''):
-              # 平日である場合の処理
-              if i in (1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 15, 16, 17, 18, 19, 22, 23, 24, 25, 26, 29, 30, 31, 32, 33, 36, 37):
-                # 就業を上書き
-                Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-                  work_day2 = datetime.date(year, month, day_list[i]), \
-                    defaults = {'work_time' : '出勤'})
-
-              else:
-                # 就業を上書き
-                Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-                  work_day2 = datetime.date(year, month, day_list[i]), \
-                    defaults = {'work_time' : '休日'})
-
-          # 工数データがない場合の処理
-          else:
-            # 従業員番号に該当するmemberインスタンスを取得
-            member_instance = member.objects.get(employee_no = request.session['login_No'])
-            # 平日である場合の処理
-            if i in (1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 15, 16, 17, 18, 19, 22, 23, 24, 25, 26, 29, 30, 31, 32, 33, 36, 37):
-              # 就業データ作成(空の工数データも入れる)
-              Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-                work_day2 = datetime.date(year, month, day_list[i]), \
-                  defaults = {'name' : member_instance, \
-                              'work_time' : '出勤', \
-                              'time_work' : '#'*288, \
-                              'detail_work' : '$'*287, \
-                              'over_time' : 0, \
-                              'judgement' : False})
-
-            # 休日の場合の処理
-            else:
-              # 就業データ作成(空の工数データも入れる)
-              Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-                work_day2 = datetime.date(year, month, day_list[i]), \
-                  defaults = {'name' : member_instance, \
-                              'work_time' : '休日', \
-                              'time_work' : '#'*288, \
-                              'detail_work' : '$'*287, \
-                              'over_time' : 0, \
-                              'judgement' : True})
-
-      # 勤務フォーム初期値定義
-      form_default_list = schedule_default(year, month, day_list, request)
-      # 勤務フォーム定義
-      form = scheduleForm(form_default_list)
-      # カレンダー設定フォーム定義
-      form2 = schedule_timeForm(request.POST)
-
-      # 工数入力時間表示
-      OK_NG_list, time_list = work_default(day_list, year, month, member_obj, request)
-
-
-
-    # 勤務登録時の処理
-    elif "work_update" in request.POST:
-      # カレンダー設定フォーム定義
-      form2 = schedule_timeForm(request.POST)
-
-      # カレンダーの年、月取得
-      year = request.session.get('update_year', '')
-      month = request.session.get('update_month', '')
-      
-      # 日付リスト作成
-      day_list = calendar_day(year, month)
-
-      # 就業を上書き
-      for i in range(37):
-        if day_list[i] != '':
-          # 工数データがあるか確認
-          work_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                                                          work_day2 = datetime.date(year, month, day_list[i]))
-
-          # 工数データがある場合の処理
-          if work_filter.exists():
-            # 工数データ取得
-            work_get = work_filter.first()
-            # ログイン者の情報取得
-            member_obj = member.objects.get(employee_no = request.session['login_No'])
-
-            # 工数合計取得
-            kosu_total = 1440 - (work_get.time_work.count('#')*5) - (work_get.time_work.count('$')*5)
-
-            # 整合性取得
-            judgement = judgement_check(list(work_get.time_work), eval('request.POST["day{}"]'.format(i + 1)), eval('request.POST["tyoku{}"]'.format(i + 1)), member_obj, work_get.over_time)
-
-            # 就業を上書き
-            Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-              work_day2 = datetime.date(year, month, day_list[i]), \
-                defaults = {'work_time' : eval('request.POST["day{}"]'.format(i + 1)), \
-                            'tyoku2' : eval('request.POST["tyoku{}"]'.format(i + 1)), \
-                            'judgement' : judgement})
-
-            # 更新後の就業を取得
-            record_del = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'], \
-                                                        work_day2 = datetime.date(year, month, day_list[i]))
-
-            # 更新後、就業が消されていて工数データが空であればレコードを消す
-            if record_del.work_time in ["", None] and record_del.over_time == 0 and \
-              record_del.time_work == '#'*288:
-
-              # レコード削除
-              record_del.delete()
-
-          # 工数データがなくPOSTした値が空欄でない場合の処理
-          if eval('request.POST["day{}"]'.format(i + 1)) != '' and work_filter.count() == 0:
-            # 整合性取得
-            judgement = judgement_check(list(itertools.repeat('#', 288)), eval('request.POST["day{}"]'.format(i + 1)), eval('request.POST["tyoku{}"]'.format(i + 1)), member_obj, 0)
-
-            # 従業員番号に該当するmemberインスタンスを取得
-            member_instance = member.objects.get(employee_no = request.session['login_No'])
-
-            # 就業データ作成(空の工数データも入れる)
-            Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-              work_day2 = datetime.date(year, month, day_list[i]), \
-                defaults = {'name' : member_instance, \
-                            'work_time' : eval('request.POST["day{}"]'.format(i + 1)), \
-                            'tyoku2' : eval('request.POST["tyoku{}"]'.format(i + 1)), \
-                            'time_work' : '#'*288, \
-                            'detail_work' : '$'*287, \
-                            'over_time' : 0, \
-                            'judgement' : judgement})
-
-
-      # 勤務フォーム初期値定義
-      form_default_list = schedule_default(year, month, day_list, request)
-      # 勤務フォーム定義
-      form = scheduleForm(form_default_list)
-
-      # 工数入力時間表示
-      OK_NG_list, time_list = work_default(day_list, year, month, member_obj, request)
-
-
-
-    # contextの定義
-    context = {
-      'form' : form,
-      'form2' : form2,
-      'day_list' : day_list,
-      'OK_NG_list' : OK_NG_list,
-      'time_list': time_list,
-      }
-
-    # 部分テンプレート（テーブル部分）のレンダリング
-    html = render_to_string('kosu/schedule_table.html', context, request)
-    return JsonResponse({'html': html})
-
-
-
-  # GET時の処理
-  else:
-    # 本日の年取得
-    year = today.year
-    # 本日の月取得
-    month = today.month
-
-    # 表示月をセッションに登録
-    request.session['update_year'] = year
-    request.session['update_month'] = month
-
-    # GET時のカレンダー設定フォームの初期値設定
-    default_list = {'year' : year, 'month' : month}
-    # GET時のカレンダー設定フォーム定義
-    form2 = schedule_timeForm(default_list)
-
-    # 日付リスト作成
-    day_list = calendar_day(year, month)
-
-    # 勤務フォーム初期値定義
-    form_default_list = schedule_default(year, month, day_list, request)
-    # 勤務フォーム定義
-    form = scheduleForm(form_default_list)
-
-    # 工数入力時間表示
-    OK_NG_list, time_list = work_default(day_list, year, month, member_obj, request)
-
-    # HTMLに渡す辞書
-    context = {
-      'title' : '勤務入力',
-      'form' : form,
-      'form2' : form2,
-      'day_list' : day_list,
-      'OK_NG_list' : OK_NG_list,
-      'time_list': time_list,
-    }
-
-    # 指定したHTMLに辞書を渡して表示を完成させる
-    return render(request, 'kosu/schedule.html', context)
 
 
 
