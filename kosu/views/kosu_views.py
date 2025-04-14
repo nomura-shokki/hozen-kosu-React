@@ -995,7 +995,7 @@ class BreakTimeUpdateView(UpdateView):
     # 昼休憩時間が長すぎる場合のチェック
     for i, label in over_time_labels.items():
       response = break_time_over(
-        *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), 60, label, self.request
+        *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), 60, label, '/break_time', self.request
         )
       if response:
         return response
@@ -1011,7 +1011,7 @@ class BreakTimeUpdateView(UpdateView):
     # 残業休憩時間が長すぎる場合のチェック
     for i, (label, max_time) in over_time_rest_labels.items():
       response = break_time_over(
-        *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), max_time, label, self.request
+        *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), max_time, label, '/break_time', self.request
         )
       if response:
         return response
@@ -1139,9 +1139,10 @@ class TodayBreakTimeUpdateView(UpdateView):
     # 昼休憩時間が長すぎる場合のチェック
     for i, label in over_time_labels.items():
       response = break_time_over(
-          *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), 60, label, self.request
+          *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), 60, label, '/today_break_time', self.request
       )
       if response:
+        history_record('当日休憩変更画面', 'Business_Time_graph', 'ERROR032', '昼休憩:' + str(break_times[i-1][0]) + ':' + str(break_times[i-1][1]), self.request)
         return response
 
     # 詳細なエラー時間ラベル
@@ -1152,9 +1153,10 @@ class TodayBreakTimeUpdateView(UpdateView):
     # 残業休憩時間が長すぎる場合のチェック
     for i, (label, max_time) in over_time_rest_labels.items():
       response = break_time_over(
-          *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), max_time, label, self.request
+          *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), max_time, label, '/today_break_time', self.request
           )
       if response:
+        history_record('当日休憩変更画面', 'Business_Time_graph', 'ERROR032', f'{label}:' + str(break_times[i-1][0]) + ':' + str(break_times[i-1][1]), self.request)
         return response
 
     # 各休憩時間をフォーマットしてモデルのフィールドに設定
@@ -1165,7 +1167,20 @@ class TodayBreakTimeUpdateView(UpdateView):
 
     # データを保存
     self.object.save()
+    edit_comment = f"""昼休憩:{formatted_break_times[0]}
+残業時間中の休憩時間1:{formatted_break_times[1]}
+残業時間中の休憩時間2:{formatted_break_times[2]}
+残業時間中の休憩時間3:{formatted_break_times[3]}
+"""
+    history_record('当日休憩変更画面', 'Business_Time_graph', 'OK', edit_comment, self.request)
     return redirect(self.get_success_url())
+
+
+  # フォームバリデーションが失敗した際の処理
+  def form_invalid(self, form):
+    request = self.request
+    messages.error(request, f'バリテーションエラーが発生しました。IT担当者に連絡してください。{form.errors} ERROR061')
+    return redirect(to='/new')
 
 
 
@@ -1996,6 +2011,9 @@ class ScheduleView(View):
     if isinstance(context_data, HttpResponseRedirect):
       return context_data
 
+    # 直リストを辞書に変換
+    tyoku_dict = dict(scheduleForm.tyoku_list)
+
     # カレンダー更新時の処理
     if "update" in request.POST:
       # 年月取得しセッションに保存
@@ -2018,36 +2036,42 @@ class ScheduleView(View):
       day_history = []
       # 直を一括書き込み
       for ind, dd in enumerate([range(1, 6), range(8, 13), range(15, 20), range(22, 27), range(29, 34), range(36, 37)]):
-        for i in dd:
-          if self.day_list[i] != '':
-            work_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
-                            work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]))
-            # 工数データがある場合の処理
-            if work_filter.exists():
-              # 工数データ取得
-              work_get = work_filter.first()
-              # 工数データに勤務情報がない場合
-              if work_get.tyoku2 in (None, ''):
-                # 就業を上書き
+        # 一括直指定入力がある場合の処理
+        if request.POST['tyoku_all_{}'.format(ind + 1)] not in (None, ''):
+          for i in dd:
+            if self.day_list[i] != '':
+              work_filter = Business_Time_graph.objects.filter(employee_no3 = request.session['login_No'], \
+                              work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]))
+              # 工数データがある場合の処理
+              if work_filter.exists():
+                # 工数データ取得
+                work_get = work_filter.first()
+                # 工数データに勤務情報がない場合
+                if work_get.tyoku2 in (None, ''):
+                  # 就業を上書き
+                  Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'],
+                    work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]),
+                      defaults = {'tyoku2': request.POST[f'tyoku_all_{ind + 1}']})
+                  # 操作履歴記録
+                  tyoku_value = request.POST.get(f'tyoku_all_{ind + 1}')
+                  day_history.append([f'{self.day_list[i]}日', tyoku_dict.get(tyoku_value, ''), 'データ編集'])
+
+              # 工数データがない場合の処理
+              else:
+                # 従業員番号に該当するmemberインスタンスを取得
+                member_instance = member.objects.get(employee_no = request.session['login_No'])
+                # 就業データ作成(空の工数データも入れる)
                 Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'],
                   work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]),
-                    defaults = {'tyoku2': eval('request.POST["tyoku_all_{}"]'.format(ind + 1))})
-                day_history.append([f'{self.day_list[i]}日', eval('request.POST["tyoku_all_{}"]'.format(ind + 1))])
-
-            # 工数データがない場合の処理
-            else:
-              # 従業員番号に該当するmemberインスタンスを取得
-              member_instance = member.objects.get(employee_no = request.session['login_No'])
-              # 就業データ作成(空の工数データも入れる)
-              Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-                work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]), \
-                  defaults = {'name': member_instance, \
-                              'tyoku2': eval('request.POST["tyoku_all_{}"]'.format(ind + 1)),
-                              'time_work': '#'*288, \
-                              'detail_work': '$'*287, \
-                              'over_time': 0, \
-                              'judgement': False})
-              day_history.append([f'{self.day_list[i]}日', eval('request.POST["tyoku_all_{}"]'.format(ind + 1))])
+                    defaults = {'name': member_instance,
+                                'tyoku2': request.POST[f'tyoku_all_{ind + 1}'],
+                                'time_work': '#'*288,
+                                'detail_work': '$'*287,
+                                'over_time': 0,
+                                'judgement': False})
+                # 操作履歴記録
+                tyoku_value = request.POST.get(f'tyoku_all_{ind + 1}')
+                day_history.append([f'{self.day_list[i]}日', tyoku_dict.get(tyoku_value, ''), 'データ新規作成'])
 
       # POST後のフォーム状態定義
       form2 = schedule_timeForm(request.POST)
@@ -2055,12 +2079,18 @@ class ScheduleView(View):
       form = scheduleForm(form_default_list)
 
       # 操作履歴記録
-      edit_comment = f"""月:{context_data['year']}年{context_data['month']}月
-{day_history}"""
+      edit_comment = f"""指定月:{context_data['year']}年{context_data['month']}月
+"""
+      for item in day_history:
+        edit_comment = edit_comment +f"""{item[0]}　{item[1]}　{item[2]}
+"""
       history_record('勤務入力画面：直一括入力', 'Business_Time_graph', 'OK', edit_comment, self.request)
 
     # デフォルト勤務入力の処理
     elif "default_work" in request.POST:
+      # 記録用リスト定義
+      day_history = []
+
       # デフォルトの就業書き込み
       for i in range(37):
         if self.day_list[i] != '':
@@ -2078,6 +2108,7 @@ class ScheduleView(View):
                 Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'],
                   work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]),
                     defaults = {'work_time' : '出勤'})
+                day_history.append([f'{self.day_list[i]}日', '出勤', 'データ編集'])
               
               # 休日の場合の処理
               else:
@@ -2085,6 +2116,7 @@ class ScheduleView(View):
                 Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'],
                   work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]),
                     defaults = {'work_time' : '休日'})
+                day_history.append([f'{self.day_list[i]}日', '休日', 'データ編集'])
 
           # 工数データがない場合の処理
           else:
@@ -2101,6 +2133,7 @@ class ScheduleView(View):
                               'detail_work': '$'*287,
                               'over_time': 0,
                               'judgement': False})
+              day_history.append([f'{self.day_list[i]}日', '出勤', 'データ新規登録'])
 
             # 休日の場合の処理
             else:
@@ -2113,6 +2146,7 @@ class ScheduleView(View):
                               'detail_work' : '$'*287, \
                               'over_time' : 0, \
                               'judgement' : True})
+              day_history.append([f'{self.day_list[i]}日', '休日', 'データ新規登録'])
 
       # POST後のフォーム状態定義
       form2 = schedule_timeForm(request.POST)
@@ -2120,8 +2154,19 @@ class ScheduleView(View):
           context_data['year'], context_data['month'], context_data['day_list'], request)
       form = scheduleForm(form_default_list)
 
+      # 操作履歴記録
+      edit_comment = f"""指定月:{context_data['year']}年{context_data['month']}月
+"""
+      for item in day_history:
+        edit_comment = edit_comment +f"""{item[0]}　{item[1]}　{item[2]}
+"""
+      history_record('勤務入力画面：デフォルト勤務一括入力', 'Business_Time_graph', 'OK', edit_comment, self.request)
+
     # 勤務登録時の処理
     elif "work_update" in request.POST:
+      # 記録用リスト定義
+      day_history = []
+
       # 就業を上書き
       for i in range(37):
         if self.day_list[i] != '':
@@ -2133,14 +2178,16 @@ class ScheduleView(View):
             work_get = work_filter.first()
 
             # 整合性取得
-            judgement = judgement_check(list(work_get.time_work), eval('request.POST["day{}"]'.format(i + 1)), eval('request.POST["tyoku{}"]'.format(i + 1)), self.member_obj, work_get.over_time)
+            judgement = judgement_check(list(work_get.time_work), request.POST[f'day{i+1}'], request.POST[f'tyoku{i+1}'], self.member_obj, work_get.over_time)
 
             # 就業を上書き
             Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'],
               work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]),
-                defaults = {'work_time' : eval('request.POST["day{}"]'.format(i + 1)),
-                            'tyoku2' : eval('request.POST["tyoku{}"]'.format(i + 1)),
+                defaults = {'work_time' : request.POST[f'day{i+1}'],
+                            'tyoku2' : request.POST[f'tyoku{i+1}'],
                             'judgement' : judgement})
+            tyoku_value = request.POST.get(f'tyoku{i+1}')
+            day_history.append([f'{self.day_list[i]}日', f'勤務:{request.POST[f'day{i+1}']}', f'直:{tyoku_dict.get(tyoku_value, '')}', 'データ編集'])
 
             # 更新後の就業を取得
             record_del = Business_Time_graph.objects.get(employee_no3 = request.session['login_No'],
@@ -2154,9 +2201,9 @@ class ScheduleView(View):
               record_del.delete()
 
           # 工数データがなくPOSTした値が空欄でない場合の処理
-          if eval('request.POST["day{}"]'.format(i + 1)) != '' and work_filter.count() == 0:
+          if request.POST[f'day{i+1}'] != '' and work_filter.count() == 0:
             # 整合性取得
-            judgement = judgement_check(list(itertools.repeat('#', 288)), eval('request.POST["day{}"]'.format(i + 1)), eval('request.POST["tyoku{}"]'.format(i + 1)), self.member_obj, 0)
+            judgement = judgement_check(list(itertools.repeat('#', 288)), request.POST[f'day{i+1}'], request.POST[f'tyoku{i+1}'], self.member_obj, 0)
 
             # 従業員番号に該当するmemberインスタンスを取得
             member_instance = member.objects.get(employee_no=request.session['login_No'])
@@ -2165,17 +2212,27 @@ class ScheduleView(View):
             Business_Time_graph.objects.update_or_create(employee_no3=request.session['login_No'],
               work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]),
                 defaults = {'name': member_instance,
-                            'work_time': eval('request.POST["day{}"]'.format(i + 1)),
-                            'tyoku2': eval('request.POST["tyoku{}"]'.format(i + 1)),
+                            'work_time': request.POST[f'day{i+1}'],
+                            'tyoku2': request.POST[f'tyoku{i+1}'],
                             'time_work': '#'*288,
                             'detail_work': '$'*287,
                             'over_time': 0,
                             'judgement': judgement})
+            tyoku_value = request.POST.get(f'tyoku{i+1}')
+            day_history.append([f'{self.day_list[i]}日', f'勤務:{request.POST[f'day{i+1}']}', f'直:{tyoku_dict.get(tyoku_value, '')}', 'データ新規登録'])
 
       # POST後のフォーム状態定義
       form2 = schedule_timeForm(request.POST)
       form_default_list = schedule_default(context_data['year'], context_data['month'], context_data['day_list'], request)
       form = scheduleForm(form_default_list)
+
+      # 操作履歴記録
+      edit_comment = f"""指定月:{context_data['year']}年{context_data['month']}月
+"""
+      for item in day_history:
+        edit_comment = edit_comment +f"""{item[0]}　{item[1]}　{item[2]}　{item[3]}
+"""
+      history_record('勤務入力画面：勤務入力', 'Business_Time_graph', 'OK', edit_comment, self.request)
 
     context = {
       'form': form,

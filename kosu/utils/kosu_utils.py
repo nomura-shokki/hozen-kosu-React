@@ -970,7 +970,7 @@ def index_change(start_index, end_index, time_list):
 
 
 # 休憩時間オーバー検出関数
-def break_time_over(start_hour, start_min, end_hour, end_min, limit_tome,comment, request):
+def break_time_over(start_hour, start_min, end_hour, end_min, limit_tome,comment, jump_point, request):
   # 昼休憩時間に長すぎる時間を登録しようとした時の処理
   if (int(end_hour)*60 + int(end_min)) - \
     (int(start_hour)*60 + int(start_min)) > limit_tome or \
@@ -981,7 +981,7 @@ def break_time_over(start_hour, start_min, end_hour, end_min, limit_tome,comment
     # エラーメッセージ出力
     messages.error(request, '{}が{}分を超えています。正しい休憩時間を登録して下さい。ERROR032'.format(comment, limit_tome))
     # このページをリダイレクト
-    return redirect(to = '/break_time')
+    return redirect(to = jump_point)
 
 
 
