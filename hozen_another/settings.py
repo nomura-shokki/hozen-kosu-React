@@ -74,17 +74,34 @@ BOOTSTRAP4 = {
 
 WSGI_APPLICATION = 'hozen_another.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', ''),
-        'USER': os.getenv('DB_USER', ''),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', ''),
-        'PORT': '5432',
-    }
-}
+import os
 
+if os.getenv('DEBUG', 'True') == 'True':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', ''),
+            'USER': os.getenv('DB_USER', ''),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),
+            'HOST': os.getenv('DB_HOST', ''),
+            'PORT': '5432',
+        }
+    }
+else:  # 本番モード
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', ''),
+            'USER': os.getenv('DB_USER', ''),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),
+            'HOST': os.getenv('DB_HOST', ''),
+            'PORT': '5432',
+            'OPTIONS': {
+                'sslmode': 'verify-full',
+                'sslrootcert': os.path.join(BASE_DIR, 'certificates', 'DigiCertGlobalRootG2.crt.pem')
+            },
+        }
+    }
 # Django Q の設定
 Q_CLUSTER = {
     'orm': 'default',
