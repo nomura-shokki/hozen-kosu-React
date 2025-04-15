@@ -998,6 +998,7 @@ class BreakTimeUpdateView(UpdateView):
         *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), 60, label, '/break_time', self.request
         )
       if response:
+        history_record('休憩変更画面', 'Business_Time_graph', 'ERROR032', '昼休憩:' + str(break_times[i-1][0]) + ':' + str(break_times[i-1][1]), self.request)
         return response
 
     # 詳細なエラー時間ラベル
@@ -1014,6 +1015,7 @@ class BreakTimeUpdateView(UpdateView):
         *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), max_time, label, '/break_time', self.request
         )
       if response:
+        history_record('休憩変更画面', 'Business_Time_graph', 'ERROR032', f'{label}:' + str(break_times[i-1][0]) + ':' + str(break_times[i-1][1]), self.request)
         return response
 
     # 各休憩時間をフォーマットしてモデルのフィールドに設定
@@ -1037,7 +1039,33 @@ class BreakTimeUpdateView(UpdateView):
 
     # データを保存
     self.object.save()
+    edit_comment = f"""1直昼休憩: {formatted_break_times[0][:2]}:{formatted_break_times[0][2:4]}～{formatted_break_times[0][4:6]}:{formatted_break_times[0][6:]}
+1直残業時間中の休憩時間1: {formatted_break_times[1][:2]}:{formatted_break_times[1][2:4]}～{formatted_break_times[1][4:6]}:{formatted_break_times[1][6:]}
+1直残業時間中の休憩時間2: {formatted_break_times[2][:2]}:{formatted_break_times[2][2:4]}～{formatted_break_times[2][4:6]}:{formatted_break_times[2][6:]}
+1直残業時間中の休憩時間3: {formatted_break_times[3][:2]}:{formatted_break_times[3][2:4]}～{formatted_break_times[3][4:6]}:{formatted_break_times[3][6:]}
+2直昼休憩: {formatted_break_times[4][:2]}:{formatted_break_times[4][2:4]}～{formatted_break_times[4][4:6]}:{formatted_break_times[4][6:]}
+2直残業時間中の休憩時間1: {formatted_break_times[5][:2]}:{formatted_break_times[5][2:4]}～{formatted_break_times[5][4:6]}:{formatted_break_times[5][6:]}
+2直残業時間中の休憩時間2: {formatted_break_times[6][:2]}:{formatted_break_times[6][2:4]}～{formatted_break_times[6][4:6]}:{formatted_break_times[6][6:]}
+2直残業時間中の休憩時間3: {formatted_break_times[7][:2]}:{formatted_break_times[7][2:4]}～{formatted_break_times[7][4:6]}:{formatted_break_times[7][6:]}
+3直昼休憩: {formatted_break_times[8][:2]}:{formatted_break_times[8][2:4]}～{formatted_break_times[8][4:6]}:{formatted_break_times[8][6:]}
+3直残業時間中の休憩時間1: {formatted_break_times[9][:2]}:{formatted_break_times[9][2:4]}～{formatted_break_times[9][4:6]}:{formatted_break_times[9][6:]}
+3直残業時間中の休憩時間2: {formatted_break_times[10][:2]}:{formatted_break_times[10][2:4]}～{formatted_break_times[10][4:6]}:{formatted_break_times[10][6:]}
+3直残業時間中の休憩時間3: {formatted_break_times[11][:2]}:{formatted_break_times[11][2:4]}～{formatted_break_times[11][4:6]}:{formatted_break_times[11][6:]}
+常昼昼休憩: {formatted_break_times[12][:2]}:{formatted_break_times[12][2:4]}～{formatted_break_times[12][4:6]}:{formatted_break_times[12][6:]}
+常昼残業時間中の休憩時間1: {formatted_break_times[13][:2]}:{formatted_break_times[13][2:4]}～{formatted_break_times[13][4:6]}:{formatted_break_times[13][6:]}
+常昼残業時間中の休憩時間2: {formatted_break_times[14][:2]}:{formatted_break_times[14][2:4]}～{formatted_break_times[14][4:6]}:{formatted_break_times[14][6:]}
+常昼残業時間中の休憩時間3: {formatted_break_times[15][:2]}:{formatted_break_times[15][2:4]}～{formatted_break_times[15][4:6]}:{formatted_break_times[15][6:]}
+休憩時間に工数入力不可: {'break_check' in post_data}
+"""
+    history_record('休憩変更画面', 'Business_Time_graph', 'OK', edit_comment, self.request)
     return redirect(self.get_success_url())
+
+
+  # フォームバリデーションが失敗した際の処理
+  def form_invalid(self, form):
+    request = self.request
+    messages.error(request, f'バリテーションエラーが発生しました。IT担当者に連絡してください。{form.errors} ERROR062')
+    return redirect(to='/break_time')
 
 
 
@@ -1167,10 +1195,10 @@ class TodayBreakTimeUpdateView(UpdateView):
 
     # データを保存
     self.object.save()
-    edit_comment = f"""昼休憩:{formatted_break_times[0]}
-残業時間中の休憩時間1:{formatted_break_times[1]}
-残業時間中の休憩時間2:{formatted_break_times[2]}
-残業時間中の休憩時間3:{formatted_break_times[3]}
+    edit_comment = f"""昼休憩: {formatted_break_times[0][:2]}:{formatted_break_times[0][2:4]}～{formatted_break_times[0][4:6]}:{formatted_break_times[0][6:]}
+残業時間中の休憩時間1: {formatted_break_times[1][:2]}:{formatted_break_times[1][2:4]}～{formatted_break_times[1][4:6]}:{formatted_break_times[1][6:]}
+残業時間中の休憩時間2: {formatted_break_times[2][:2]}:{formatted_break_times[2][2:4]}～{formatted_break_times[2][4:6]}:{formatted_break_times[2][6:]}
+残業時間中の休憩時間3: {formatted_break_times[3][:2]}:{formatted_break_times[3][2:4]}～{formatted_break_times[3][4:6]}:{formatted_break_times[3][6:]}
 """
     history_record('当日休憩変更画面', 'Business_Time_graph', 'OK', edit_comment, self.request)
     return redirect(self.get_success_url())
@@ -1180,7 +1208,7 @@ class TodayBreakTimeUpdateView(UpdateView):
   def form_invalid(self, form):
     request = self.request
     messages.error(request, f'バリテーションエラーが発生しました。IT担当者に連絡してください。{form.errors} ERROR061')
-    return redirect(to='/new')
+    return redirect(to='/today_break_time')
 
 
 
@@ -1744,6 +1772,13 @@ class KosuDeleteView(DeleteView):
     # 工数削除
     obj.delete()
     return HttpResponseRedirect(self.success_url)
+
+
+  # フォームバリデーションが失敗した際の処理
+  def form_invalid(self, form):
+    request = self.request
+    messages.error(request, f'バリテーションエラーが発生しました。IT担当者に連絡してください。{form.errors} ERROR084')
+    return redirect(to='/delete')
 
 
 

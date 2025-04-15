@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
 from django.views.generic import CreateView
 from django.views.generic import ListView
-from django.views.generic.edit import FormView, DeleteView
+from django.views.generic.edit import FormView, DeleteView, UpdateView
 from ..utils.kosu_utils import get_member
 from ..utils.kosu_utils import get_def_library_data
 from ..models import member
@@ -262,6 +262,89 @@ class DefListView(ListView):
 
 
 # 工数区分定義編集画面定義
+class DefEditView(UpdateView):
+  model = kosu_division
+  form_class = kosu_divisionForm
+  template_name = 'kosu/def_edit.html'
+  pk_url_kwarg = 'pk'
+  context_object_name = 'form'
+
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
+    
+    # 管理者でなければメニュー画面にリダイレクト
+    if not  member_obj.administrator:
+      return redirect('/')
+    return super().dispatch(request, *args, **kwargs)
+
+
+  # 初期値定義
+  def get_initial(self):
+    # 編集前の工数区分定義VerのIDをセッションに記憶
+    pk = self.kwargs.get(self.pk_url_kwarg)
+    def_obj = kosu_division.objects.get(id=pk)
+    self.request.session['edit_def'] = def_obj.kosu_name
+    return super().get_initial()
+
+
+  # フォームバリデーションが成功した際のメソッドをオーバーライド
+  def form_valid(self, form):
+    # POST送信された名前が既に存在しているかチェック
+    edit_def = self.request.session.get('edit_def', None)
+    kosu_name = form.cleaned_data['kosu_name']
+    if edit_def != kosu_name and kosu_division.objects.filter(kosu_name=kosu_name).exists():
+      # エラーメッセージを表示しこのページにリダイレクト
+      messages.error(self.request, '入力した工数区分定義名はすでに登録があるので登録できません。ERROR039')
+      return redirect(to='/def_edit/{}'.format(self.kwargs.get(self.pk_url_kwarg)))
+
+    # レコードの更新操作を行う
+    pk = self.kwargs.get(self.pk_url_kwarg)
+    defaults = {'kosu_name': kosu_name}
+    for i in range(1, 51):
+      defaults[f'kosu_title_{i}'] = self.request.POST.get(f'kosu_title_{i}')
+      defaults[f'kosu_division_1_{i}'] = self.request.POST.get(f'kosu_division_1_{i}')
+      defaults[f'kosu_division_2_{i}'] = self.request.POST.get(f'kosu_division_2_{i}')
+    kosu_division.objects.update_or_create(id=pk, defaults=defaults)
+
+    return redirect(to='/def_list/1')
+
+
+  # フォームバリデーションが失敗した際の処理
+  def form_invalid(self, form):
+    pk = self.kwargs.get(self.pk_url_kwarg)
+    request = self.request
+    messages.error(request, f'バリテーションエラーが発生しました。IT担当者に連絡してください。{form.errors} ERROR085')
+    return redirect(to=f'/def_edit/{pk}')
+
+
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context['title'] = '工数区分定義編集'
+    context['id'] = self.kwargs.get(self.pk_url_kwarg)
+    return context
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def def_edit(request, pk):
   # 未ログインならログインページに飛ぶ
   if request.session.get('login_No', None) == None:
