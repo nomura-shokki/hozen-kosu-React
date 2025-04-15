@@ -98,7 +98,7 @@ else:  # 本番モード
             'PORT': '5432',
             'OPTIONS': {
                 'sslmode': 'verify-full',
-                'sslrootcert': '/tmp/8dd7bdd165f834d/certificates/DigiCertGlobalRootG2.crt.pem'
+                'sslrootcert': os.path.join(BASE_DIR, 'certificates', 'DigiCertGlobalRootG2.crt')
             },
         }
     }
