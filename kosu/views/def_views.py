@@ -263,6 +263,7 @@ class DefListView(ListView):
 
 # 工数区分定義編集画面定義
 class DefEditView(UpdateView):
+  # モデル,フォーム,HTML,オブジェクト名定義
   model = kosu_division
   form_class = kosu_divisionForm
   template_name = 'kosu/def_edit.html'
@@ -295,15 +296,14 @@ class DefEditView(UpdateView):
 
   # フォームバリデーションが成功した際のメソッドをオーバーライド
   def form_valid(self, form):
-    # POST送信された名前が既に存在しているかチェック
+    # POST送信された名前が既に存在していたらリダイレクト
     edit_def = self.request.session.get('edit_def', None)
     kosu_name = form.cleaned_data['kosu_name']
     if edit_def != kosu_name and kosu_division.objects.filter(kosu_name=kosu_name).exists():
-      # エラーメッセージを表示しこのページにリダイレクト
       messages.error(self.request, '入力した工数区分定義名はすでに登録があるので登録できません。ERROR039')
       return redirect(to='/def_edit/{}'.format(self.kwargs.get(self.pk_url_kwarg)))
 
-    # レコードの更新操作を行う
+    # レコード更新
     pk = self.kwargs.get(self.pk_url_kwarg)
     defaults = {'kosu_name': kosu_name}
     for i in range(1, 51):
@@ -323,95 +323,12 @@ class DefEditView(UpdateView):
     return redirect(to=f'/def_edit/{pk}')
 
 
+  # コンテキストデータを取得するメソッドをオーバーライド
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
     context['title'] = '工数区分定義編集'
     context['id'] = self.kwargs.get(self.pk_url_kwarg)
     return context
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def def_edit(request, pk):
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
-  
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
-
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login') 
-
-  # ログイン者が管理者でなければメニュー画面に飛ぶ
-  if data.administrator != True:
-    return redirect(to = '/')
-
-  # 指定IDの工数区分定義のレコードのオブジェクトを変数に入れる
-  obj = kosu_division.objects.get(id = pk)
-  
-  # フォームの初期状態定義(編集前データが入ってる)
-  form = kosu_divisionForm(instance = obj)
-
-
-  # GET時の処理
-  if (request.method == 'GET'):
-    # 編集前の工数区分定義VerのIDをセッションに記憶
-    def_obj = kosu_division.objects.get(id = pk)
-    request.session['edit_def'] = def_obj.kosu_name
-
-
-  # POST時の処理
-  if (request.method == 'POST'):
-
-    # 人員登録データの内、従業員番号がPOST送信された値と等しいレコードのオブジェクトを取得
-    def_data = kosu_division.objects.filter(kosu_name = request.POST['kosu_name'])
-    # 編集した工数区分定義名の登録がすでにあるかチェック
-    if request.session.get('edit_def', None) != request.POST['kosu_name'] and \
-      def_data.count() >= 1:
-      # エラーメッセージ出力
-      messages.error(request, '入力した工数区分定義名はすでに登録があるので登録できません。ERROR039')
-      # このページをリダイレクト
-      return redirect(to = '/def_edit/{}'.format(pk))
-
-    # 指定IDのレコードにPOST送信された値を上書きする
-    defaults = {'kosu_name': request.POST['kosu_name']}
-    for i in range(1, 51):
-      defaults[f'kosu_title_{i}'] = request.POST[f'kosu_title_{i}']
-      defaults[f'kosu_division_1_{i}'] = request.POST[f'kosu_division_1_{i}']
-      defaults[f'kosu_division_2_{i}'] = request.POST[f'kosu_division_2_{i}']
-    kosu_division.objects.update_or_create(id=pk, defaults=defaults)
-
-    # 工数履歴画面をリダイレクトする
-    return redirect(to = '/def_list/1')
-
-  # HTMLに渡す辞書
-  context = {
-    'title' : '工数区分定義編集',
-    'id' : pk,
-    'form' : form,
-    }
-  
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/def_edit.html', context)
 
 
 
@@ -532,6 +449,8 @@ class DefNewView(CreateView):
     context = super().get_context_data(**kwargs)
     context['title'] = '工数区分定義新規登録'
     return context
+
+
 
 
 
