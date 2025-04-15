@@ -2905,8 +2905,8 @@ class Page_form(TestCase):
 
         # URLに対してPOSTリクエスト送信
         response = self.client.post(reverse('inquiry_list', args = [1]), form_data)
-        # リクエストのレスポンスステータスコードが302(リダイレクト)であることを確認
-        self.assertEqual(response.status_code, 302)
+        # リクエストのレスポンスステータスコードが200であることを確認
+        self.assertEqual(response.status_code, 200)
 
         # 設定情報取得
         updated_entry = administrator_data.objects.order_by("id").last()

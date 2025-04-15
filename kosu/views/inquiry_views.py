@@ -195,7 +195,6 @@ class InquiryListView(ListView):
     def post(self, request, *args, **kwargs):
       # ポップアップリセット時の処理
       if 'pop_up_reset' in request.POST:
-
         # ポップアップリセット
         administrator_data.objects.update_or_create(id = self.page_num.id, \
                                                     defaults = {'pop_up_id1' : '', 'pop_up1' : '',
