@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, ListView
 from django.views.generic.edit import FormView
 from pathlib import Path
 import openpyxl
@@ -12,8 +13,8 @@ import os
 import environ
 from ..utils.kosu_utils import get_member
 from ..utils.main_utils import has_non_halfwidth_characters
-from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data
-from ..forms import loginForm, administrator_data_Form, uploadForm
+from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, Operation_history
+from ..forms import loginForm, administrator_data_Form, uploadForm, history_findForm
 
 
 
@@ -776,3 +777,88 @@ class HelpView(FormView):
 
 
 
+# データ変更情報一覧表示画面定義
+def history_list(request, pk):
+  # 未ログインならログインページに飛ぶ
+  if request.session.get('login_No', None) == None:
+    return redirect(to = '/login')
+
+  try:
+    # ログイン者の情報取得
+    member_obj = member.objects.get(employee_no = request.session['login_No'])
+
+  # セッション値から人員情報取得できない場合の処理
+  except member.DoesNotExist:
+    # セッション削除
+    request.session.clear()
+    # ログインページに戻る
+    return redirect(to = '/login') 
+
+  # ログイン者に権限がなければメインページに戻る
+  if member_obj.administrator == False:
+    return redirect(to = '/')
+
+  # 問い合わせ履歴のある従業員番号リスト作成
+  employee_no_list = Operation_history.objects.values_list('employee_no4', flat=True).order_by('created_at').distinct()
+  
+  # 名前リスト定義
+  name_list = [['', '']]
+
+  # 従業員番号を名前に変更するループ
+  for No in list(employee_no_list):
+    try:
+      # 指定従業員番号で人員情報取得
+      name = member.objects.get(employee_no = No)
+      # 名前リスト作成
+      name_list.append([No, name])
+    # 人員情報取得できない場合の処理
+    except member.DoesNotExist:
+      #何もしない
+      pass
+
+  # 設定データ取得
+  last_record = administrator_data.objects.order_by("id").last()
+  if last_record is None:
+    # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+    page_num = administrator_data(menu_row=20).menu_row
+  else:
+    page_num = last_record.menu_row
+
+  menu_row = page_num
+
+  # GET時の処理
+  if request.method == 'GET':
+    data = Operation_history.objects.all().order_by('created_at').reverse()
+    page = Paginator(data, menu_row)
+
+        # フォーム定義
+    form = history_findForm()
+    form.fields['name_list'].choices = name_list
+
+
+  # POST時の処理
+  if (request.method == 'POST'):
+    data = Operation_history.objects.all().order_by('created_at').reverse()
+    page = Paginator(data, page_num.menu_row)
+
+    # フォーム定義
+    form = history_findForm(request.POST)
+    form.fields['name_list'].choices = name_list
+
+
+
+  # HTMLに渡す辞書
+  context = {
+    'title': '問い合わせ編集',
+    'data': page.get_page(pk),
+    'pk': pk,
+    'form': form,
+    }
+
+  # 指定したHTMLに辞書を渡して表示を完成させる
+  return render(request, 'kosu/history_list.html', context)
+
+
+
+
+#--------------------------------------------------------------------------------------------------------

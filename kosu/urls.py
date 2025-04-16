@@ -55,6 +55,7 @@ urlpatterns = [
   path('inquiry_list/<int:num>',inquiry_views.InquiryListView.as_view(), name='inquiry_list'), # 問い合わせ一覧画面
   path('inquiry_display/<int:num>',inquiry_views.InquiryDisplayView.as_view(), name='inquiry_display'), # 問い合わせ詳細画面
   path('inquiry_edit/<int:num>',inquiry_views.inquiry_edit, name='inquiry_edit'), # 問い合わせ編集画面
+  path('history_list/<int:pk>',main_views.history_list, name='history_list'), # データ操作履歴一覧画面
 
   path('dynamic-choices/', kosu_views.dynamic_choices, name='dynamic_choices'), # 作業詳細入力時の工数定義区分予測APIエンドポイント
   path('all-choices/', kosu_views.all_choices, name='all_choices'), # 工数区分定義選択肢生成APIエンドポイント(工数定義区分予測時のみ)

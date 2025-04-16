@@ -14,7 +14,10 @@
   </head>
   <body class="container" id="display">
     <h1 class="display-1 text-dark">{{title}}</h1>
-    <p class="h6"><a href="{% url 'main' %}" class="text-dark">メインMENUへ</a></p>
+    <p class="h6 no-wrap">
+      <a href="{% url 'main' %}" class="text-dark">メインMENUへ</a>　　
+      <a href="{% url 'history_list' 1 %}" class="text-dark">データ操作履歴一覧へ</a>
+    </p>
     <p>　</p>
     {% for message in messages %}
       <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>

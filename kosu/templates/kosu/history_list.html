@@ -17,7 +17,7 @@
       <a href="{% url 'main' %}" class="text-dark">メインMENUへ</a>
     </p>
     <p>　</p>
-    <form action="{% url 'kosu_list' num %}" method="post">
+    <form action="{% url 'history_list' pk %}" method="post">
       {% csrf_token %}
       <div class="number-input-group">
         <input type="date" class="form-control custom-border" name="kosu_day" id="kosu_day" value={{default_day}} style="width: 150px;">　
@@ -37,25 +37,27 @@
           {% for i in data %}
             <tr>
               <td style="text-align:center;">
-                {{i.work_day2|date:"Y-m-d"}}
+                {{i.name}}
               </td>
               <td style="text-align:center;">
-                {% if i.tyoku2 == "1" %}1直{% endif %}
-                {% if i.tyoku2 == "2" %}2直{% endif %}
-                {% if i.tyoku2 == "3" %}3直{% endif %}
-                {% if i.tyoku2 == "4" %}常昼{% endif %}
-                {% if i.tyoku2 == "5" %}1直(連2){% endif %}
-                {% if i.tyoku2 == "6" %}2直(連2){% endif %}
+                {{i.created_at|date:"Y-m-d"}}
               </td>
               <td style="text-align:center;">
-                {% if i.judgement == True %}<b  class="text-primary">OK</b>{% endif %}
-                {% if i.judgement == False %}<b  class="text-danger">NG</b>{% endif %}
+                {{i.operation_models}}
               </td>
               <td style="text-align:center;">
-                <a href="{% url 'detail' i.id %}">詳細</a>
+                {{i.post_page}}
               </td>
               <td style="text-align:center;">
-                <a href="{% url 'delete' i.id %}">削除</a>
+                {{i.status}}
+              </td>
+              <td style="text-align:center;">
+                編集
+                <!--<a href="{% url 'detail' i.id %}" class="text-dark">詳細</a>-->
+              </td>
+              <td style="text-align:center;">
+                削除
+                <!--<a href="{% url 'delete' i.id %}" class="text-dark">削除</a>-->
               </td>
             </tr>
           {% endfor %}
@@ -64,46 +66,46 @@
       <ul class="pagination justify-content-center">
         {% if data.has_previous %}
         <li class="page-item">
-          <a class="page-link" href="{% url 'kosu_list' 1 %}">
+          <a class="page-link text-dark" href="{% url 'history_list' 1 %}">
             &laquo; 最初</a>
         </li>
         <li class="page-item">
-          <a class="page-link" 
-            href="{% url 'kosu_list' data.previous_page_number %}">
+          <a class="page-link text-dark" 
+            href="{% url 'history_list' data.previous_page_number %}">
             &laquo; 前</a>
         </li>
         {% else %}
         <li class="page-item">
-          <a class="page-link">
+          <a class="page-link text-dark">
             &laquo; 最初</a>
         </li>
         <li class="page-item">
-          <a class="page-link">
+          <a class="page-link text-dark">
             &laquo; 前</a>
         </li>
         {% endif %}
         <li class="page-item">
-          <a class="page-link">
+          <a class="page-link text-dark">
             {{data.number}}/{{data.paginator.num_pages}}</a>
         </li>
         {% if data.has_next %}
-        <li class="page-item">
+        <li class="page-item text-dark">
           <a class="page-link" 
-            href="{% url 'kosu_list' data.next_page_number %}">
+            href="{% url 'history_list' data.next_page_number %}">
               次&raquo;</a>
         </li>
         <li class="page-item">
-          <a class="page-link" 
-            href="{% url 'kosu_list' data.paginator.num_pages %}">
+          <a class="page-link text-dark" 
+            href="{% url 'history_list' data.paginator.num_pages %}">
               最後&raquo;</a>
         </li>
         {% else %}
         <li class="page-item">
-          <a class="page-link">
+          <a class="page-link text-dark">
             次&raquo;</a>
         </li>
         <li class="page-item">
-          <a class="page-link">
+          <a class="page-link text-dark">
             最後&raquo;</a>
         </li>
         {% endif %}

@@ -55,8 +55,8 @@ class MemberPageView(ListView):
   # フォーム初期値を定義
   def get_form(self, request):
     return member_findForm({
-        'shop2': request.session.get('find_shop', ''), 
-        'employee_no6': request.session.get('find_employee_no', '')
+      'shop2': request.session.get('find_shop', ''), 
+      'employee_no6': request.session.get('find_employee_no', '')
     })
 
 
@@ -69,9 +69,9 @@ class MemberPageView(ListView):
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
     context.update({
-        'title': '人員一覧',
-        'form': self.form,
-        'num': self.kwargs.get('num'),
+      'title': '人員一覧',
+      'form': self.form,
+      'num': self.kwargs.get('num'),
     })
     return context
 

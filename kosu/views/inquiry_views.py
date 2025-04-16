@@ -110,112 +110,112 @@ class InquiryNewView(CreateView):
 
 # 問い合わせ履歴画面定義
 class InquiryListView(ListView):
-    model = inquiry_data
-    template_name = 'kosu/inquiry_list.html'
-    context_object_name = 'data'
-    
-    # リクエストを処理するメソッドをオーバーライド
-    def dispatch(self, request, *args, **kwargs):
-      # 人員情報取得
-      member_obj = get_member(request)
-      # 人員情報なしor未ログインの場合ログイン画面へ
-      if isinstance(member_obj, HttpResponseRedirect):
-        return member_obj
-      self.member_data = member_obj
+  model = inquiry_data
+  template_name = 'kosu/inquiry_list.html'
+  context_object_name = 'data'
+  
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_data = member_obj
 
-      # 設定情報取得
-      last_record = administrator_data.objects.order_by("id").last()
-      if last_record is None:
-        # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
-        self.page_num = administrator_data(menu_row=20)
-      else:
-        self.page_num = last_record
+    # 設定情報取得
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      self.page_num = administrator_data(menu_row=20)
+    else:
+      self.page_num = last_record
 
-      # 親クラスへ情報送信
-      return super().dispatch(request, *args, **kwargs)
+    # 親クラスへ情報送信
+    return super().dispatch(request, *args, **kwargs)
 
 
-    # フィルタリングキーワード生成
-    def get_filter_kwargs(self, request):
-      # 検索時の処理
-      if "find" in request.POST:
-        # フィルタリング内容を返す
-        return {'content_choice__contains': request.POST['category'], 'employee_no2__contains': request.POST['name_list']}
-      # GET時の処理(フィルタリングなし)
-      filter_kwargs = {}
+  # フィルタリングキーワード生成
+  def get_filter_kwargs(self, request):
+    # 検索時の処理
+    if "find" in request.POST:
       # フィルタリング内容を返す
-      return filter_kwargs
+      return {'content_choice__contains': request.POST['category'], 'employee_no2__contains': request.POST['name_list']}
+    # GET時の処理(フィルタリングなし)
+    filter_kwargs = {}
+    # フィルタリング内容を返す
+    return filter_kwargs
 
 
-    # フィルタリングされたデータ取得
-    def get_queryset(self):
-      return inquiry_data.objects.filter(**self.get_filter_kwargs(self.request)).order_by('id').reverse()
+  # フィルタリングされたデータ取得
+  def get_queryset(self):
+    return inquiry_data.objects.filter(**self.get_filter_kwargs(self.request)).order_by('id').reverse()
 
 
-    # コンテキストをオーバーライド
-    def get_context_data(self, **kwargs):
-      # 名前リスト作成
-      employee_no_list = inquiry_data.objects.values_list('employee_no2', flat=True)\
-          .order_by('employee_no2').distinct()
-      name_list = [['', '']]
-      for No in employee_no_list:
-        try:
-          name = member.objects.get(employee_no=No)
-          name_list.append([No, str(name)])
-        except member.DoesNotExist:
-          pass
+  # コンテキストをオーバーライド
+  def get_context_data(self, **kwargs):
+    # 名前リスト作成
+    employee_no_list = inquiry_data.objects.values_list('employee_no2', flat=True)\
+        .order_by('employee_no2').distinct()
+    name_list = [['', '']]
+    for No in employee_no_list:
+      try:
+        name = member.objects.get(employee_no=No)
+        name_list.append([No, str(name)])
+      except member.DoesNotExist:
+        pass
 
-      # フォーム定義
-      form = inquiry_findForm(self.request.POST)
-      form.fields['name_list'].choices = name_list
+    # フォーム定義
+    form = inquiry_findForm(self.request.POST)
+    form.fields['name_list'].choices = name_list
 
-      # HTMLへ送るコンテキストを定義
-      context = super().get_context_data(**kwargs)
-      context.update({
-        'title': '問い合わせ履歴',
-        'form': form,
-        'num': self.kwargs.get('num', 1)
-          })
+    # HTMLへ送るコンテキストを定義
+    context = super().get_context_data(**kwargs)
+    context.update({
+      'title': '問い合わせ履歴',
+      'form': form,
+      'num': self.kwargs.get('num', 1)
+        })
 
-      return context
-
-
-    # GET時の処理
-    def get(self, request, *args, **kwargs):
-      # フィルタリングしたデータをページネーションで絞り込み
-      paginator = Paginator(self.get_queryset(), self.page_num.menu_row)
-      self.object_list = paginator.get_page(kwargs.get('num'))
-      # HTMLに送るデータに追加
-      context = self.get_context_data(object_list=paginator.get_page(kwargs.get('num')))
-      # HTMLにデータ送信
-      return self.render_to_response(context)
+    return context
 
 
-    # POST時の処理
-    def post(self, request, *args, **kwargs):
-      # ポップアップリセット時の処理
-      if 'pop_up_reset' in request.POST:
-        # ポップアップリセット
-        administrator_data.objects.update_or_create(id = self.page_num.id, \
-                                                    defaults = {'pop_up_id1' : '', 'pop_up1' : '',
-                                                                'pop_up_id2' : '', 'pop_up2' : '',
-                                                                'pop_up_id3' : '', 'pop_up3' : '',
-                                                                'pop_up_id4' : '', 'pop_up4' : '',
-                                                                'pop_up_id5' : '', 'pop_up5' : '',})
+  # GET時の処理
+  def get(self, request, *args, **kwargs):
+    # フィルタリングしたデータをページネーションで絞り込み
+    paginator = Paginator(self.get_queryset(), self.page_num.menu_row)
+    self.object_list = paginator.get_page(kwargs.get('num'))
+    # HTMLに送るデータに追加
+    context = self.get_context_data(object_list=paginator.get_page(kwargs.get('num')))
+    # HTMLにデータ送信
+    return self.render_to_response(context)
 
-        member.objects.update_or_create(employee_no = request.session['login_No'], \
-                                        defaults = {'pop_up_id1' : '', 'pop_up1' : '',
-                                                    'pop_up_id2' : '', 'pop_up2' : '',
-                                                    'pop_up_id3' : '', 'pop_up3' : '',
-                                                    'pop_up_id4' : '', 'pop_up4' : '',
-                                                    'pop_up_id5' : '', 'pop_up5' : '',})
-      # フィルタリングしたデータをページネーションで絞り込み
-      paginator = Paginator(self.get_queryset(), self.page_num.menu_row)
-      self.object_list = paginator.get_page(kwargs.get('num'))
-      # HTMLに送るデータに追加
-      context = self.get_context_data(object_list=paginator.get_page(kwargs.get('num')))
-      # HTMLにデータ送信
-      return self.render_to_response(context)
+
+  # POST時の処理
+  def post(self, request, *args, **kwargs):
+    # ポップアップリセット時の処理
+    if 'pop_up_reset' in request.POST:
+      # ポップアップリセット
+      administrator_data.objects.update_or_create(id = self.page_num.id, \
+                                                  defaults = {'pop_up_id1' : '', 'pop_up1' : '',
+                                                              'pop_up_id2' : '', 'pop_up2' : '',
+                                                              'pop_up_id3' : '', 'pop_up3' : '',
+                                                              'pop_up_id4' : '', 'pop_up4' : '',
+                                                              'pop_up_id5' : '', 'pop_up5' : '',})
+
+      member.objects.update_or_create(employee_no = request.session['login_No'], \
+                                      defaults = {'pop_up_id1' : '', 'pop_up1' : '',
+                                                  'pop_up_id2' : '', 'pop_up2' : '',
+                                                  'pop_up_id3' : '', 'pop_up3' : '',
+                                                  'pop_up_id4' : '', 'pop_up4' : '',
+                                                  'pop_up_id5' : '', 'pop_up5' : '',})
+    # フィルタリングしたデータをページネーションで絞り込み
+    paginator = Paginator(self.get_queryset(), self.page_num.menu_row)
+    self.object_list = paginator.get_page(kwargs.get('num'))
+    # HTMLに送るデータに追加
+    context = self.get_context_data(object_list=paginator.get_page(kwargs.get('num')))
+    # HTMLにデータ送信
+    return self.render_to_response(context)
 
 
 
@@ -535,7 +535,6 @@ def inquiry_edit(request, num):
 
   # 問い合わせ削除処理
   if "delete" in request.POST:
-
     # 問い合わせ者の情報取得
     data = member.objects.get(employee_no = obj_get.employee_no2)
 
@@ -746,8 +745,6 @@ def inquiry_edit(request, num):
     'form' : form,
     'login_obj_get' : login_obj_get,
     }
-  
-
 
   # 指定したHTMLに辞書を渡して表示を完成させる
   return render(request, 'kosu/inquiry_edit.html', context)
