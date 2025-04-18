@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView, ListView
-from django.views.generic.edit import FormView
+from django.views.generic.edit import FormView, DeleteView
 from pathlib import Path
 import openpyxl
 import datetime
@@ -792,29 +792,26 @@ def history_list(request, pk):
     # セッション削除
     request.session.clear()
     # ログインページに戻る
-    return redirect(to = '/login') 
+    return redirect(to='/login') 
 
   # ログイン者に権限がなければメインページに戻る
   if member_obj.administrator == False:
-    return redirect(to = '/')
+    return redirect(to='/')
 
-  # 問い合わせ履歴のある従業員番号リスト作成
-  employee_no_list = Operation_history.objects.values_list('employee_no4', flat=True).order_by('created_at').distinct()
-  
-  # 名前リスト定義
-  name_list = [['', '']]
+  # 編集履歴にある要素リスト作成
+  employee_no_list = Operation_history.objects.values_list('employee_no4', flat=True).order_by('employee_no4').distinct()
+  model_edit_list = Operation_history.objects.values_list('operation_models', flat=True).order_by('operation_models').distinct()
+  page_edit_list = Operation_history.objects.values_list('post_page', flat=True).order_by('post_page').distinct()
 
-  # 従業員番号を名前に変更するループ
-  for No in list(employee_no_list):
-    try:
-      # 指定従業員番号で人員情報取得
-      name = member.objects.get(employee_no = No)
-      # 名前リスト作成
-      name_list.append([No, name])
-    # 人員情報取得できない場合の処理
-    except member.DoesNotExist:
-      #何もしない
-      pass
+  # 選択肢リスト定義
+  name_list = [['', '']] + [
+    [No, member.objects.get(employee_no=No)]
+    for No in employee_no_list
+    if member.objects.filter(employee_no=No).exists()
+    ]
+  model_list = [['', '']] + [[model, model] for model in model_edit_list]
+  page_list = [['', '']] + [[page, page] for page in page_edit_list]
+
 
   # 設定データ取得
   last_record = administrator_data.objects.order_by("id").last()
@@ -834,16 +831,24 @@ def history_list(request, pk):
         # フォーム定義
     form = history_findForm()
     form.fields['name_list'].choices = name_list
+    form.fields['model_list'].choices = model_list
+    form.fields['page_list'].choices = page_list
 
 
   # POST時の処理
   if (request.method == 'POST'):
-    data = Operation_history.objects.all().order_by('created_at').reverse()
-    page = Paginator(data, page_num.menu_row)
+    data = Operation_history.objects.filter(created_at__contains=request.POST['day'], 
+                                            employee_no4__contains=request.POST['name_list'], 
+                                            operation_models__contains=request.POST['model_list'], 
+                                            post_page__contains=request.POST['page_list'], 
+                                            ).order_by('created_at').reverse()
+    page = Paginator(data, page_num)
 
     # フォーム定義
     form = history_findForm(request.POST)
     form.fields['name_list'].choices = name_list
+    form.fields['model_list'].choices = model_list
+    form.fields['page_list'].choices = page_list
 
 
 
@@ -861,4 +866,42 @@ def history_list(request, pk):
 
 
 
+
 #--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# データ操作履歴詳細画面定義
+class HistoryDeleteView(DeleteView):
+  # モデル、テンプレート、リダイレクト先などを指定
+  model = Operation_history
+  template_name = 'kosu/history_delete.html'
+  success_url = reverse_lazy('history_list', args = [1]) 
+
+
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
+
+
+  # コンテキストデータを取得するメソッドをオーバーライド
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    obj_get = self.get_object()
+    context['title'] = '工数データ削除'
+    context['id'] = self.object.id
+    context['obj'] = obj_get
+    return context
+
+
+
+
