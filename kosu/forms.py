@@ -732,8 +732,8 @@ class all_kosuForm(forms.Form):
 
 
 class history_findForm(forms.Form):
-  name_list = forms.ChoiceField(label='氏名', widget = forms.Select(attrs={'class': 'form-control custom-border', 'style': 'width : 200px;'}), required = False)
+  name_list = forms.ChoiceField(label='編集者', widget = forms.Select(attrs={'class': 'form-control custom-border', 'style': 'width : 200px;'}), required = False)
   day = forms.DateField(label='編集日', widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control custom-border', 'style': 'width : 200px;', 'placeholder': 'YYYY-MM-DD'}), required = False)
   model_list = forms.ChoiceField(label='編集モデル', widget = forms.Select(attrs={'class': 'form-control custom-border', 'style': 'width : 200px;'}), required = False)
-  page_list = forms.ChoiceField(label='編集モデル', widget = forms.Select(attrs={'class': 'form-control custom-border', 'style': 'width : 200px;'}), required = False)
+  page_list = forms.ChoiceField(label='編集ページ', widget = forms.Select(attrs={'class': 'form-control custom-border', 'style': 'width : 200px;'}), required = False)
 

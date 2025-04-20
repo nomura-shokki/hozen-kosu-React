@@ -326,4 +326,4 @@ class Operation_history(models.Model):
   operation_detail = models.TextField('編集詳細', null=True, blank=True)
 
   def __str__(self):
-    return str(self.name) + '：' + str(self.created_at)
+    return str(self.id) + str(self.name) + '：' + str(self.created_at)

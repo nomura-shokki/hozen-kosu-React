@@ -854,7 +854,7 @@ def history_list(request, pk):
 
   # HTMLに渡す辞書
   context = {
-    'title': '問い合わせ編集',
+    'title': '編集履歴一覧',
     'data': page.get_page(pk),
     'pk': pk,
     'form': form,
@@ -904,4 +904,7 @@ class HistoryDeleteView(DeleteView):
 
 
 
+
+
+#--------------------------------------------------------------------------------------------------------
 

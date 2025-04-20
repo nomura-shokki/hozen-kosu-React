@@ -19,14 +19,10 @@
     <p>　</p>
     <form action="{% url 'history_list' pk %}" method="post">
       {% csrf_token %}
-      <p>氏名:</p>
-      {{form.name_list}}
-      <p>編集日:</p>
-      {{form.day}}
-      <p>編集モデル:</p>
-      {{form.model_list}}
-      <p>編集ページ:</p>
-      {{form.page_list}}
+      <p>{{form.name_list.label}}:{{form.name_list}}</p>
+      <p>{{form.day.label}}:{{form.day}}</p>
+      <p>{{form.model_list.label}}:{{form.model_list}}</p>
+      <p>{{form.page_list.label}}:{{form.page_list}}</p>
       <input type="submit" value="検索" name=find class="btn btn-gray2 mt-2">
       <p>　</p>
       <div class="table-responsive">
@@ -56,7 +52,7 @@
                 {{i.status}}
               </td>
               <td style="text-align:center;">
-                <a href="{% url 'history_detail' i.id %}" class="text-dark">詳細</a>
+                <a href="{% url 'history_delete' i.id %}" class="text-dark">詳細</a>
               </td>
             </tr>
           {% endfor %}
