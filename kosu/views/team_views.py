@@ -14,6 +14,8 @@ from ..utils.kosu_utils import index_change
 from ..utils.kosu_utils import create_kosu
 from ..utils.kosu_utils import get_member
 from ..utils.kosu_utils import get_def_library_data
+from ..utils.kosu_utils import kosu_sort
+from ..utils.kosu_utils import default_work_time
 from ..utils.team_utils import excel_function
 from ..utils.team_utils import team_member_name_get
 from dateutil.relativedelta import relativedelta
@@ -424,184 +426,69 @@ class TeamKosuListView(ListView):
 
 
 # 班員工数入力詳細画面定義
-def team_detail(request, num):
-
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
-  
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
-
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login') 
-
-  # ログイン者に権限がなければメインページに戻る
-  if data.authority == False:
-    return redirect(to = '/')
-
-  # ログイン者の班員登録情報取得
-  team_filter = team_member.objects.filter(employee_no5 = request.session['login_No'])
-  # 班員登録がなければメインページに戻る
-  if team_filter.count() == 0:
-    return redirect(to = '/team_main')
+class TeamDetailView(TemplateView):
+  # テンプレート定義
+  template_name = 'kosu/team_detail.html'
 
 
-  # 指定IDの工数履歴のレコードのオブジェクトを変数に入れる
-  obj_get = Business_Time_graph.objects.get(id = num)
+  # HTMLへ送るデータオーバーライド
+  def get_context_data(self, request, **kwargs):
+    # num パラメータを取得
+    num = kwargs.get('num')
 
-  # 人員名取得
-  name_obj_get = member.objects.get(employee_no = obj_get.employee_no3)
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
 
-  # 作業内容と作業詳細を取得しリストに解凍
-  work_list = list(obj_get.time_work)
-  detail_list = obj_get.detail_work.split('$')
+    # 権限なければメイン画面へ
+    if not member_obj.authority:
+      return redirect(to='/')
 
-
-  # 作業内容と作業詳細のリストを2個連結
-  work_list = work_list*2
-  detail_list = detail_list*2
-
-  # 1直の時の処理
-  if obj_get.tyoku2 == '1':
-    # 作業内容と作業詳細のリストを4時半からの表示に変える
-    del work_list[:54]
-    del detail_list[:54]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 2直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
-  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2':
-    # 作業内容と作業詳細のリストを12時からの表示に変える
-    del work_list[:144]
-    del detail_list[:144]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 2直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
-        name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2':
-    # 作業内容と作業詳細のリストを9時からの表示に変える
-    del work_list[:108]
-    del detail_list[:108]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 3直の時の処理(ログイン者のショップがP,R,T1,T2,その他)
-  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3':
-    # 作業内容と作業詳細のリストを20時半からの表示に変える
-    del work_list[:246]
-    del detail_list[:246]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 3直の時の処理(ログイン者のショップがW1,W2,A1,A2)
-  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or \
-        name_obj_get.shop == 'A2' or name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3':
-    # 作業内容と作業詳細のリストを18時からの表示に変える
-    del work_list[:216]
-    del detail_list[:216]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 常昼の時の処理
-  elif obj_get.tyoku2 == '4':
-    # 作業内容と作業詳細のリストを6時からの表示に変える
-    del work_list[:72]
-    del detail_list[:72]
-    del work_list[288:]
-    del detail_list[288:]
-
-  # 直指定がない場合の処理
-  else:
-    del work_list[288:]
-    del detail_list[288:]
-
-  # HTML表示用リスト作成
-  time_display_list = create_kosu(work_list, detail_list, obj_get, name_obj_get, request)
+    # 班員登録無ければ班員MENUへ
+    if not team_member.objects.filter(employee_no5=request.session['login_No']).exists():
+      return redirect(to='/team_main')
 
 
-  # 工数合計取得
-  time_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
+    # 指定IDの工数履歴のレコードのオブジェクトを変数に入れる
+    obj_get = Business_Time_graph.objects.get(id=num)
 
-  # 基準合計工数定義
-  default_total = 0
-  if obj_get.work_time == '出勤':
-    default_total = 470
-  elif obj_get.work_time == 'シフト出勤':
-    default_total = 470
-  elif obj_get.work_time == '休出':
-    default_total = 0
-  elif obj_get.work_time == '遅刻・早退':
-    default_total = '-'
-  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
-          obj_get.work_time == '半前年休':
-    default_total = 220
-  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '1' and \
-          obj_get.work_time == '半後年休':
-    default_total = 250
-  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
-          obj_get.work_time == '半前年休':
-    default_total = 230
-  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '2' and \
-          obj_get.work_time == '半後年休':
-    default_total = 240
-  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
-          obj_get.work_time == '半前年休':
-    default_total = 275
-  elif (name_obj_get.shop == 'P' or name_obj_get.shop == 'R' or name_obj_get.shop == 'T1' or name_obj_get.shop == 'T2' or \
-        name_obj_get.shop == 'その他' or name_obj_get.shop == '組長以上(P,R,T,その他)') and obj_get.tyoku2 == '3' and \
-          obj_get.work_time == '半後年休':
-    default_total = 195
-  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2' or \
-        name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半前年休':
-    default_total = 230
-  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2' or \
-        name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '1' and obj_get.work_time == '半後年休':
-    default_total = 240
-  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2' or \
-        name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半前年休':
-    default_total = 290
-  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2' or \
-        name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '2' and obj_get.work_time == '半後年休':
-    default_total = 180
-  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2' or \
-        name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半前年休':
-    default_total = 230
-  elif (name_obj_get.shop == 'W1' or name_obj_get.shop == 'W2' or name_obj_get.shop == 'A1' or name_obj_get.shop == 'A2' or \
-        name_obj_get.shop == '組長以上(W,A)') and obj_get.tyoku2 == '3' and obj_get.work_time == '半後年休':
-    default_total = 240
-  elif obj_get.tyoku2 == '4' and obj_get.work_time == '半前年休':
-    default_total = 230
-  elif obj_get.tyoku2 == '4' and obj_get.work_time == '半後年休':
-    default_total = 240
+    # 人員名取得
+    name_obj_get = member.objects.get(employee_no=obj_get.employee_no3)
+    # 作業内容と作業詳細を直に合わせて調整
+    work_list, detail_list = kosu_sort(obj_get, name_obj_get)
 
+    # HTML表示用リスト作成
+    time_display_list = create_kosu(work_list, detail_list, obj_get, name_obj_get, self.request)
 
+    # 工数合計取得
+    time_total = 1440 - (work_list.count('#')*5) - (work_list.count('$')*5)
 
-  # HTMLに渡す辞書
-  context = {
-    'title' : '工数詳細',
-    'id' : num,
-    'obj_get' : obj_get,
-    'time_display_list' : time_display_list,
-    'time_total' : time_total,
-    'default_total' : default_total,
+    # 基準合計工数取得
+    default_total = default_work_time(obj_get, name_obj_get)
+
+    # HTMLに渡す辞書
+    context = {
+      'title': '工数詳細',
+      'id': num,
+      'obj_get': obj_get,
+      'time_display_list': time_display_list,
+      'time_total': time_total,
+      'default_total': default_total,
     }
 
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/team_detail.html', context)
+    return context
+
+
+  # getメソッドをオーバライドして権限やロジックチェックを行う
+  def get(self, request, *args, **kwargs):
+    context = self.get_context_data(request=self.request, **kwargs)
+    # Redirectオブジェクトが返ってきた場合はそのまま返す
+    if isinstance(context, redirect):
+      return context
+    return self.render_to_response(context)
 
 
 
@@ -642,33 +529,6 @@ def team_calendar(request):
     return redirect(to = '/team_main')
 
 
-  # 曜日指定フォーム初期値定義
-  week_default = {'Sunday_check' : True, \
-                  'Monday_check' : True, \
-                  'Tuesday_check' : True, \
-                  'Wednesday_check' : True, \
-                  'Thursday_check' : True, \
-                  'Friday_check' : True, \
-                  'Satuday_check' : True}
-
-  # メンバー指定フォーム初期値定義
-  member_default = {'member1_check' : True, \
-                    'member2_check' : True, \
-                    'member3_check' : True, \
-                    'member4_check' : True, \
-                    'member5_check' : True, \
-                    'member6_check' : True, \
-                    'member7_check' : True, \
-                    'member8_check' : True, \
-                    'member9_check' : True, \
-                    'member10_check' : True, \
-                    'member11_check' : True, \
-                    'member12_check' : True, \
-                    'member13_check' : True, \
-                    'member14_check' : True, \
-                    'member15_check' : True}
-
-
 
   # 日付指定時の処理
   if "display_day" in request.POST:
@@ -702,40 +562,9 @@ def team_calendar(request):
     # 曜日取得
     week_day_back = today.weekday()
 
-    # 曜日が日曜の場合の処理
-    if week_day_back == 6:
-      # 1日前の日付を指定日に入れる
-      today = today - datetime.timedelta(days=1)
-
-    # 曜日が月曜の場合の処理
-    if week_day_back == 0:
-      # 2日前の日付を指定日に入れる
-      today = today - datetime.timedelta(days=2)
-
-    # 曜日が火曜の場合の処理
-    if week_day_back == 1:
-      # 3日前の日付を指定日に入れる
-      today = today - datetime.timedelta(days=3)
-
-    # 曜日が水曜の場合の処理
-    if week_day_back == 2:
-      # 4日前の日付を指定日に入れる
-      today = today - datetime.timedelta(days=4)
-
-    # 曜日が木曜の場合の処理
-    if week_day_back == 3:
-      # 5日前の日付を指定日に入れる
-      today = today - datetime.timedelta(days=5)
-
-    # 曜日が金曜の場合の処理
-    if week_day_back == 4:
-      # 6日前の日付を指定日に入れる
-      today = today - datetime.timedelta(days=6)
-
-    # 曜日が土曜の場合の処理
-    if week_day_back == 5:
-      # 7日前の日付を指定日に入れる
-      today = today - datetime.timedelta(days=7)
+    # 減算する日数を計算
+    days_to_subtract = 1 if week_day_back == 6 else week_day_back + 2
+    today = today - datetime.timedelta(days=days_to_subtract)
 
     # 前の週が月をまたぐ場合の処理
     if today.month != datetime.datetime.strptime(request.session.get('display_day', None), '%Y-%m-%d').month:

@@ -777,91 +777,90 @@ class HelpView(FormView):
 
 
 
+
+
 # データ変更情報一覧表示画面定義
-def history_list(request, pk):
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
+class HistoryListView(ListView):
+  model = Operation_history
+  template_name = 'kosu/history_list.html'
+  context_object_name = 'data'
+  paginate_by = 20
 
-  try:
-    # ログイン者の情報取得
-    member_obj = member.objects.get(employee_no = request.session['login_No'])
 
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to='/login') 
+  # 画面処理前の初期設定
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
+    
+    # 権限がないユーザーの場合ログイン画面へ
+    if not self.member_obj.administrator:
+      return redirect('/')
 
-  # ログイン者に権限がなければメインページに戻る
-  if member_obj.administrator == False:
-    return redirect(to='/')
 
-  # 編集履歴にある要素リスト作成
-  employee_no_list = Operation_history.objects.values_list('employee_no4', flat=True).order_by('employee_no4').distinct()
-  model_edit_list = Operation_history.objects.values_list('operation_models', flat=True).order_by('operation_models').distinct()
-  page_edit_list = Operation_history.objects.values_list('post_page', flat=True).order_by('post_page').distinct()
+  def get_paginate_by(self, queryset):
+    # 設定データ取得
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合
+      return 20  # デフォルト値
+    return last_record.menu_row
 
-  # 選択肢リスト定義
-  name_list = [['', '']] + [
-    [No, member.objects.get(employee_no=No)]
-    for No in employee_no_list
-    if member.objects.filter(employee_no=No).exists()
+
+  # フィルタリングしたデータ取得
+  def get_queryset(self):
+    # POST時のフィルタ処理
+    if self.request.method == 'POST':
+      queryset = Operation_history.objects.filter(
+        created_at__contains=self.request.POST.get('day', ''),
+        employee_no4__contains=self.request.POST.get('name_list', ''),
+        operation_models__contains=self.request.POST.get('model_list', ''),
+        post_page__contains=self.request.POST.get('page_list', '')
+      ).order_by('-created_at')
+    # GET時のフィルタ処理
+    else:
+      queryset = Operation_history.objects.all().order_by('-created_at')
+    return queryset
+
+
+  # フォームの状態定義
+  def get_form(self):
+    # 編集履歴にある要素リスト作成
+    employee_no_list = Operation_history.objects.values_list('employee_no4', flat=True).order_by('employee_no4').distinct()
+    model_edit_list = Operation_history.objects.values_list('operation_models', flat=True).order_by('operation_models').distinct()
+    page_edit_list = Operation_history.objects.values_list('post_page', flat=True).order_by('post_page').distinct()
+
+    # 選択肢リスト定義
+    name_list = [['', '']] + [
+      [No, member.objects.get(employee_no=No)]
+      for No in employee_no_list
+      if member.objects.filter(employee_no=No).exists()
     ]
-  model_list = [['', '']] + [[model, model] for model in model_edit_list]
-  page_list = [['', '']] + [[page, page] for page in page_edit_list]
+    model_list = [['', '']] + [[model, model] for model in model_edit_list]
+    page_list = [['', '']] + [[page, page] for page in page_edit_list]
 
+    # フォームを作成し選択肢を設定
+    if self.request.method == 'POST':
+      form = history_findForm(self.request.POST)
+    else:
+      form = history_findForm()
 
-  # 設定データ取得
-  last_record = administrator_data.objects.order_by("id").last()
-  if last_record is None:
-    # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
-    page_num = administrator_data(menu_row=20).menu_row
-  else:
-    page_num = last_record.menu_row
-
-  menu_row = page_num
-
-  # GET時の処理
-  if request.method == 'GET':
-    data = Operation_history.objects.all().order_by('created_at').reverse()
-    page = Paginator(data, menu_row)
-
-        # フォーム定義
-    form = history_findForm()
     form.fields['name_list'].choices = name_list
     form.fields['model_list'].choices = model_list
     form.fields['page_list'].choices = page_list
+    return form
 
 
-  # POST時の処理
-  if (request.method == 'POST'):
-    data = Operation_history.objects.filter(created_at__contains=request.POST['day'], 
-                                            employee_no4__contains=request.POST['name_list'], 
-                                            operation_models__contains=request.POST['model_list'], 
-                                            post_page__contains=request.POST['page_list'], 
-                                            ).order_by('created_at').reverse()
-    page = Paginator(data, page_num)
-
-    # フォーム定義
-    form = history_findForm(request.POST)
-    form.fields['name_list'].choices = name_list
-    form.fields['model_list'].choices = model_list
-    form.fields['page_list'].choices = page_list
-
-
-
-  # HTMLに渡す辞書
-  context = {
-    'title': '編集履歴一覧',
-    'data': page.get_page(pk),
-    'pk': pk,
-    'form': form,
-    }
-
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/history_list.html', context)
+  # コンテキスト定義
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context['title'] = '編集履歴一覧'
+    context['pk'] = self.kwargs.get('pk')
+    context['form'] = self.get_form()
+    return context
 
 
 

@@ -40,7 +40,7 @@ urlpatterns = [
   path('team', team_views.TeamView.as_view(), name='team'), # 班員登録画面
   path('team_graph', team_views.TeamGraphView.as_view(), name='team_graph'), # 班員工数一覧画面(グラフ表示)
   path('team_kosu/<int:num>', team_views.TeamKosuListView.as_view(), name='team_kosu'), # 班員工数データ一覧画面
-  path('team_detail/<int:num>', team_views.team_detail, name='team_detail'), # 班員工数詳細画面
+  path('team_detail/<int:num>', team_views.TeamDetailView.as_view(), name='team_detail'), # 班員工数詳細画面
   path('team_calendar', team_views.team_calendar, name='team_calendar'), # 班員工数一覧画面(カレンダー表示)
   path('team_over_time', team_views.team_over_time, name='team_over_time'), # 班員残業管理画面
   path('class_list', team_views.ClassListView.as_view(), name='class_list'), # ショップ単位工数入力状態可否画面
@@ -55,7 +55,7 @@ urlpatterns = [
   path('inquiry_list/<int:num>',inquiry_views.InquiryListView.as_view(), name='inquiry_list'), # 問い合わせ一覧画面
   path('inquiry_display/<int:num>',inquiry_views.InquiryDisplayView.as_view(), name='inquiry_display'), # 問い合わせ詳細画面
   path('inquiry_edit/<int:num>',inquiry_views.inquiry_edit, name='inquiry_edit'), # 問い合わせ編集画面
-  path('history_list/<int:pk>',main_views.history_list, name='history_list'), # データ操作履歴一覧画面
+  path('history_list/<int:pk>',main_views.HistoryListView.as_view(), name='history_list'), # データ操作履歴一覧画面
   path('history_delete/<int:pk>',main_views.HistoryDeleteView.as_view(), name='history_delete'), # データ操作履歴詳細画面
 
   path('dynamic-choices/', kosu_views.dynamic_choices, name='dynamic_choices'), # 作業詳細入力時の工数定義区分予測APIエンドポイント
