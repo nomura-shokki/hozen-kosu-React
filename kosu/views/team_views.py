@@ -486,11 +486,9 @@ class TeamDetailView(TemplateView):
   def get(self, request, *args, **kwargs):
     context = self.get_context_data(request=self.request, **kwargs)
     # Redirectオブジェクトが返ってきた場合はそのまま返す
-    if isinstance(context, redirect):
+    if isinstance(context, HttpResponseRedirect):
       return context
     return self.render_to_response(context)
-
-
 
 
 
@@ -539,6 +537,7 @@ def team_calendar(request):
     request.session['display_day'] = request.POST['work_day']
 
 
+
   # POSTしていない時の処理
   else:
     # セッションに表示日の指定がない場合の処理
@@ -548,12 +547,12 @@ def team_calendar(request):
 
       # 取得した値をセッションに登録
       request.session['display_day'] = str(today)[0 : 10]
-      today = datetime.datetime.strptime(request.session.get('display_day', None), '%Y-%m-%d')
+      today = datetime.datetime.strptime(request.session['display_day'], '%Y-%m-%d')
 
     # セッションに表示日の指定がある場合の処理
     else:
       # 表示日にセッションの値を入れる
-      today = datetime.datetime.strptime(request.session.get('display_day', None), '%Y-%m-%d')
+      today = datetime.datetime.strptime(request.session['display_day'], '%Y-%m-%d')
 
 
 
@@ -567,7 +566,7 @@ def team_calendar(request):
     today = today - datetime.timedelta(days=days_to_subtract)
 
     # 前の週が月をまたぐ場合の処理
-    if today.month != datetime.datetime.strptime(request.session.get('display_day', None), '%Y-%m-%d').month:
+    if today.month != datetime.datetime.strptime(request.session['display_day'], '%Y-%m-%d').month:
       # 前月の最終日取得
       today = datetime.datetime(today.year, today.month, 1) + relativedelta(months=1) - relativedelta(days=1) 
 
@@ -577,44 +576,13 @@ def team_calendar(request):
 
 
   # 次週指定時の処理
-  if "next_week" in request.POST:
+  elif "next_week" in request.POST:
     # 曜日取得
     week_day_back = today.weekday()
 
-    # 曜日が日曜の場合の処理
-    if week_day_back == 6:
-      # 7日後の日付を指定日に入れる
-      today = today + datetime.timedelta(days=7)
-
-    # 曜日が月曜の場合の処理
-    if week_day_back == 0:
-      # 6日後の日付を指定日に入れる
-      today = today + datetime.timedelta(days=6)
-
-    # 曜日が火曜の場合の処理
-    if week_day_back == 1:
-      # 5日後の日付を指定日に入れる
-      today = today + datetime.timedelta(days=5)
-
-    # 曜日が水曜の場合の処理
-    if week_day_back == 2:
-      # 4日後の日付を指定日に入れる
-      today = today + datetime.timedelta(days=4)
-
-    # 曜日が木曜の場合の処理
-    if week_day_back == 3:
-      # 3日後の日付を指定日に入れる
-      today = today + datetime.timedelta(days=3)
-
-    # 曜日が金曜の場合の処理
-    if week_day_back == 4:
-      # 2日後の日付を指定日に入れる
-      today = today + datetime.timedelta(days=2)
-
-    # 曜日が土曜の場合の処理
-    if week_day_back == 5:
-      # 1日後の日付を指定日に入れる
-      today = today + datetime.timedelta(days=1)
+    # 加算する日数を計算
+    days_to_subtract = 7 if week_day_back == 6 else 6 - week_day_back
+    today = today + datetime.timedelta(days=days_to_subtract)
 
     # 次の週が月をまたぐ場合の処理
     if today.month != datetime.datetime.strptime(request.session.get('display_day', None), '%Y-%m-%d').month:
@@ -708,115 +676,17 @@ def team_calendar(request):
     return response
 
 
+
   # 表示日の月を取得
   month = today.month
-
+  # 曜日取得
+  week_day = today.weekday()
   # フォームの初期値定義
   default_day = str(today)
 
-  # 曜日取得
-  week_day = today.weekday()
-
-  # 日付リストリセット
-  day_list = []
-
-
-  # 曜日が日曜の場合の処理
-  if week_day == 6:
-    # 日付リスト作成
-    for d in range(7):
-      # リストに日付追加
-      day_list.append(today + datetime.timedelta(days = d))
-
-
-  # 曜日が月曜の場合の処理
-  if week_day == 0:
-    # 日付リスト作成
-    for d in range(7):
-      # 設定日より前の日付の処理
-      if d == 0:
-        # リストに日付追加
-        day_list.append(today - datetime.timedelta(days = 1 - d))
-
-      # 設定日以降の日付の処理  
-      else:
-        # リストに日付追加
-        day_list.append(today + datetime.timedelta(days = d - 1))
-
-
-  # 曜日が火曜の場合の処理
-  if week_day == 1:
-    # 日付リスト作成
-    for d in range(7):
-      # 設定日より前の日付の処理
-      if d >= 1:
-        # リストに日付追加
-        day_list.append(today - datetime.timedelta(days = 2 - d))
-
-      # 設定日以降の日付の処理
-      else:
-        # リストに日付追加
-        day_list.append(today + datetime.timedelta(days = d - 2))
-
-
-  # 曜日が水曜の場合の処理
-  if week_day == 2:
-    # 日付リスト作成
-    for d in range(7):
-      # 設定日より前の日付の処理
-      if d >= 2:
-        # リストに日付追加
-        day_list.append(today - datetime.timedelta(days = 3 - d))
-
-      # 設定日以降の日付の処理
-      else:
-        # リストに日付追加
-        day_list.append(today + datetime.timedelta(days = d - 3))
-
-
-  # 曜日が木曜の場合の処理
-  if week_day == 3:
-    # 日付リスト作成
-    for d in range(7):
-      # 設定日より前の日付の処理
-      if d >= 3:
-        # リストに日付追加
-        day_list.append(today - datetime.timedelta(days = 4 - d))
-
-      # 設定日以降の日付の処理
-      else:
-        # リストに日付追加
-        day_list.append(today + datetime.timedelta(days = d - 4))
-
-
-  # 曜日が金曜の場合の処理
-  if week_day == 4:
-    # 日付リスト作成
-    for d in range(7):
-      # 設定日より前の日付の処理
-      if d >= 4:
-        # リストに日付追加
-        day_list.append(today - datetime.timedelta(days = 5 - d))
-
-      # 設定日以降の日付の処理
-      else:
-        # リストに日付追加
-        day_list.append(today + datetime.timedelta(days = d - 5))
-
-
-  # 曜日が土曜の場合の処理
-  if week_day == 5:
-    # 日付リスト作成
-    for d in range(7):
-      # 設定日より前の日付の処理
-      if d >= 5:
-        # リストに日付追加
-        day_list.append(today - datetime.timedelta(days = 6 - d))
-
-      # 設定日以降の日付の処理
-      else:
-        # リストに日付追加
-        day_list.append(today + datetime.timedelta(days = d - 6))
+  # 日付リスト
+  days_to_sum = week_day + 1 if week_day != 6 else 0
+  day_list = [(today + datetime.timedelta(days=d - days_to_sum)) for d in range(7)]
 
 
   # 日付リスト整形
@@ -945,9 +815,9 @@ def team_calendar(request):
           member_obj_filter =Business_Time_graph.objects.filter(employee_no3 = m, work_day2 = day)
 
           # 指定日に工数データがある場合の処理
-          if member_obj_filter.count() != 0:
+          if member_obj_filter.exists():
             # 指定日の工数データ取得
-            member_obj_get =Business_Time_graph.objects.get(employee_no3 = m, work_day2 = day)
+            member_obj_get = member_obj_filter.first()
 
             # 就業、残業リストに工数データから就業、残業、工数入力OK_NG追加
             exec('work_list{}.append(member_obj_get.work_time)'.format(ind + 1))
@@ -1119,7 +989,7 @@ def team_calendar(request):
   ok_ng_list14.reverse()
   ok_ng_list15.reverse()
 
- 
+
 
   # HTMLに渡す辞書
   context = {
@@ -1414,7 +1284,7 @@ def team_over_time(request):
     eval('over_time_list{}.insert(1,{})'.format(ind + 1, over_time_total))
 
 
- 
+
   # HTMLに渡す辞書
   context = {
     'title' : '班員残業管理',
