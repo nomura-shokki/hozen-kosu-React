@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect
 from ..models import member, Business_Time_graph, administrator_data, inquiry_data
 from ..forms import memberForm, member_findForm
 from ..utils.kosu_utils import get_member
+from ..utils.main_utils import history_record
 
 
 
@@ -164,8 +165,16 @@ class MemberNewView(CreateView):
   # フォームバリデーションが成功した際の処理
   def form_valid(self, form):
     request = self.request
+    # 入力内容記録
+    edit_comment = f"""従業員番号:{request.POST['employee_no']}
+氏名:{request.POST['name']}
+ショップ:{request.POST['shop']}
+権限:{'authority' in request.POST}
+管理者権限:{'administrator' in request.POST}
+"""
     # POSTした従業員番号が既に登録されている場合エラー出力
     if member.objects.filter(employee_no=request.POST['employee_no']).exists():
+      history_record('人員登録', 'member', 'ERROR041', edit_comment, request)
       messages.error(request, '入力した従業員番号はすでに登録があるので登録できません。ERROR041')
       return redirect(to='/new')
 
@@ -202,6 +211,8 @@ class MemberNewView(CreateView):
     new_member.break_time4_over3 = break_times[15]
     new_member.save()
 
+    # 操作履歴記録
+    history_record('人員登録', 'member', 'OK', edit_comment, request)
     # 人員一覧ページへ
     return redirect(to='/member/1')
 
@@ -209,6 +220,14 @@ class MemberNewView(CreateView):
   # フォームバリデーションが失敗した際の処理
   def form_invalid(self, form):
     request = self.request
+    # 入力内容記録
+    edit_comment = f"""従業員番号:{request.POST['employee_no']}
+氏名:{request.POST['name']}
+ショップ:{request.POST['shop']}
+権限:{'authority' in request.POST}
+管理者権限:{'administrator' in request.POST}
+"""
+    history_record('人員登録', 'member', 'ERROR053', edit_comment, request)
     messages.error(request, f'バリテーションエラーが発生しました。IT担当者に連絡してください。{form.errors} ERROR053')
     return redirect(to='/new')
 
@@ -281,6 +300,13 @@ class MemberEditView(UpdateView):
 
   # フォームが有効な場合に呼ばれるメソッドをオーバーライド 
   def form_valid(self, form):
+    # 入力内容記録
+    edit_comment = f"""従業員番号:{self.request.POST['employee_no']}
+氏名:{self.request.POST['name']}
+ショップ:{self.request.POST['shop']}
+権限:{'authority' in self.request.POST}
+管理者権限:{'administrator' in self.request.POST}
+"""
     # 編集前の従業員番号を取得
     original_employee_no = self.request.session['edit_No']
     # フォームから新しい従業員番号を取得
@@ -290,6 +316,7 @@ class MemberEditView(UpdateView):
 
     # 編集後の従業員番号が既存データと被った場合、エラー出力しリダイレクト
     if int(original_employee_no) != int(new_employee_no) and member.objects.filter(employee_no=new_employee_no).exists():
+      history_record('人員編集', 'member', 'ERROR042', edit_comment, self.request)
       messages.error(self.request, '入力した従業員番号はすでに登録があるので登録できません。ERROR042')
       return redirect(to=f'/member_edit/{self.kwargs["num"]}')
     
@@ -336,6 +363,8 @@ class MemberEditView(UpdateView):
       kosu_obj.update(employee_no3=new_employee_no, name=form.instance)
       inquiry_obj.update(employee_no2=new_employee_no, name=form.instance)
 
+    # 操作履歴記録
+    history_record('人員編集', 'member', 'OK', edit_comment, self.request)
     return response
   
 
@@ -355,10 +384,10 @@ class MemberEditView(UpdateView):
 
 # 人員削除画面定義
 class MemberDeleteView(DeleteView):
-  # モデル、テンプレート、リダイレクト先などを指定
+  # モデル,テンプレート,リダイレクト先などを指定
   model = member
   template_name = 'kosu/member_delete.html'
-  success_url = reverse_lazy('member', args = [1])
+  success_url = reverse_lazy('member', args=[1])
 
 
   # リクエストを処理するメソッドをオーバーライド
@@ -391,7 +420,19 @@ class MemberDeleteView(DeleteView):
         'employee_no': self.kwargs['num'],
         'obj': self.get_object(),
     })
+    self.request.session['delete_name'] = self.get_object().name
     return context
+
+
+  # フォームが有効な場合に呼ばれるメソッドをオーバーライド 
+  def form_valid(self, form):
+    response = super().form_valid(form)
+    # 入力内容記録
+    edit_comment = f"""従業員番号:{self.kwargs['num']}
+氏名:{self.request.session['delete_name']}"""
+    # 操作履歴記録
+    history_record('人員削除', 'member', 'OK', edit_comment, self.request)
+    return response
 
 
 

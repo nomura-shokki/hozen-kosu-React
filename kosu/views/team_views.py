@@ -16,6 +16,7 @@ from ..utils.kosu_utils import get_member
 from ..utils.kosu_utils import get_def_library_data
 from ..utils.kosu_utils import kosu_sort
 from ..utils.kosu_utils import default_work_time
+from ..utils.kosu_utils import get_indices
 from ..utils.team_utils import excel_function
 from ..utils.team_utils import team_member_name_get
 from dateutil.relativedelta import relativedelta
@@ -246,10 +247,10 @@ class TeamGraphView(TemplateView):
 
     # 班員の従業員番号を定義
     for i in range(1, 16):
-      if eval('obj.member{}'.format(i)) in ["", None]:
-        exec('obj_member{}=0'.format(i))
+      if eval(f'obj.member{i}') in ["", None]:
+        exec(f'obj_member{i}=0')
       else:
-        exec('obj_member{}=obj.member{}'.format(i, i))
+        exec(f'obj_member{i}=obj.member{i}')
 
     # 班員の名前リスト、従業員番号リスト作成
     n = 0
@@ -257,9 +258,9 @@ class TeamGraphView(TemplateView):
     employee_no_list = []
 
     for i in range(1, 16):
-      member_filter = member.objects.filter(employee_no=eval('obj_member{}'.format(i)))
+      member_filter = member.objects.filter(employee_no=eval(f'obj_member{i}'))
       if member_filter.count() != 0:
-        member_data = member.objects.get(employee_no=eval('obj_member{}'.format(i)))
+        member_data = member.objects.get(employee_no=eval(f'obj_member{i}'))
         name_list.append(member_data.name)
         employee_no_list.append(member_data)
     n = len(name_list)
@@ -492,6 +493,8 @@ class TeamDetailView(TemplateView):
 
 
 
+
+
 #--------------------------------------------------------------------------------------------------------
 
 
@@ -503,7 +506,7 @@ def team_calendar(request):
 
   # 未ログインならログインページに飛ぶ
   if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
+    return redirect(to='/login')
   
   try:
     # ログイン者の情報取得
@@ -514,17 +517,17 @@ def team_calendar(request):
     # セッション削除
     request.session.clear()
     # ログインページに戻る
-    return redirect(to = '/login') 
+    return redirect(to='/login') 
 
   # ログイン者に権限がなければメインページに戻る
   if data.authority == False:
-    return redirect(to = '/')
+    return redirect(to='/')
 
   # ログイン者の班員登録情報取得
   team_filter = team_member.objects.filter(employee_no5 = request.session['login_No'])
   # 班員登録がなければメインページに戻る
   if team_filter.count() == 0:
-    return redirect(to = '/team_main')
+    return redirect(to='/team_main')
 
 
 
@@ -532,7 +535,6 @@ def team_calendar(request):
   if "display_day" in request.POST:
     # POSTされた値を日付に設定
     today = datetime.datetime.strptime(request.POST['work_day'], '%Y-%m-%d')
-
     # POSTされた値をセッションに登録
     request.session['display_day'] = request.POST['work_day']
 
@@ -544,9 +546,8 @@ def team_calendar(request):
     if request.session.get('display_day', None) == None:
       # 今日の日付取得
       today = datetime.date.today()
-
       # 取得した値をセッションに登録
-      request.session['display_day'] = str(today)[0 : 10]
+      request.session['display_day'] = str(today)[0: 10]
       today = datetime.datetime.strptime(request.session['display_day'], '%Y-%m-%d')
 
     # セッションに表示日の指定がある場合の処理
@@ -612,22 +613,21 @@ def team_calendar(request):
     # 班員データ取得
     team_obj = team_member.objects.get(employee_no5 = request.session['login_No'])
 
-
     # 班員データに空があった場合0を定義
     for i in range(1, 16):
-      if eval('team_obj.member{}'.format(i)) in ["", None]:
-        exec('team_obj_member{}=0'.format(i))
+      if eval(f'team_obj.member{i}') in ["", None]:
+        exec(f'team_obj_member{i}=0')
       else:
-        exec('team_obj_member{}=team_obj.member{}'.format(i, i))
+        exec(f'team_obj_member{i}=team_obj.member{i}')
 
     # 班員数、班員の従業員番号リスト取得
     n = 0
     employee_no_list = []
 
     for i in range(1, 16):
-      member_filter =  member.objects.filter(employee_no = eval('team_obj_member{}'.format(i)))
+      member_filter =  member.objects.filter(employee_no = eval(f'team_obj_member{i}'))
       if member_filter.count() != 0:
-        member_data = member.objects.get(employee_no = eval('team_obj_member{}'.format(i)))
+        member_data = member.objects.get(employee_no = eval(f'team_obj_member{i}'))
         employee_no_list.append(member_data.employee_no)
     n = len(employee_no_list)
 
@@ -648,11 +648,10 @@ def team_calendar(request):
     time_display_list15 = 0
 
     for ind, employee_no_num in enumerate(employee_no_list):
-      exec('time_display_list{}=excel_function(employee_no_num, wb, request)'.format(ind + 1))
+      exec(f'time_display_list{ind + 1}=excel_function(employee_no_num, wb, request)')
     
     # 不要なシート削除
     del wb['Sheet']
-
 
     # メモリ上にExcelファイルを作成し、BytesIOオブジェクトに保存
     excel_file = BytesIO()
@@ -688,7 +687,6 @@ def team_calendar(request):
   days_to_sum = week_day + 1 if week_day != 6 else 0
   day_list = [(today + datetime.timedelta(days=d - days_to_sum)) for d in range(7)]
 
-
   # 日付リスト整形
   for ind, dd in enumerate(day_list):
     # 指定月と表示月が違う要素の処理
@@ -717,18 +715,10 @@ def team_calendar(request):
   member14_obj_get = team_member_name_get(obj_get.member14)
   member15_obj_get = team_member_name_get(obj_get.member15)
 
-
-  # 班員(従業員番号)リストリセット
-  member_list = []
-  # 選択肢の表示数検出&班員(従業員番号)リスト作成
-  for i in range(1, 16):
-    # 班員(従業員番号)リストに班員追加
-    member_list.append(eval('obj_get.member{}'.format(i)))
-
-    # 班員の登録がある場合の処理
-    if eval('obj_get.member{}'.format(i)) != '':
-      # インデックス記録
-      member_num = i
+  # 班員(従業員番号)リスト作成
+  member_list = [getattr(obj_get, f'member{i}') for i in range(1, 16)]
+  # 登録されている最後のメンバー番号を取得
+  member_num = max((i for i in range(1, 16) if getattr(obj_get, f'member{i}') != ''), default=None)
 
 
   # 就業リストリセット
@@ -807,12 +797,10 @@ def team_calendar(request):
     if m != '':
       # 日付リストを使用し日付ごとの就業、残業取得しリスト作成
       for ind2, day in enumerate(day_list):
-        kosu_list = []
-
         # 日付リストが空でない場合の処理
         if day != '':
           # 指定日に工数データあるか確認
-          member_obj_filter =Business_Time_graph.objects.filter(employee_no3 = m, work_day2 = day)
+          member_obj_filter = Business_Time_graph.objects.filter(employee_no3=m, work_day2=day)
 
           # 指定日に工数データがある場合の処理
           if member_obj_filter.exists():
@@ -820,156 +808,54 @@ def team_calendar(request):
             member_obj_get = member_obj_filter.first()
 
             # 就業、残業リストに工数データから就業、残業、工数入力OK_NG追加
-            exec('work_list{}.append(member_obj_get.work_time)'.format(ind + 1))
-            exec('over_time_list{}.append(member_obj_get.over_time)'.format(ind + 1))
-            exec('ok_ng_list{}.append(member_obj_get.judgement)'.format(ind + 1))
+            exec(f'work_list{ind + 1}.append(member_obj_get.work_time)')
+            exec(f'over_time_list{ind + 1}.append(member_obj_get.over_time)')
+            exec(f'ok_ng_list{ind + 1}.append(member_obj_get.judgement)')
 
             # 工数データが空の場合の処理
             if member_obj_get.time_work == '#'*288:
-
               # 空の工数入力リストを作成
-              for k in range(4):
-
-                # 工数入力リストに空を入れる
-                kosu_list.append('　　　　　')
+              exec(f'kosu_list{ind + 1}.append(["　　　　　" for _ in range(4)])')
 
             # 工数データが空でない場合の処理
             else:
-
+              kosu_list = []
               # 作業内容リストに解凍
               data_list = list(member_obj_get.time_work)
-
-              # 表示時間インデックスリセット
-              start_index1 = 0
-              end_index1 = 0
-              start_index2 = 0
-              end_index2 = 0
-              start_index3 = 0
-              end_index3 = 0
-              start_index4 = 0
-              end_index4 = 0
-              loop_stop = 0
-
-              # 工数データを文字に変換するため工数の開始、終了時間のインデックス取得
-              for t in range(288):
-                if data_list[t] != '#':
-                  start_index1 = t
-                  break
-                if t == 287:
-                  loop_stop = 1
-
-              if loop_stop == 0:
-                for t in range(start_index1 + 1, 288):
-                  if data_list[t] == '#':
-                    end_index1 = t
-                    break
-                  if t == 287 and data_list[t] != '#':
-                    end_index1 = 288
-                    loop_stop = 1
-
-                if loop_stop == 0:
-                  for t in range(end_index1 + 1, 288):
-                    if data_list[t] != '#':
-                      start_index2 = t
-                      break
-                    if t == 287:
-                      loop_stop = 1
-
-                  if loop_stop == 0:
-                    for t in range(start_index2 + 1, 288):
-                      if data_list[t] == '#':
-                        end_index2 = t
-                        break
-                      if t == 287 and data_list[t] != '#':
-                        end_index2 = 288
-                        loop_stop = 1
-
-                    if loop_stop == 0:
-                      for t in range(end_index2 + 1, 288):
-                        if data_list[t] != '#':
-                          start_index3 = t
-                          break
-                        if t == 287:
-                          loop_stop = 1
-          
-                      if loop_stop == 0:
-                        for t in range(start_index3 + 1, 288):
-                          if data_list[t] == '#':
-                            end_index3 = t
-                            break
-                          if t == 287 and data_list[t] != '#':
-                            end_index3 = 288
-                            loop_stop = 1
-
-                        if loop_stop == 0:
-                          for t in range(end_index3 + 1, 288):
-                            if data_list[t] != '#':
-                              start_index4 = t
-                              break
-                            if t == 287:
-                              loop_stop = 1
-              
-                          if loop_stop == 0:
-                            for t in range(start_index4 + 1, 288):
-                              if data_list[t] == '#':
-                                end_index4 = t
-                                break
-                              if t == 287 and data_list[t] != '#':
-                                end_index4 = 288
-
-              # 取得したインデックスを時間表示に変換
-              kosu_list = index_change(start_index1, end_index1, kosu_list)
-              kosu_list = index_change(start_index2, end_index2, kosu_list)
-              kosu_list = index_change(start_index3, end_index3, kosu_list)
-              kosu_list = index_change(start_index4, end_index4, kosu_list)
+              # インデックス取得と時間表示に変換
+              indices = get_indices(data_list)
+              for start, end in indices:
+                kosu_list = index_change(start, end, kosu_list)
+              # 時間表示を4行に調整
+              for _ in range(4 - len(kosu_list)):
+                kosu_list.append('　')
+              exec(f'kosu_list{ind + 1}.append(kosu_list)')
 
           # 指定日に工数データがない場合の処理
           else:
-
-            # 就業、残業リストに空追加
-            exec('work_list{}.append("")'.format(ind + 1))
-            exec('over_time_list{}.append("")'.format(ind + 1))
-            exec('ok_ng_list{}.append({})'.format(ind + 1, False))
-
-            # 空の工数入力リストを作成
-            for k in range(4):
-              # 工数入力リストに空を入れる
-              kosu_list.append('　　　　　')
+            # 就業、残業、工数入力リストに空追加
+            exec(f'work_list{ind + 1}.append("")')
+            exec(f'over_time_list{ind + 1}.append("")')
+            exec(f'ok_ng_list{ind + 1}.append({False})')
+            exec(f'kosu_list{ind + 1}.append(["　　　　　" for _ in range(4)])')
 
         # 日付リストが空の場合の処理
         else:
-          # 就業、残業リストに空追加
-          exec('work_list{}.append("")'.format(ind + 1))
-          exec('over_time_list{}.append("")'.format(ind + 1))
-          exec('ok_ng_list{}.append({})'.format(ind + 1, False))
-
-          # 空の工数入力リストを作成
-          for k in range(4):
-            # 工数入力リストに空を入れる
-            kosu_list.append('　　　　　')
-
-        # 工数入力リストに1日分の入力工数追加
-        exec('kosu_list{}.append(kosu_list)'.format(ind + 1))
+          # 就業、残業、工数入力リストに空追加
+          exec(f'work_list{ind + 1}.append("")')
+          exec(f'over_time_list{ind + 1}.append("")')
+          exec(f'ok_ng_list{ind + 1}.append({False})')
+          exec(f'kosu_list{ind + 1}.append(["　　　　　" for _ in range(4)])')
 
     # 班員登録がない場合の処理
     else:
       # 空の就業、残業リスト作成
       for b in range(7):
-        # 就業、残業リストに空追加
-        exec('work_list{}.append("　　　　　")'.format(ind + 1))
-        exec('over_time_list{}.append("")'.format(ind + 1))
-        exec('ok_ng_list{}.append({})'.format(ind + 1, False))
-
-
-      for n in range(7):
-        kosu_list = []
-        # 空の工数入力リストを作成
-        for k in range(4):
-          # 工数入力リストに空を入れる
-          kosu_list.append('　　　　　')
-        
-        # 工数入力リストに1日分の入力工数追加
-        exec('kosu_list{}.append(kosu_list)'.format(ind + 1))
+        # 就業、残業、工数入力リストに空追加
+        exec(f'work_list{ind + 1}.append("　　　　　")')
+        exec(f'over_time_list{ind + 1}.append("")')
+        exec(f'ok_ng_list{ind + 1}.append({False})')
+        exec(f'kosu_list{ind + 1}.append(["　　　　　" for _ in range(4)])')
 
 
   # 工数入力OK_NGリスト反転
@@ -993,86 +879,20 @@ def team_calendar(request):
 
   # HTMLに渡す辞書
   context = {
-    'title' : '班員工数入力状況一覧',
-    'default_day' : default_day,
-    'member_num' : member_num,
-    'day_list' : day_list,
-    'member_name1' : member1_obj_get,
-    'work_list1' : work_list1,
-    'over_time_list1' : over_time_list1,
-    'kosu_list1' : kosu_list1,
-    'ok_ng_list1' : ok_ng_list1,
-    'member_name2' : member2_obj_get,
-    'work_list2' : work_list2,
-    'over_time_list2' : over_time_list2,
-    'kosu_list2' : kosu_list2,
-    'ok_ng_list2' : ok_ng_list2,
-    'member_name3' : member3_obj_get,
-    'work_list3' : work_list3,
-    'over_time_list3' : over_time_list3,
-    'kosu_list3' : kosu_list3,
-    'ok_ng_list3' : ok_ng_list3,
-    'member_name4' : member4_obj_get,
-    'work_list4' : work_list4,
-    'over_time_list4' : over_time_list4,
-    'kosu_list4' : kosu_list4,
-    'ok_ng_list4' : ok_ng_list4,
-    'member_name5' : member5_obj_get,
-    'work_list5' : work_list5,
-    'over_time_list5' : over_time_list5,
-    'kosu_list5' : kosu_list5,
-    'ok_ng_list5' : ok_ng_list5,
-    'member_name6' : member6_obj_get,
-    'work_list6' : work_list6,
-    'over_time_list6' : over_time_list6,
-    'kosu_list6' : kosu_list6,
-    'ok_ng_list6' : ok_ng_list6,
-    'member_name7' : member7_obj_get,
-    'work_list7' : work_list7,
-    'over_time_list7' : over_time_list7,
-    'kosu_list7' : kosu_list7,
-    'ok_ng_list7' : ok_ng_list7,
-    'member_name8' : member8_obj_get,
-    'work_list8' : work_list8,
-    'over_time_list8' : over_time_list8,
-    'kosu_list8' : kosu_list8,
-    'ok_ng_list8' : ok_ng_list8,
-    'member_name9' : member9_obj_get,
-    'work_list9' : work_list9,
-    'over_time_list9' : over_time_list9,
-    'kosu_list9' : kosu_list9,
-    'ok_ng_list9' : ok_ng_list9,
-    'member_name10' : member10_obj_get,
-    'work_list10' : work_list10,
-    'over_time_list10' : over_time_list10,
-    'kosu_list10' : kosu_list10,
-    'ok_ng_list10' : ok_ng_list10,
-    'member_name11' : member11_obj_get,
-    'work_list11' : work_list11,
-    'over_time_list11' : over_time_list11,
-    'kosu_list11' : kosu_list11,
-    'ok_ng_list11' : ok_ng_list11,
-    'member_name12' : member12_obj_get,
-    'work_list12' : work_list12,
-    'over_time_list12' : over_time_list12,
-    'kosu_list12' : kosu_list12,
-    'ok_ng_list12' : ok_ng_list12,
-    'member_name13' : member13_obj_get,
-    'work_list13' : work_list13,
-    'over_time_list13' : over_time_list13,
-    'kosu_list13' : kosu_list13,
-    'ok_ng_list13' : ok_ng_list13,
-    'member_name14' : member14_obj_get,
-    'work_list14' : work_list14,
-    'over_time_list14' : over_time_list14,
-    'kosu_list14' : kosu_list14,
-    'ok_ng_list14' : ok_ng_list14,
-    'member_name15' : member15_obj_get,
-    'work_list15' : work_list15,
-    'over_time_list15' : over_time_list15,
-    'kosu_list15' : kosu_list15,
-    'ok_ng_list15' : ok_ng_list15,
-    }
+    'title': '班員工数入力状況一覧',
+    'default_day': default_day,
+    'member_num': member_num,
+    'day_list': day_list,
+  }
+
+  for i in range(1, 16):
+    context.update({
+      f'member_name{i}': eval(f'member{i}_obj_get'),
+      f'work_list{i}': eval(f'work_list{i}'),
+      f'over_time_list{i}': eval(f'over_time_list{i}'),
+      f'kosu_list{i}': eval(f'kosu_list{i}'),
+      f'ok_ng_list{i}': eval(f'ok_ng_list{i}'),
+    })
 
   # 指定したHTMLに辞書を渡して表示を完成させる
   return render(request, 'kosu/team_calendar.html', context)
@@ -1092,7 +912,7 @@ def team_over_time(request):
 
   # 未ログインならログインページに飛ぶ
   if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
+    return redirect(to='/login')
   
   try:
     # ログイン者の情報取得
@@ -1103,17 +923,17 @@ def team_over_time(request):
     # セッション削除
     request.session.clear()
     # ログインページに戻る
-    return redirect(to = '/login') 
+    return redirect(to='/login') 
 
   # ログイン者に権限がなければメインページに戻る
   if data.authority == False:
-    return redirect(to = '/')
+    return redirect(to='/')
 
   # ログイン者の班員登録情報あるか確認
   team_filter = team_member.objects.filter(employee_no5 = request.session['login_No'])
   # 班員登録がなければメインページに戻る
   if team_filter.count() == 0:
-    return redirect(to = '/team_main')
+    return redirect(to='/team_main')
 
 
   # ログイン者の班員登録情報取得
@@ -1140,9 +960,9 @@ def team_over_time(request):
   # 選択肢の表示数検出&班員リスト作成
   for i in range(1, 16):
     # 人員情報ある場合の処理
-    if eval('member{}_obj_get'.format(i)) != '':
+    if eval(f'member{i}_obj_get') != '':
       # 班員リストに班員追加
-      member_list.append(eval('member{}_obj_get'.format(i)))
+      member_list.append(eval(f'member{i}_obj_get'))
     
 
 
@@ -1153,12 +973,12 @@ def team_over_time(request):
       # エラーメッセージ出力
       messages.error(request, '表示年月に未入力箇所があります。ERROR044')
       # このページをリダイレクト
-      return redirect(to = '/class_list')
+      return redirect(to='/class_list')
     
 
     # フォームの初期値定義
-    schedule_default = {'year' : request.POST['year'], 
-                        'month' : request.POST['month']}
+    schedule_default = {'year': request.POST['year'], 
+                        'month': request.POST['month']}
     # フォーム定義
     form = schedule_timeForm(schedule_default)
     
@@ -1187,8 +1007,8 @@ def team_over_time(request):
 
 
     # フォームの初期値定義
-    schedule_default = {'year' : str(year), 
-                        'month' : str(month)}
+    schedule_default = {'year': str(year), 
+                        'month': str(month)}
     # フォーム定義
     form = schedule_timeForm(schedule_default)
 
@@ -1248,7 +1068,7 @@ def team_over_time(request):
   # 残業リスト作成するループ
   for ind, m in enumerate(member_list):
     # 残業リストの先頭に人員の名前入れる
-    eval('over_time_list{}.append(m.name)'.format(ind + 1))
+    eval(f'over_time_list{ind + 1}.append(m.name)')
 
     # 残業合計リセット
     over_time_total = 0
@@ -1269,7 +1089,7 @@ def team_over_time(request):
         obj_get.over_time = int(obj_get.over_time)/60
 
         # 残業リストにレコードを追加
-        eval('over_time_list{}.append(obj_get)'.format(ind + 1))
+        eval(f'over_time_list{ind + 1}.append(obj_get)')
 
         # 残業を合計する
         over_time_total += float(obj_get.over_time)
@@ -1277,36 +1097,36 @@ def team_over_time(request):
       # 該当日に工数データがない場合の処理
       else:
         # 残業リストに残業0と整合性否を追加
-        eval('over_time_list{}.append(Business_Time_graph(over_time = 0, judgement = False))'.format(ind + 1))
+        eval(f'over_time_list{ind + 1}.append(Business_Time_graph(over_time = 0, judgement = False))')
 
     # リストに残業合計追加
-    eval('over_time_list{}.append(over_time_total)'.format(ind + 1))
-    eval('over_time_list{}.insert(1,{})'.format(ind + 1, over_time_total))
+    eval(f'over_time_list{ind + 1}.append(over_time_total)')
+    eval(f'over_time_list{ind + 1}.insert(1,{over_time_total})')
 
 
 
   # HTMLに渡す辞書
   context = {
-    'title' : '班員残業管理',
-    'form' : form,
-    'day_list' : zip(range(1, last_day_of_month.day + 1), week_list), 
-    'week_list' : week_list,
-    'over_time_list1' : over_time_list1,
-    'over_time_list2' : over_time_list2,
-    'over_time_list3' : over_time_list3,
-    'over_time_list4' : over_time_list4,
-    'over_time_list5' : over_time_list5,
-    'over_time_list6' : over_time_list6,
-    'over_time_list7' : over_time_list7,
-    'over_time_list8' : over_time_list8,
-    'over_time_list9' : over_time_list9,
-    'over_time_list10' : over_time_list10,
-    'over_time_list11' : over_time_list11,
-    'over_time_list12' : over_time_list12,
-    'over_time_list13' : over_time_list13,
-    'over_time_list14' : over_time_list14,
-    'over_time_list15' : over_time_list15,
-    'team_n' : len(member_list),
+    'title': '班員残業管理',
+    'form': form,
+    'day_list': zip(range(1, last_day_of_month.day + 1), week_list), 
+    'week_list': week_list,
+    'over_time_list1': over_time_list1,
+    'over_time_list2': over_time_list2,
+    'over_time_list3': over_time_list3,
+    'over_time_list4': over_time_list4,
+    'over_time_list5': over_time_list5,
+    'over_time_list6': over_time_list6,
+    'over_time_list7': over_time_list7,
+    'over_time_list8': over_time_list8,
+    'over_time_list9': over_time_list9,
+    'over_time_list10': over_time_list10,
+    'over_time_list11': over_time_list11,
+    'over_time_list12': over_time_list12,
+    'over_time_list13': over_time_list13,
+    'over_time_list14': over_time_list14,
+    'over_time_list15': over_time_list15,
+    'team_n': len(member_list),
     }
 
 
@@ -1485,7 +1305,7 @@ def class_detail(request, num):
 
   # 未ログインならログインページに飛ぶ
   if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
+    return redirect(to='/login')
   
   # 指定IDの工数履歴のレコードのオブジェクトを変数に入れる
   obj_get = Business_Time_graph.objects.get(id = num)
@@ -1743,7 +1563,7 @@ def class_detail(request, num):
   n = 0
   # 工数区分登録数カウント
   for kosu_num in range(1, 50):
-    if eval('kosu_obj.kosu_title_{}'.format(kosu_num)) != None:
+    if eval(f'kosu_obj.kosu_title_{kosu_num}') != None:
       n = kosu_num
 
   # 工数区分処理用記号リスト用意
@@ -1757,16 +1577,12 @@ def class_detail(request, num):
   # 工数区分の選択リスト作成
   for i, m in enumerate(str_list):
     # 工数区分定義要素を追加
-    def_list.append(eval('kosu_obj.kosu_title_{}'.format(i + 1)))
+    def_list.append(eval(f'kosu_obj.kosu_title_{i + 1}'))
   
-  # 作業なし追加
+  # 作業なし,休憩追加
   def_list.append('-')
-  # 休憩追加
   def_list.append('休憩')
-
-  # 作業無し記号追加
   str_list.append('#')
-  # 休憩記号追加
   str_list.append('$')
 
   # 工数区分辞書作成
@@ -1795,14 +1611,12 @@ def class_detail(request, num):
 
   # HTMLに渡す辞書
   context = {
-    'title' : '工数詳細',
-    'id' : num,
-    'obj_get' : obj_get,
-    'time_display_list' : time_display_list,
-    'name' : name_obj_get.name,
+    'title': '工数詳細',
+    'id': num,
+    'obj_get': obj_get,
+    'time_display_list': time_display_list,
+    'name': name_obj_get.name,
     }
-
-
 
   # 指定したHTMLに辞書を渡して表示を完成させる
   return render(request, 'kosu/class_detail.html', context)

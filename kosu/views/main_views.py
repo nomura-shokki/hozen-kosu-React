@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.urls import reverse_lazy
+from django.utils.timezone import make_aware
 from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView, ListView
 from django.views.generic.edit import FormView, DeleteView
@@ -780,7 +781,7 @@ class HelpView(FormView):
 
 
 # データ変更情報一覧表示画面定義
-class HistoryListView(ListView):
+class HistoryList(ListView):
   model = Operation_history
   template_name = 'kosu/history_list.html'
   context_object_name = 'data'
@@ -799,30 +800,61 @@ class HistoryListView(ListView):
     # 権限がないユーザーの場合ログイン画面へ
     if not self.member_obj.administrator:
       return redirect('/')
+    return super().dispatch(request, *args, **kwargs)
 
 
+  # POST時の処理をオーバーライド
+  def post(self, request, *args, **kwargs):
+    delete_day = request.POST.get('delete_day')
+    if delete_day:
+      try:
+        # POSTされた日付を時間ありに変更
+        naive_datetime = datetime.datetime.strptime(delete_day, '%Y-%m-%d')
+        aware_datetime = make_aware(naive_datetime)
+        # レコード削除
+        Operation_history.objects.filter(created_at__lt=aware_datetime).delete()
+      except ValueError:
+        pass
+
+      # フィルタリング条件をセッションに保存
+    request.session['filter_day'] = request.POST.get('day', '')
+    request.session['filter_name_list'] = request.POST.get('name_list', '')
+    request.session['filter_model_list'] = request.POST.get('model_list', '')
+    request.session['filter_page_list'] = request.POST.get('page_list', '')
+
+    return redirect(reverse_lazy('history_list', args = [1]))
+
+
+  # 1ページのレコード表示数オーバーライド
   def get_paginate_by(self, queryset):
     # 設定データ取得
     last_record = administrator_data.objects.order_by("id").last()
+    # レコードが1件もない場合20件設定
     if last_record is None:
-      # レコードが1件もない場合
-      return 20  # デフォルト値
+      return 20
     return last_record.menu_row
 
 
   # フィルタリングしたデータ取得
   def get_queryset(self):
+    # セッションからフィルタリング条件を取得
+    day = self.request.session.get('filter_day', '')
+    name_list = self.request.session.get('filter_name_list', '')
+    model_list = self.request.session.get('filter_model_list', '')
+    page_list = self.request.session.get('filter_page_list', '')
+
     # POST時のフィルタ処理
-    if self.request.method == 'POST':
+    if day or name_list or model_list or page_list:
       queryset = Operation_history.objects.filter(
-        created_at__contains=self.request.POST.get('day', ''),
-        employee_no4__contains=self.request.POST.get('name_list', ''),
-        operation_models__contains=self.request.POST.get('model_list', ''),
-        post_page__contains=self.request.POST.get('page_list', '')
+        created_at__contains=day,
+        employee_no4__contains=name_list,
+        operation_models__contains=model_list,
+        post_page__contains=page_list
       ).order_by('-created_at')
     # GET時のフィルタ処理
     else:
       queryset = Operation_history.objects.all().order_by('-created_at')
+
     return queryset
 
 
@@ -873,11 +905,11 @@ class HistoryListView(ListView):
 
 
 # データ操作履歴詳細画面定義
-class HistoryDeleteView(DeleteView):
+class HistoryDelete(DeleteView):
   # モデル、テンプレート、リダイレクト先などを指定
   model = Operation_history
   template_name = 'kosu/history_delete.html'
-  success_url = reverse_lazy('history_list', args = [1]) 
+  success_url = reverse_lazy('history_list', args = [1])
 
 
   # リクエストを処理するメソッドをオーバーライド

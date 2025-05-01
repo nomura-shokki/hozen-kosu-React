@@ -42,7 +42,8 @@
             {% if obj_get.tyoku2 == "2" %}<td class="text-center">2直</td>{% endif %}
             {% if obj_get.tyoku2 == "3" %}<td class="text-center">3直</td>{% endif %}
             {% if obj_get.tyoku2 == "4" %}<td class="text-center">常昼</td>{% endif %}
-            <td class="text-center">{{obj_get.work_time}}</td>
+            {% if obj_get.work_time == None %}<td class="text-center"></td>{% endif %}
+            {% if obj_get.work_time != None %}<td class="text-center">{{obj_get.work_time}}</td>{% endif %}
             <td class="text-center">{{obj_get.over_time}}</td>
             <td class="text-center">
               {% if obj_get.judgement == True %}

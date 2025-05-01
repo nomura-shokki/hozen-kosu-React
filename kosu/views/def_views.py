@@ -27,7 +27,7 @@ from ..forms import kosu_divisionForm
 
 # 工数区分定義確認画面定義
 class KosuDefView(FormView):
-  # テンプレート、フォーム定義
+  # テンプレート,フォーム定義
   template_name = 'kosu/kosu_def.html'
   form_class = inputdayForm
 
@@ -108,7 +108,7 @@ class KosuDefView(FormView):
     return self.render_to_response(context)
 
 
-  # コンテキストデータを設定
+  # コンテキストデータをオーバーライド
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
     context.update({
@@ -129,61 +129,61 @@ class KosuDefView(FormView):
 
 
 # 工数区分定義Ver選択画面定義
-def kosu_Ver(request):
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to = '/login')
-  
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
+class KosuVer(FormView):
+  # テンプレート,フォーム定義
+  template_name = 'kosu/kosu_Ver.html'
+  form_class = versionchoiceForm
 
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to = '/login') 
 
-  # 工数区分定義の選択リスト作成(空)
-  choices_list = []
-  # 工数区分定義の登録されているバージョンを取得
-  choice_obj = kosu_division.objects.all()
-  # 工数区分定義の選択リストに値を入れる
-  for i in choice_obj:
-    choices_list.append((i.kosu_name, i.kosu_name))
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
 
-  
-  
-  # POST送信された時の処理
-  if (request.method == 'POST'):
+
+  # フォーム初期値定義
+  def get_initial(self):
+    initial = super().get_initial()
+    versionchoice = self.request.session['input_def']
+    initial['versionchoice'] = versionchoice
+    return initial
+
+
+  # フォーム初期状態
+  def get_form(self, form_class=None):
+    form = super().get_form(form_class)
+    # 工数区分定義の選択リスト設定
+    choice_obj = kosu_division.objects.all()
+    choices_list = [(i.kosu_name, i.kosu_name) for i in choice_obj]
+    form.fields['versionchoice'].choices = choices_list
+    return form
+
+
+
+  # フォームバリデーションが成功した際のメソッドをオーバーライド
+  def form_valid(self, form):
     # POST送信された工数区分定義のVerをセッションに上書きする
-    request.session['input_def'] = request.POST['versionchoice']
+    self.request.session['input_def'] = form.cleaned_data['versionchoice']
+    return self.render_to_response(self.get_context_data())
 
 
+  # コンテキストデータをオーバーライド
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
 
-
-  # Ver表示用オブジェクト取得
-  mes_obj = kosu_division.objects.get(kosu_name = request.session['input_def'])
-
- # フォームの初期値を設置
-  form_init = {'versionchoice' : request.session['input_def']}
-  # フォームの初期状態定義
-  form = versionchoiceForm(form_init)
-  # フォームの選択肢定義
-  form.fields['versionchoice'].choices = choices_list
-
-
-
-  # HTMLに渡す辞書
-  context = {
-    'title' : '工数区分定義切り替え',
-    'message' : mes_obj.kosu_name,
-    'form' : form,
-    }
-  
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/kosu_Ver.html', context)
+    # Ver表示用オブジェクト取得
+    mes_obj = kosu_division.objects.get(kosu_name=self.request.session['input_def'])
+    context.update({
+        'title': '工数区分定義切り替え',
+        'message': mes_obj.kosu_name,
+    })
+    return context
 
 
 
@@ -301,7 +301,7 @@ class DefEditView(UpdateView):
     kosu_name = form.cleaned_data['kosu_name']
     if edit_def != kosu_name and kosu_division.objects.filter(kosu_name=kosu_name).exists():
       messages.error(self.request, '入力した工数区分定義名はすでに登録があるので登録できません。ERROR039')
-      return redirect(to='/def_edit/{}'.format(self.kwargs.get(self.pk_url_kwarg)))
+      return redirect(to=f'/def_edit/{self.kwargs.get(self.pk_url_kwarg)}')
 
     # レコード更新
     pk = self.kwargs.get(self.pk_url_kwarg)

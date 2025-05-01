@@ -1840,12 +1840,11 @@ class Page_form(TestCase):
 
     # 人員検索ページ検索チェック
     def test_member_find_form(self):
-
         # memberダミーデータ
         for No in range(1, 5):
             self.member = member.objects.create(
                 employee_no = 1 + No,
-                name = 'トライ{}'.format(No),
+                name = f'トライ{No}',
                 shop = 'その他',
                 authority = True,
                 administrator = True,
@@ -1870,7 +1869,7 @@ class Page_form(TestCase):
         for No in range(10, 20):
             self.member = member.objects.create(
                 employee_no = 1 + No,
-                name = 'トライ{}'.format(No),
+                name = f'トライ{No}',
                 shop = 'P',
                 authority = True,
                 administrator = True,
@@ -2158,7 +2157,6 @@ class Page_form(TestCase):
 
     # 班員グラフ確認ページ検索チェック
     def test_team_graph_form(self):
-
         # フォームデータ定義
         form_data = {
             'team_day': '2000-01-01',
@@ -2191,7 +2189,6 @@ class Page_form(TestCase):
 
     # 班員工数ページ検索チェック
     def test_team_kosu_form(self):
-
         # memberダミーデータ
         self.member = member.objects.create(
             employee_no = 112,
@@ -2428,7 +2425,7 @@ class Page_form(TestCase):
             ['　　　　　', '　　　　　', '　　　　　', '　　　　　'], 
             ['　　　　　', '　　　　　', '　　　　　', '　　　　　'], 
             ['　　　　　', '　　　　　', '　　　　　', '　　　　　'], 
-            ['8:00～18:50', '　　　　　', '　　　　　', '　　　　　']
+            ['8:00～18:50', '　', '　', '　']
             ])
 
 
@@ -2761,16 +2758,16 @@ class Page_form(TestCase):
                 employee_no2 = 111,
                 name = self.member,
                 content_choice = '問い合わせ',
-                inquiry = 'トライの問い合わせ内容{}'.format(nn),
-                answer = '回答{}'.format(nn),
+                inquiry = f'トライの問い合わせ内容{nn}',
+                answer = f'回答{nn}',
                 )
 
             self.inquiry_data = inquiry_data.objects.create(
                 employee_no2 = 111,
                 name = self.member,
                 content_choice = '不具合',
-                inquiry = 'トライの問い合わせ内容{}'.format(nn),
-                answer = '回答{}'.format(nn),
+                inquiry = f'トライの問い合わせ内容{nn}',
+                answer = f'回答{nn}',
                 )
 
         for nn in range(3):
@@ -2778,8 +2775,8 @@ class Page_form(TestCase):
                 employee_no2 = 222,
                 name = self.member,
                 content_choice = '問い合わせ',
-                inquiry = 'トライの問い合わせ内容{}'.format(nn),
-                answer = '回答{}'.format(nn),
+                inquiry = f'トライの問い合わせ内容{nn}',
+                answer = f'回答{nn}',
                 )
 
 
@@ -2838,7 +2835,6 @@ class Page_form(TestCase):
 
     # 問い合わせ編集チェック
     def test_inquiry_edit_form(self):
-
         # フォームデータ定義(工数データ有の場合)
         form_data = {
             'content_choice': '不具合',
@@ -2863,7 +2859,6 @@ class Page_form(TestCase):
 
     # 問い合わせ削除チェック
     def test_inquiry_delete_form(self):
-
         # フォームデータ定義(工数データ有の場合)
         form_data = {
             'content_choice': '不具合',
@@ -2886,7 +2881,6 @@ class Page_form(TestCase):
 
     # 問い合わせポップアップ削除チェック
     def test_inquiry_popup_delete_form(self):
-
         # memberダミーデータ
         self.administrator_data = administrator_data.objects.create(
             menu_row = 200,

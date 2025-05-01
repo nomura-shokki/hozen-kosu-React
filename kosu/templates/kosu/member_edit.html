@@ -29,33 +29,19 @@
       {% csrf_token %}
       <table class="table">
         <tr>
-          <th>
-            従業員番号
-          </th>
-          <td>
-            {{form.employee_no}}
-          </td>
+          <th>従業員番号</th>
+          <td>{{form.employee_no}}</td>
         </tr>
         <tr>
-          <th>
-            氏名
-          </th>
-          <td>
-            {{form.name}}
-          </td>
+          <th>氏名</th>
+          <td>{{form.name}}</td>
         </tr>
         <tr>
-          <th>
-            ショップ
-          </th>
-          <td>
-            {{form.shop}}
-          </td>
+          <th>ショップ</th>
+          <td>{{form.shop}}</td>
         </tr>
         <tr>
-          <th>
-            権限
-          </th>
+          <th>権限</th>
           <td>
             <div class="form-check form-check-inline custom-checkbox">
               {{form.authority}}
@@ -64,9 +50,7 @@
         </tr>
         {% if data.administrator == True %}
           <tr>
-            <th>
-              管理者
-            </th>
+            <th>管理者</th>
             <td>
               <div class="form-check form-check-inline custom-checkbox">
                 {{form.administrator}}

@@ -152,7 +152,7 @@ def handle_get_request(new_work_day, member_obj):
   obj_filter = Business_Time_graph.objects.filter(employee_no3=member_obj.employee_no, work_day2=new_work_day)
 
   # グラフラベルリスト作成(0:00~23:55の5分刻みのリスト)
-  graph_item = ['{}:{}'.format(i, '00' if n == 0 else '05' if n == 5 else n) for i in range(24) for n in range(0, 60, 5)]
+  graph_item = [f'{i}:{'00' if n == 0 else '05' if n == 5 else n}' for i in range(24) for n in range(0, 60, 5)]
 
   # グラフデータリスト内の各文字を定義
   str_list = list('#ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx')
@@ -614,7 +614,7 @@ def kosu_division_dictionary(def_name):
   n = 0
   # 工数区分登録数カウント
   for kosu_num in range(1, 50):
-    if eval('kosu_obj.kosu_title_{}'.format(kosu_num)) not in [None, '']:
+    if eval(f'kosu_obj.kosu_title_{kosu_num}') not in [None, '']:
       n = kosu_num
 
   # 工数区分処理用記号リスト用意
@@ -624,7 +624,7 @@ def kosu_division_dictionary(def_name):
   # 工数区分の選択リスト作成
   choices_list = []
   for i, m in enumerate(str_list):
-    choices_list.append([m,eval('kosu_obj.kosu_title_{}'.format(i + 1))])
+    choices_list.append([m,eval(f'kosu_obj.kosu_title_{i + 1}')])
 
   return choices_list, n
 
@@ -949,8 +949,7 @@ def index_change(start_index, end_index, time_list):
     # 作業終了分取得
     end_min = (end_index%12)*5
     # 作業時間のSTR表記作成しリストに追加
-    time_list.append('{}:{}～{}:{}'.format(str(start_hour), str(start_min).zfill(2), \
-                                           str(end_hour), str(end_min).zfill(2)))
+    time_list.append(f'{str(start_hour)}:{str(start_min).zfill(2)}～{str(end_hour)}:{str(end_min).zfill(2)}')
   
   # 作業時間のインデックスがない場合の処理
   else:
@@ -979,7 +978,7 @@ def break_time_over(start_hour, start_min, end_hour, end_min, limit_tome,comment
     (int(end_hour)*60 + int(end_min) + 1440) - \
     (int(start_hour)*60 + int(start_min)) > limit_tome):
     # エラーメッセージ出力
-    messages.error(request, '{}が{}分を超えています。正しい休憩時間を登録して下さい。ERROR032'.format(comment, limit_tome))
+    messages.error(request, f'{comment}が{limit_tome}分を超えています。正しい休憩時間を登録して下さい。ERROR032')
     # このページをリダイレクト
     return redirect(to = jump_point)
 

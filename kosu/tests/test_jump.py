@@ -1954,7 +1954,7 @@ class Page_jump(TestCase):
                 employee_no2 = '111',
                 name = self.member,
                 content_choice = '問い合わせ',
-                inquiry = '質問内容{}'.format(nnn),
+                inquiry = f'質問内容{nnn}',
                 answer = '回答'
                 )
 
