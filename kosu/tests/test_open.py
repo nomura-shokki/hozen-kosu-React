@@ -679,20 +679,6 @@ class Open_pages(TestCase):
 
 
 
-    # 工数詳細ページ開きチェック
-    def test_class_detail(self):
-        # URL定義
-        url = reverse('class_detail', args = [self.Business_Time_graph.id])
-        # URLに対してGETリクエスト送信
-        response = self.client.get(url)
-
-        # リクエストのレスポンスステータスコードが200(OK)であることを確認
-        self.assertEqual(response.status_code, 200)
-        # レスポンスコンテンツに「テストユーザーさんの工数詳細」という文字列が含まれていることを確認
-        self.assertContains(response, 'テストユーザーさんの工数詳細')
-
-
-
     # 問い合わせ入力ページ開きチェック
     def test_inquiry_new(self):
         # URL定義

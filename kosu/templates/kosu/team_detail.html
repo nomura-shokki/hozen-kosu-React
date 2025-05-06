@@ -12,7 +12,12 @@
   </head>
   <body class="container">
     <h1 class="display-5 text-danger">{{obj_get.name}}さんの{{title}}</h1>
-    <p class="h6"><a href="{% url 'team_kosu' 1 %}" class="text-danger">班員工数詳細へ</a></p>
+    {% if before_page == "team_list" %}
+      <p class="h6"><a href="{% url 'team_kosu' 1 %}" class="text-danger">班員工数一覧へ</a></p>
+    {% endif %}
+    {% if before_page == "class_list" %}
+      <p class="h6"><a href="{% url 'class_list' %}" class="text-danger">工数入力状態可否一覧へ</a></p>
+    {% endif %}
     {% for message in messages %}
       <div {% if message.tags %}class="{{ message.tags }}"{% endif %}>
         <p  class="text-danger">

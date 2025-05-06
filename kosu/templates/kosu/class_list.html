@@ -80,11 +80,11 @@
                 {% else %}
                   {% if k.judgement == True %}
                     <td class="table-green no-wrap fs-5" style="text-align:center;">
-                      <a href="{% url 'class_detail' k.id %}">OK</a>
+                      <a href="{% url 'team_detail' k.id %}">OK</a>
                   {% else %}
                     {% if k.judgement == False %}
                       <td class="no-wrap fs-5" style="text-align:center;">
-                        <a href="{% url 'class_detail' k.id %}">NG</a>
+                        <a href="{% url 'team_detail' k.id %}">NG</a>
                     {% else %}
                       <td class="no-wrap fs-5" style="text-align:center;">
                         NG
