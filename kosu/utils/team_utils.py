@@ -131,3 +131,25 @@ def team_member_name_get(member_no):
 
 
 
+
+# 指定日取得
+def day_get(request):
+  # セッションに表示日の指定がない場合の処理
+  if request.session.get('display_day', None) == None:
+    # 今日の日付取得
+    today = datetime.date.today()
+    # 取得した値をセッションに登録
+    request.session['display_day'] = str(today)[0: 10]
+    today = datetime.datetime.strptime(request.session['display_day'], '%Y-%m-%d')
+
+  # セッションに表示日の指定がある場合の処理
+  else:
+    # 表示日にセッションの値を入れる
+    today = datetime.datetime.strptime(request.session['display_day'], '%Y-%m-%d')
+
+  return today
+
+
+
+#--------------------------------------------------------------------------------------------------------
+

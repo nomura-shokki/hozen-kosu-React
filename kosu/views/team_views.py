@@ -4,8 +4,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.http import HttpResponse
-from django.http import HttpResponseRedirect
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
+from django.views import View
 from django.views.generic import ListView
 from django.views.generic.edit import FormView
 from django.views.generic.base import TemplateView
@@ -19,6 +19,7 @@ from ..utils.kosu_utils import default_work_time
 from ..utils.kosu_utils import get_indices
 from ..utils.team_utils import excel_function
 from ..utils.team_utils import team_member_name_get
+from ..utils.team_utils import day_get
 from dateutil.relativedelta import relativedelta
 from io import BytesIO
 import datetime
@@ -109,8 +110,8 @@ class TeamView(FormView):
     choices_list = [('', '')]
     choices_list.extend([(i.employee_no, str(i.name)) for i in member_obj])
     for field in ['member1', 'member2', 'member3', 'member4', 'member5',
-                 'member6', 'member7', 'member8', 'member9', 'member10',
-                 'member11', 'member12', 'member13', 'member14', 'member15']:
+                  'member6', 'member7', 'member8', 'member9', 'member10',
+                  'member11', 'member12', 'member13', 'member14', 'member15']:
       form.fields[field].choices = choices_list
 
     return form
@@ -505,6 +506,282 @@ class TeamDetailView(TemplateView):
 
 
 # 班員工数入力状況一覧画面定義
+class TeamCalendarView(View):
+  # テンプレート定義
+  template_name = 'kosu/team_calendar.html'
+
+
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得,人員情報なしor未ログインの場合ログイン画面へ
+    member_obj = get_member(request)
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
+
+    # 権限なければメイン画面へ
+    if not member_obj.authority:
+      return redirect(to='/')
+
+    # 班員登録無ければ班員MENUへ
+    if not team_member.objects.filter(employee_no5=request.session['login_No']).exists():
+      return redirect(to='/team_main')
+    return super().dispatch(request, *args, **kwargs)
+
+
+  # getメソッドをオーバライド
+  def get(self, request, *args, **kwargs):
+    # 指定日取得
+    today = day_get(request)
+    # get時のコンテキスト生成
+    context = self.build_context(request, today)
+    return render(request, self.template_name, context)
+
+
+  # postメソッドをオーバライド
+  def post(self, request, *args, **kwargs):
+    # 日付指定時の処理
+    if "display_day" in request.POST:
+      # POSTされた値を日付に設定,日付を記録
+      today = datetime.datetime.strptime(request.POST['work_day'], '%Y-%m-%d')
+      request.session['display_day'] = request.POST['work_day']
+
+    # 前週指定時の処理
+    elif "back_week" in request.POST:
+      today = self.handle_back_week(request)
+
+    # 次週指定時の処理
+    elif "next_week" in request.POST:
+      today = self.handle_next_week(request)
+
+    # 入力状況をExcelに出力する際の処理
+    elif "export" in request.POST:
+      return self.handle_export(request)
+
+    # POSTされていないときの処理
+    else:
+      today = day_get(request)
+
+    # post時のコンテキスト生成
+    context = self.build_context(request, today)
+    return render(request, self.template_name, context)
+
+
+  # 前週表示関数
+  def handle_back_week(self, request):
+    # 指定日の曜日取得
+    today = day_get(request)
+    week_day_back = today.weekday()
+    # 減算する日数を計算
+    days_to_subtract = 1 if week_day_back == 6 else week_day_back + 2
+    today -= datetime.timedelta(days=days_to_subtract)
+
+    # 前の週が月をまたぐ場合、前月の最終日取得
+    if today.month != datetime.datetime.strptime(request.session['display_day'], '%Y-%m-%d').month:
+      today = datetime.datetime(today.year, today.month, 1) + relativedelta(months=1) - relativedelta(days=1)
+
+    # 取得した値を記録
+    request.session['display_day'] = str(today)[0:10]
+    return today
+
+
+  # 次週表示関数
+  def handle_next_week(self, request):
+    # 指定日の曜日取得
+    today = day_get(request)
+    week_day_back = today.weekday()
+    # 加算する日数を計算
+    days_to_subtract = 7 if week_day_back == 6 else 6 - week_day_back
+    today += datetime.timedelta(days=days_to_subtract)
+
+    # 次の週が月をまたぐ場合、次の月の初日取得
+    if today.month != datetime.datetime.strptime(request.session['display_day'], '%Y-%m-%d').month:
+      today = datetime.datetime(today.year, today.month, 1)
+
+    # 取得した値を記録
+    request.session['display_day'] = str(today)[0:10]
+    return today
+
+
+  # 工数入力状況出力関数
+  def handle_export(self, request):
+    # 指定日の年,月取得し記録
+    today = datetime.datetime.strptime(request.POST['work_day'], '%Y-%m-%d')
+    year, month = today.year, today.month
+    request.session['display_day'] = request.POST['work_day']
+
+    # 新しいExcelブック作成
+    wb = openpyxl.Workbook()
+
+    # 班員データ取得
+    team_obj = team_member.objects.get(employee_no5=request.session['login_No'])
+
+    # 班員リスト作成
+    for i in range(1, 16):
+      if eval(f'team_obj.member{i}') in ["", None]:
+        exec(f'team_obj_member{i}=0')
+      else:
+        exec(f'team_obj_member{i}=team_obj.member{i}')
+
+    employee_no_list = [team_obj_member for team_obj_member in [
+      team_obj.member1, team_obj.member2, team_obj.member3, team_obj.member4, team_obj.member5,
+      team_obj.member6, team_obj.member7, team_obj.member8, team_obj.member9, team_obj.member10,
+      team_obj.member11, team_obj.member12, team_obj.member13, team_obj.member14, team_obj.member15
+    ] if team_obj_member]
+
+    # 班員毎にExcelに書き込み
+    for ind, employee_no_num in enumerate(employee_no_list):
+      exec(f'time_display_list{ind + 1}=excel_function(employee_no_num, wb, request)')
+    # 不要なシート削除
+    del wb['Sheet']
+
+    # メモリ上にExcelファイルを作成し、BytesIOオブジェクトに保存
+    excel_file = BytesIO()
+    wb.save(excel_file)
+    excel_file.seek(0)
+
+    # URLエンコーディングされたファイル名を生成
+    filename = f'班員の{year}年{month}月度業務工数入力状況.xlsx'
+    quoted_filename = urllib.parse.quote(filename)
+
+    # HttpResponseを作成してファイルをダウンロードさせる
+    response = HttpResponse(
+      excel_file.read(),
+      content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    # Content-Dispositionヘッダーを設定
+    response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{quoted_filename}'
+    return response
+
+
+  # コンテキスト生成
+  def build_context(self, request, today):
+    # 表示日の月を取得
+    month = today.month
+    week_day = today.weekday()
+    default_day = str(today)
+
+    # 日付リスト
+    days_to_sum = week_day + 1 if week_day != 6 else 0
+    day_list = [(today + datetime.timedelta(days=d - days_to_sum)) for d in range(7)]
+
+    # 日付リスト整形(指定月とリスト内の要素の月が違う要素は空に)
+    for ind, dd in enumerate(day_list):
+      if month != dd.month:
+        day_list[ind] = ''
+
+    # ログイン者の班員リスト作成
+    obj_get = team_member.objects.get(employee_no5=request.session['login_No'])
+    member_list = [getattr(obj_get, f'member{i}') for i in range(1, 16)]
+    # 登録されている最後のメンバー番号を取得
+    member_num = max((i for i in range(1, 16) if getattr(obj_get, f'member{i}') != ''), default=None)
+
+    # 各班員の空リスト定義
+    work_lists = [[] for _ in range(15)]
+    over_time_lists = [[] for _ in range(15)]
+    kosu_lists = [[] for _ in range(15)]
+    ok_ng_lists = [[] for _ in range(15)]
+
+    # メンバー名取得
+    member_names = [
+      team_member_name_get(getattr(obj_get, f'member{i}')) for i in range(1, 16)
+    ]
+
+    # 各表示用リスト作成
+    for ind, m in enumerate(member_list):
+      if m not in ['', None]:
+        for dd in day_list:
+          if dd != '':
+            member_obj_filter = Business_Time_graph.objects.filter(employee_no3=m, work_day2=dd)
+
+            # 指定日に班員の工数データがある場合の処理
+            if member_obj_filter.exists():
+              member_obj_get = member_obj_filter.first()
+              # 勤務,残業,整合性追加
+              work_lists[ind].append(member_obj_get.work_time)
+              over_time_lists[ind].append(member_obj_get.over_time)
+              ok_ng_lists[ind].append(member_obj_get.judgement)
+
+              # 入力工数が空の場合、時間表示に空を定義
+              if member_obj_get.time_work == '#'*288:
+                kosu_lists[ind].append(["　　　　　" for _ in range(4)])
+              # 入力工数がある場合、入力時間をリストに入れる
+              else:
+                kosu_list = []
+                data_list = list(member_obj_get.time_work)
+                indices = get_indices(data_list)
+                for start, end in indices:
+                  kosu_list = index_change(start, end, kosu_list)
+                kosu_list += ['　'] * (4 - len(kosu_list))
+                kosu_lists[ind].append(kosu_list)
+            # 指定日に班員の工数データがない場合、全て空を入れる
+            else:
+              work_lists[ind].append("")
+              over_time_lists[ind].append("")
+              ok_ng_lists[ind].append(False)
+              kosu_lists[ind].append(["　　　　　" for _ in range(4)])
+          # 日付リストに日付ない場合、全てに空を入れる
+          else:
+            work_lists[ind].append("")
+            over_time_lists[ind].append("")
+            ok_ng_lists[ind].append(False)
+            kosu_lists[ind].append(["　　　　　" for _ in range(4)])
+      # 班員の登録に空きがある場合、全てに空を入れる
+      else:
+        for _ in range(7):
+          work_lists[ind].append("")
+          over_time_lists[ind].append("")
+          ok_ng_lists[ind].append(False)
+          kosu_lists[ind].append(["　　　　　" for _ in range(4)])
+
+    # 整合性リスト反転(HTMLでwith～.pop使用のため)
+    for ok_ng_list in ok_ng_lists:
+      ok_ng_list.reverse()
+
+    # コンテキスト定義
+    context = {
+      'title': '班員工数入力状況一覧',
+      'default_day': default_day,
+      'member_num': member_num,
+      'day_list': day_list,
+    }
+
+    # 各班員の表示内容をコンテキストに追加
+    for i in range(1, 16):
+        context.update({
+          f'member_name{i}': member_names[i - 1],
+          f'work_list{i}': work_lists[i - 1],
+          f'over_time_list{i}': over_time_lists[i - 1],
+          f'kosu_list{i}': kosu_lists[i - 1],
+          f'ok_ng_list{i}': ok_ng_lists[i - 1],
+        })
+
+    return context
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def team_calendar(request):
 
   # 未ログインならログインページに飛ぶ
@@ -534,8 +811,15 @@ def team_calendar(request):
 
 
 
+  # GET時の処理
+  if request.method == 'GET':
+    # 指定日取得
+    today = day_get(request)
+
+
+
   # 日付指定時の処理
-  if "display_day" in request.POST:
+  elif "display_day" in request.POST:
     # POSTされた値を日付に設定
     today = datetime.datetime.strptime(request.POST['work_day'], '%Y-%m-%d')
     # POSTされた値をセッションに登録
@@ -543,26 +827,10 @@ def team_calendar(request):
 
 
 
-  # POSTしていない時の処理
-  else:
-    # セッションに表示日の指定がない場合の処理
-    if request.session.get('display_day', None) == None:
-      # 今日の日付取得
-      today = datetime.date.today()
-      # 取得した値をセッションに登録
-      request.session['display_day'] = str(today)[0: 10]
-      today = datetime.datetime.strptime(request.session['display_day'], '%Y-%m-%d')
-
-    # セッションに表示日の指定がある場合の処理
-    else:
-      # 表示日にセッションの値を入れる
-      today = datetime.datetime.strptime(request.session['display_day'], '%Y-%m-%d')
-
-
-
   # 前週指定時の処理
-  if "back_week" in request.POST:
-    # 曜日取得
+  elif "back_week" in request.POST:
+    # 指定日曜日取得
+    today = day_get(request)
     week_day_back = today.weekday()
 
     # 減算する日数を計算
@@ -581,7 +849,8 @@ def team_calendar(request):
 
   # 次週指定時の処理
   elif "next_week" in request.POST:
-    # 曜日取得
+    # 指定日曜日取得
+    today = day_get(request)
     week_day_back = today.weekday()
 
     # 加算する日数を計算
@@ -599,7 +868,7 @@ def team_calendar(request):
 
 
   # 入力状況をExcelに出力する際の処理
-  if "export" in request.POST:
+  elif "export" in request.POST:
     # POSTされた値を日付に設定
     today = datetime.datetime.strptime(request.POST['work_day'], '%Y-%m-%d')
     # 指定年、月取得
