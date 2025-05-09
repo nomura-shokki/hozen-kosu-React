@@ -17,7 +17,6 @@ def has_non_halfwidth_characters(input_string):
     if unicodedata.east_asian_width(char) != 'Na':
       # 全角文字かそれ以外（例: 全角スペース、絵文字など）が検出されたらTrueを返す
       return True
-
     return False
 
 
@@ -32,8 +31,13 @@ def has_non_halfwidth_characters(input_string):
 
 # データ変更記録関数
 def history_record(post_page, operation_models, status, operation_detail, request):
+  try:
+    name=member.objects.get(employee_no=request.session['login_No'])
+  except member.DoesNotExist:
+    name=''
+
   new_history = Operation_history(employee_no4=request.session['login_No'],
-                                  name=member.objects.get(employee_no = request.session['login_No']),
+                                  name=name,
                                   post_page=post_page,
                                   operation_models=operation_models,
                                   status=status,

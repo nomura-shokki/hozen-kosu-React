@@ -1726,8 +1726,11 @@ class Page_jump(TestCase):
 
   # 工数詳細から工数入力可否(ショップ単位)へジャンプテスト
   def test_team_detail_team_kosu_jump(self):
-    # 班員工数詳細から来たことを明示
+    # セッション定義
+    self.session = self.client.session
     self.session['before_page'] = 'class_list'
+    self.session.save()
+
     # 工数詳細ページにアクセス
     response = self.client.get(reverse('team_detail', args=[self.Business_Time_graph.id]))
     self.assertEqual(response.status_code, 200)

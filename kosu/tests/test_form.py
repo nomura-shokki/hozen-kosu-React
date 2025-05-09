@@ -132,7 +132,7 @@ class Page_form(TestCase):
             inquiry = '',
             answer = '回答'
             )
-        
+
 
 
     # 初期データ
@@ -740,7 +740,7 @@ class Page_form(TestCase):
         self.assertEqual(response.status_code, 302)
 
         # テストユーザーの工数データ取得
-        updated_entry = member.objects.get(employee_no = self.member.employee_no)
+        updated_entry = member.objects.get(employee_no=self.member.employee_no)
 
         # 休憩時間が更新されていることを確認
         self.assertEqual(updated_entry.break_time1, '#13001400')
@@ -1831,7 +1831,7 @@ class Page_form(TestCase):
         self.assertEqual(response.status_code, 302)
 
         # 新規人員情報取得
-        updated_entry = member.objects.get(employee_no = 222)
+        updated_entry = member.objects.get(employee_no=222)
         # レコードが更新されていることを確認
         self.assertEqual(updated_entry.name, 'トライ新規')
         self.assertEqual(updated_entry.break_time1, '#10401130')
@@ -1963,11 +1963,62 @@ class Page_form(TestCase):
 
     # 人員情報編集ページ編集チェック
     def test_member_edit_form(self):
-
         # セッション定義
         self.session = self.client.session
         self.session['edit_No'] =  self.member.employee_no
         self.session.save()
+        # 人員データ追加
+        self.member2 = member.objects.create(
+            employee_no = 1111,
+            name = 'テストユーザー2',
+            shop = 'その他',
+            authority = True,
+            administrator = True,
+            break_time1 = '#10401130',
+            break_time1_over1 = '#15101520',
+            break_time1_over2 = '#20202110',
+            break_time1_over3 = '#01400150',
+            break_time2 = '#17501840',
+            break_time2_over1 = '#22302240',
+            break_time2_over2 = '#03400430',
+            break_time2_over3 = '#09000910',
+            break_time3 = '#01400230',
+            break_time3_over1 = '#07050715',
+            break_time3_over2 = '#12151305',
+            break_time3_over3 = '#17351745',
+            break_time4 = '#12001300',
+            break_time4_over1 = '#19001915',
+            break_time4_over2 = '#01150215',
+            break_time4_over3 = '#06150630',
+            break_check = False,
+            def_prediction = False,
+            )
+
+        self.Business_Time_graph = Business_Time_graph.objects.create(
+            employee_no3 = 1111,
+            name = self.member2,
+            def_ver2 = self.kosu_division.kosu_name,
+            work_day2 = '2000-01-01',
+            tyoku2 = '4',
+            time_work = '################################################################################################AAAAAAAAAAAABBBBBBBBBBBBCCCCCCCCCCCCDDDDDDDDDDDD$$$$$$$$$$$$EEEEEEEEEEEEFFFFFFFFFFFFGGGGGGGGGGGGHHHHHHHHHHHHIIIIIIIIIIJJJJJJJJJJJJ##############################################################',
+            detail_work = '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$aaa$aaa$aaa$aaa$aaa$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$bbb$bbb$bbb$bbb$bbb$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$',
+            over_time = 120,
+            breaktime = '#12001300',
+            breaktime_over1 = '#19001915',
+            breaktime_over2 = '#01150215',
+            breaktime_over3 = '#06150630',
+            work_time = '出勤',
+            judgement = True,
+            break_change = False,
+            )
+
+        self.inquiry_data2 = inquiry_data.objects.create(
+            employee_no2 = 1111,
+            name = self.member2,
+            content_choice = '問い合わせ',
+            inquiry = '',
+            answer = '回答'
+            )
 
         # フォームデータ定義
         form_data = {
@@ -1996,18 +2047,18 @@ class Page_form(TestCase):
             }
 
         # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('member_edit', args = [self.member.employee_no]), form_data)
+        response = self.client.post(reverse('member_edit', args=[self.member.employee_no]), form_data)
         # リクエストのレスポンスステータスコードが302(リダイレクト)であることを確認
         self.assertEqual(response.status_code, 302)
 
         # テストユーザーの人員データ取得
-        updated_entry = member.objects.get(employee_no = self.member.employee_no)
+        updated_entry = member.objects.get(employee_no=self.member.employee_no)
         # データが更新されていることを確認
         self.assertEqual(updated_entry.name, '変更')
         self.assertEqual(updated_entry.shop, 'W2')
         self.assertEqual(updated_entry.administrator, False)
         self.assertEqual(updated_entry.break_time1, '#11401240')
- 
+
 
         # フォームデータ定義
         form_data2 = {
@@ -2033,16 +2084,15 @@ class Page_form(TestCase):
             'break_time4_over2': '#00000000',
             'break_time4_over3': '#00000000',
             'member_edit': '登録', 
-            'member_edit': '登録',
             }
 
         # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('member_edit', args=[self.member.employee_no]), form_data2)
+        response = self.client.post(reverse('member_edit', args=[self.member2.employee_no]), form_data2)
         # リクエストのレスポンスステータスコードが302(リダイレクト)であることを確認
         self.assertEqual(response.status_code, 302)
 
         # テストユーザーの人員データ取得
-        updated_entry = member.objects.get(employee_no = 222)
+        updated_entry = member.objects.get(employee_no=222)
         # データ内容が更新されていることを確認
         self.assertEqual(updated_entry.employee_no, 222)
         self.assertEqual(updated_entry.break_time1, '#10401130')
@@ -2059,7 +2109,6 @@ class Page_form(TestCase):
 
     # 人員削除ページ削除チェック
     def test_member_delete_form(self):
-
         # memberダミーデータ
         self.member = member.objects.create(
             employee_no = 333,
@@ -2104,7 +2153,6 @@ class Page_form(TestCase):
 
     # 班員登録ページ登録チェック
     def test_team_form(self):
-
         # フォームデータ定義
         form_data = {
             'member1': 111,
@@ -2131,7 +2179,7 @@ class Page_form(TestCase):
         self.assertEqual(response.status_code, 302)
 
         # テストユーザーの班員データ取得
-        updated_entry = team_member.objects.get(employee_no5 = self.member.employee_no)
+        updated_entry = team_member.objects.get(employee_no5=self.member.employee_no)
         # データ内容が更新されていることを確認
         self.assertEqual(updated_entry.member1, '111')
         self.assertEqual(updated_entry.member2, '111')
@@ -2390,7 +2438,7 @@ class Page_form(TestCase):
         # 変数を読み出し
         work_list1 = response.context['work_list1']
         # 変数整合性チェック
-        self.assertEqual(work_list1, ['　　　　　', '　　　　　', '　　　　　', '　　　　　', '　　　　　', '　　　　　', '　　　　　'])
+        self.assertEqual(work_list1, ['', '', '', '', '', '', ''])
         # 変数を読み出し
         work_list2 = response.context['work_list2']
         # 変数整合性チェック

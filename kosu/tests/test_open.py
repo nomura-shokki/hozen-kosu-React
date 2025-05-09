@@ -625,6 +625,11 @@ class Open_pages(TestCase):
 
     # 工数詳細ページ開きチェック
     def test_team_detail(self):
+        # セッション定義
+        self.session = self.client.session
+        self.session['before_page'] = 'class_list'
+        self.session.save()
+
         # URL定義
         url = reverse('team_detail', args = [self.Business_Time_graph.id])
         # URLに対してGETリクエスト送信

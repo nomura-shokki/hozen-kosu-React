@@ -319,6 +319,12 @@ class MemberEditView(UpdateView):
       history_record('人員編集', 'member', 'ERROR042', edit_comment, self.request)
       messages.error(self.request, '入力した従業員番号はすでに登録があるので登録できません。ERROR042')
       return redirect(to=f'/member_edit/{self.kwargs["num"]}')
+
+    # ログイン中の人員データを変更しようとした場合、エラー出力しリダイレクト
+    if int(self.request.session['login_No']) == int(self.kwargs["num"]):
+      history_record('人員編集', 'member', 'ERROR086', edit_comment, self.request)
+      messages.error(self.request, 'ログイン中の人員データは変更できません。ERROR086')
+      return redirect(to=f'/member_edit/{self.kwargs["num"]}')
     
     # デフォルトの休憩時間リスト指定
     if shop in ['W1', 'W2', 'A1', 'A2', 'J', '組長以上(W,A)']:
@@ -402,7 +408,9 @@ class MemberDeleteView(DeleteView):
     # ログイン者に権限がなければメインページにリダイレクト
     if not self.data.authority:
       return redirect(to='/')
-
+    
+    # 削除する人員の名前取得
+    self.request.session['delete_name'] = self.get_object().name
     # 親クラスのdispatchメソッドを呼び出し
     return super().dispatch(request, *args, **kwargs)
 
@@ -420,7 +428,6 @@ class MemberDeleteView(DeleteView):
         'employee_no': self.kwargs['num'],
         'obj': self.get_object(),
     })
-    self.request.session['delete_name'] = self.get_object().name
     return context
 
 
