@@ -373,8 +373,20 @@ class KosuDivisionDeleteView(DeleteView):
     # ログイン者に権限がなければメインページに戻る
     if member_obj.administrator != True:
       return redirect('/')
+    del_obj = kosu_division.objects.get(id=self.kwargs['pk'])
+
+    # 削除する工数区分定義記録
+    self.request.session['delete_def'] = del_obj.kosu_name
     # 親クラスのdispatchメソッドを呼び出し
     return super().dispatch(request, *args, **kwargs)
+
+
+  # フォームバリデーションが成功した際のメソッドをオーバーライド
+  def form_valid(self, form):
+    response = super().form_valid(form)
+    # 内容記録
+    history_record('工数区分定義削除', 'kosu_division', 'OK', self.request.session['delete_def'], self.request)
+    return response
 
 
   # コンテキストデータを取得するメソッドをオーバーライド
