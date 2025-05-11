@@ -1561,7 +1561,6 @@ class Page_form(TestCase):
 
     # 工数区分定義新規作成ページチェック
     def test_def_new_form(self):
-
         # フォームデータ定義
         form_data = {
             'kosu_name': 'トライ定義A',
@@ -1607,7 +1606,6 @@ class Page_form(TestCase):
 
     # 工数区分定義編集ページチェック
     def test_def_edit_form(self):
-
         # フォームデータ定義
         form_data = {
             'kosu_name': '編集定義',
@@ -1798,7 +1796,6 @@ class Page_form(TestCase):
 
     # 人員新規作成ページ新規作成チェック
     def test_member_new_form(self):
-
         # フォームデータ定義
         form_data = {
             'employee_no': 222,
@@ -1994,7 +1991,7 @@ class Page_form(TestCase):
             def_prediction = False,
             )
 
-        self.Business_Time_graph = Business_Time_graph.objects.create(
+        self.Business_Time_graph2 = Business_Time_graph.objects.create(
             employee_no3 = 1111,
             name = self.member2,
             def_ver2 = self.kosu_division.kosu_name,
@@ -2022,7 +2019,7 @@ class Page_form(TestCase):
 
         # フォームデータ定義
         form_data = {
-            'employee_no': self.member.employee_no,
+            'employee_no': 222,
             'name': '変更',
             'shop': 'W2',
             'authority': True,
@@ -2047,12 +2044,12 @@ class Page_form(TestCase):
             }
 
         # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('member_edit', args=[self.member.employee_no]), form_data)
+        response = self.client.post(reverse('member_edit', args=[1111]), form_data)
         # リクエストのレスポンスステータスコードが302(リダイレクト)であることを確認
         self.assertEqual(response.status_code, 302)
 
         # テストユーザーの人員データ取得
-        updated_entry = member.objects.get(employee_no=self.member.employee_no)
+        updated_entry = member.objects.get(employee_no=222)
         # データが更新されていることを確認
         self.assertEqual(updated_entry.name, '変更')
         self.assertEqual(updated_entry.shop, 'W2')
@@ -2087,7 +2084,7 @@ class Page_form(TestCase):
             }
 
         # URLに対してPOSTリクエスト送信
-        response = self.client.post(reverse('member_edit', args=[self.member2.employee_no]), form_data2)
+        response = self.client.post(reverse('member_edit', args=[222]), form_data2)
         # リクエストのレスポンスステータスコードが302(リダイレクト)であることを確認
         self.assertEqual(response.status_code, 302)
 

@@ -20,6 +20,7 @@ from ..utils.kosu_utils import get_indices
 from ..utils.team_utils import excel_function
 from ..utils.team_utils import team_member_name_get
 from ..utils.team_utils import day_get
+from ..utils.main_utils import history_record
 from dateutil.relativedelta import relativedelta
 from io import BytesIO
 import datetime
@@ -147,6 +148,10 @@ class TeamView(FormView):
       self.request.session['shop_choose2'] = self.request.POST.get('shop2')
       return redirect('/team')
 
+    # 入力内容記録
+    team_list = [self.request.POST[f'member{i}'] for i in range(1, 16)]
+    edit_comment = "\n".join([f"班員{i}:{member}" for i, member in enumerate(team_list, start=1)])
+
     # 班員登録を更新
     team_member.objects.update_or_create(
       employee_no5=self.request.session['login_No'],
@@ -154,6 +159,7 @@ class TeamView(FormView):
         'follow': 'follow' in self.request.POST,
         **{f'member{i}': form.cleaned_data[f'member{i}'] for i in range(1, 16)}
         })
+    history_record('班員登録', 'team_member', 'OK', edit_comment, self.request)
 
     return super().form_valid(form)
 
@@ -989,8 +995,6 @@ def team_over_time(request):
     'over_time_list15': over_time_list15,
     'team_n': len(member_list),
     }
-
-
 
   # 指定したHTMLに辞書を渡して表示を完成させる
   return render(request, 'kosu/team_over_time.html', context)

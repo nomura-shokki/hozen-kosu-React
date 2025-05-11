@@ -45,39 +45,40 @@ class KosuListViewTests(TestCase):
       )
 
     # kosu_divisionダミーデータ
-    kosu_division.objects.create(
-      kosu_name = 'トライ定義',
-      kosu_title_1 = '工数区分名1',
-      kosu_division_1_1 = '定義1',
-      kosu_division_2_1 = '作業内容1',
-      kosu_title_2 = '工数区分名2',
-      kosu_division_1_2 = '定義2',
-      kosu_division_2_2 = '作業内容2',
-      kosu_title_3 = '工数区分名3',
-      kosu_division_1_3 = '定義3',
-      kosu_division_2_3 = '作業内容3',
-      kosu_title_4 = '工数区分名4',
-      kosu_division_1_4 = '定義4',
-      kosu_division_2_4 = '作業内容4',
-      kosu_title_5 = '工数区分名5',
-      kosu_division_1_5 = '定義5',
-      kosu_division_2_5 = '作業内容5',
-      kosu_title_6 = '工数区分名6',
-      kosu_division_1_6 = '定義6',
-      kosu_division_2_6 = '作業内容6',
-      kosu_title_7 = '工数区分名7',
-      kosu_division_1_7 = '定義7',
-      kosu_division_2_7 = '作業内容7',
-      kosu_title_8 = '工数区分名8',
-      kosu_division_1_8 = '定義8',
-      kosu_division_2_8 = '作業内容8',
-      kosu_title_9 = '工数区分名9',
-      kosu_division_1_9 = '定義9',
-      kosu_division_2_9 = '作業内容9',
-      kosu_title_10 = '工数区分名10',
-      kosu_division_1_10 = '定義10',
-      kosu_division_2_10 = '作業内容10',
-      )
+    for i in range(120):
+        kosu_division.objects.create(
+          kosu_name = f'トライ定義{i}',
+          kosu_title_1 = '工数区分名1',
+          kosu_division_1_1 = '定義1',
+          kosu_division_2_1 = '作業内容1',
+          kosu_title_2 = '工数区分名2',
+          kosu_division_1_2 = '定義2',
+          kosu_division_2_2 = '作業内容2',
+          kosu_title_3 = '工数区分名3',
+          kosu_division_1_3 = '定義3',
+          kosu_division_2_3 = '作業内容3',
+          kosu_title_4 = '工数区分名4',
+          kosu_division_1_4 = '定義4',
+          kosu_division_2_4 = '作業内容4',
+          kosu_title_5 = '工数区分名5',
+          kosu_division_1_5 = '定義5',
+          kosu_division_2_5 = '作業内容5',
+          kosu_title_6 = '工数区分名6',
+          kosu_division_1_6 = '定義6',
+          kosu_division_2_6 = '作業内容6',
+          kosu_title_7 = '工数区分名7',
+          kosu_division_1_7 = '定義7',
+          kosu_division_2_7 = '作業内容7',
+          kosu_title_8 = '工数区分名8',
+          kosu_division_1_8 = '定義8',
+          kosu_division_2_8 = '作業内容8',
+          kosu_title_9 = '工数区分名9',
+          kosu_division_1_9 = '定義9',
+          kosu_division_2_9 = '作業内容9',
+          kosu_title_10 = '工数区分名10',
+          kosu_division_1_10 = '定義10',
+          kosu_division_2_10 = '作業内容10',
+          )
 
     # Business_Time_graphダミーデータ
     start_date = datetime(2000, 1, 1)
@@ -138,7 +139,7 @@ class KosuListViewTests(TestCase):
 
 
   # 工数履歴ページネーションテスト
-  def test_kosu_pagination_navigation1(self):
+  def test_kosu_pagination_navigation(self):
     # 最初のページにアクセス
     response = self.client.get(reverse('kosu_list', kwargs={'num': 1}))
     self.assertEqual(response.status_code, 200)
@@ -166,6 +167,41 @@ class KosuListViewTests(TestCase):
     response = self.client.get(reverse('kosu_list', kwargs={'num': 5}))
     self.assertEqual(response.status_code, 200)
     self.assertContains(response, '5/6')
+
+
+
+  # 人員一覧ページネーションテスト
+  def test_member_pagination_navigation(self):
+    # 最初のページにアクセス
+    response = self.client.get(reverse('member', kwargs={'num': 1}))
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.context['data']), 20)
+    self.assertContains(response, '1/6')
+    
+    # 2ページにアクセス
+    response = self.client.get(reverse('member', kwargs={'num': 2}))
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.context['data']), 20)
+    self.assertContains(response, '2/6')
+    self.assertContains(response, '&laquo; 最初', count=1)
+    self.assertNotContains(response, '/member/0">')
+
+    # 最終ページにアクセス
+    response = self.client.get(reverse('member', kwargs={'num': 6}))
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.context['data']), 20)
+    self.assertContains(response, '6/6')
+    # 最後のページでは、「次」ボタンが無効化されていることを確認
+    self.assertContains(response, '次&raquo;', count=1)
+    self.assertNotContains(response, '/member/7">')
+
+    # 最後のページから「前」ボタンで5ページ目に遷移
+    response = self.client.get(reverse('member', kwargs={'num': 5}))
+    self.assertEqual(response.status_code, 200)
+    self.assertContains(response, '5/6')
+
+
+
 
 
 

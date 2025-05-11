@@ -11,6 +11,7 @@ from ..models import inquiry_data
 from ..forms import inquiryForm
 from ..forms import inquiry_findForm
 from ..utils.kosu_utils import get_member
+from ..utils.main_utils import history_record
 
 
 

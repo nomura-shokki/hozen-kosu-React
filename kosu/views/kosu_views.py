@@ -345,20 +345,18 @@ def input(request):
     request.session['start_time'] = start_time
     request.session['end_time'] = end_time
     
-
     # 翌日チェック状態
     check = 1 if 'tomorrow_check' in request.POST else 0
     # 休憩変更チェック状態
     break_change = 1 if 'break_change' in request.POST else 0
 
     # 入力内容記録
-    edit_comment = f"""{work}:{dict(input_kosuForm.tyoku_list).get(tyoku, '')}
-作業時間:{start_time}～{end_time}
-工数データ:{def_work}
-作業詳細:{detail_work}
-残業時間:{request.POST['over_work']}
-休憩変更チェックBOX:{'break_change' in request.POST}
-"""
+    edit_comment = f"{work}:{dict(input_kosuForm.tyoku_list).get(tyoku, '')}" + '\n' + \
+                   f"作業時間:{start_time}～{end_time}" + '\n' + \
+                   f"工数データ:{def_work}" + '\n' + \
+                   f"作業詳細:{detail_work}" + '\n' + \
+                   f"残業時間:{request.POST['over_work']}" + '\n' + \
+                   f"休憩変更チェックBOX:{'break_change' in request.POST}"
 
     # 未入力チェック用の変数リスト
     values = [def_work, work, tyoku, start_time, end_time, request.POST.get('over_work')]
@@ -522,9 +520,10 @@ def input(request):
                                         'break_change': 'break_change' in request.POST})
 
     # 操作履歴記録
-    edit_comment =f"""{kosu_check}
-""" + edit_comment + f"""{''.join(kosu_def)}
-{detail_list_summarize(detail_list)}"""
+    edit_comment = edit_comment + '\n' + \
+                   f"{kosu_check}" + '\n' + \
+                   f"{''.join(kosu_def)}" + '\n' + \
+                   f"{detail_list_summarize(detail_list)}"
     history_record('工数入力画面：工数入力', 'Business_Time_graph', 'OK', edit_comment, request)
 
     # 入力値をセッションに保存する
@@ -597,8 +596,8 @@ def input(request):
                                                                'over_time': request.POST['over_work']})
 
     # 操作履歴記録
-    edit_comment =f"""{kosu_check}
-""" + edit_comment
+    edit_comment =f"{kosu_check}" + '\n' + \
+                  edit_comment
     history_record('工数入力画面：残業入力', 'Business_Time_graph', 'OK', edit_comment, request)
 
 

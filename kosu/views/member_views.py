@@ -220,14 +220,6 @@ class MemberNewView(CreateView):
   # フォームバリデーションが失敗した際の処理
   def form_invalid(self, form):
     request = self.request
-    # 入力内容記録
-    edit_comment = f"""従業員番号:{request.POST['employee_no']}
-氏名:{request.POST['name']}
-ショップ:{request.POST['shop']}
-権限:{'authority' in request.POST}
-管理者権限:{'administrator' in request.POST}
-"""
-    history_record('人員登録', 'member', 'ERROR053', edit_comment, request)
     messages.error(request, f'バリテーションエラーが発生しました。IT担当者に連絡してください。{form.errors} ERROR053')
     return redirect(to='/new')
 

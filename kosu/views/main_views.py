@@ -14,6 +14,7 @@ import os
 import environ
 from ..utils.kosu_utils import get_member
 from ..utils.main_utils import has_non_halfwidth_characters
+from ..utils.main_utils import history_record
 from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, Operation_history
 from ..forms import loginForm, administrator_data_Form, uploadForm, history_findForm
 
@@ -483,15 +484,24 @@ class AdministratorMenuView(FormView):
   # フォームが有効な場合に呼び出されるメソッドをオーバーライド
   def form_valid(self, form):
     request = self.request
+
+    # 入力内容記録
+    edit_comment = f"表示件数:{request.POST['menu_row']}" + '\n' + \
+    f"問い合わせ担当者1:{request.POST['administrator_employee_no1']}" + '\n' + \
+    f"問い合わせ担当者2:{request.POST['administrator_employee_no2']}" + '\n' + \
+    f"問い合わせ担当者3:{request.POST['administrator_employee_no3']}"
+
     # 設定更新時の処理
     if 'registration' in request.POST:
       # 一覧表示項目数を検証
       menu_row = request.POST.get('menu_row')
       if not menu_row.isdigit() or float(menu_row) <= 0 or math.floor(float(menu_row)) != float(menu_row):
+        history_record('管理者MENU', 'administrator_data', 'ERROR029', edit_comment, request)
         messages.error(request, '一覧表示項目数は自然数で入力して下さい。ERROR029')
         return redirect(to='/administrator')
 
       if has_non_halfwidth_characters(menu_row):
+        history_record('管理者MENU', 'administrator_data', 'ERROR056', edit_comment, request)
         messages.error(request, '一覧表示項目数は半角で入力して下さい。ERROR056')
         return redirect(to='/administrator')
 
@@ -500,14 +510,17 @@ class AdministratorMenuView(FormView):
         employee_no = request.POST.get(f'administrator_employee_no{i}')
         if employee_no:
           if not employee_no.isdigit() or float(employee_no) <= 0 or math.floor(float(employee_no)) != float(employee_no):
+            history_record('管理者MENU', 'administrator_data', 'ERROR051', edit_comment, request)
             messages.error(request, '問い合わせ担当者従業員番号は自然数で入力して下さい。ERROR051')
             return redirect(to='/administrator')
 
           if has_non_halfwidth_characters(employee_no):
+            history_record('管理者MENU', 'administrator_data', 'ERROR057', edit_comment, request)
             messages.error(request, '問い合わせ担当者従業員番号は半角で入力して下さい。ERROR057')
             return redirect(to='/administrator')
 
           if not member.objects.filter(employee_no=employee_no).exists():
+            history_record('管理者MENU', 'administrator_data', 'ERROR058', edit_comment, request)
             messages.error(request, '入力された問い合わせ担当者従業員番号は登録されていません。ERROR058')
             return redirect(to='/administrator')
 
@@ -522,6 +535,7 @@ class AdministratorMenuView(FormView):
           'administrator_employee_no2': request.POST.get('administrator_employee_no2'),
           'administrator_employee_no3': request.POST.get('administrator_employee_no3'),
           })
+      history_record('管理者MENU', 'administrator_data', 'OK', edit_comment, request)
 
     # リダイレクト処理を親クラスへ送る
     return super().form_valid(form)

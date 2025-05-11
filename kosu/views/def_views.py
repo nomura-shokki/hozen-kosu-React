@@ -8,6 +8,7 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormView, DeleteView, UpdateView
 from ..utils.kosu_utils import get_member
 from ..utils.kosu_utils import get_def_library_data
+from ..utils.main_utils import history_record
 from ..models import member
 from ..models import kosu_division
 from ..models import administrator_data
@@ -296,10 +297,21 @@ class DefEditView(UpdateView):
 
   # フォームバリデーションが成功した際のメソッドをオーバーライド
   def form_valid(self, form):
+    # 入力内容記録
+    kosu_name_list = [self.request.POST[f'kosu_title_{i}'] for i in range(1, 51)]
+    kosu_division_1_list = [self.request.POST[f'kosu_division_1_{i}'] for i in range(1, 51)]
+    kosu_division_2_list = [self.request.POST[f'kosu_division_2_{i}'] for i in range(1, 51)]
+    edit_comment1 = f"工数区分定義Ver名:{self.request.POST['kosu_name']}" + '\n'
+    edit_comment2 = '\n'.join([f"工数区分名{i}:{kosu_name}" for i, kosu_name in enumerate(kosu_name_list, start=1)]) + '\n'
+    edit_comment3 = '\n'.join([f"定義{i}:{kosu_division_1}" for i, kosu_division_1 in enumerate(kosu_division_1_list, start=1)]) + '\n'
+    edit_comment4 = '\n'.join([f"作業内容{i}:{kosu_division_2}" for i, kosu_division_2 in enumerate(kosu_division_2_list, start=1)]) + '\n'
+    edit_comment = edit_comment1 + edit_comment2 + edit_comment3 + edit_comment4
+
     # POST送信された名前が既に存在していたらリダイレクト
     edit_def = self.request.session.get('edit_def', None)
     kosu_name = form.cleaned_data['kosu_name']
     if edit_def != kosu_name and kosu_division.objects.filter(kosu_name=kosu_name).exists():
+      history_record('工数区分定義編集', 'kosu_division', 'ERROR039', edit_comment, self.request)
       messages.error(self.request, '入力した工数区分定義名はすでに登録があるので登録できません。ERROR039')
       return redirect(to=f'/def_edit/{self.kwargs.get(self.pk_url_kwarg)}')
 
@@ -311,6 +323,7 @@ class DefEditView(UpdateView):
       defaults[f'kosu_division_1_{i}'] = self.request.POST.get(f'kosu_division_1_{i}')
       defaults[f'kosu_division_2_{i}'] = self.request.POST.get(f'kosu_division_2_{i}')
     kosu_division.objects.update_or_create(id=pk, defaults=defaults)
+    history_record('工数区分定義編集', 'kosu_division', 'OK', edit_comment, self.request)
 
     return redirect(to='/def_list/1')
 
@@ -432,14 +445,25 @@ class DefNewView(CreateView):
 
   # フォームバリデーションが成功した際のメソッドをオーバーライド
   def form_valid(self, form):
+    # 入力内容記録
+    kosu_name_list = [self.request.POST[f'kosu_title_{i}'] for i in range(1, 51)]
+    kosu_division_1_list = [self.request.POST[f'kosu_division_1_{i}'] for i in range(1, 51)]
+    kosu_division_2_list = [self.request.POST[f'kosu_division_2_{i}'] for i in range(1, 51)]
+    edit_comment1 = f"工数区分定義Ver名:{self.request.POST['kosu_name']}" + '\n'
+    edit_comment2 = '\n'.join([f"工数区分名{i}:{kosu_name}" for i, kosu_name in enumerate(kosu_name_list, start=1)]) + '\n'
+    edit_comment3 = '\n'.join([f"定義{i}:{kosu_division_1}" for i, kosu_division_1 in enumerate(kosu_division_1_list, start=1)]) + '\n'
+    edit_comment4 = '\n'.join([f"作業内容{i}:{kosu_division_2}" for i, kosu_division_2 in enumerate(kosu_division_2_list, start=1)]) + '\n'
+    edit_comment = edit_comment1 + edit_comment2 + edit_comment3 + edit_comment4
+
     # 工数定義区分バージョン取得
     kosu_name = form.cleaned_data.get('kosu_name')
-
     # POSTされた工数区分定義名を使用していればエラーメッセージを出す
     if kosu_division.objects.filter(kosu_name=kosu_name).exists():
+      history_record('工数区分定義新規登録', 'kosu_division', 'ERROR040', edit_comment, self.request)
       messages.error(self.request, '登録しようとした工数区分定義名は既に使用しています。登録できません。ERROR040')
       return redirect(self.success_url)
 
+    history_record('工数区分定義新規登録', 'kosu_division', 'OK', edit_comment, self.request)
     # 新しいレコードを作成しセーブする
     return super().form_valid(form)
 
