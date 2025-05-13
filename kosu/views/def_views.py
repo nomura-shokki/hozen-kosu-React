@@ -298,7 +298,7 @@ class DefEditView(UpdateView):
   # フォームバリデーションが成功した際のメソッドをオーバーライド
   def form_valid(self, form):
     # 入力内容記録
-    kosu_name_list = [self.request.POST[f'kosu_title_{i}'] for i in range(1, 51)]
+    kosu_name_list = [self.request.POST.get(f'kosu_title_{i}', None) for i in range(1, 51)]
     kosu_division_1_list = [self.request.POST[f'kosu_division_1_{i}'] for i in range(1, 51)]
     kosu_division_2_list = [self.request.POST[f'kosu_division_2_{i}'] for i in range(1, 51)]
     edit_comment1 = f"工数区分定義Ver名:{self.request.POST['kosu_name']}" + '\n'
@@ -458,7 +458,7 @@ class DefNewView(CreateView):
   # フォームバリデーションが成功した際のメソッドをオーバーライド
   def form_valid(self, form):
     # 入力内容記録
-    kosu_name_list = [self.request.POST[f'kosu_title_{i}'] for i in range(1, 51)]
+    kosu_name_list = [self.request.POST.get(f'kosu_title_{i}', None) for i in range(1, 51)]
     kosu_division_1_list = [self.request.POST[f'kosu_division_1_{i}'] for i in range(1, 51)]
     kosu_division_2_list = [self.request.POST[f'kosu_division_2_{i}'] for i in range(1, 51)]
     edit_comment1 = f"工数区分定義Ver名:{self.request.POST['kosu_name']}" + '\n'
