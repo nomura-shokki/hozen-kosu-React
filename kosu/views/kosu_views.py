@@ -1038,24 +1038,24 @@ class BreakTimeUpdateView(UpdateView):
 
     # データを保存
     self.object.save()
-    edit_comment = f"""1直昼休憩: {formatted_break_times[0][:2]}:{formatted_break_times[0][2:4]}～{formatted_break_times[0][4:6]}:{formatted_break_times[0][6:]}
-1直残業時間中の休憩時間1: {formatted_break_times[1][:2]}:{formatted_break_times[1][2:4]}～{formatted_break_times[1][4:6]}:{formatted_break_times[1][6:]}
-1直残業時間中の休憩時間2: {formatted_break_times[2][:2]}:{formatted_break_times[2][2:4]}～{formatted_break_times[2][4:6]}:{formatted_break_times[2][6:]}
-1直残業時間中の休憩時間3: {formatted_break_times[3][:2]}:{formatted_break_times[3][2:4]}～{formatted_break_times[3][4:6]}:{formatted_break_times[3][6:]}
-2直昼休憩: {formatted_break_times[4][:2]}:{formatted_break_times[4][2:4]}～{formatted_break_times[4][4:6]}:{formatted_break_times[4][6:]}
-2直残業時間中の休憩時間1: {formatted_break_times[5][:2]}:{formatted_break_times[5][2:4]}～{formatted_break_times[5][4:6]}:{formatted_break_times[5][6:]}
-2直残業時間中の休憩時間2: {formatted_break_times[6][:2]}:{formatted_break_times[6][2:4]}～{formatted_break_times[6][4:6]}:{formatted_break_times[6][6:]}
-2直残業時間中の休憩時間3: {formatted_break_times[7][:2]}:{formatted_break_times[7][2:4]}～{formatted_break_times[7][4:6]}:{formatted_break_times[7][6:]}
-3直昼休憩: {formatted_break_times[8][:2]}:{formatted_break_times[8][2:4]}～{formatted_break_times[8][4:6]}:{formatted_break_times[8][6:]}
-3直残業時間中の休憩時間1: {formatted_break_times[9][:2]}:{formatted_break_times[9][2:4]}～{formatted_break_times[9][4:6]}:{formatted_break_times[9][6:]}
-3直残業時間中の休憩時間2: {formatted_break_times[10][:2]}:{formatted_break_times[10][2:4]}～{formatted_break_times[10][4:6]}:{formatted_break_times[10][6:]}
-3直残業時間中の休憩時間3: {formatted_break_times[11][:2]}:{formatted_break_times[11][2:4]}～{formatted_break_times[11][4:6]}:{formatted_break_times[11][6:]}
-常昼昼休憩: {formatted_break_times[12][:2]}:{formatted_break_times[12][2:4]}～{formatted_break_times[12][4:6]}:{formatted_break_times[12][6:]}
-常昼残業時間中の休憩時間1: {formatted_break_times[13][:2]}:{formatted_break_times[13][2:4]}～{formatted_break_times[13][4:6]}:{formatted_break_times[13][6:]}
-常昼残業時間中の休憩時間2: {formatted_break_times[14][:2]}:{formatted_break_times[14][2:4]}～{formatted_break_times[14][4:6]}:{formatted_break_times[14][6:]}
-常昼残業時間中の休憩時間3: {formatted_break_times[15][:2]}:{formatted_break_times[15][2:4]}～{formatted_break_times[15][4:6]}:{formatted_break_times[15][6:]}
-休憩時間に工数入力不可: {'break_check' in post_data}
-"""
+    edit_comment = f"1直昼休憩: {formatted_break_times[0][:2]}:{formatted_break_times[0][2:4]}～{formatted_break_times[0][4:6]}:{formatted_break_times[0][6:]}" + '\n' + \
+                   f"1直残業時間中の休憩時間1: {formatted_break_times[1][:2]}:{formatted_break_times[1][2:4]}～{formatted_break_times[1][4:6]}:{formatted_break_times[1][6:]}" + '\n' + \
+                   f"1直残業時間中の休憩時間2: {formatted_break_times[2][:2]}:{formatted_break_times[2][2:4]}～{formatted_break_times[2][4:6]}:{formatted_break_times[2][6:]}" + '\n' + \
+                   f"1直残業時間中の休憩時間3: {formatted_break_times[3][:2]}:{formatted_break_times[3][2:4]}～{formatted_break_times[3][4:6]}:{formatted_break_times[3][6:]}" + '\n' + \
+                   f"2直昼休憩: {formatted_break_times[4][:2]}:{formatted_break_times[4][2:4]}～{formatted_break_times[4][4:6]}:{formatted_break_times[4][6:]}" + '\n' + \
+                   f"2直残業時間中の休憩時間1: {formatted_break_times[5][:2]}:{formatted_break_times[5][2:4]}～{formatted_break_times[5][4:6]}:{formatted_break_times[5][6:]}" + '\n' + \
+                   f"2直残業時間中の休憩時間2: {formatted_break_times[6][:2]}:{formatted_break_times[6][2:4]}～{formatted_break_times[6][4:6]}:{formatted_break_times[6][6:]}" + '\n' + \
+                   f"2直残業時間中の休憩時間3: {formatted_break_times[7][:2]}:{formatted_break_times[7][2:4]}～{formatted_break_times[7][4:6]}:{formatted_break_times[7][6:]}" + '\n' + \
+                   f"3直昼休憩: {formatted_break_times[8][:2]}:{formatted_break_times[8][2:4]}～{formatted_break_times[8][4:6]}:{formatted_break_times[8][6:]}" + '\n' + \
+                   f"3直残業時間中の休憩時間1: {formatted_break_times[9][:2]}:{formatted_break_times[9][2:4]}～{formatted_break_times[9][4:6]}:{formatted_break_times[9][6:]}" + '\n' + \
+                   f"3直残業時間中の休憩時間2: {formatted_break_times[10][:2]}:{formatted_break_times[10][2:4]}～{formatted_break_times[10][4:6]}:{formatted_break_times[10][6:]}" + '\n' + \
+                   f"3直残業時間中の休憩時間3: {formatted_break_times[11][:2]}:{formatted_break_times[11][2:4]}～{formatted_break_times[11][4:6]}:{formatted_break_times[11][6:]}" + '\n' + \
+                   f"常昼昼休憩: {formatted_break_times[12][:2]}:{formatted_break_times[12][2:4]}～{formatted_break_times[12][4:6]}:{formatted_break_times[12][6:]}" + '\n' + \
+                   f"常昼残業時間中の休憩時間1: {formatted_break_times[13][:2]}:{formatted_break_times[13][2:4]}～{formatted_break_times[13][4:6]}:{formatted_break_times[13][6:]}" + '\n' + \
+                   f"常昼残業時間中の休憩時間2: {formatted_break_times[14][:2]}:{formatted_break_times[14][2:4]}～{formatted_break_times[14][4:6]}:{formatted_break_times[14][6:]}" + '\n' + \
+                   f"常昼残業時間中の休憩時間3: {formatted_break_times[15][:2]}:{formatted_break_times[15][2:4]}～{formatted_break_times[15][4:6]}:{formatted_break_times[15][6:]}" + '\n' + \
+                   f"休憩時間に工数入力不可: {'break_check' in post_data}"
+
     history_record('休憩変更画面', 'Business_Time_graph', 'OK', edit_comment, self.request)
     return redirect(self.get_success_url())
 
@@ -1194,11 +1194,11 @@ class TodayBreakTimeUpdateView(UpdateView):
 
     # データを保存
     self.object.save()
-    edit_comment = f"""昼休憩: {formatted_break_times[0][:2]}:{formatted_break_times[0][2:4]}～{formatted_break_times[0][4:6]}:{formatted_break_times[0][6:]}
-残業時間中の休憩時間1: {formatted_break_times[1][:2]}:{formatted_break_times[1][2:4]}～{formatted_break_times[1][4:6]}:{formatted_break_times[1][6:]}
-残業時間中の休憩時間2: {formatted_break_times[2][:2]}:{formatted_break_times[2][2:4]}～{formatted_break_times[2][4:6]}:{formatted_break_times[2][6:]}
-残業時間中の休憩時間3: {formatted_break_times[3][:2]}:{formatted_break_times[3][2:4]}～{formatted_break_times[3][4:6]}:{formatted_break_times[3][6:]}
-"""
+    edit_comment = f"昼休憩: {formatted_break_times[0][:2]}:{formatted_break_times[0][2:4]}～{formatted_break_times[0][4:6]}:{formatted_break_times[0][6:]}" + '\n' + \
+                   f"残業時間中の休憩時間1: {formatted_break_times[1][:2]}:{formatted_break_times[1][2:4]}～{formatted_break_times[1][4:6]}:{formatted_break_times[1][6:]}" + '\n' + \
+                   f"残業時間中の休憩時間2: {formatted_break_times[2][:2]}:{formatted_break_times[2][2:4]}～{formatted_break_times[2][4:6]}:{formatted_break_times[2][6:]}" + '\n' + \
+                   f"残業時間中の休憩時間3: {formatted_break_times[3][:2]}:{formatted_break_times[3][2:4]}～{formatted_break_times[3][4:6]}:{formatted_break_times[3][6:]}"
+
     history_record('当日休憩変更画面', 'Business_Time_graph', 'OK', edit_comment, self.request)
     return redirect(self.get_success_url())
 
@@ -1341,11 +1341,10 @@ class DetailView(View):
     # 就業日変更時の処理
     if "edit_day" in request.POST:
       # 入力内容記録
-      edit_comment = f"""就業日:{request.POST['kosu_day']}
-直:{request.POST['tyoku']}
-勤務:{request.POST['work']}
-残業:{request.POST['over_time']}
-"""
+      edit_comment = f"就業日:{request.POST['kosu_day']}" + '\n' + \
+                     f"直:{request.POST['tyoku']}" + '\n' + \
+                     f"勤務:{request.POST['work']}" + '\n' + \
+                     f"残業:{request.POST['over_time']}"
 
       # 日付指定しなければエラー出力
       if request.POST['kosu_day'] in ["", None]:
@@ -1383,9 +1382,8 @@ class DetailView(View):
     # 時間指定工数削除時の処理
     if "kosu_delete" in request.POST:
       # 入力内容記録
-      edit_comment = f"""指定時間:{request.POST['start_time']}～{request.POST['end_time']}
-翌日チェック:{'tomorrow_check' in request.POST}
-"""
+      edit_comment = f"指定時間:{request.POST['start_time']}～{request.POST['end_time']}" + '\n' + \
+                     f"翌日チェック:{'tomorrow_check' in request.POST}"
 
       # 作業内容と作業詳細を取得しリストに解凍
       work_list = list(obj_get.time_work)
@@ -1394,7 +1392,7 @@ class DetailView(View):
       end_time = request.POST['end_time']
 
       # 時間指定を空でPOSTした場合、リダイレクト
-      if start_time in ["", None] or end_time in ["", None]:
+      if start_time in ['', None] or end_time in ['', None]:
         messages.error(request, '時間が指定されていません。ERROR019')
         history_record('工数編集画面：工数削除(時間指定)', 'Business_Time_graph', 'ERROR019', edit_comment, request)
         return redirect(to=f'/detail/{num}')
@@ -1490,10 +1488,9 @@ class DetailView(View):
       end_time = request.POST.get(f'end_time{edit_id}')
 
       # 入力内容記録
-      edit_comment = f"""作業時間:{start_time}～{end_time}
-作業内容:{request.POST.get(f'def_time{edit_id}')}
-作業詳細:{request.POST.get(f'detail_time{edit_id}')}
-"""
+      edit_comment = f"作業時間:{start_time}～{end_time}" + '\n' + \
+                     f"作業内容:{request.POST.get(f'def_time{edit_id}')}" + '\n' + \
+                     f"作業詳細:{request.POST.get(f'detail_time{edit_id}')}"
 
       # 入力エラー検出
       response = kosu_edit_check(start_time, end_time, edit_id, num, edit_comment, '工数編集画面：項目編集', request)
@@ -1569,9 +1566,9 @@ class DetailView(View):
       # 工数入力インデックスリスト定義
       index_list = []
       break_index_list = []
-      edit_comment = f"""就業日:{self.day}
-作業可項目:{selected_num}
-"""
+      edit_comment = f"就業日:{self.day}" + '\n' + \
+                     f"作業可項目:{selected_num}" + '\n'
+
       # 工数入力インデックスリスト作成
       for t in selected_num:
         # 作業可部分の作業時間取得
@@ -1584,10 +1581,9 @@ class DetailView(View):
         start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
         end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
         # 作業時間取得
-        edit_comment = edit_comment + f"""作業時間{t}:{start_time_hour}:{str(start_time_min).zfill(2)}～{end_time_hour}:{str(end_time_min).zfill(2)}
-業務区分定義{t}:{next((item[1] for item in self.display_def if item[0] == request.POST.get(f'def_time{t}')), None)}
-作業詳細{t}:{request.POST.get(f'detail_time{t}')}
-"""
+        edit_comment = edit_comment + f"作業時間{t}:{start_time_hour}:{str(start_time_min).zfill(2)}～{end_time_hour}:{str(end_time_min).zfill(2)}" + '\n' + \
+                                      f"業務区分定義{t}:{next((item[1] for item in self.display_def if item[0] == request.POST.get(f'def_time{t}')), None)}" + '\n' + \
+                                      f"作業詳細{t}:{request.POST.get(f'detail_time{t}')}"
 
         # 作業可部分の作業時間インデックス格納
         for tt in range(start_time_ind, end_time_ind):
@@ -1612,10 +1608,9 @@ class DetailView(View):
                 index_list.append(def_tt)
 
               # 作業時間取得
-              edit_comment = edit_comment + f"""作業時間{def_t+1}:{start_time_hour}:{str(start_time_min).zfill(2)}～{end_time_hour}:{str(end_time_min).zfill(2)}
-業務区分定義{def_t+1}:{self.def_time[def_t]}
-作業詳細{def_t+1}:{self.detail_time[def_t]}
-"""
+              edit_comment = edit_comment + f"作業時間{def_t+1}:{start_time_hour}:{str(start_time_min).zfill(2)}～{end_time_hour}:{str(end_time_min).zfill(2)}" + '\n' + \
+                                            f"業務区分定義{def_t+1}:{self.def_time[def_t]}" + '\n' + \
+                                            f"作業詳細{def_t+1}:{self.detail_time[def_t]}"
 
             # 休憩時間の処理
             else:
@@ -2111,11 +2106,11 @@ class ScheduleView(View):
       form = scheduleForm(form_default_list)
 
       # 操作履歴記録
-      edit_comment = f"""指定月:{context_data['year']}年{context_data['month']}月
-"""
+      edit_comment = f"指定月:{context_data['year']}年{context_data['month']}月" + '\n'
+
       for item in day_history:
-        edit_comment = edit_comment +f"""{item[0]}　{item[1]}　{item[2]}
-"""
+        edit_comment = edit_comment +f"{item[0]}　{item[1]}　{item[2]}"
+
       history_record('勤務入力画面：直一括入力', 'Business_Time_graph', 'OK', edit_comment, self.request)
 
     # デフォルト勤務入力の処理
@@ -2187,11 +2182,11 @@ class ScheduleView(View):
       form = scheduleForm(form_default_list)
 
       # 操作履歴記録
-      edit_comment = f"""指定月:{context_data['year']}年{context_data['month']}月
-"""
+      edit_comment = f"指定月:{context_data['year']}年{context_data['month']}月" + '\n'
+
       for item in day_history:
-        edit_comment = edit_comment +f"""{item[0]}　{item[1]}　{item[2]}
-"""
+        edit_comment = edit_comment +f"{item[0]}　{item[1]}　{item[2]}"
+
       history_record('勤務入力画面：デフォルト勤務一括入力', 'Business_Time_graph', 'OK', edit_comment, self.request)
 
     # 勤務登録時の処理
@@ -2259,11 +2254,11 @@ class ScheduleView(View):
       form = scheduleForm(form_default_list)
 
       # 操作履歴記録
-      edit_comment = f"""指定月:{context_data['year']}年{context_data['month']}月
-"""
+      edit_comment = f"指定月:{context_data['year']}年{context_data['month']}月" + '\n'
+
       for item in day_history:
-        edit_comment = edit_comment +f"""{item[0]}　{item[1]}　{item[2]}　{item[3]}
-"""
+        edit_comment = edit_comment +f"{item[0]}　{item[1]}　{item[2]}　{item[3]}"
+
       history_record('勤務入力画面：勤務入力', 'Business_Time_graph', 'OK', edit_comment, self.request)
 
     context = {

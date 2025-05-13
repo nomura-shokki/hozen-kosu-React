@@ -166,12 +166,12 @@ class MemberNewView(CreateView):
   def form_valid(self, form):
     request = self.request
     # 入力内容記録
-    edit_comment = f"""従業員番号:{request.POST['employee_no']}
-氏名:{request.POST['name']}
-ショップ:{request.POST['shop']}
-権限:{'authority' in request.POST}
-管理者権限:{'administrator' in request.POST}
-"""
+    edit_comment = f"従業員番号:{request.POST['employee_no']}" + '\n' + \
+                   f"氏名:{request.POST['name']}" + '\n' + \
+                   f"ショップ:{request.POST['shop']}" + '\n' + \
+                   f"権限:{'authority' in request.POST}" + '\n' + \
+                   f"管理者権限:{'administrator' in request.POST}"
+
     # POSTした従業員番号が既に登録されている場合エラー出力
     if member.objects.filter(employee_no=request.POST['employee_no']).exists():
       history_record('人員登録', 'member', 'ERROR041', edit_comment, request)
@@ -293,12 +293,12 @@ class MemberEditView(UpdateView):
   # フォームが有効な場合に呼ばれるメソッドをオーバーライド 
   def form_valid(self, form):
     # 入力内容記録
-    edit_comment = f"""従業員番号:{self.request.POST['employee_no']}
-氏名:{self.request.POST['name']}
-ショップ:{self.request.POST['shop']}
-権限:{'authority' in self.request.POST}
-管理者権限:{'administrator' in self.request.POST}
-"""
+    edit_comment = f"従業員番号:{self.request.POST['employee_no']}" + '\n' + \
+                   f"氏名:{self.request.POST['name']}" + '\n' + \
+                   f"ショップ:{self.request.POST['shop']}" + '\n' + \
+                   f"権限:{'authority' in self.request.POST}" + '\n' + \
+                   f"管理者権限:{'administrator' in self.request.POST}"
+
     # 編集前の従業員番号を取得
     original_employee_no = self.request.session['edit_No']
     # フォームから新しい従業員番号を取得
@@ -427,8 +427,8 @@ class MemberDeleteView(DeleteView):
   def form_valid(self, form):
     response = super().form_valid(form)
     # 入力内容記録
-    edit_comment = f"""従業員番号:{self.kwargs['num']}
-氏名:{self.request.session['delete_name']}"""
+    edit_comment = f"従業員番号:{self.kwargs['num']}" + '\n' + \
+                   f"氏名:{self.request.session['delete_name']}"
     # 操作履歴記録
     history_record('人員削除', 'member', 'OK', edit_comment, self.request)
     return response
