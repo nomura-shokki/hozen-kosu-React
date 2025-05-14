@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.views import View
 from django.views.generic.edit import CreateView
 from django.views.generic.list import ListView
 from django.views.generic.base import TemplateView
@@ -43,8 +44,13 @@ class InquiryNewView(CreateView):
 
   # フォームが有効な場合に呼び出されるメソッドをオーバーライド
   def form_valid(self, form):
+    # 入力内容記録
+    edit_comment = f"内容選択:{self.request.POST['content_choice']}" + '\n' + \
+                   f"問い合わせ:{self.request.POST['inquiry']}"
+
     # 問い合わせ内容が10文字未満の場合、リダイレクト
     if len(self.request.POST.get('inquiry', '')) < 10:
+      history_record('問い合わせ登録', 'inquiry_data', 'ERROR046', edit_comment, self.request)
       messages.error(self.request, '問い合わせ内容は10文字以上でお願いします。ERROR046')
       return redirect('/inquiry_new')
 
@@ -56,6 +62,9 @@ class InquiryNewView(CreateView):
     new_inquiry.employee_no2 = self.request.session['login_No']
     new_inquiry.name = member_instance
     new_inquiry.save()
+
+    # 操作履歴記録
+    history_record('問い合わせ登録', 'inquiry_data', 'OK', edit_comment, self.request)
 
     # 最新の問い合わせデータ取得
     inquiry_data_id = inquiry_data.objects.order_by('id').last()
@@ -114,7 +123,8 @@ class InquiryListView(ListView):
   model = inquiry_data
   template_name = 'kosu/inquiry_list.html'
   context_object_name = 'data'
-  
+
+
   # リクエストを処理するメソッドをオーバーライド
   def dispatch(self, request, *args, **kwargs):
     # 人員情報取得
@@ -385,237 +395,235 @@ class InquiryDisplayView(TemplateView):
 
 
 # 問い合わせ編集画面定義
-def inquiry_edit(request, num):
-
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to='/login')
+class InquiryEditView(View):
+  # テンプレート定義
+  template_name = 'kosu/inquiry_edit.html'
 
 
-  # 指定IDの工数履歴のレコードのオブジェクト取得
-  obj_get = inquiry_data.objects.get(id=num)
-
-  try:
-    # ログイン者の情報取得
-    login_obj_get = member.objects.get(employee_no=request.session['login_No'])
-
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to='/login') 
-
-
-  # フォーム初期値定義
-  form_default = {'content_choice': obj_get.content_choice, 
-                  'inquiry': obj_get.inquiry, 
-                  'answer': obj_get.answer}
-  # フォーム定義
-  form = inquiryForm(form_default)
-
-
-
-  # 問い合わせ編集処理
-  if "Registration" in request.POST:
-    # 指定IDの工数履歴のレコードのオブジェクト取得
-    obj_get = inquiry_data.objects.get(id=num)
-    # 問い合わせ者情報取得
-    try:
-      member_obj_get = member.objects.get(employee_no=obj_get.employee_no2)
-    except member.DoesNotExist:
-      member_obj_get = ''
-
-    # 設定情報取得
-    last_record = administrator_data.objects.order_by('id').last()
-    if last_record is None:
-      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
-      administrator_obj_get = administrator_data(menu_row=20)
-    else:
-      administrator_obj_get = last_record
-
-    # 問い合わせが編集前後で変更がある場合の処理
-    if obj_get.inquiry != request.POST['inquiry']:
-      # 管理者へのポップアップにコメント書き込み
-      for i in range(1, 6):
-        pop_up_attr = f'pop_up{i}'
-        pop_up_id_attr = f'pop_up_id{i}'
-        # ポップアップフィールドが空の場合、コメント書き込み
-        if getattr(administrator_obj_get, pop_up_attr) in ['', None]:
-          administrator_data.objects.update_or_create(
-            id=administrator_obj_get.id,
-            defaults={
-              pop_up_attr: f'ID{num}の問い合わせが編集されました。',
-              pop_up_id_attr: num
-            }
-          )
-          break
-
-    # ログイン者に回答権限がある場合の処理
-    if login_obj_get.administrator == True:
-      # 回答が編集前後で変更がある場合の処理
-      if obj_get.answer != request.POST['answer']:
-        if member_obj_get != '':
-          # ポップアップの処理をリストで管理
-          for i in range(1, 6):
-            pop_up_attr = f'pop_up{i}'
-            pop_up_id_attr = f'pop_up_id{i}'
-            if getattr(member_obj_get, pop_up_attr) in ['', None]:
-              member.objects.update_or_create(
-                employee_no=obj_get.employee_no2,
-                defaults={
-                  pop_up_attr: f'ID{num}の問い合わせに回答が来ています。',
-                  pop_up_id_attr: num,
-                },
-              )
-              break
-
-        # 問い合わせ回答書き込み
-        inquiry_data.objects.update_or_create(
-          id=num,
-          defaults={
-            'content_choice': request.POST["content_choice"],
-            'inquiry': request.POST["inquiry"],
-            'answer': request.POST["answer"],
-          },
-        )
-
-      # 回答が編集前後で変更がない場合の処理
-      else:
-        # 問い合わせ書き込み
-        inquiry_data.objects.update_or_create(
-          id=num,
-          defaults={
-            'content_choice': request.POST["content_choice"],
-            'inquiry': request.POST["inquiry"],
-          },
-        )
-  
-    # ログイン者に回答権限がない場合の処理
-    else:
-      # 問い合わせ書き込み
-      inquiry_data.objects.update_or_create(
-        id=num,
-        defaults={
-          'content_choice': request.POST["content_choice"],
-          'inquiry': request.POST["inquiry"],
-        },
-      )
-
-    # 問い合わせ一覧ページをリダイレクトする
-    return redirect(to='/inquiry_list/1')
-
-
-
-  # 問い合わせ削除処理
-  if "delete" in request.POST:
-    # 問い合わせ者の情報取得
-    data = member.objects.get(employee_no=obj_get.employee_no2)
-
-    # 削除する問い合わせIDとポップアップのIDが等しいときポップアップ削除
-    for i in range(1, 6):
-      pop_up_id_attr = f'pop_up_id{i}'
-      pop_up_attr = f'pop_up{i}'
-      if getattr(data, pop_up_id_attr) == str(num):
-        member.objects.update_or_create(
-          employee_no=obj_get.employee_no2,
-          defaults={pop_up_id_attr: '', pop_up_attr: ''}
-        )
-    # 問い合わせ者の情報再取得
-    data = member.objects.get(employee_no = obj_get.employee_no2)
-
-
-    # ポップアップ空データ詰め
-    for i in range(1, 5):
-      pop_up_attr = f'pop_up{i}'
-      pop_up_id_attr = f'pop_up_id{i}'
-      next_pop_up_attr = f'pop_up{i + 1}'
-      next_pop_up_id_attr = f'pop_up_id{i + 1}'
-
-      if getattr(data, pop_up_attr) in ['', None]:
-        member.objects.update_or_create(
-          employee_no=obj_get.employee_no2,
-          defaults={
-            pop_up_attr: getattr(data, next_pop_up_attr),
-            pop_up_id_attr: getattr(data, next_pop_up_id_attr),
-            next_pop_up_attr: '',
-            next_pop_up_id_attr: ''
-          }
-        )
-        # 問い合わせ者の情報再取得
-        data = member.objects.get(employee_no=obj_get.employee_no2)    
-
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得
+    member_obj = get_member(request)
+    # 人員情報なしor未ログインの場合ログイン画面へ
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.login_obj_get = member_obj
 
     # 設定データ取得
     last_record = administrator_data.objects.order_by('id').last()
     if last_record is None:
-      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
-      default_data = administrator_data(menu_row=20)
+      self.administrator_obj_get = administrator_data(menu_row=20)
     else:
-      default_data = last_record
+      self.administrator_obj_get = last_record
+
+    # 親クラスのdispatchメソッドを呼び出し
+    return super().dispatch(request, *args, **kwargs)
 
 
-    # 削除する問い合わせIDとポップアップのIDが等しいときポップアップ削除
-    for i in range(1, 6):
-      pop_up_id_attr = f"pop_up_id{i}"
-      pop_up_attr = f"pop_up{i}"
+  # GET時の処理
+  def get(self, request, num):
+    # 指定IDの工数履歴レコード取得
+    obj_get = inquiry_data.objects.get(id=num)
 
-      if getattr(default_data, pop_up_id_attr) != '' and getattr(default_data, pop_up_id_attr) == str(num):
-        administrator_data.objects.update_or_create(
-          id=default_data.id,
-          defaults={pop_up_id_attr: '', pop_up_attr: ''}
-        )
-    # 設定データ再取得
-    default_data = administrator_data.objects.order_by('id').last()
+    # 初期値定義してフォーム作成
+    form_default = {
+      'content_choice': obj_get.content_choice,
+      'inquiry': obj_get.inquiry,
+      'answer': obj_get.answer,
+    }
+    form = inquiryForm(form_default)
 
-
-    # ポップアップ空データ詰め
-    for i in range(1, 5):
-      pop_up_attr = f"pop_up{i}"
-      pop_up_id_attr = f"pop_up_id{i}"
-      next_pop_up_attr = f"pop_up{i + 1}"
-      next_pop_up_id_attr = f"pop_up_id{i + 1}"
-
-      if getattr(default_data, pop_up_attr) in ["", None]:
-        administrator_data.objects.update_or_create(
-          id=default_data.id,
-          defaults={
-            pop_up_attr: getattr(default_data, next_pop_up_attr),
-            pop_up_id_attr: getattr(default_data, next_pop_up_id_attr),
-            next_pop_up_attr: '',
-            next_pop_up_id_attr: ''
-          }
-        )
-        # 設定データ再取得
-        default_data = administrator_data.objects.order_by('id').last()
-
-    # 取得したレコード削除
-    obj_get.delete()
-
-    # 問い合わせ一覧ページをリダイレクトする
-    return redirect(to='/inquiry_list/1')
-
-
-
-  # HTMLに渡す辞書
-  context = {
-    'title': '問い合わせ編集',
-    'id': num,
-    'obj': obj_get,
-    'form': form,
-    'login_obj_get': login_obj_get,
+    # 辞書を作成してHTMLに渡す
+    context = {
+      'title': '問い合わせ編集',
+      'id': num,
+      'obj': obj_get,
+      'form': form,
+      'login_obj_get': self.login_obj_get,
     }
 
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/inquiry_edit.html', context)
+    return render(request, self.template_name, context)
+
+
+  # POST時の処理
+  def post(self, request, num):
+    # 指定IDの工数履歴レコード取得
+    obj_get = inquiry_data.objects.get(id=num)
+
+    # 問い合わせ編集処理
+    if "Registration" in request.POST:
+      # 入力内容記録
+      edit_comment = f"内容選択:{self.request.POST['content_choice']}" + '\n' + \
+                    f"問い合わせ:{self.request.POST.get('inquiry', '')}" + '\n' + \
+                    f"回答:{self.request.POST.get('answer', '')}"
+
+      # 問い合わせ者情報を取得
+      try:
+        member_obj_get = member.objects.get(employee_no=obj_get.employee_no2)
+      except member.DoesNotExist:
+        member_obj_get = ''
+
+      # 問い合わせの内容に変更のあった場合
+      if obj_get.inquiry != request.POST['inquiry']:
+        # 管理者へのポップアップ通知
+        for i in range(1, 6):
+          pop_up_attr = f'pop_up{i}'
+          pop_up_id_attr = f'pop_up_id{i}'
+          if getattr(self.administrator_obj_get, pop_up_attr) in ['', None]:
+            administrator_data.objects.update_or_create(
+              id=self.administrator_obj_get.id,
+              defaults={
+                pop_up_attr: f'ID{num}の問い合わせが編集されました。',
+                pop_up_id_attr: num,
+              }
+            )
+            break
+
+      # ログイン者が管理者の場合
+      if self.login_obj_get.administrator:
+        # 回答に変更があった場合
+        if obj_get.answer != request.POST['answer']:
+          # 問い合わせ者の人員情報がある場合
+          if member_obj_get:
+            # 問い合わせ者に回答通知
+            for i in range(1, 6):
+              pop_up_attr = f'pop_up{i}'
+              pop_up_id_attr = f'pop_up_id{i}'
+              if getattr(member_obj_get, pop_up_attr) in ['', None]:
+                member.objects.update_or_create(
+                  employee_no=obj_get.employee_no2,
+                  defaults={
+                    pop_up_attr: f'ID{num}の問い合わせに回答が来ています。',
+                    pop_up_id_attr: num,
+                  },
+                )
+                break
+
+          # 問い合わせ&回答保存
+          inquiry_data.objects.update_or_create(
+            id=num,
+            defaults={
+              'content_choice': request.POST["content_choice"],
+              'inquiry': request.POST["inquiry"],
+              'answer': request.POST["answer"],
+            },
+          )
+
+        # 回答に変更がない場合
+        else:
+          # 回答以外保存
+          inquiry_data.objects.update_or_create(
+            id=num,
+            defaults={
+              'content_choice': request.POST["content_choice"],
+              'inquiry': request.POST["inquiry"],
+            },
+          )
+
+      # ログイン者が管理者でない場合
+      else:
+        # 回答以外保存
+        inquiry_data.objects.update_or_create(
+          id=num,
+          defaults={
+            'content_choice': request.POST["content_choice"],
+            'inquiry': request.POST["inquiry"],
+          },
+        )
+
+      # 編集履歴記録
+      history_record('問い合わせ編集', 'inquiry_data', 'OK', edit_comment, self.request)
+
+      # 問い合わせ一覧へ戻る
+      return redirect(to='/inquiry_list/1')
+
+
+    # 問い合わせ削除処理
+    if "delete" in request.POST:
+      # 入力内容記録
+      self.request.session['delete_content_choice'] = self.request.POST['content_choice']
+      self.request.session['delete_inquiry'] = self.request.POST['inquiry']
+      self.request.session['delete_answer'] = self.request.POST.get('answer', '')
+      edit_comment = f"内容選択:{self.request.session['delete_content_choice']}" + '\n' + \
+                    f"問い合わせ:{self.request.session['delete_inquiry']}" + '\n' + \
+                    f"回答:{self.request.session['delete_answer']}"
+
+      # 問い合わせ者の人員情報取得
+      data = member.objects.get(employee_no=obj_get.employee_no2)
+
+      # 削除する問い合わせに関する通知を削除
+      for i in range(1, 6):
+        pop_up_id_attr = f'pop_up_id{i}'
+        pop_up_attr = f'pop_up{i}'
+        if getattr(data, pop_up_id_attr) == str(num):
+          member.objects.update_or_create(
+            employee_no=obj_get.employee_no2,
+            defaults={pop_up_id_attr: '', pop_up_attr: ''}
+          )
+      # 問い合わせ者の人員情報再取得
+      data = member.objects.get(employee_no=obj_get.employee_no2)
+
+      # 問い合わせ者の通知情報整理
+      for i in range(1, 5):
+        pop_up_attr = f'pop_up{i}'
+        pop_up_id_attr = f'pop_up_id{i}'
+        next_pop_up_attr = f'pop_up{i + 1}'
+        next_pop_up_id_attr = f'pop_up_id{i + 1}'
+
+        if getattr(data, pop_up_attr) in ['', None]:
+          member.objects.update_or_create(
+            employee_no=obj_get.employee_no2,
+            defaults={
+              pop_up_attr: getattr(data, next_pop_up_attr),
+              pop_up_id_attr: getattr(data, next_pop_up_id_attr),
+              next_pop_up_attr: '',
+              next_pop_up_id_attr: ''
+            }
+          )
+          # 問い合わせ者の人員情報再取得
+          data = member.objects.get(employee_no=obj_get.employee_no2)
+
+      # 削除する問い合わせに関する通知を削除
+      for i in range(1, 6):
+        pop_up_id_attr = f"pop_up_id{i}"
+        pop_up_attr = f"pop_up{i}"
+        if getattr(self.administrator_obj_get, pop_up_id_attr) == str(num):
+          administrator_data.objects.update_or_create(
+            id=self.administrator_obj_get.id,
+            defaults={pop_up_id_attr: '', pop_up_attr: ''}
+          )
+      # 設定再取得
+      self.administrator_obj_get = administrator_data.objects.order_by('id').last()
+
+      # 管理者用通知整理
+      for i in range(1, 5):
+        pop_up_attr = f"pop_up{i}"
+        pop_up_id_attr = f"pop_up_id{i}"
+        next_pop_up_attr = f"pop_up{i + 1}"
+        next_pop_up_id_attr = f"pop_up_id{i + 1}"
+        if getattr(self.administrator_obj_get, pop_up_attr) in ["", None]:
+          administrator_data.objects.update_or_create(
+            id=self.administrator_obj_get.id,
+            defaults={
+              pop_up_attr: getattr(self.administrator_obj_get, next_pop_up_attr),
+              pop_up_id_attr: getattr(self.administrator_obj_get, next_pop_up_id_attr),
+              next_pop_up_attr: '',
+              next_pop_up_id_attr: ''
+            }
+          )
+
+      # 問い合わせ削除
+      obj_get.delete()
+
+      # 編集履歴記録
+      history_record('問い合わせ削除', 'inquiry_data', 'OK', edit_comment, self.request)
+
+      # 問い合わせ一覧へ戻る
+      return redirect(to='/inquiry_list/1')
 
 
 
 
 
 #--------------------------------------------------------------------------------------------------------
-
-
-
-
 

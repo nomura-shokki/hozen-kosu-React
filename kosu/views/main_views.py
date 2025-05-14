@@ -487,9 +487,9 @@ class AdministratorMenuView(FormView):
 
     # 入力内容記録
     edit_comment = f"表示件数:{request.POST['menu_row']}" + '\n' + \
-    f"問い合わせ担当者1:{request.POST['administrator_employee_no1']}" + '\n' + \
-    f"問い合わせ担当者2:{request.POST['administrator_employee_no2']}" + '\n' + \
-    f"問い合わせ担当者3:{request.POST['administrator_employee_no3']}"
+                   f"問い合わせ担当者1:{request.POST['administrator_employee_no1']}" + '\n' + \
+                   f"問い合わせ担当者2:{request.POST['administrator_employee_no2']}" + '\n' + \
+                   f"問い合わせ担当者3:{request.POST['administrator_employee_no3']}"
 
     # 設定更新時の処理
     if 'registration' in request.POST:
@@ -645,29 +645,29 @@ class HelpView(FormView):
             break_time1_over1=ws.cell(row=i + 1, column=7).value,
             break_time1_over2=ws.cell(row=i + 1, column=8).value,
             break_time1_over3=ws.cell(row=i + 1, column=9).value,
-            break_time2 = ws.cell(row = i + 1, column = 10).value, \
-            break_time2_over1 = ws.cell(row = i + 1, column = 11).value, \
-            break_time2_over2 = ws.cell(row = i + 1, column = 12).value, \
-            break_time2_over3 = ws.cell(row = i + 1, column = 13).value, \
-            break_time3 = ws.cell(row = i + 1, column = 14).value, \
-            break_time3_over1 = ws.cell(row = i + 1, column = 15).value, \
-            break_time3_over2 = ws.cell(row = i + 1, column = 16).value, \
-            break_time3_over3 = ws.cell(row = i + 1, column = 17).value, \
-            break_time4 = ws.cell(row = i + 1, column = 18).value, \
-            break_time4_over1 = ws.cell(row = i + 1, column = 19).value, \
-            break_time4_over2 = ws.cell(row = i + 1, column = 20).value, \
-            break_time4_over3 = ws.cell(row = i + 1, column = 21).value, \
-            pop_up1 = ws.cell(row = i + 1, column = 22).value, \
-            pop_up_id1 = ws.cell(row = i + 1, column = 23).value, \
-            pop_up2 = ws.cell(row = i + 1, column = 24).value, \
-            pop_up_id2 = ws.cell(row = i + 1, column = 25).value, \
-            pop_up3 = ws.cell(row = i + 1, column = 26).value, \
-            pop_up_id3 = ws.cell(row = i + 1, column = 27).value, \
-            pop_up4 = ws.cell(row = i + 1, column = 28).value, \
-            pop_up_id4 = ws.cell(row = i + 1, column = 29).value, \
-            pop_up5 = ws.cell(row = i + 1, column = 30).value, \
-            pop_up_id5 = ws.cell(row = i + 1, column = 31).value, \
-            break_check = ws.cell(row = i + 1, column = 32).value, \
+            break_time2 = ws.cell(row = i + 1, column = 10).value,
+            break_time2_over1 = ws.cell(row = i + 1, column = 11).value,
+            break_time2_over2 = ws.cell(row = i + 1, column = 12).value,
+            break_time2_over3 = ws.cell(row = i + 1, column = 13).value,
+            break_time3 = ws.cell(row = i + 1, column = 14).value,
+            break_time3_over1 = ws.cell(row = i + 1, column = 15).value,
+            break_time3_over2 = ws.cell(row = i + 1, column = 16).value,
+            break_time3_over3 = ws.cell(row = i + 1, column = 17).value,
+            break_time4 = ws.cell(row = i + 1, column = 18).value,
+            break_time4_over1 = ws.cell(row = i + 1, column = 19).value,
+            break_time4_over2 = ws.cell(row = i + 1, column = 20).value,
+            break_time4_over3 = ws.cell(row = i + 1, column = 21).value,
+            pop_up1 = ws.cell(row = i + 1, column = 22).value,
+            pop_up_id1 = ws.cell(row = i + 1, column = 23).value,
+            pop_up2 = ws.cell(row = i + 1, column = 24).value,
+            pop_up_id2 = ws.cell(row = i + 1, column = 25).value,
+            pop_up3 = ws.cell(row = i + 1, column = 26).value,
+            pop_up_id3 = ws.cell(row = i + 1, column = 27).value,
+            pop_up4 = ws.cell(row = i + 1, column = 28).value,
+            pop_up_id4 = ws.cell(row = i + 1, column = 29).value,
+            pop_up5 = ws.cell(row = i + 1, column = 30).value,
+            pop_up_id5 = ws.cell(row = i + 1, column = 31).value,
+            break_check = ws.cell(row = i + 1, column = 32).value,
             def_prediction=ws.cell(row=i + 1, column=33).value,
             )
           new_data.save()
@@ -687,29 +687,29 @@ class HelpView(FormView):
             break_time1_over1=ws.cell(row=i + 1, column=7).value,
             break_time1_over2=ws.cell(row=i + 1, column=8).value,
             break_time1_over3=ws.cell(row=i + 1, column=9).value,
-            break_time2 = ws.cell(row = i + 1, column = 10).value, \
-            break_time2_over1 = ws.cell(row = i + 1, column = 11).value, \
-            break_time2_over2 = ws.cell(row = i + 1, column = 12).value, \
-            break_time2_over3 = ws.cell(row = i + 1, column = 13).value, \
-            break_time3 = ws.cell(row = i + 1, column = 14).value, \
-            break_time3_over1 = ws.cell(row = i + 1, column = 15).value, \
-            break_time3_over2 = ws.cell(row = i + 1, column = 16).value, \
-            break_time3_over3 = ws.cell(row = i + 1, column = 17).value, \
-            break_time4 = ws.cell(row = i + 1, column = 18).value, \
-            break_time4_over1 = ws.cell(row = i + 1, column = 19).value, \
-            break_time4_over2 = ws.cell(row = i + 1, column = 20).value, \
-            break_time4_over3 = ws.cell(row = i + 1, column = 21).value, \
-            pop_up1 = ws.cell(row = i + 1, column = 22).value, \
-            pop_up_id1 = ws.cell(row = i + 1, column = 23).value, \
-            pop_up2 = ws.cell(row = i + 1, column = 24).value, \
-            pop_up_id2 = ws.cell(row = i + 1, column = 25).value, \
-            pop_up3 = ws.cell(row = i + 1, column = 26).value, \
-            pop_up_id3 = ws.cell(row = i + 1, column = 27).value, \
-            pop_up4 = ws.cell(row = i + 1, column = 28).value, \
-            pop_up_id4 = ws.cell(row = i + 1, column = 29).value, \
-            pop_up5 = ws.cell(row = i + 1, column = 30).value, \
-            pop_up_id5 = ws.cell(row = i + 1, column = 31).value, \
-            break_check = ws.cell(row = i + 1, column = 32).value, \
+            break_time2 = ws.cell(row = i + 1, column = 10).value,
+            break_time2_over1 = ws.cell(row = i + 1, column = 11).value,
+            break_time2_over2 = ws.cell(row = i + 1, column = 12).value,
+            break_time2_over3 = ws.cell(row = i + 1, column = 13).value,
+            break_time3 = ws.cell(row = i + 1, column = 14).value,
+            break_time3_over1 = ws.cell(row = i + 1, column = 15).value,
+            break_time3_over2 = ws.cell(row = i + 1, column = 16).value,
+            break_time3_over3 = ws.cell(row = i + 1, column = 17).value,
+            break_time4 = ws.cell(row = i + 1, column = 18).value,
+            break_time4_over1 = ws.cell(row = i + 1, column = 19).value,
+            break_time4_over2 = ws.cell(row = i + 1, column = 20).value,
+            break_time4_over3 = ws.cell(row = i + 1, column = 21).value,
+            pop_up1 = ws.cell(row = i + 1, column = 22).value,
+            pop_up_id1 = ws.cell(row = i + 1, column = 23).value,
+            pop_up2 = ws.cell(row = i + 1, column = 24).value,
+            pop_up_id2 = ws.cell(row = i + 1, column = 25).value,
+            pop_up3 = ws.cell(row = i + 1, column = 26).value,
+            pop_up_id3 = ws.cell(row = i + 1, column = 27).value,
+            pop_up4 = ws.cell(row = i + 1, column = 28).value,
+            pop_up_id4 = ws.cell(row = i + 1, column = 29).value,
+            pop_up5 = ws.cell(row = i + 1, column = 30).value,
+            pop_up_id5 = ws.cell(row = i + 1, column = 31).value,
+            break_check = ws.cell(row = i + 1, column = 32).value,
             def_prediction=ws.cell(row=i + 1, column=33).value,
             )
           new_data.save()

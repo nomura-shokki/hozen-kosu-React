@@ -53,7 +53,7 @@ urlpatterns = [
   path('inquiry_new', inquiry_views.InquiryNewView.as_view(), name='inquiry_new'), # 問い合わせ新規登録画面
   path('inquiry_list/<int:num>',inquiry_views.InquiryListView.as_view(), name='inquiry_list'), # 問い合わせ一覧画面
   path('inquiry_display/<int:num>',inquiry_views.InquiryDisplayView.as_view(), name='inquiry_display'), # 問い合わせ詳細画面
-  path('inquiry_edit/<int:num>',inquiry_views.inquiry_edit, name='inquiry_edit'), # 問い合わせ編集画面
+  path('inquiry_edit/<int:num>',inquiry_views.InquiryEditView.as_view(), name='inquiry_edit'), # 問い合わせ編集画面
   path('history_list/<int:pk>',main_views.HistoryList.as_view(), name='history_list'), # データ操作履歴一覧画面
   path('history_delete/<int:pk>',main_views.HistoryDelete.as_view(), name='history_delete'), # データ操作履歴詳細画面
 
