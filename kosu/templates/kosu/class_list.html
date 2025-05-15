@@ -56,17 +56,17 @@
           </tr>
           <tr>
             <td></td>
-            {% for d in week_list %}
-              {% if d == "土" %}
+            {% for d, w in day_list %}
+              {% if w == "土" %}
                 <td class="table-light_blue no-wrap" style="text-align:center;">
               {% else %}
-                {% if d == "日" %}
+                {% if w == "日" %}
                   <td class="table-pink no-wrap" style="text-align:center;">
                 {% else %}
                   <td class="no-wrap" style="text-align:center;">
                 {% endif %}
               {% endif %}
-                  {{d}}
+                  {{w}}
                 </td>
             {% endfor %}
           </tr>

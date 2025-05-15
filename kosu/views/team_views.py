@@ -25,6 +25,7 @@ from dateutil.relativedelta import relativedelta
 from io import BytesIO
 import datetime
 import openpyxl
+import calendar
 import urllib.parse
 from ..models import member
 from ..models import Business_Time_graph
@@ -881,20 +882,12 @@ def team_over_time(request):
 
 
 
-  # 次の月の最初の日を定義
-  if month == 12:
-    next_month = datetime.date(year + 1, 1, 1)
-
-  else:
-    next_month = datetime.date(year, month + 1, 1)
-
-  # 次の月の最初の日から1を引くことで、指定した月の最後の日を取得
-  last_day_of_month = next_month - datetime.timedelta(days = 1)
-
+  # 指定した月の最後の日を取得
+  last_day_of_month = calendar.monthrange(year, month)[1]
   # 曜日リスト定義
   week_list = []
   # 曜日リスト作成するループ
-  for d in range(1, last_day_of_month.day + 1):
+  for d in range(1, last_day_of_month + 1):
     # 曜日を取得する日を作成
     week_day = datetime.date(year, month, d)
 
@@ -941,7 +934,7 @@ def team_over_time(request):
     over_time_total = 0
 
     # 日毎の残業と整合性をリストに追加するループ
-    for d in range(1, int(last_day_of_month.day) + 1):
+    for d in range(1, int(last_day_of_month) + 1):
       # 該当日に工数データあるか確認
       obj_filter = Business_Time_graph.objects.filter(employee_no3 = m.employee_no, \
                                                       work_day2 = datetime.date(year, month, d))
@@ -970,29 +963,19 @@ def team_over_time(request):
     eval(f'over_time_list{ind + 1}.append(over_time_total)')
     eval(f'over_time_list{ind + 1}.insert(1,{over_time_total})')
 
-
+  # 残業リストまとめ
+  over_time_lists = [over_time_list1, over_time_list2, over_time_list3, 
+                    over_time_list4, over_time_list5, over_time_list6, 
+                    over_time_list7, over_time_list8, over_time_list9, 
+                    over_time_list10, over_time_list11, over_time_list12, 
+                    over_time_list13, over_time_list14, over_time_list15]
 
   # HTMLに渡す辞書
   context = {
     'title': '班員残業管理',
     'form': form,
-    'day_list': zip(range(1, last_day_of_month.day + 1), week_list), 
-    'week_list': week_list,
-    'over_time_list1': over_time_list1,
-    'over_time_list2': over_time_list2,
-    'over_time_list3': over_time_list3,
-    'over_time_list4': over_time_list4,
-    'over_time_list5': over_time_list5,
-    'over_time_list6': over_time_list6,
-    'over_time_list7': over_time_list7,
-    'over_time_list8': over_time_list8,
-    'over_time_list9': over_time_list9,
-    'over_time_list10': over_time_list10,
-    'over_time_list11': over_time_list11,
-    'over_time_list12': over_time_list12,
-    'over_time_list13': over_time_list13,
-    'over_time_list14': over_time_list14,
-    'over_time_list15': over_time_list15,
+    'day_list': list(zip(range(1, last_day_of_month + 1), week_list)), 
+    'over_time_lists': over_time_lists,
     'team_n': len(member_list),
     }
 
@@ -1080,12 +1063,7 @@ class ClassList(FormView):
     month = int(self.request.session.get('find_month', datetime.date.today().month))
 
     # 月の最終日取得
-    if month == 12:
-      next_month = datetime.date(year + 1, 1, 1)
-    else:
-      next_month = datetime.date(year, month + 1, 1)
-
-    last_day_of_month = next_month - datetime.timedelta(days=1)
+    last_day_of_month = calendar.monthrange(year, month)[1]
 
     # 従業員情報設定
     for member_obj in member_obj_filter:
@@ -1098,7 +1076,7 @@ class ClassList(FormView):
       member_obj_get = member.objects.get(employee_no=No_list[ind])
 
       # 工数入力可否情報設定
-      for day in range(1, last_day_of_month.day + 1):
+      for day in range(1, last_day_of_month + 1):
         day_date = datetime.date(year, month, day)
         business_time_obj = Business_Time_graph.objects.filter(
             employee_no3=member_obj_get.employee_no, work_day2=day_date
@@ -1111,7 +1089,7 @@ class ClassList(FormView):
       ok_list.append(provisional_list)
 
     # 曜日リスト作成
-    for d in range(1, last_day_of_month.day + 1):
+    for d in range(1, last_day_of_month + 1):
       week_day = datetime.date(year, month, d).weekday()
       week_mapping = ['月', '火', '水', '木', '金', '土', '日']
       week_list.append(week_mapping[week_day])
@@ -1121,9 +1099,8 @@ class ClassList(FormView):
       'title': '工数入力可否',
       'shop_form': member_findForm(self.get_form_kwargs()['initial']),
       'schedule_form': schedule_timeForm(self.extra_initial),
-      'day_list': zip(range(1, last_day_of_month.day + 1), week_list),
+      'day_list': list(zip(range(1, last_day_of_month + 1), week_list)), 
       'ok_list': ok_list,
-      'week_list': week_list,
       })
 
     return context

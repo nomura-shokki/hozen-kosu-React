@@ -54,24 +54,22 @@
           </td>
         </tr>
         <tr>
-          {% for d in week_list %}
-          {% if d == "土" %}
-            <td class="table-light_blue" style="text-align:center;">
-          {% else %}
-          {% if d == "日" %}
-            <td class="table-pink" style="text-align:center;">
-          {% else %}
-            <td style="text-align:center;">
-          {% endif %}
-          {% endif %}
-              {{d}}
-            </td>
+          {% for d, w in day_list %}
+            {% if w == "土" %}
+              <td class="table-light_blue" style="text-align:center;">
+            {% elif w == "日" %}
+              <td class="table-pink" style="text-align:center;">
+            {% else %}
+              <td style="text-align:center;">
+            {% endif %}
+                {{ w|default:"-" }}
+              </td>
           {% endfor %}
         </tr>
 
         {% if team_n > 0 %}
         <tr>
-        {% for m in over_time_list1 %}
+        {% for m in over_time_lists.0 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -111,7 +109,7 @@
 
         {% if team_n > 1 %}
         <tr>
-        {% for m in over_time_list2 %}
+        {% for m in over_time_lists.1 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -151,7 +149,7 @@
 
         {% if team_n > 2 %}
         <tr>
-        {% for m in over_time_list3 %}
+        {% for m in over_time_lists.2 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -191,7 +189,7 @@
 
         {% if team_n > 3 %}
         <tr>
-        {% for m in over_time_list4 %}
+        {% for m in over_time_lists.3 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -231,7 +229,7 @@
 
         {% if team_n > 4 %}
         <tr>
-        {% for m in over_time_list5 %}
+        {% for m in over_time_lists.4 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -271,7 +269,7 @@
 
         {% if team_n > 5 %}
         <tr>
-        {% for m in over_time_list6 %}
+        {% for m in over_time_lists.5 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -311,7 +309,7 @@
 
         {% if team_n > 6 %}
         <tr>
-        {% for m in over_time_list7 %}
+        {% for m in over_time_lists.6 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -351,7 +349,7 @@
 
         {% if team_n > 7 %}
         <tr>
-        {% for m in over_time_list8 %}
+        {% for m in over_time_lists.7 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -391,7 +389,7 @@
 
         {% if team_n > 8 %}
         <tr>
-        {% for m in over_time_list9 %}
+        {% for m in over_time_lists.8 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -431,7 +429,7 @@
 
         {% if team_n > 9 %}
         <tr>
-        {% for m in over_time_list10 %}
+        {% for m in over_time_lists.9 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -471,7 +469,7 @@
 
         {% if team_n > 10 %}
         <tr>
-        {% for m in over_time_list11 %}
+        {% for m in over_time_lists.10 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -511,7 +509,7 @@
 
         {% if team_n > 11 %}
         <tr>
-        {% for m in over_time_list12 %}
+        {% for m in over_time_lists.11 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -551,7 +549,7 @@
 
         {% if team_n > 12 %}
         <tr>
-        {% for m in over_time_list13 %}
+        {% for m in over_time_lists.12 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -591,7 +589,7 @@
 
         {% if team_n > 13 %}
         <tr>
-        {% for m in over_time_list14 %}
+        {% for m in over_time_lists.13 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
@@ -631,7 +629,7 @@
 
         {% if team_n > 14 %}
         <tr>
-        {% for m in over_time_list15 %}
+        {% for m in over_time_lists.14 %}
         {% if forloop.first %}
         <td class="no-wrap" style="text-align:center;">
           {{m}}
