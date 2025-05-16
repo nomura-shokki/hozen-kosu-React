@@ -14,9 +14,7 @@
   </head>
   <body class="container" id="display">
     <h1 class="display-1 text-primary">{{title}}</h1>
-    <div class="d-flex justify-content-between align-items-center mt-4">
-      <p class="h5 mb-0 no-wrap">こんにちは、{{data.name}}さん。</p>
-    </div>
+    <p class="h5 mb-0 no-wrap">こんにちは、{{data.name}}さん。</p>
     {% if pop_up_display == True %}
       {% if pop_up.pop_up1 and pop_up.pop_up1|length > 0 %}
         <p class="h6 mt-4">
@@ -87,7 +85,7 @@
     {% endif %}
     <form action="{% url 'main' %}" method="post">
       {% csrf_token %}
-      <input type="submit" value="ログアウト" class="btn btn-blue7 mt-2 btn-lg">　　
+      <input type="submit" value="ログアウト" class="btn btn-blue7 mt-2 btn-lg">
     </form>
     <script src="{% static 'kosu/js/display.js' %}"></script>
   </body>

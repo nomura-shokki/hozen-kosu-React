@@ -1,0 +1,28 @@
+/* コンテンツ全体がスクロール可能にする */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;  /* 全画面の高さを占有 */
+  overflow: hidden;  /* ビューポート全体でスクロールを制限 */
+}
+/* スクロール可能な領域を作成 */
+.content {
+  height: 70%; /* 画面の70%を占有 */
+  overflow-y: auto; /* 垂直方向にスクロール可能にする */
+  padding-bottom: 10px; /* 下端に余白を追加 */
+}
+/* 固定されたコンソール */
+#consoleDiv {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 30%; /* 画面の30%を占有 */
+  background: black;
+  color: white;
+  overflow-y: auto;
+  font-family: monospace;
+  padding: 10px;
+  margin: 0;
+  box-sizing: border-box;
+}

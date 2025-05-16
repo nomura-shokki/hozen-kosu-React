@@ -3,13 +3,13 @@
  * Plugin:  jquery-clock-timerpicker
  * Version: 2.6.4
  */
- (function($) {
+(function($) {
 
 	$.fn.clockTimePicker = function(options, _value) {
 		if (typeof options == 'string' && (options == 'value' || options == 'val') && !_value) return $(this).val();
 
 		/************************************************************************************************
-		  DEFAULT SETTINGS (CAN BE OVERRIDDEN WITH THE OPTIONS ARGUMENT)
+		DEFAULT SETTINGS (CAN BE OVERRIDDEN WITH THE OPTIONS ARGUMENT)
 		************************************************************************************************/
 		var settings = $.extend(true, {
 			afternoonHoursInOuterCircle: false,
@@ -64,8 +64,8 @@
 
 
 		/************************************************************************************************
-		  DYNAMICALLY INSERT CSS CODE FOR SELECTION ON MOBILE
-		 ************************************************************************************************/
+		DYNAMICALLY INSERT CSS CODE FOR SELECTION ON MOBILE
+		************************************************************************************************/
 		var css = '.clock-timepicker input { caret-color: transparent; }';
 		if (isMobile()) css += ' .clock-timepicker input::selection { background:rgba(255,255,255,0.6); } .clock-timepicker input::-moz-selection { background:rgba(255,255,255,0.6); }';
 		function cssAlreadyInitialized() {

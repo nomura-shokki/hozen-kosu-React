@@ -1,6 +1,9 @@
 from pathlib import Path
 import os
 import environ
+from logging.handlers import RotatingFileHandler
+
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -129,3 +132,36 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # バックアップファイル保存先指定
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {  
+            'format': '{message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'web_console': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'simple',
+            'filename': 'web_console.log',
+            'maxBytes': 1024 * 1024 * 1,  # 最大ファイルサイズ (1MB)
+            'backupCount': 1,
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'views_logger': {
+            'handlers': ['web_console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

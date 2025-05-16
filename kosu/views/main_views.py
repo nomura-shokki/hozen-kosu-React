@@ -3,9 +3,9 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.urls import reverse_lazy
 from django.utils.timezone import make_aware
-from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView, ListView
 from django.views.generic.edit import FormView, DeleteView
+from django.http import JsonResponse, HttpResponseRedirect
 from pathlib import Path
 import openpyxl
 import datetime
@@ -953,3 +953,35 @@ class HistoryDelete(DeleteView):
 
 #--------------------------------------------------------------------------------------------------------
 
+import logging
+
+# 専用のロガーを取得
+views_logger = logging.getLogger('views_logger')
+
+def example_view(request):
+    # ログに記録したい情報をロガーへ送信
+    views_logger.info("This is a custom log message related to this view.")
+    
+    return JsonResponse({'message': 'Log message created.'})
+
+def get_logs(request):
+    with open('web_console.log', 'r') as log_file:
+        logs = log_file.readlines()
+        return JsonResponse({'logs': logs})
+    
+import sys
+import logging
+
+# 専用のロガーを取得
+views_logger = logging.getLogger('views_logger')
+
+class PrintToLogger:
+    def write(self, message):
+        if message.strip():  # 空行は無視
+            views_logger.info(message)
+
+    def flush(self):
+        pass  # 必須だが処理不要
+
+# リダイレクトを適用
+sys.stdout = PrintToLogger()
