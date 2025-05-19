@@ -1,28 +1,40 @@
-/* コンテンツ全体がスクロール可能にする */
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;  /* 全画面の高さを占有 */
-  overflow: hidden;  /* ビューポート全体でスクロールを制限 */
+/* .display: 全体を画面サイズに対応させ、スクロールを無効化 */
+.display {
+  margin: 0;                /* 外側の余白を無効化 */
+  padding: 0;               /* 内側の余白を無効化 */
+  height: 100%;             /* ビューポートの高さを全体で占有 */
+  overflow: hidden;         /* ビューポート内でスクロールを完全に無効化 */
 }
-/* スクロール可能な領域を作成 */
+
+/* .content: スクロール可能な領域を作成、画面の上端に固定 */
 .content {
-  height: 70%; /* 画面の70%を占有 */
-  overflow-y: auto; /* 垂直方向にスクロール可能にする */
-  padding-bottom: 10px; /* 下端に余白を追加 */
+  position: fixed;           /* 固定位置に配置 */
+  top: 0;                    /* 上端に配置（垂直方向） */
+  left: 50%;                 /* 横方向の中央位置に移動 */
+  transform: translateX(-50%); /* 要素の幅の半分だけ左に移動して中央に揃える */
+  height: 70%;               /* 画面高さの70%を占有 */
+  width: 70%;                /* 横幅を全体の70%に設定 */
+  overflow-y: auto;          /* 垂直方向にスクロール可能にする */
+  padding: 10px;             /* 内側の余白を追加 */
+  box-sizing: border-box;    /* パディングを含めて幅・高さを計算 */
 }
-/* 固定されたコンソール */
-#consoleDiv {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 30%; /* 画面の30%を占有 */
-  background: black;
-  color: white;
-  overflow-y: auto;
-  font-family: monospace;
-  padding: 10px;
-  margin: 0;
-  box-sizing: border-box;
+
+/* .consoleDiv: 画面の下端に固定されたコンソール領域を作成 */
+.consoleDiv {
+  position: fixed;          /* 要素を画面の固定位置に配置 */
+  bottom: 0;                /* 下端に配置 */
+  width: 100%;              /* 画面幅全体（横幅）を占有 */
+  height: 30%;              /* 画面の30%の高さを占有 */
+  background: black;        /* コンソール領域の背景色を黒に設定 */
+  color: white;             /* 文字色を白に設定 */
+  overflow-y: auto;         /* 垂直方向のスクロールを有効化 */
+  font-family: monospace;   /* フォントをモノスペースに設定 */
+  padding: 10px;            /* 内側の余白を追加 */
+  margin: 0;                /* 外側の余白を無効化 */
+  box-sizing: border-box;   /* 要素の幅と高さにパディングやボーダーを含む */
+}
+
+/* 非表示 */
+.hidden {
+  display: none;
 }

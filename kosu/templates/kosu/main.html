@@ -11,82 +11,87 @@
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/console.css' %}">
+    <script src="{% static 'kosu/js/check_storage2.js' %}"></script>
   </head>
   <body class="container" id="display">
-    <h1 class="display-1 text-primary">{{title}}</h1>
-    <p class="h5 mb-0 no-wrap">こんにちは、{{data.name}}さん。</p>
-    {% if pop_up_display == True %}
-      {% if pop_up.pop_up1 and pop_up.pop_up1|length > 0 %}
-        <p class="h6 mt-4">
-          <a href="{% url 'inquiry_display' pop_up.pop_up_id1 %}" class="text-danger">{{pop_up.pop_up1}}</a>
-        </p>
+    <div id="content" class="content">
+      <h1 class="display-1 text-primary">{{title}}</h1>
+      <p class="h5 mb-0 no-wrap">こんにちは、{{data.name}}さん。</p>
+      {% if pop_up_display == True %}
+        {% if pop_up.pop_up1 and pop_up.pop_up1|length > 0 %}
+          <p class="h6 mt-4">
+            <a href="{% url 'inquiry_display' pop_up.pop_up_id1 %}" class="text-danger">{{pop_up.pop_up1}}</a>
+          </p>
+        {% endif %}
+        {% if pop_up.pop_up2 and pop_up.pop_up2|length > 0 %}
+          <p class="h6 mt-4 text-danger">
+            <a href="{% url 'inquiry_display' pop_up.pop_up_id2 %}" class="text-danger">{{pop_up.pop_up2}}</a>
+          </p>
+        {% endif %}
+        {% if pop_up.pop_up3 and pop_up.pop_up3|length > 0 %}
+          <p class="h6 mt-4 text-danger">
+            <a href="{% url 'inquiry_display' pop_up.pop_up_id3 %}" class="text-danger">{{pop_up.pop_up3}}</a>
+          </p>
+        {% endif %}
+        {% if pop_up.pop_up4 and pop_up.pop_up4|length > 0 %}
+          <p class="h6 mt-4 text-danger">
+            <a href="{% url 'inquiry_display' pop_up.pop_up_id4 %}" class="text-danger">{{pop_up.pop_up4}}</a>
+          </p>
+        {% endif %}
+        {% if pop_up.pop_up5 and pop_up.pop_up5|length > 0 %}
+          <p class="h6 mt-4 text-danger">
+            <a href="{% url 'inquiry_display' pop_up.pop_up_id5 %}" class="text-danger">{{pop_up.pop_up5}}</a>
+          </p>
+        {% endif %}
       {% endif %}
-      {% if pop_up.pop_up2 and pop_up.pop_up2|length > 0 %}
+      {% if data.pop_up1 and data.pop_up1|length > 0 %}
         <p class="h6 mt-4 text-danger">
-          <a href="{% url 'inquiry_display' pop_up.pop_up_id2 %}" class="text-danger">{{pop_up.pop_up2}}</a>
+          <a href="{% url 'inquiry_display' data.pop_up_id1 %}" class="text-danger">{{data.pop_up1}}</a>
         </p>
       {% endif %}
-      {% if pop_up.pop_up3 and pop_up.pop_up3|length > 0 %}
+      {% if data.pop_up2 and data.pop_up2|length > 0 %}
         <p class="h6 mt-4 text-danger">
-          <a href="{% url 'inquiry_display' pop_up.pop_up_id3 %}" class="text-danger">{{pop_up.pop_up3}}</a>
+          <a href="{% url 'inquiry_display' data.pop_up_id2 %}" class="text-danger">{{data.pop_up2}}</a>
         </p>
       {% endif %}
-      {% if pop_up.pop_up4 and pop_up.pop_up4|length > 0 %}
+      {% if data.pop_up3 and data.pop_up3|length > 0 %}
         <p class="h6 mt-4 text-danger">
-          <a href="{% url 'inquiry_display' pop_up.pop_up_id4 %}" class="text-danger">{{pop_up.pop_up4}}</a>
+          <a href="{% url 'inquiry_display' data.pop_up_id3 %}" class="text-danger">{{data.pop_up3}}</a>
         </p>
       {% endif %}
-      {% if pop_up.pop_up5 and pop_up.pop_up5|length > 0 %}
+      {% if data.pop_up4 and data.pop_up4|length > 0 %}
         <p class="h6 mt-4 text-danger">
-          <a href="{% url 'inquiry_display' pop_up.pop_up_id5 %}" class="text-danger">{{pop_up.pop_up5}}</a>
+          <a href="{% url 'inquiry_display' data.pop_up_id4 %}" class="text-danger">{{data.pop_up4}}</a>
         </p>
       {% endif %}
-    {% endif %}
-    {% if data.pop_up1 and data.pop_up1|length > 0 %}
-      <p class="h6 mt-4 text-danger">
-        <a href="{% url 'inquiry_display' data.pop_up_id1 %}" class="text-danger">{{data.pop_up1}}</a>
-      </p>
-    {% endif %}
-    {% if data.pop_up2 and data.pop_up2|length > 0 %}
-      <p class="h6 mt-4 text-danger">
-        <a href="{% url 'inquiry_display' data.pop_up_id2 %}" class="text-danger">{{data.pop_up2}}</a>
-      </p>
-    {% endif %}
-    {% if data.pop_up3 and data.pop_up3|length > 0 %}
-      <p class="h6 mt-4 text-danger">
-        <a href="{% url 'inquiry_display' data.pop_up_id3 %}" class="text-danger">{{data.pop_up3}}</a>
-      </p>
-    {% endif %}
-    {% if data.pop_up4 and data.pop_up4|length > 0 %}
-      <p class="h6 mt-4 text-danger">
-        <a href="{% url 'inquiry_display' data.pop_up_id4 %}" class="text-danger">{{data.pop_up4}}</a>
-      </p>
-    {% endif %}
-    {% if data.pop_up5 and data.pop_up5|length > 0 %}
-      <p class="h6 mt-4 text-danger">
-        <a href="{% url 'inquiry_display' data.pop_up_id5 %}" class="text-danger">{{data.pop_up5}}</a>
-      </p>
-    {% endif %}
-    <button onclick="location.href='/kosu_main'" class="btn btn-blue1 w-100 mt-2 btn-lg">
-      工数MENU</button>
-    <button onclick="location.href='/def_main'" class="btn btn-green1 w-100 mt-2 btn-lg">
-      工数区分定義MENU</button>
-    {% if data.authority == True %}
-      <button onclick="location.href='/member_main'" class="btn btn-yellow1 w-100 mt-2 btn-lg">
-        人員MENU</button>
-      <button onclick="location.href='/team_main'" class="btn btn-orange1 w-100 mt-2 btn-lg">
-        班員MENU</button>
-    {% endif %}
-    <button onclick="location.href='/inquiry_main'" class="btn btn-pink1 w-100 mt-2 btn-lg">
-      問い合わせMENU</button>
-    {% if data.administrator == True %}
-      <button onclick="location.href='/administrator'" class="btn btn-gray1 w-100 mt-2 btn-lg d-block d-none d-md-block">
-        管理者MENU</button>
-    {% endif %}
-    <form action="{% url 'main' %}" method="post">
-      {% csrf_token %}
-      <input type="submit" value="ログアウト" class="btn btn-blue7 mt-2 btn-lg">
-    </form>
+      {% if data.pop_up5 and data.pop_up5|length > 0 %}
+        <p class="h6 mt-4 text-danger">
+          <a href="{% url 'inquiry_display' data.pop_up_id5 %}" class="text-danger">{{data.pop_up5}}</a>
+        </p>
+      {% endif %}
+      <button onclick="location.href='/kosu_main'" class="btn btn-blue1 w-100 mt-2 btn-lg">
+        工数MENU</button>
+      <button onclick="location.href='/def_main'" class="btn btn-green1 w-100 mt-2 btn-lg">
+        工数区分定義MENU</button>
+      {% if data.authority == True %}
+        <button onclick="location.href='/member_main'" class="btn btn-yellow1 w-100 mt-2 btn-lg">
+          人員MENU</button>
+        <button onclick="location.href='/team_main'" class="btn btn-orange1 w-100 mt-2 btn-lg">
+          班員MENU</button>
+      {% endif %}
+      <button onclick="location.href='/inquiry_main'" class="btn btn-pink1 w-100 mt-2 btn-lg">
+        問い合わせMENU</button>
+      {% if data.administrator == True %}
+        <button onclick="location.href='/administrator'" class="btn btn-gray1 w-100 mt-2 btn-lg d-block d-none d-md-block">
+          管理者MENU</button>
+      {% endif %}
+      <form action="{% url 'main' %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="ログアウト" class="btn btn-blue7 mt-2 btn-lg">
+      </form>
+    </div>
+    <div id="consoleDiv"></div>
     <script src="{% static 'kosu/js/display.js' %}"></script>
   </body>
 </html>
