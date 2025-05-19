@@ -1,3 +1,6 @@
+// ログ更新タイマーIDを保持
+let logTimerId = null;
+
 // ログ読み込み
 function fetchLogs() {
   fetch('/get-logs')
@@ -10,10 +13,6 @@ function fetchLogs() {
       })
       .catch(error => console.error("Failed to fetch logs:", error));
 }
-
-// 都度更新
-setInterval(fetchLogs, 4000);
-
 
 // ページが読み込まれた時にチェックボックスの状態を復元
 document.addEventListener("DOMContentLoaded", function () {
@@ -32,12 +31,23 @@ document.addEventListener("DOMContentLoaded", function () {
     content.classList.add("content");
     htmlElement.classList.add("display");
     bodyElement.classList.add("display");
+
+    // ログ更新のタイマーを設定
+    if (logTimerId === null) {  // タイマーが既に動作中でない場合のみ設定
+      logTimerId = setInterval(fetchLogs, 4000);
+    }
   } else {
     targetElement.classList.add("hidden"); // 非表示
     targetElement.classList.remove("consoleDiv");
     content.classList.remove("content");
     htmlElement.classList.remove("display");
     bodyElement.classList.remove("display");
+
+    // ログ更新タイマーを停止
+    if (logTimerId !== null) {  // タイマーが動作している場合のみ停止
+      clearInterval(logTimerId);
+      logTimerId = null;  // タイマーIDを初期化
+    }
   }
 
   // チェックボックスの状態が変更されたらその場で表示を切り替え
@@ -52,13 +62,23 @@ document.addEventListener("DOMContentLoaded", function () {
       content.classList.add("content");
       htmlElement.classList.add("display");
       bodyElement.classList.add("display");
+
+      // ログ更新のタイマーを設定
+      if (logTimerId === null) {  // タイマーが既に動作中でない場合のみ設定
+        logTimerId = setInterval(fetchLogs, 4000);
+      }
     } else {
       targetElement.classList.add("hidden"); // 非表示
       targetElement.classList.remove("consoleDiv");
       content.classList.remove("content");
       htmlElement.classList.remove("display");
       bodyElement.classList.remove("display");
+
+      // ログ更新タイマーを停止
+      if (logTimerId !== null) {  // タイマーが動作している場合のみ停止
+        clearInterval(logTimerId);
+        logTimerId = null;  // タイマーIDを初期化
+      }
     }
   });
 });
-
