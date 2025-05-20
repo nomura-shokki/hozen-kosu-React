@@ -271,6 +271,173 @@ class KosuListView(ListView):
 
 
 # 工数入力画面定義
+class KosuInputView(View):
+    template_name = 'kosu/input.html'
+
+    # リクエストを処理するメソッドをオーバーライド
+    def dispatch(self, request, *args, **kwargs):
+      # 人員情報取得
+      member_obj = get_member(request)
+      # 人員情報なしor未ログインの場合ログイン画面へ
+      if isinstance(member_obj, HttpResponseRedirect):
+        return member_obj
+      self.member_obj = member_obj
+      # 親クラスのdispatchメソッドを呼び出し
+      return super().dispatch(request, *args, **kwargs)
+
+
+
+    def get(self, request, *args, **kwargs):
+        # 今日の日時を変数に格納
+        kosu_today = datetime.date.today()
+        # フォーム初期値定義
+        new_work_day = kosu_today if request.session.get('day') is None else request.session['day']
+
+        # グラフ関連リスト定義
+        graph_item, graph_list = handle_get_request(new_work_day, self.member_obj)
+
+        # 工数入力完了記憶がある場合の処理
+        show_message = request.session.get('POST_memory', False)
+        if show_message:
+            time.sleep(1)
+            del request.session['POST_memory']
+
+        return self.render_with_context(request, new_work_day, graph_item, graph_list, show_message, self.member_obj)
+
+    def post(self, request, *args, **kwargs):
+        # 今日の日時を変数に格納
+        kosu_today = datetime.date.today()
+        new_work_day = kosu_today if request.session.get('day') is None else request.session['day']
+
+        if "update" in request.POST:
+            if request.POST['work_day']:
+                # 更新処理
+                request.session['day'] = request.POST['work_day']
+                new_work_day = request.session['day']
+                handle_work_shift(request, self.member_obj, new_work_day)
+                graph_item, graph_list = handle_get_request(new_work_day, self.member_obj)
+                show_message = False
+            else:
+                messages.error(request, '就業日の削除はしないで下さい。ERROR001')
+                return redirect(to='/input')
+
+        elif "def_find" in request.POST:
+            obj_filter, tyoku, work = double_form(request.session['login_No'], request.POST['work_day'], request)
+            request.session['error_tyoku'] = tyoku
+            request.session['error_work'] = work
+            request.session['error_def'] = request.POST['kosu_def_list']
+            request.session['error_detail'] = request.POST['work_detail']
+            request.session['error_over_work'] = request.POST['over_work']
+            request.session['start_time'] = request.POST['start_time']
+            request.session['end_time'] = request.POST['end_time']
+            request.session['tomorrow_check'] = 'tomorrow_check' in request.POST
+            return redirect(to='/kosu_def')
+
+        return self.render_with_context(request, new_work_day, graph_item=[], graph_list=[], show_message=False, member_obj=self.member_obj)
+
+    def render_with_context(self, request, new_work_day, graph_item, graph_list, show_message, member_obj):
+        kosu_today = datetime.date.today()
+
+        # 作業終了時の変数がない場合の処理
+        default_end_time = str(request.session.get('end_time', ''))
+
+        # 工数データあるか確認
+        obj_filter = Business_Time_graph.objects.filter(employee_no3=request.session['login_No'],
+                                                        work_day2=request.session.get('day', kosu_today))
+        if obj_filter.exists():
+            obj_get = obj_filter.first()
+            over_work_default = obj_get.over_time
+            tyoku_default = obj_get.tyoku2
+            work_default = obj_get.work_time
+            ok_ng = obj_get.judgement
+            break_change_default = obj_get.break_change
+        else:
+            obj_get = ''
+            over_work_default = 0
+            ok_ng = False
+            break_change_default = False
+            work_default = ''
+            tyoku_default = ''
+
+        default_list = {
+            'work': request.session.get('error_work', work_default),
+            'work2': request.session.get('error_work', work_default),
+            'tyoku': request.session.get('error_tyoku', tyoku_default),
+            'tyoku2': request.session.get('error_tyoku', tyoku_default),
+            'tomorrow_check': request.session.get('tomorrow_check', False),
+            'kosu_def_list': request.session.get('error_def', ''),
+            'work_detail': request.session.get('error_detail', ''),
+            'over_work': request.session.get('error_over_work', over_work_default),
+            'break_change': break_change_default,
+            'def_prediction': member_obj.def_prediction
+        }
+
+        choices_list, def_n = kosu_division_dictionary(request.session['input_def'])
+        choices_list.insert(0, ['', ''])
+        choices_list.append(['$', '休憩'])
+        def_library, def_n = kosu_division_dictionary(request.session['input_def'])
+        def_library.append(['#', '-'])
+
+        form = input_kosuForm(default_list)
+        form.fields['kosu_def_list'].choices = choices_list
+
+        obj_link = any(num != 0 for num in graph_list)
+
+        if obj_link:
+            work_list, detail_list = kosu_sort(obj_get, member_obj)
+            time_display_list = create_kosu(work_list, detail_list, obj_get, member_obj, request)
+            time_total = 1440 - (work_list.count('#') * 5) - (work_list.count('$') * 5)
+            default_total = default_work_time(obj_get, member_obj)
+        else:
+            def_n = 0
+            time_total = 0
+            default_total = 0
+            def_library = []
+            time_display_list = []
+
+        new_def_Ver = kosu_division.objects.order_by("id").last()
+
+        context = {
+            'title': '工数登録',
+            'form': form,
+            'new_day': str(new_work_day),
+            'default_start_time': request.session.get('start_time', ''),
+            'default_end_time': default_end_time,
+            'graph_list': graph_list,
+            'graph_item': graph_item,
+            'def_library': def_library,
+            'def_n': def_n,
+            'OK_NG': ok_ng,
+            'time_total': time_total,
+            'default_total': default_total,
+            'obj_get': obj_get,
+            'obj_link': obj_link,
+            'time_display_list': time_display_list,
+            'member_obj': member_obj,
+            'show_message': show_message,
+            'def_alarm': request.session['input_def'] != new_def_Ver.kosu_name,
+        }
+
+        return render(request, self.template_name, context)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def input(request):
   # ログイン情報を取得し、リダイレクトが必要な場合はリダイレクト
   member_obj = get_member(request)
@@ -352,11 +519,11 @@ def input(request):
 
     # 入力内容記録
     edit_comment = f"{work}:{dict(input_kosuForm.tyoku_list).get(tyoku, '')}" + '\n' + \
-                   f"作業時間:{start_time}～{end_time}" + '\n' + \
-                   f"工数データ:{def_work}" + '\n' + \
-                   f"作業詳細:{detail_work}" + '\n' + \
-                   f"残業時間:{request.POST['over_work']}" + '\n' + \
-                   f"休憩変更チェックBOX:{'break_change' in request.POST}"
+                  f"作業時間:{start_time}～{end_time}" + '\n' + \
+                  f"工数データ:{def_work}" + '\n' + \
+                  f"作業詳細:{detail_work}" + '\n' + \
+                  f"残業時間:{request.POST['over_work']}" + '\n' + \
+                  f"休憩変更チェックBOX:{'break_change' in request.POST}"
 
     # 未入力チェック用の変数リスト
     values = [def_work, work, tyoku, start_time, end_time, request.POST.get('over_work')]
@@ -521,9 +688,9 @@ def input(request):
 
     # 操作履歴記録
     edit_comment = edit_comment + '\n' + \
-                   f"{kosu_check}" + '\n' + \
-                   f"{''.join(kosu_def)}" + '\n' + \
-                   f"{detail_list_summarize(detail_list)}"
+                  f"{kosu_check}" + '\n' + \
+                  f"{''.join(kosu_def)}" + '\n' + \
+                  f"{detail_list_summarize(detail_list)}"
     history_record('工数入力画面：工数入力', 'Business_Time_graph', 'OK', edit_comment, request)
 
     # 入力値をセッションに保存する
@@ -580,20 +747,20 @@ def input(request):
       obj_get = obj_filter.first()
       # 残業を上書きして更新
       Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-                                                   work_day2 = request.POST['work_day'], \
-                                                   defaults = {'over_time': request.POST['over_work'], \
-                                                               'judgement': judgement_check(list(obj_get.time_work), work, tyoku, member_obj, request.POST['over_work'])})
+                                                  work_day2 = request.POST['work_day'], \
+                                                  defaults = {'over_time': request.POST['over_work'], \
+                                                              'judgement': judgement_check(list(obj_get.time_work), work, tyoku, member_obj, request.POST['over_work'])})
 
     # 工数データがない場合の処理
     else:
       kosu_check = '工数データ新規登録'
       # 工数データ作成し残業書き込み
       Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'], \
-                                                   work_day2 = request.POST['work_day'], \
-                                                   defaults = {'name': member.objects.get(employee_no = request.session['login_No']), \
-                                                               'time_work': '#'*288, \
-                                                               'detail_work': '$'*287, \
-                                                               'over_time': request.POST['over_work']})
+                                                  work_day2 = request.POST['work_day'], \
+                                                  defaults = {'name': member.objects.get(employee_no = request.session['login_No']), \
+                                                              'time_work': '#'*288, \
+                                                              'detail_work': '$'*287, \
+                                                              'over_time': request.POST['over_work']})
 
     # 操作履歴記録
     edit_comment =f"{kosu_check}" + '\n' + \

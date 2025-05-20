@@ -2576,30 +2576,23 @@ class Page_form(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # 変数を読み出し
-        week_list = response.context['week_list']
-        # 変数整合性チェック
-        self.assertEqual(week_list, ['土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月'])
-
-        # 変数を読み出し
-        over_time_list1 = response.context['over_time_list1']
+        over_time_lists = response.context['over_time_lists']
         # 期待するBusiness_Time_graphインスタンスリストを作成
         expected_business_time_graph_list = [None] * 30
         expected_over_time_list1 = ['テストユーザー', 62.0] + expected_business_time_graph_list + [62.0]
         
         # 変数整合性チェック
-        self.assertEqual(over_time_list1[:2], expected_over_time_list1[:2])
-        self.assertEqual(over_time_list1[-1], expected_over_time_list1[-1])
-        self.assertTrue(all(isinstance(item, Business_Time_graph) for item in over_time_list1[2:-1]))
+        self.assertEqual(over_time_lists[0][:2], expected_over_time_list1[:2])
+        self.assertEqual(over_time_lists[0][-1], expected_over_time_list1[-1])
+        self.assertTrue(all(isinstance(item, Business_Time_graph) for item in over_time_lists[0][2:-1]))
 
-        # 変数を読み出し
-        over_time_list2 = response.context['over_time_list2']
         # 期待するBusiness_Time_graphインスタンスリストを作成
         expected_over_time_list2 = ['テストユーザー2', 31.0] + expected_business_time_graph_list + [31.0]
         
         # 変数整合性チェック
-        self.assertEqual(over_time_list2[:2], expected_over_time_list2[:2])
-        self.assertEqual(over_time_list2[-1], expected_over_time_list2[-1])
-        self.assertTrue(all(isinstance(item, Business_Time_graph) for item in over_time_list2[2:-1]))
+        self.assertEqual(over_time_lists[1][:2], expected_over_time_list2[:2])
+        self.assertEqual(over_time_lists[1][-1], expected_over_time_list2[-1])
+        self.assertTrue(all(isinstance(item, Business_Time_graph) for item in over_time_lists[1][2:-1]))
 
 
 
@@ -2685,11 +2678,6 @@ class Page_form(TestCase):
             )
 
         # 変数を読み出し
-        week_list = response.context['week_list']
-        # 変数整合性チェック
-        self.assertEqual(week_list, ['土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月'])
-
-        # 変数を読み出し
         ok_list = response.context['ok_list']
         # 変数整合性チェック
         self.assertEqual(ok_list[0][0], 'テストユーザー')
@@ -2716,11 +2704,6 @@ class Page_form(TestCase):
             form_data2,
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
             )
-
-        # 変数を読み出し
-        week_list = response.context['week_list']
-        # 変数整合性チェック
-        self.assertEqual(week_list, ['火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火', '水', '木', '金', '土', '日', '月', '火'])
 
         # 変数を読み出し
         ok_list = response.context['ok_list']

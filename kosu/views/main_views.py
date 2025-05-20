@@ -11,6 +11,8 @@ import openpyxl
 import datetime
 import math
 import os
+import sys
+import logging
 import environ
 from ..utils.kosu_utils import get_member
 from ..utils.main_utils import has_non_halfwidth_characters
@@ -953,35 +955,32 @@ class HistoryDelete(DeleteView):
 
 #--------------------------------------------------------------------------------------------------------
 
-import logging
+
+
+
 
 # 専用のロガーを取得
 views_logger = logging.getLogger('views_logger')
 
 def example_view(request):
-    # ログに記録したい情報をロガーへ送信
-    views_logger.info("This is a custom log message related to this view.")
-    
-    return JsonResponse({'message': 'Log message created.'})
+  # ログに記録したい情報をロガーへ送信
+  views_logger.info("This is a custom log message related to this view.")
+  
+  return JsonResponse({'message': 'Log message created.'})
 
 def get_logs(request):
-    with open('web_console.log', 'r') as log_file:
-        logs = log_file.readlines()
-        return JsonResponse({'logs': logs})
-    
-import sys
-import logging
+  with open('web_console.log', 'r') as log_file:
+    logs = log_file.readlines()
+    return JsonResponse({'logs': logs})
 
-# 専用のロガーを取得
-views_logger = logging.getLogger('views_logger')
 
 class PrintToLogger:
-    def write(self, message):
-        if message.strip():  # 空行は無視
-            views_logger.info(message)
+  def write(self, message):
+    if message.strip():  # 空行は無視
+      views_logger.info(message)
 
-    def flush(self):
-        pass  # 必須だが処理不要
+  def flush(self):
+    pass  # 必須だが処理不要
 
 # リダイレクトを適用
 sys.stdout = PrintToLogger()

@@ -37,6 +37,8 @@ from ..forms import team_kosuForm
 from ..forms import member_findForm
 from ..forms import schedule_timeForm
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 
 
@@ -776,80 +778,67 @@ class TeamCalendarView(View):
 
 
 # 班員残業一覧画面定義
-def team_over_time(request):
-
-  # 未ログインならログインページに飛ぶ
-  if request.session.get('login_No', None) == None:
-    return redirect(to='/login')
-  
-  try:
-    # ログイン者の情報取得
-    data = member.objects.get(employee_no = request.session['login_No'])
-
-  # セッション値から人員情報取得できない場合の処理
-  except member.DoesNotExist:
-    # セッション削除
-    request.session.clear()
-    # ログインページに戻る
-    return redirect(to='/login') 
-
-  # ログイン者に権限がなければメインページに戻る
-  if data.authority == False:
-    return redirect(to='/')
-
-  # ログイン者の班員登録情報あるか確認
-  team_filter = team_member.objects.filter(employee_no5 = request.session['login_No'])
-  # 班員登録がなければメインページに戻る
-  if team_filter.count() == 0:
-    return redirect(to='/team_main')
+class TeamOverTimeView(TemplateView):
+  # テンプレート定義
+  template_name = 'kosu/team_over_time.html'
 
 
-  # ログイン者の班員登録情報取得
-  team_get = team_member.objects.get(employee_no5 = request.session['login_No'])
+  # リクエストを処理するメソッドをオーバーライド
+  def dispatch(self, request, *args, **kwargs):
+    # 人員情報取得,人員情報なしor未ログインの場合ログイン画面へ
+    member_obj = get_member(request)
+    if isinstance(member_obj, HttpResponseRedirect):
+      return member_obj
+    self.member_obj = member_obj
 
-  member1_obj_get = team_member_name_get(team_get.member1)
-  member2_obj_get = team_member_name_get(team_get.member2)
-  member3_obj_get = team_member_name_get(team_get.member3)
-  member4_obj_get = team_member_name_get(team_get.member4)
-  member5_obj_get = team_member_name_get(team_get.member5)
-  member6_obj_get = team_member_name_get(team_get.member6)
-  member7_obj_get = team_member_name_get(team_get.member7)
-  member8_obj_get = team_member_name_get(team_get.member8)
-  member9_obj_get = team_member_name_get(team_get.member9)
-  member10_obj_get = team_member_name_get(team_get.member10)
-  member11_obj_get = team_member_name_get(team_get.member11)
-  member12_obj_get = team_member_name_get(team_get.member12)
-  member13_obj_get = team_member_name_get(team_get.member13)
-  member14_obj_get = team_member_name_get(team_get.member14)
-  member15_obj_get = team_member_name_get(team_get.member15)
+    # 権限なければメイン画面へ
+    if not member_obj.authority:
+      return redirect(to='/')
 
-  # 班員リストリセット
-  member_list = []
-  # 選択肢の表示数検出&班員リスト作成
-  for i in range(1, 16):
-    # 人員情報ある場合の処理
-    if eval(f'member{i}_obj_get') != '':
-      # 班員リストに班員追加
-      member_list.append(eval(f'member{i}_obj_get'))
-    
+    # 班員登録無ければ班員MENUへ
+    if not team_member.objects.filter(employee_no5=request.session['login_No']).exists():
+      return redirect(to='/team_main')
+    return super().dispatch(request, *args, **kwargs)
+
+
+  # 班員リスト作成
+  def get_team_member_list(self, request):
+      # ログイン者の班員登録情報取得
+      team_get = team_member.objects.get(employee_no5 = request.session['login_No'])
+      member_list = [team_member_name_get(getattr(team_get, f'member{i}', '')) for i in range(1, 16) if team_member_name_get(getattr(team_get, f'member{i}', ''))]
+      return member_list
+
+
+  # GET時の処理
+  def get(self, request, *args, **kwargs):
+    # 班員リスト取得
+    member_list = self.get_team_member_list(request)
+
+    # 年月のデータ取得
+    year = int(request.session.get('over_time_year', datetime.date.today().year))
+    month = int(request.session.get('over_time_month', datetime.date.today().month))
+
+    # フォーム初期値定義
+    schedule_default = {'year': str(year), 'month': str(month)}
+    form = schedule_timeForm(schedule_default)
+
+    # コンテキスト作成
+    context = self.get_context_data(request, form, year, month, member_list)
+    return self.render_to_response(context)
 
 
   # POST時の処理
-  if (request.method == 'POST'):
+  def post(self, request, *args, **kwargs):
     # 検索項目に空欄がある場合の処理
     if request.POST['year'] in ["", None] or request.POST['month'] in ["", None]:
       # エラーメッセージ出力
       messages.error(request, '表示年月に未入力箇所があります。ERROR044')
-      # このページをリダイレクト
       return redirect(to='/class_list')
-    
 
-    # フォームの初期値定義
-    schedule_default = {'year': request.POST['year'], 
-                        'month': request.POST['month']}
-    # フォーム定義
+    # フォーム初期値定義
+    schedule_default = {'year': request.POST['year'], 'month': request.POST['month']}
     form = schedule_timeForm(schedule_default)
-    
+
     # POSTした値をセッションに登録
     request.session['over_time_year'] = request.POST['year']
     request.session['over_time_month'] = request.POST['month']
@@ -857,130 +846,52 @@ def team_over_time(request):
     year = int(request.POST['year'])
     month = int(request.POST['month'])
 
+    # 班員リスト取得
+    member_list = self.get_team_member_list(request)
+
+    # コンテキスト作成
+    context = self.get_context_data(request, form, year, month, member_list)
+    return self.render_to_response(context)
 
 
-  # POST時以外の処理
-  else:
-    # セッション値に年月のデータがない場合の処理
-    if request.session.get('over_time_year', '') == '' or request.session.get('over_time_month', '') == '':
-      # 本日の年月取得
-      year = datetime.date.today().year
-      month = datetime.date.today().month
+  # コンテキストデータを設定するメソッドをオーバーライド
+  def get_context_data(self, request, form, year, month, member_list):
+    # 指定した月の曜日リストを取得
+    last_day_of_month = calendar.monthrange(year, month)[1]
+    week_list_default = ['月', '火', '水', '木', '金', '土', '日']
+    week_list = [week_list_default[calendar.weekday(year, month, day)] for day in range(1, last_day_of_month + 1)]
 
-    # セッション値に年月のデータがある場合の処理
-    else:
-      # セッション値から年月取得
-      year = int(request.session['over_time_year'])
-      month = int(request.session['over_time_month'])
+    # 残業リスト作成
+    over_time_lists = []
+    for ind, m in enumerate(member_list):
+      over_time_list = [m.name]
+      over_time_total = 0
 
+      for d in range(1, int(last_day_of_month) + 1):
+        obj_filter = Business_Time_graph.objects.filter(
+          employee_no3=m.employee_no, work_day2=datetime.date(year, month, d)
+        )
 
-    # フォームの初期値定義
-    schedule_default = {'year': str(year), 
-                        'month': str(month)}
-    # フォーム定義
-    form = schedule_timeForm(schedule_default)
+        if obj_filter.exists():
+          obj_get = obj_filter.first()
+          obj_get.over_time = int(obj_get.over_time) / 60
+          over_time_list.append(obj_get)
+          over_time_total += float(obj_get.over_time)
+        else:
+          over_time_list.append(Business_Time_graph(over_time=0, judgement=False))
 
+      over_time_list.insert(1, over_time_total)
+      over_time_list.append(over_time_total)
+      over_time_lists.append(over_time_list)
 
-
-  # 指定した月の最後の日を取得
-  last_day_of_month = calendar.monthrange(year, month)[1]
-  # 曜日リスト定義
-  week_list = []
-  # 曜日リスト作成するループ
-  for d in range(1, last_day_of_month + 1):
-    # 曜日を取得する日を作成
-    week_day = datetime.date(year, month, d)
-
-    # 指定日の曜日をリストに挿入
-    if week_day.weekday() == 0:
-      week_list.append('月')
-    if week_day.weekday() == 1:
-      week_list.append('火')
-    if week_day.weekday() == 2:
-      week_list.append('水')
-    if week_day.weekday() == 3:
-      week_list.append('木')
-    if week_day.weekday() == 4:
-      week_list.append('金')
-    if week_day.weekday() == 5:
-      week_list.append('土')
-    if week_day.weekday() == 6:
-      week_list.append('日')
-
-
-  # 残業リスト定義
-  over_time_list1 = []
-  over_time_list2 = []
-  over_time_list3 = []
-  over_time_list4 = []
-  over_time_list5 = []
-  over_time_list6 = []
-  over_time_list7 = []
-  over_time_list8 = []
-  over_time_list9 = []
-  over_time_list10 = []
-  over_time_list11 = []
-  over_time_list12 = []
-  over_time_list13 = []
-  over_time_list14 = []
-  over_time_list15 = []
-
-  # 残業リスト作成するループ
-  for ind, m in enumerate(member_list):
-    # 残業リストの先頭に人員の名前入れる
-    eval(f'over_time_list{ind + 1}.append(m.name)')
-
-    # 残業合計リセット
-    over_time_total = 0
-
-    # 日毎の残業と整合性をリストに追加するループ
-    for d in range(1, int(last_day_of_month) + 1):
-      # 該当日に工数データあるか確認
-      obj_filter = Business_Time_graph.objects.filter(employee_no3 = m.employee_no, \
-                                                      work_day2 = datetime.date(year, month, d))
-
-      # 該当日に工数データがある場合の処理
-      if obj_filter.count() != 0:
-        # 工数データ取得
-        obj_get = Business_Time_graph.objects.get(employee_no3 = m.employee_no, \
-                                                  work_day2 = datetime.date(year, month, d))
-        
-        # 残業データを分→時に変換
-        obj_get.over_time = int(obj_get.over_time)/60
-
-        # 残業リストにレコードを追加
-        eval(f'over_time_list{ind + 1}.append(obj_get)')
-
-        # 残業を合計する
-        over_time_total += float(obj_get.over_time)
-
-      # 該当日に工数データがない場合の処理
-      else:
-        # 残業リストに残業0と整合性否を追加
-        eval(f'over_time_list{ind + 1}.append(Business_Time_graph(over_time = 0, judgement = False))')
-
-    # リストに残業合計追加
-    eval(f'over_time_list{ind + 1}.append(over_time_total)')
-    eval(f'over_time_list{ind + 1}.insert(1,{over_time_total})')
-
-  # 残業リストまとめ
-  over_time_lists = [over_time_list1, over_time_list2, over_time_list3, 
-                    over_time_list4, over_time_list5, over_time_list6, 
-                    over_time_list7, over_time_list8, over_time_list9, 
-                    over_time_list10, over_time_list11, over_time_list12, 
-                    over_time_list13, over_time_list14, over_time_list15]
-
-  # HTMLに渡す辞書
-  context = {
-    'title': '班員残業管理',
-    'form': form,
-    'day_list': list(zip(range(1, last_day_of_month + 1), week_list)), 
-    'over_time_lists': over_time_lists,
-    'team_n': len(member_list),
+    # コンテキストデータを返す
+    return {
+      'title': '班員残業管理',
+      'form': form,
+      'day_list': list(zip(range(1, last_day_of_month + 1), week_list)),
+      'over_time_lists': over_time_lists,
+      'team_n': len(member_list),
     }
-
-  # 指定したHTMLに辞書を渡して表示を完成させる
-  return render(request, 'kosu/team_over_time.html', context)
 
 
 
