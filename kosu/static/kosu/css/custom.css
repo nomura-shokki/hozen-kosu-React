@@ -67,11 +67,6 @@ input.big {
   text-align: center;
 }
 
-.center-div {
-  display: flex;
-  justify-content: center;
-}
-
 #success-message-container {
   position: relative; /* 親要素に位置の基準を設定 */
 }
