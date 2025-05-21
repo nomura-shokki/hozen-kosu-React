@@ -8,28 +8,33 @@
     <link rel="icon" type="image/x-icon" href="{% static 'kosu/img/balance.png' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/console.css' %}">
+    <script src="{% static 'kosu/js/check_storage2.js' %}"></script>
     <script src="{% static 'kosu/js/before_comment.js' %}"></script>
   </head>
-  <body class="container">
-    <h1 class="display-4 text-success">{{title}}</h1>
-    <p class="h6"><a href="{% url 'def_list' 1 %}" class="text-success">一覧へ戻る</a></p>
-    <form action="{% url 'def_delete' id %}" method="post">
-      {% csrf_token %}
-      <table class="table">
-        <tr>
-          <td>
-            <input type="submit" value="工数区分定義削除" onclick="return confirmDelete();" class="btn btn-green4 mt-2" name="def_delete">
-          </td>
-        </tr>
-        {% for item in delete_data %}
-          <tr><td>{{ item.0 }}<br>{{ item.1|default_if_none:"" }}</td></tr>
-        {% endfor %}
-        <tr>
-          <th>
-            <input type="submit" value="工数区分定義削除" onclick="return confirmDelete_def();" class="btn btn-green4 mt-2" name="def_delete">
-          </th>
-        </tr>
-      </table>
-    </form>
+  <body>
+    <div id="content" class="container content">
+      <h1 class="display-4 text-success">{{title}}</h1>
+      <p class="h6"><a href="{% url 'def_list' 1 %}" class="text-success">一覧へ戻る</a></p>
+      <form action="{% url 'def_delete' id %}" method="post">
+        {% csrf_token %}
+        <table class="table">
+          <tr>
+            <td>
+              <input type="submit" value="工数区分定義削除" onclick="return confirmDelete();" class="btn btn-green4 mt-2" name="def_delete">
+            </td>
+          </tr>
+          {% for item in delete_data %}
+            <tr><td>{{ item.0 }}<br>{{ item.1|default_if_none:"" }}</td></tr>
+          {% endfor %}
+          <tr>
+            <th>
+              <input type="submit" value="工数区分定義削除" onclick="return confirmDelete_def();" class="btn btn-green4 mt-2" name="def_delete">
+            </th>
+          </tr>
+        </table>
+      </form>
+    </div>
+    <div id="consoleDiv"></div>
   </body>
 </html>

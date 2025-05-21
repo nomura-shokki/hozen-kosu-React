@@ -133,8 +133,8 @@ class MainView(TemplateView):
 
     # 問い合わせ担当者従業員番号がログイン者の従業員番号と一致している場合、ポップアップ表示設定
     pop_up_display = default_data.administrator_employee_no1 == str(request.session['login_No']) or \
-                     default_data.administrator_employee_no2 == str(request.session['login_No']) or \
-                     default_data.administrator_employee_no3 == str(request.session['login_No'])
+                    default_data.administrator_employee_no2 == str(request.session['login_No']) or \
+                    default_data.administrator_employee_no3 == str(request.session['login_No'])
 
     context.update({
       'title': 'MENU',
@@ -489,9 +489,9 @@ class AdministratorMenuView(FormView):
 
     # 入力内容記録
     edit_comment = f"表示件数:{request.POST['menu_row']}" + '\n' + \
-                   f"問い合わせ担当者1:{request.POST['administrator_employee_no1']}" + '\n' + \
-                   f"問い合わせ担当者2:{request.POST['administrator_employee_no2']}" + '\n' + \
-                   f"問い合わせ担当者3:{request.POST['administrator_employee_no3']}"
+                  f"問い合わせ担当者1:{request.POST['administrator_employee_no1']}" + '\n' + \
+                  f"問い合わせ担当者2:{request.POST['administrator_employee_no2']}" + '\n' + \
+                  f"問い合わせ担当者3:{request.POST['administrator_employee_no3']}"
 
     # 設定更新時の処理
     if 'registration' in request.POST:
@@ -959,28 +959,36 @@ class HistoryDelete(DeleteView):
 
 
 
-# 専用のロガーを取得
+# 専用ロガー取得('views_logger'という名前のカスタムロガーを使用しログメッセージ記録)
 views_logger = logging.getLogger('views_logger')
 
-def example_view(request):
-  # ログに記録したい情報をロガーへ送信
-  views_logger.info("This is a custom log message related to this view.")
-  
-  return JsonResponse({'message': 'Log message created.'})
-
-def get_logs(request):
-  with open('web_console.log', 'r') as log_file:
-    logs = log_file.readlines()
-    return JsonResponse({'logs': logs})
-
-
+# 標準出力をロガーにリダイレクト(sys.stdoutをカスタムロガーへリダイレクト)
+# print関数の出力をログとして記録
 class PrintToLogger:
   def write(self, message):
-    if message.strip():  # 空行は無視
+    # 受け取った標準出力のメッセージ処理(空白および改行のみのメッセージは無視)
+    if message.strip():  
       views_logger.info(message)
 
   def flush(self):
-    pass  # 必須だが処理不要
+    # 処理不要のため空処理
+    pass
 
-# リダイレクトを適用
+# 標準出力をロガーへリダイレクト(sys.stdoutをPrintToLoggerのインスタンスに設定)
 sys.stdout = PrintToLogger()
+
+# 記録されたログを画面上に表示
+def get_logs(request):
+  # 'web_console.log' ファイルを読み込み専用モードで開く
+  with open('web_console.log', 'r') as log_file:
+    # ファイルの内容を行ごとにリストとして格納
+    logs = log_file.readlines()
+  # JSONレスポンスとして、ログを返す
+  return JsonResponse({'logs': logs})
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+

@@ -14,8 +14,8 @@
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/console.css' %}">
     <script src="{% static 'kosu/js/check_storage2.js' %}"></script>
   </head>
-  <body class="container" id="display">
-    <div id="content" class="content">
+  <body id="display">
+    <div id="content" class="container content">
       <h1 class="display-1 text-primary">{{title}}</h1>
       <p class="h5 mb-0 no-wrap">こんにちは、{{data.name}}さん。</p>
       {% if pop_up_display == True %}
@@ -92,6 +92,5 @@
       </form>
     </div>
     <div id="consoleDiv"></div>
-    <script src="{% static 'kosu/js/display.js' %}"></script>
   </body>
 </html>

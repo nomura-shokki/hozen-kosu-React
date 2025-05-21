@@ -10,27 +10,6 @@ from .main_utils import history_record
 
 
 
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
-
-# 現在時刻取得関数
-def round_time(dt=None, round_to=5):
-  # 時刻の指定がない場合現在時刻取得
-  if dt is None:
-    dt = datetime.datetime.now().time()
-
-  # 5分で丸める
-  minute = (dt.minute // round_to) * round_to
-
-  # 5分で丸めた分を返す
-  return dt.replace(minute=minute, second=0, microsecond=0)
-
-
-
-
 
 #--------------------------------------------------------------------------------------------------------
 

@@ -10,94 +10,99 @@
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/class_list.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/console.css' %}">
+    <script src="{% static 'kosu/js/check_storage2.js' %}"></script>
   </head>
-  <body class="container">
-    <div id="loading" style="visibility: hidden;">
-      <div class="item">
-        <img id="loadingImg" src="{% static 'kosu/img/helmet.png' %}">
-      </div>
-      <p>Loading...</p>
-    </div>
-    <script src="{% static 'kosu/js/img_center.js' %}"></script>
-    <h1 class="display-5 text-danger">{{title}}</h1>
-    <p class="h6"><a href="{% url 'team_main' %}" class="text-danger">班員MENUへ</a></p>
-    <form id="dataForm">
-      {% csrf_token %}
-      <p>　</p>
-      <p> ショップ指定 </p>
-      <p> {{shop_form.shop2}} </p>
-      <p> 年月指定 </p>
-      <p>
-        <div class="number-input-group">
-          {{schedule_form.year}}年
-          {{schedule_form.month}}月
+  <body>
+    <div id="content" class="container content">
+      <div id="loading" style="visibility: hidden;">
+        <div class="item">
+          <img id="loadingImg" src="{% static 'kosu/img/helmet.png' %}">
         </div>
-      </p>
-      <button type="button" name="update" id="update" class="btn btn-link"></button>
-      <p>工数データが入力されている日付を選択すると詳細を閲覧できます。</p>
-      <p>※この画面は大量のデータを扱うため動作が重くなっています。</p>
-      <div id="responseArea" style="overflow-x: scroll; overflow-y: scroll;">
-        <table class="table table-bordered border-dark">
-          <tr>
-            <td></td>
-            {% for d, w in day_list %}
-              {% if w == "土" %}
-                <td class="table-light_blue no-wrap" style="text-align:center;">
-              {% else %}
-                {% if w == "日" %}
-                  <td class="table-pink no-wrap" style="text-align:center;">
-                {% else %}
-                  <td class="no-wrap" style="text-align:center;">
-                {% endif %}
-              {% endif %}
-                  {{d}}日
-                </td>
-            {% endfor %}
-          </tr>
-          <tr>
-            <td></td>
-            {% for d, w in day_list %}
-              {% if w == "土" %}
-                <td class="table-light_blue no-wrap" style="text-align:center;">
-              {% else %}
-                {% if w == "日" %}
-                  <td class="table-pink no-wrap" style="text-align:center;">
-                {% else %}
-                  <td class="no-wrap" style="text-align:center;">
-                {% endif %}
-              {% endif %}
-                  {{w}}
-                </td>
-            {% endfor %}
-          </tr>
-
-          {% for m in ok_list %}
+        <p>Loading...</p>
+      </div>
+      <script src="{% static 'kosu/js/img_center.js' %}"></script>
+      <h1 class="display-5 text-danger">{{title}}</h1>
+      <p class="h6"><a href="{% url 'team_main' %}" class="text-danger">班員MENUへ</a></p>
+      <form id="dataForm">
+        {% csrf_token %}
+        <p>　</p>
+        <p> ショップ指定 </p>
+        <p> {{shop_form.shop2}} </p>
+        <p> 年月指定 </p>
+        <p>
+          <div class="number-input-group">
+            {{schedule_form.year}}年
+            {{schedule_form.month}}月
+          </div>
+        </p>
+        <button type="button" name="update" id="update" class="btn btn-link"></button>
+        <p>工数データが入力されている日付を選択すると詳細を閲覧できます。</p>
+        <p>※この画面は大量のデータを扱うため動作が重くなっています。</p>
+        <div id="responseArea" style="overflow-x: scroll; overflow-y: scroll;">
+          <table class="table table-bordered border-dark">
             <tr>
-              {% for k in m %}
-                {% if forloop.first %}
-                  <td class="table-yellow no-wrap" style="text-align:center;">
-                    {{k}}
+              <td></td>
+              {% for d, w in day_list %}
+                {% if w == "土" %}
+                  <td class="table-light_blue no-wrap" style="text-align:center;">
                 {% else %}
-                  {% if k.judgement == True %}
-                    <td class="table-green no-wrap fs-5" style="text-align:center;">
-                      <a href="{% url 'team_detail' k.id %}">OK</a>
+                  {% if w == "日" %}
+                    <td class="table-pink no-wrap" style="text-align:center;">
                   {% else %}
-                    {% if k.judgement == False %}
-                      <td class="no-wrap fs-5" style="text-align:center;">
-                        <a href="{% url 'team_detail' k.id %}">NG</a>
-                    {% else %}
-                      <td class="no-wrap fs-5" style="text-align:center;">
-                        NG
-                    {% endif %}
+                    <td class="no-wrap" style="text-align:center;">
                   {% endif %}
                 {% endif %}
+                    {{d}}日
                   </td>
               {% endfor %}
             </tr>
-          {% endfor %}
-        </table>
-      </div>
-    </form>
+            <tr>
+              <td></td>
+              {% for d, w in day_list %}
+                {% if w == "土" %}
+                  <td class="table-light_blue no-wrap" style="text-align:center;">
+                {% else %}
+                  {% if w == "日" %}
+                    <td class="table-pink no-wrap" style="text-align:center;">
+                  {% else %}
+                    <td class="no-wrap" style="text-align:center;">
+                  {% endif %}
+                {% endif %}
+                    {{w}}
+                  </td>
+              {% endfor %}
+            </tr>
+
+            {% for m in ok_list %}
+              <tr>
+                {% for k in m %}
+                  {% if forloop.first %}
+                    <td class="table-yellow no-wrap" style="text-align:center;">
+                      {{k}}
+                  {% else %}
+                    {% if k.judgement == True %}
+                      <td class="table-green no-wrap fs-5" style="text-align:center;">
+                        <a href="{% url 'team_detail' k.id %}">OK</a>
+                    {% else %}
+                      {% if k.judgement == False %}
+                        <td class="no-wrap fs-5" style="text-align:center;">
+                          <a href="{% url 'team_detail' k.id %}">NG</a>
+                      {% else %}
+                        <td class="no-wrap fs-5" style="text-align:center;">
+                          NG
+                      {% endif %}
+                    {% endif %}
+                  {% endif %}
+                    </td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      </form>
+    </div>
+    <div id="consoleDiv"></div>
     <script>
       const htmlUrl = "{% url 'class_list' %}";
     </script>
