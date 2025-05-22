@@ -1,0 +1,25 @@
+.custom-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background-color: #00aeff;  /* ボタンの背景色を設定 */
+  color: white;  /* テキストの色を設定 */
+  font-size: 1.2em;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;  /* 丸いボタンにする */
+  margin: 0 5px;  /* ボタン間のスペースを設定 */
+  text-shadow:
+    -0.5px -0.5px 0 #000,
+    0.5px -0.5px 0 #000,
+    -0.5px  0.5px 0 #000,
+    0.5px  0.5px 0 #000;
+}
+
+
+.custom-button:hover {
+  background-color: #009eb3;
+}

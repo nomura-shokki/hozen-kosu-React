@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='member',
             name='break_time5',
-            field=models.CharField(default='#00000000', max_length=9, verbose_name='連1直昼休憩時間'),
+            field=models.CharField(default='#10401130', max_length=9, verbose_name='連1直昼休憩時間'),
             preserve_default=False,
         ),
         migrations.AddField(
@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='member',
             name='break_time6',
-            field=models.CharField(default='#00000000', max_length=9, verbose_name='連2直昼休憩時間'),
+            field=models.CharField(default='#21202210', max_length=9, verbose_name='連2直昼休憩時間'),
             preserve_default=False,
         ),
         migrations.AddField(

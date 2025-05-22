@@ -1,0 +1,35 @@
+#success-message-container {
+  position: relative; /* 親要素に位置の基準を設定 */
+}
+
+#success-message {
+  display: none;
+  position: absolute; /* ビューポートに対して絶対配置 */
+  top: 50%; /* 上から50%の位置 */
+  left: 50%; /* 左から50%の位置 */
+  transform: translate(-50%, -50%); /* 真ん中に配置 */
+  max-width: 100%; 
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  text-align: center;
+  padding: 20px;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+
+#success-message span { 
+  display: block;
+  margin: 0 auto;
+  white-space: nowrap;
+  overflow: hidden; 
+  text-overflow: clip;
+  font-size: calc(2vw + 2vh + 1vmin);
+}
+
+/* スマホ向けの修正 */
+@media (max-width: 768px) {
+  #success-message {
+    font-size: 16px; /* フォントサイズを固定 */
+    width: 90%; /* 幅を90%に設定 */
+  }
+}
