@@ -11,18 +11,19 @@ from.models import inquiry_data
 class memberForm(forms.ModelForm):
   class Meta:
     model = member
-    fields = ['employee_no', 'name', 'shop', 'authority', 'administrator', 'break_time1', \
-              'break_time1_over1', 'break_time1_over2', 'break_time1_over3', 'break_time2', \
-              'break_time2_over1', 'break_time2_over2', 'break_time2_over3', 'break_time3', \
-              'break_time3_over1', 'break_time3_over2', 'break_time3_over3', 'break_time4', \
-              'break_time4_over1', 'break_time4_over2', 'break_time4_over3']
+    fields = ['employee_no', 'name', 'shop', 'authority', 'administrator', 'break_time1', 
+              'break_time1_over1', 'break_time1_over2', 'break_time1_over3', 'break_time2', 
+              'break_time2_over1', 'break_time2_over2', 'break_time2_over3', 'break_time3', 
+              'break_time3_over1', 'break_time3_over2', 'break_time3_over3', 'break_time4', 
+              'break_time4_over1', 'break_time4_over2', 'break_time4_over3', 'break_time5', 
+              'break_time5_over1', 'break_time5_over2', 'break_time5_over3', 'break_time6', 
+              'break_time6_over1', 'break_time6_over2', 'break_time6_over3']
 
     widgets = {'employee_no': forms.NumberInput(attrs={'class' : 'form-control custom-border', 'style' : 'width : 200px;'}),
-               'name': forms.TextInput(attrs={'class' : 'form-control custom-border', 'style' : 'width : 200px;'}),
-               'shop': forms.Select(attrs={'class' : 'form-control custom-border', 'style' : 'width: 200px;'}),
-               'authority' : forms.CheckboxInput(attrs={'class' : 'form-check-input'}),
-               'administrator' : forms.CheckboxInput(attrs={'class' : 'form-check-input'}),
-               }
+              'name': forms.TextInput(attrs={'class' : 'form-control custom-border', 'style' : 'width : 200px;'}),
+              'shop': forms.Select(attrs={'class' : 'form-control custom-border', 'style' : 'width: 200px;'}),
+              'authority' : forms.CheckboxInput(attrs={'class' : 'form-check-input'}),
+              'administrator' : forms.CheckboxInput(attrs={'class' : 'form-check-input'})}
 
 
 

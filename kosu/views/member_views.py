@@ -158,6 +158,14 @@ class MemberNewView(CreateView):
       'break_time4_over1': '#00000000',
       'break_time4_over2': '#00000000',
       'break_time4_over3': '#00000000',
+      'break_time5': '#00000000',
+      'break_time5_over1': '#00000000',
+      'break_time5_over2': '#00000000',
+      'break_time5_over3': '#00000000',
+      'break_time6': '#00000000',
+      'break_time6_over1': '#00000000',
+      'break_time6_over2': '#00000000',
+      'break_time6_over3': '#00000000',
     }
     return initial_values
 
@@ -167,10 +175,10 @@ class MemberNewView(CreateView):
     request = self.request
     # 入力内容記録
     edit_comment = f"従業員番号:{request.POST['employee_no']}" + '\n' + \
-                   f"氏名:{request.POST['name']}" + '\n' + \
-                   f"ショップ:{request.POST['shop']}" + '\n' + \
-                   f"権限:{'authority' in request.POST}" + '\n' + \
-                   f"管理者権限:{'administrator' in request.POST}"
+                  f"氏名:{request.POST['name']}" + '\n' + \
+                  f"ショップ:{request.POST['shop']}" + '\n' + \
+                  f"権限:{'authority' in request.POST}" + '\n' + \
+                  f"管理者権限:{'administrator' in request.POST}"
 
     # POSTした従業員番号が既に登録されている場合エラー出力
     if member.objects.filter(employee_no=request.POST['employee_no']).exists():
@@ -184,13 +192,17 @@ class MemberNewView(CreateView):
       break_times = ['#11401240', '#17201735', '#23350035', '#04350450',
                     '#14101510', '#22002215', '#04150515', '#09150930',
                     '#23500050', '#06400655', '#12551355', '#17551810',
-                    '#12001300', '#19001915', '#01150215', '#06150630']
+                    '#12001300', '#19001915', '#01150215', '#06150630',
+                    '#10401130', '#15101520', '#20202110', '#01400150',
+                    '#21202210', '#01500200', '#07000750', '#12201230']
     else:
       # 休憩時間用文字列定義
       break_times = ['#10401130', '#15101520', '#20202110', '#01400150',
                     '#17501840', '#22302240', '#03400430', '#09000910',
                     '#01400230', '#07050715', '#12151305', '#17351745',
-                    '#12001300', '#19001915', '#01150215', '#06150630']
+                    '#12001300', '#19001915', '#01150215', '#06150630',
+                    '#10401130', '#15101520', '#20202110', '#01400150',
+                    '#21202210', '#01500200', '#07000750', '#12201230']
     # 休憩時間設定
     new_member = form.save(commit=False)
     new_member.break_time1 = break_times[0]
@@ -209,6 +221,14 @@ class MemberNewView(CreateView):
     new_member.break_time4_over1 = break_times[13]
     new_member.break_time4_over2 = break_times[14]
     new_member.break_time4_over3 = break_times[15]
+    new_member.break_time5 = break_times[16]
+    new_member.break_time5_over1 = break_times[17]
+    new_member.break_time5_over2 = break_times[18]
+    new_member.break_time5_over3 = break_times[19]
+    new_member.break_time6 = break_times[20]
+    new_member.break_time6_over1 = break_times[21]
+    new_member.break_time6_over2 = break_times[22]
+    new_member.break_time6_over3 = break_times[23]
     new_member.save()
 
     # 操作履歴記録
@@ -294,10 +314,10 @@ class MemberEditView(UpdateView):
   def form_valid(self, form):
     # 入力内容記録
     edit_comment = f"従業員番号:{self.request.POST['employee_no']}" + '\n' + \
-                   f"氏名:{self.request.POST['name']}" + '\n' + \
-                   f"ショップ:{self.request.POST['shop']}" + '\n' + \
-                   f"権限:{'authority' in self.request.POST}" + '\n' + \
-                   f"管理者権限:{'administrator' in self.request.POST}"
+                  f"氏名:{self.request.POST['name']}" + '\n' + \
+                  f"ショップ:{self.request.POST['shop']}" + '\n' + \
+                  f"権限:{'authority' in self.request.POST}" + '\n' + \
+                  f"管理者権限:{'administrator' in self.request.POST}"
 
     # 編集前の従業員番号を取得
     original_employee_no = self.request.session['edit_No']
@@ -321,15 +341,19 @@ class MemberEditView(UpdateView):
     # デフォルトの休憩時間リスト指定
     if shop in ['W1', 'W2', 'A1', 'A2', 'J', '組長以上(W,A)']:
       break_times = ['#11401240', '#17201735', '#23350035', '#04350450',
-                      '#14101510', '#22002215', '#04150515', '#09150930',
-                      '#23500050', '#06400655', '#12551355', '#17551810',
-                      '#12001300', '#19001915', '#01150215', '#06150630']
+                    '#14101510', '#22002215', '#04150515', '#09150930',
+                    '#23500050', '#06400655', '#12551355', '#17551810',
+                    '#12001300', '#19001915', '#01150215', '#06150630',
+                    '#10401130', '#15101520', '#20202110', '#01400150',
+                    '#21202210', '#01500200', '#07000750', '#12201230']
     
     else:
       break_times = ['#10401130', '#15101520', '#20202110', '#01400150',
-                      '#17501840', '#22302240', '#03400430', '#09000910',
-                      '#01400230', '#07050715', '#12151305', '#17351745',
-                      '#12001300', '#19001915', '#01150215', '#06150630']
+                    '#17501840', '#22302240', '#03400430', '#09000910',
+                    '#01400230', '#07050715', '#12151305', '#17351745',
+                    '#12001300', '#19001915', '#01150215', '#06150630',
+                    '#10401130', '#15101520', '#20202110', '#01400150',
+                    '#21202210', '#01500200', '#07000750', '#12201230']
 
     # フォームのインスタンスに休憩時間を設定
     form.instance.break_time1 = break_times[0]
@@ -348,7 +372,15 @@ class MemberEditView(UpdateView):
     form.instance.break_time4_over1 = break_times[13]
     form.instance.break_time4_over2 = break_times[14]
     form.instance.break_time4_over3 = break_times[15]
-    
+    form.instance.break_time5 = break_times[16]
+    form.instance.break_time5_over1 = break_times[17]
+    form.instance.break_time5_over2 = break_times[18]
+    form.instance.break_time5_over3 = break_times[19]
+    form.instance.break_time6 = break_times[20]
+    form.instance.break_time6_over1 = break_times[21]
+    form.instance.break_time6_over2 = break_times[22]
+    form.instance.break_time6_over3 = break_times[23]
+
     # 親クラスの `form_valid` メソッドを実行し、そのレスポンスを保存
     response = super().form_valid(form)
 
@@ -428,7 +460,7 @@ class MemberDeleteView(DeleteView):
     response = super().form_valid(form)
     # 入力内容記録
     edit_comment = f"従業員番号:{self.kwargs['num']}" + '\n' + \
-                   f"氏名:{self.request.session['delete_name']}"
+                  f"氏名:{self.request.session['delete_name']}"
     # 操作履歴記録
     history_record('人員削除', 'member', 'OK', edit_comment, self.request)
     return response

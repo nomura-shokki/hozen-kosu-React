@@ -35,6 +35,14 @@ class Page_form(TestCase):
       break_time4_over1 = '#19001915',
       break_time4_over2 = '#01150215',
       break_time4_over3 = '#06150630',
+      break_time5 = '#10401130',
+      break_time5_over1 = '#15101520',
+      break_time5_over2 = '#20202110',
+      break_time5_over3 = '#01400150',
+      break_time6 = '#21202210',
+      break_time6_over1 = '#01500200',
+      break_time6_over2 = '#07000750',
+      break_time6_over3 = '#12201230',
       break_check = False,
       def_prediction = False,
     )
@@ -1625,6 +1633,14 @@ class Page_form(TestCase):
           'break_time4_over1': '#00000000',
           'break_time4_over2': '#00000000',
           'break_time4_over3': '#00000000',
+          'break_time5': '#00000000',
+          'break_time5_over1': '#00000000',
+          'break_time5_over2': '#00000000',
+          'break_time5_over3': '#00000000',
+          'break_time6': '#00000000',
+          'break_time6_over1': '#00000000',
+          'break_time6_over2': '#00000000',
+          'break_time6_over3': '#00000000',
           'member_new': '登録', 
           }
       
@@ -1667,6 +1683,14 @@ class Page_form(TestCase):
               break_time4_over1 = '#19001915',
               break_time4_over2 = '#01150215',
               break_time4_over3 = '#06150630',
+              break_time5 = '#10401130',
+              break_time5_over1 = '#15101520',
+              break_time5_over2 = '#20202110',
+              break_time5_over3 = '#01400150',
+              break_time6 = '#21202210',
+              break_time6_over1 = '#01500200',
+              break_time6_over2 = '#07000750',
+              break_time6_over3 = '#12201230',
               )
           
       for No in range(10, 20):
@@ -1692,6 +1716,14 @@ class Page_form(TestCase):
               break_time4_over1 = '#19001915',
               break_time4_over2 = '#01150215',
               break_time4_over3 = '#06150630',
+              break_time5 = '#10401130',
+              break_time5_over1 = '#15101520',
+              break_time5_over2 = '#20202110',
+              break_time5_over3 = '#01400150',
+              break_time6 = '#21202210',
+              break_time6_over1 = '#01500200',
+              break_time6_over2 = '#07000750',
+              break_time6_over3 = '#12201230',
               )
 
 
@@ -1793,6 +1825,14 @@ class Page_form(TestCase):
           break_time4_over1 = '#19001915',
           break_time4_over2 = '#01150215',
           break_time4_over3 = '#06150630',
+          break_time5 = '#10401130',
+          break_time5_over1 = '#15101520',
+          break_time5_over2 = '#20202110',
+          break_time5_over3 = '#01400150',
+          break_time6 = '#21202210',
+          break_time6_over1 = '#01500200',
+          break_time6_over2 = '#07000750',
+          break_time6_over3 = '#12201230',
           break_check = False,
           def_prediction = False,
           )
@@ -1846,6 +1886,14 @@ class Page_form(TestCase):
           'break_time4_over1': '#00000000',
           'break_time4_over2': '#00000000',
           'break_time4_over3': '#00000000',
+          'break_time5': '#00000000',
+          'break_time5_over1': '#00000000',
+          'break_time5_over2': '#00000000',
+          'break_time5_over3': '#00000000',
+          'break_time6': '#00000000',
+          'break_time6_over1': '#00000000',
+          'break_time6_over2': '#00000000',
+          'break_time6_over3': '#00000000',
           'member_edit': '登録', 
           }
 
@@ -1886,6 +1934,14 @@ class Page_form(TestCase):
           'break_time4_over1': '#00000000',
           'break_time4_over2': '#00000000',
           'break_time4_over3': '#00000000',
+          'break_time5': '#00000000',
+          'break_time5_over1': '#00000000',
+          'break_time5_over2': '#00000000',
+          'break_time5_over3': '#00000000',
+          'break_time6': '#00000000',
+          'break_time6_over1': '#00000000',
+          'break_time6_over2': '#00000000',
+          'break_time6_over3': '#00000000',
           'member_edit': '登録', 
           }
 
@@ -1935,6 +1991,14 @@ class Page_form(TestCase):
           break_time4_over1 = '#19001915',
           break_time4_over2 = '#01150215',
           break_time4_over3 = '#06150630',
+          break_time5 = '#10401130',
+          break_time5_over1 = '#15101520',
+          break_time5_over2 = '#20202110',
+          break_time5_over3 = '#01400150',
+          break_time6 = '#21202210',
+          break_time6_over1 = '#01500200',
+          break_time6_over2 = '#07000750',
+          break_time6_over3 = '#12201230',
           )
 
       # フォームデータ定義
@@ -2063,6 +2127,14 @@ class Page_form(TestCase):
           break_time4_over1 = '#19001915',
           break_time4_over2 = '#01150215',
           break_time4_over3 = '#06150630',
+          break_time5 = '#10401130',
+          break_time5_over1 = '#15101520',
+          break_time5_over2 = '#20202110',
+          break_time5_over3 = '#01400150',
+          break_time6 = '#21202210',
+          break_time6_over1 = '#01500200',
+          break_time6_over2 = '#07000750',
+          break_time6_over3 = '#12201230',
           )
 
       # memberダミーデータ
@@ -2088,6 +2160,14 @@ class Page_form(TestCase):
           break_time4_over1 = '#19001915',
           break_time4_over2 = '#01150215',
           break_time4_over3 = '#06150630',
+          break_time5 = '#10401130',
+          break_time5_over1 = '#15101520',
+          break_time5_over2 = '#20202110',
+          break_time5_over3 = '#01400150',
+          break_time6 = '#21202210',
+          break_time6_over1 = '#01500200',
+          break_time6_over2 = '#07000750',
+          break_time6_over3 = '#12201230',
           )
 
       # Business_Time_graphダミーデータ
@@ -2306,6 +2386,14 @@ class Page_form(TestCase):
           break_time4_over1 = '#19001915',
           break_time4_over2 = '#01150215',
           break_time4_over3 = '#06150630',
+          break_time5 = '#10401130',
+          break_time5_over1 = '#15101520',
+          break_time5_over2 = '#20202110',
+          break_time5_over3 = '#01400150',
+          break_time6 = '#21202210',
+          break_time6_over1 = '#01500200',
+          break_time6_over2 = '#07000750',
+          break_time6_over3 = '#12201230',
           )
 
       # Business_Time_graphダミーデータ
@@ -2427,6 +2515,14 @@ class Page_form(TestCase):
           break_time4_over1 = '#19001915',
           break_time4_over2 = '#01150215',
           break_time4_over3 = '#06150630',
+          break_time5 = '#10401130',
+          break_time5_over1 = '#15101520',
+          break_time5_over2 = '#20202110',
+          break_time5_over3 = '#01400150',
+          break_time6 = '#21202210',
+          break_time6_over1 = '#01500200',
+          break_time6_over2 = '#07000750',
+          break_time6_over3 = '#12201230',
           )
 
       # Business_Time_graphダミーデータ
@@ -2584,6 +2680,14 @@ class Page_form(TestCase):
           break_time4_over1 = '#19001915',
           break_time4_over2 = '#01150215',
           break_time4_over3 = '#06150630',
+          break_time5 = '#10401130',
+          break_time5_over1 = '#15101520',
+          break_time5_over2 = '#20202110',
+          break_time5_over3 = '#01400150',
+          break_time6 = '#21202210',
+          break_time6_over1 = '#01500200',
+          break_time6_over2 = '#07000750',
+          break_time6_over3 = '#12201230',
           )
 
       # inquiry_dataダミーデータ
