@@ -18,6 +18,7 @@ import time
 import json
 import pandas as pd
 import Levenshtein
+from itertools import zip_longest
 from ..utils.kosu_utils import handle_get_request
 from ..utils.kosu_utils import handle_work_shift
 from ..utils.kosu_utils import time_index
@@ -734,8 +735,7 @@ class KosuInputView(View):
     choices_list, def_n = kosu_division_dictionary(request.session['input_def'])
     choices_list.insert(0, ['', ''])
     choices_list.append(['$', '休憩'])
-    def_library, def_n = kosu_division_dictionary(request.session['input_def'])
-    def_library.append(['#', '-'])
+    def_library, def_n = get_def_library_data(request.session['input_def'])
 
     # フォーム作成
     form = input_kosuForm(default_list)
@@ -768,6 +768,17 @@ class KosuInputView(View):
     # 工数区分定義警告表示判断
     new_def_Ver = kosu_division.objects.order_by("id").last()
 
+    # グラフ色指定
+    color_list = [
+      'plum', 'darkgray', 'slategray', 'steelblue', 'royalblue', 'dodgerblue', 'deepskyblue', 'aqua',
+      'mediumturquoise', 'lightseagreen', 'springgreen', 'limegreen', 'lawngreen', 'greenyellow', 'gold',
+      'darkorange', 'burlywood', 'sandybrown', 'lightcoral', 'lightsalmon', 'tomato', 'orangered', 'red',
+      'deeppink', 'hotpink', 'violet', 'magenta', 'mediumorchid', 'darkviolet', 'mediumpurple', 'mediumblue',
+      'cadetblue', 'mediumseagreen', 'forestgreen', 'darkkhaki', 'crimson', 'rosybrown', 'dimgray', 'midnightblue',
+      'darkblue', 'darkslategray', 'darkgreen', 'olivedrab', 'darkgoldenrod', 'sienna', 'firebrick', 'maroon',
+      'darkmagenta', 'indigo', 'black'
+      ]
+
     # コンテキスト定義
     context = {
       'title': '工数登録',
@@ -777,7 +788,7 @@ class KosuInputView(View):
       'default_end_time': default_end_time,
       'graph_list': graph_list,
       'graph_item': graph_item,
-      'def_library': def_library,
+      'def_library': dict(zip_longest(color_list, def_library, fillvalue='')),
       'def_n': def_n,
       'OK_NG': ok_ng,
       'time_total': time_total,

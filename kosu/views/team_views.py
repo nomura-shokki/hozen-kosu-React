@@ -23,6 +23,7 @@ from ..utils.team_utils import day_get
 from ..utils.main_utils import history_record
 from dateutil.relativedelta import relativedelta
 from io import BytesIO
+from itertools import zip_longest
 import datetime
 import openpyxl
 import calendar
@@ -284,6 +285,17 @@ class TeamGraphView(TemplateView):
     # 工数区分定義取得
     graph_kosu_list, def_n = get_def_library_data(request.session['input_def'])
 
+    # グラフ色指定
+    color_list = [
+      'plum', 'darkgray', 'slategray', 'steelblue', 'royalblue', 'dodgerblue', 'deepskyblue', 'aqua',
+      'mediumturquoise', 'lightseagreen', 'springgreen', 'limegreen', 'lawngreen', 'greenyellow', 'gold',
+      'darkorange', 'burlywood', 'sandybrown', 'lightcoral', 'lightsalmon', 'tomato', 'orangered', 'red',
+      'deeppink', 'hotpink', 'violet', 'magenta', 'mediumorchid', 'darkviolet', 'mediumpurple', 'mediumblue',
+      'cadetblue', 'mediumseagreen', 'forestgreen', 'darkkhaki', 'crimson', 'rosybrown', 'dimgray', 'midnightblue',
+      'darkblue', 'darkslategray', 'darkgreen', 'olivedrab', 'darkgoldenrod', 'sienna', 'firebrick', 'maroon',
+      'darkmagenta', 'indigo', 'black'
+      ]
+
     # HTMLへ送るコンテキスト定義
     context = {
       'title': '班員工数グラフ',
@@ -291,7 +303,7 @@ class TeamGraphView(TemplateView):
       'default_day': default_day,
       'name_list': name_list,
       'n': n,
-      'graph_kosu_list': graph_kosu_list,
+      'graph_kosu_list': dict(zip_longest(color_list, graph_kosu_list, fillvalue='')),
       'def_n': def_n,
       }
     # コンテキストにグラフ情報追加

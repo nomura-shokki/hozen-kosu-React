@@ -39,28 +39,28 @@
       let c_list = [];
     </script>
     {% for i in graph_item %}
-    <script>
-      label_list.push("{{ i }}");
-    </script>
+      <script>
+        label_list.push("{{ i }}");
+      </script>
     {% endfor %}
     {% for n in graph_list %}
-    <script>
-      data_list.push("{{ n }}");
-    </script>
+      <script>
+        data_list.push("{{ n }}");
+      </script>
     {% endfor %}
     {% for m in color_list %}
-    <script>
-      c_list.push("{{ m }}");
-    </script>
+      <script>
+        c_list.push("{{ m }}");
+      </script>
     {% endfor %}
 
     <script src="{% static 'kosu/js/total_graph.js' %}"></script>
     <table class="table">
       {% for i,m in graph_library.items %}
-      <tr>
-      <th>{{i}}</th>
-      <th>{{m}}分</th>
-      </tr>
+        <tr>
+          <th>{{i}}</th>
+          <th>{{m}}分</th>
+        </tr>
       {% endfor %}
     </table>
   </body>
