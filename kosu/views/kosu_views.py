@@ -902,6 +902,22 @@ class BreakTimeUpdateView(UpdateView):
       'default_end_time15': time_format(break_data.break_time4_over2)[1],
       'default_start_time16': time_format(break_data.break_time4_over3)[0],
       'default_end_time16': time_format(break_data.break_time4_over3)[1],
+      'default_start_time17': time_format(break_data.break_time5)[0],
+      'default_end_time17': time_format(break_data.break_time5)[1],
+      'default_start_time18': time_format(break_data.break_time5_over1)[0],
+      'default_end_time18': time_format(break_data.break_time5_over1)[1],
+      'default_start_time19': time_format(break_data.break_time5_over2)[0],
+      'default_end_time19': time_format(break_data.break_time5_over2)[1],
+      'default_start_time20': time_format(break_data.break_time5_over3)[0],
+      'default_end_time20': time_format(break_data.break_time5_over3)[1],
+      'default_start_time21': time_format(break_data.break_time6)[0],
+      'default_end_time21': time_format(break_data.break_time6)[1],
+      'default_start_time22': time_format(break_data.break_time6_over1)[0],
+      'default_end_time22': time_format(break_data.break_time6_over1)[1],
+      'default_start_time23': time_format(break_data.break_time6_over2)[0],
+      'default_end_time23': time_format(break_data.break_time6_over2)[1],
+      'default_start_time24': time_format(break_data.break_time6_over3)[0],
+      'default_end_time24': time_format(break_data.break_time6_over3)[1],
       }
 
 
@@ -911,7 +927,7 @@ class BreakTimeUpdateView(UpdateView):
     post_data = self.request.POST
     break_times = [
       (post_data.get(f'start_time{i}'), post_data.get(f'end_time{i}'))
-      for i in range(1, 17)
+      for i in range(1, 25)
       ]
 
     # 休憩時間POST値リスト定義
@@ -927,7 +943,8 @@ class BreakTimeUpdateView(UpdateView):
     # エラーラベル定義
     over_time_labels = {
       1: '1直の昼休憩時間', 5: '2直の昼休憩時間',
-      9: '3直の昼休憩時間', 13: '常昼の昼休憩時間'
+      9: '3直の昼休憩時間', 13: '常昼の昼休憩時間',
+      17: '連1直の昼休憩時間', 21: '連2の昼休憩時間',
       }
 
     # 昼休憩時間が長すぎる場合のチェック
@@ -944,7 +961,9 @@ class BreakTimeUpdateView(UpdateView):
       2: ('1直残業時間中の休憩時間1', 15), 3: ('1直残業時間中の休憩時間2', 60), 4: ('1直残業時間中の休憩時間3', 15),
       6: ('2直残業時間中の休憩時間1', 15), 7: ('2直残業時間中の休憩時間2', 60), 8: ('2直残業時間中の休憩時間3', 15),
       10: ('3直残業時間中の休憩時間1', 15), 11: ('3直残業時間中の休憩時間2', 60), 12: ('3直残業時間中の休憩時間3', 15),
-      14: ('常昼残業時間中の休憩時間1', 15), 15: ('常昼残業時間中の休憩時間2', 60), 16: ('常昼残業時間中の休憩時間3', 15)
+      14: ('常昼残業時間中の休憩時間1', 15), 15: ('常昼残業時間中の休憩時間2', 60), 16: ('常昼残業時間中の休憩時間3', 15),
+      18: ('連1直残業時間中の休憩時間1', 10), 19: ('連1直残業時間中の休憩時間2', 50), 20: ('連1直残業時間中の休憩時間3', 10),
+      22: ('連2直残業時間中の休憩時間1', 10), 23: ('連2直残業時間中の休憩時間2', 50), 24: ('連2直残業時間中の休憩時間3', 10),
       }
 
     # 残業休憩時間が長すぎる場合のチェック
@@ -973,27 +992,43 @@ class BreakTimeUpdateView(UpdateView):
     self.object.break_time4_over1 = "#" + formatted_break_times[13]
     self.object.break_time4_over2 = "#" + formatted_break_times[14]
     self.object.break_time4_over3 = "#" + formatted_break_times[15]
+    self.object.break_time5 = "#" + formatted_break_times[16]
+    self.object.break_time5_over1 = "#" + formatted_break_times[17]
+    self.object.break_time5_over2 = "#" + formatted_break_times[18]
+    self.object.break_time5_over3 = "#" + formatted_break_times[19]
+    self.object.break_time6 = "#" + formatted_break_times[20]
+    self.object.break_time6_over1 = "#" + formatted_break_times[21]
+    self.object.break_time6_over2 = "#" + formatted_break_times[22]
+    self.object.break_time6_over3 = "#" + formatted_break_times[23]
     self.object.break_check = 'break_check' in post_data
 
     # データを保存
     self.object.save()
     edit_comment = f"1直昼休憩: {formatted_break_times[0][:2]}:{formatted_break_times[0][2:4]}～{formatted_break_times[0][4:6]}:{formatted_break_times[0][6:]}" + '\n' + \
-                   f"1直残業時間中の休憩時間1: {formatted_break_times[1][:2]}:{formatted_break_times[1][2:4]}～{formatted_break_times[1][4:6]}:{formatted_break_times[1][6:]}" + '\n' + \
-                   f"1直残業時間中の休憩時間2: {formatted_break_times[2][:2]}:{formatted_break_times[2][2:4]}～{formatted_break_times[2][4:6]}:{formatted_break_times[2][6:]}" + '\n' + \
-                   f"1直残業時間中の休憩時間3: {formatted_break_times[3][:2]}:{formatted_break_times[3][2:4]}～{formatted_break_times[3][4:6]}:{formatted_break_times[3][6:]}" + '\n' + \
-                   f"2直昼休憩: {formatted_break_times[4][:2]}:{formatted_break_times[4][2:4]}～{formatted_break_times[4][4:6]}:{formatted_break_times[4][6:]}" + '\n' + \
-                   f"2直残業時間中の休憩時間1: {formatted_break_times[5][:2]}:{formatted_break_times[5][2:4]}～{formatted_break_times[5][4:6]}:{formatted_break_times[5][6:]}" + '\n' + \
-                   f"2直残業時間中の休憩時間2: {formatted_break_times[6][:2]}:{formatted_break_times[6][2:4]}～{formatted_break_times[6][4:6]}:{formatted_break_times[6][6:]}" + '\n' + \
-                   f"2直残業時間中の休憩時間3: {formatted_break_times[7][:2]}:{formatted_break_times[7][2:4]}～{formatted_break_times[7][4:6]}:{formatted_break_times[7][6:]}" + '\n' + \
-                   f"3直昼休憩: {formatted_break_times[8][:2]}:{formatted_break_times[8][2:4]}～{formatted_break_times[8][4:6]}:{formatted_break_times[8][6:]}" + '\n' + \
-                   f"3直残業時間中の休憩時間1: {formatted_break_times[9][:2]}:{formatted_break_times[9][2:4]}～{formatted_break_times[9][4:6]}:{formatted_break_times[9][6:]}" + '\n' + \
-                   f"3直残業時間中の休憩時間2: {formatted_break_times[10][:2]}:{formatted_break_times[10][2:4]}～{formatted_break_times[10][4:6]}:{formatted_break_times[10][6:]}" + '\n' + \
-                   f"3直残業時間中の休憩時間3: {formatted_break_times[11][:2]}:{formatted_break_times[11][2:4]}～{formatted_break_times[11][4:6]}:{formatted_break_times[11][6:]}" + '\n' + \
-                   f"常昼昼休憩: {formatted_break_times[12][:2]}:{formatted_break_times[12][2:4]}～{formatted_break_times[12][4:6]}:{formatted_break_times[12][6:]}" + '\n' + \
-                   f"常昼残業時間中の休憩時間1: {formatted_break_times[13][:2]}:{formatted_break_times[13][2:4]}～{formatted_break_times[13][4:6]}:{formatted_break_times[13][6:]}" + '\n' + \
-                   f"常昼残業時間中の休憩時間2: {formatted_break_times[14][:2]}:{formatted_break_times[14][2:4]}～{formatted_break_times[14][4:6]}:{formatted_break_times[14][6:]}" + '\n' + \
-                   f"常昼残業時間中の休憩時間3: {formatted_break_times[15][:2]}:{formatted_break_times[15][2:4]}～{formatted_break_times[15][4:6]}:{formatted_break_times[15][6:]}" + '\n' + \
-                   f"休憩時間に工数入力不可: {'break_check' in post_data}"
+                  f"1直残業時間中の休憩時間1: {formatted_break_times[1][:2]}:{formatted_break_times[1][2:4]}～{formatted_break_times[1][4:6]}:{formatted_break_times[1][6:]}" + '\n' + \
+                  f"1直残業時間中の休憩時間2: {formatted_break_times[2][:2]}:{formatted_break_times[2][2:4]}～{formatted_break_times[2][4:6]}:{formatted_break_times[2][6:]}" + '\n' + \
+                  f"1直残業時間中の休憩時間3: {formatted_break_times[3][:2]}:{formatted_break_times[3][2:4]}～{formatted_break_times[3][4:6]}:{formatted_break_times[3][6:]}" + '\n' + \
+                  f"2直昼休憩: {formatted_break_times[4][:2]}:{formatted_break_times[4][2:4]}～{formatted_break_times[4][4:6]}:{formatted_break_times[4][6:]}" + '\n' + \
+                  f"2直残業時間中の休憩時間1: {formatted_break_times[5][:2]}:{formatted_break_times[5][2:4]}～{formatted_break_times[5][4:6]}:{formatted_break_times[5][6:]}" + '\n' + \
+                  f"2直残業時間中の休憩時間2: {formatted_break_times[6][:2]}:{formatted_break_times[6][2:4]}～{formatted_break_times[6][4:6]}:{formatted_break_times[6][6:]}" + '\n' + \
+                  f"2直残業時間中の休憩時間3: {formatted_break_times[7][:2]}:{formatted_break_times[7][2:4]}～{formatted_break_times[7][4:6]}:{formatted_break_times[7][6:]}" + '\n' + \
+                  f"3直昼休憩: {formatted_break_times[8][:2]}:{formatted_break_times[8][2:4]}～{formatted_break_times[8][4:6]}:{formatted_break_times[8][6:]}" + '\n' + \
+                  f"3直残業時間中の休憩時間1: {formatted_break_times[9][:2]}:{formatted_break_times[9][2:4]}～{formatted_break_times[9][4:6]}:{formatted_break_times[9][6:]}" + '\n' + \
+                  f"3直残業時間中の休憩時間2: {formatted_break_times[10][:2]}:{formatted_break_times[10][2:4]}～{formatted_break_times[10][4:6]}:{formatted_break_times[10][6:]}" + '\n' + \
+                  f"3直残業時間中の休憩時間3: {formatted_break_times[11][:2]}:{formatted_break_times[11][2:4]}～{formatted_break_times[11][4:6]}:{formatted_break_times[11][6:]}" + '\n' + \
+                  f"常昼昼休憩: {formatted_break_times[12][:2]}:{formatted_break_times[12][2:4]}～{formatted_break_times[12][4:6]}:{formatted_break_times[12][6:]}" + '\n' + \
+                  f"常昼残業時間中の休憩時間1: {formatted_break_times[13][:2]}:{formatted_break_times[13][2:4]}～{formatted_break_times[13][4:6]}:{formatted_break_times[13][6:]}" + '\n' + \
+                  f"常昼残業時間中の休憩時間2: {formatted_break_times[14][:2]}:{formatted_break_times[14][2:4]}～{formatted_break_times[14][4:6]}:{formatted_break_times[14][6:]}" + '\n' + \
+                  f"常昼残業時間中の休憩時間3: {formatted_break_times[15][:2]}:{formatted_break_times[15][2:4]}～{formatted_break_times[15][4:6]}:{formatted_break_times[15][6:]}" + '\n' + \
+                  f"連1直昼休憩: {formatted_break_times[16][:2]}:{formatted_break_times[16][2:4]}～{formatted_break_times[16][4:6]}:{formatted_break_times[16][6:]}" + '\n' + \
+                  f"連1直残業時間中の休憩時間1: {formatted_break_times[17][:2]}:{formatted_break_times[17][2:4]}～{formatted_break_times[17][4:6]}:{formatted_break_times[17][6:]}" + '\n' + \
+                  f"連1直残業時間中の休憩時間2: {formatted_break_times[18][:2]}:{formatted_break_times[18][2:4]}～{formatted_break_times[18][4:6]}:{formatted_break_times[18][6:]}" + '\n' + \
+                  f"連1直残業時間中の休憩時間3: {formatted_break_times[19][:2]}:{formatted_break_times[19][2:4]}～{formatted_break_times[19][4:6]}:{formatted_break_times[19][6:]}" + '\n' + \
+                  f"連2直昼休憩: {formatted_break_times[20][:2]}:{formatted_break_times[20][2:4]}～{formatted_break_times[20][4:6]}:{formatted_break_times[20][6:]}" + '\n' + \
+                  f"連2直残業時間中の休憩時間1: {formatted_break_times[21][:2]}:{formatted_break_times[21][2:4]}～{formatted_break_times[21][4:6]}:{formatted_break_times[21][6:]}" + '\n' + \
+                  f"連2直残業時間中の休憩時間2: {formatted_break_times[22][:2]}:{formatted_break_times[22][2:4]}～{formatted_break_times[22][4:6]}:{formatted_break_times[22][6:]}" + '\n' + \
+                  f"連2直残業時間中の休憩時間3: {formatted_break_times[23][:2]}:{formatted_break_times[23][2:4]}～{formatted_break_times[23][4:6]}:{formatted_break_times[23][6:]}" + '\n' + \
+                  f"休憩時間に工数入力不可: {'break_check' in post_data}"
 
     history_record('休憩変更画面', 'Business_Time_graph', 'OK', edit_comment, self.request)
     return redirect(self.get_success_url())
