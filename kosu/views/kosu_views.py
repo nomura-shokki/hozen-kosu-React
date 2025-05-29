@@ -940,30 +940,14 @@ class BreakTimeUpdateView(UpdateView):
         f"{start_hour.zfill(2)}{start_min}{end_hour.zfill(2)}{end_min}"
         )
 
-    # エラーラベル定義
-    over_time_labels = {
-      1: '1直の昼休憩時間', 5: '2直の昼休憩時間',
-      9: '3直の昼休憩時間', 13: '常昼の昼休憩時間',
-      17: '連1直の昼休憩時間', 21: '連2の昼休憩時間',
-      }
-
-    # 昼休憩時間が長すぎる場合のチェック
-    for i, label in over_time_labels.items():
-      response = break_time_over(
-        *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), 60, label, '/break_time', self.request
-        )
-      if response:
-        history_record('休憩変更画面', 'Business_Time_graph', 'ERROR032', '昼休憩:' + str(break_times[i-1][0]) + ':' + str(break_times[i-1][1]), self.request)
-        return response
-
     # 詳細なエラー時間ラベル
     over_time_rest_labels = {
-      2: ('1直残業時間中の休憩時間1', 15), 3: ('1直残業時間中の休憩時間2', 60), 4: ('1直残業時間中の休憩時間3', 15),
-      6: ('2直残業時間中の休憩時間1', 15), 7: ('2直残業時間中の休憩時間2', 60), 8: ('2直残業時間中の休憩時間3', 15),
-      10: ('3直残業時間中の休憩時間1', 15), 11: ('3直残業時間中の休憩時間2', 60), 12: ('3直残業時間中の休憩時間3', 15),
-      14: ('常昼残業時間中の休憩時間1', 15), 15: ('常昼残業時間中の休憩時間2', 60), 16: ('常昼残業時間中の休憩時間3', 15),
-      18: ('連1直残業時間中の休憩時間1', 10), 19: ('連1直残業時間中の休憩時間2', 50), 20: ('連1直残業時間中の休憩時間3', 10),
-      22: ('連2直残業時間中の休憩時間1', 10), 23: ('連2直残業時間中の休憩時間2', 50), 24: ('連2直残業時間中の休憩時間3', 10),
+      1: ('1直の昼休憩時間', 60), 2: ('1直残業時間中の休憩時間1', 15), 3: ('1直残業時間中の休憩時間2', 60), 4: ('1直残業時間中の休憩時間3', 15),
+      5: ('2直の昼休憩時間', 60), 6: ('2直残業時間中の休憩時間1', 15), 7: ('2直残業時間中の休憩時間2', 60), 8: ('2直残業時間中の休憩時間3', 15),
+      9: ('3直の昼休憩時間', 60), 10: ('3直残業時間中の休憩時間1', 15), 11: ('3直残業時間中の休憩時間2', 60), 12: ('3直残業時間中の休憩時間3', 15),
+      13: ('常昼の昼休憩時間', 60), 14: ('常昼残業時間中の休憩時間1', 15), 15: ('常昼残業時間中の休憩時間2', 60), 16: ('常昼残業時間中の休憩時間3', 15),
+      17: ('連1直の昼休憩時間', 50), 18: ('連1直残業時間中の休憩時間1', 10), 19: ('連1直残業時間中の休憩時間2', 50), 20: ('連1直残業時間中の休憩時間3', 10),
+      21: ('連2直の昼休憩時間', 50), 22: ('連2直残業時間中の休憩時間1', 10), 23: ('連2直残業時間中の休憩時間2', 50), 24: ('連2直残業時間中の休憩時間3', 10),
       }
 
     # 残業休憩時間が長すぎる場合のチェック
@@ -1169,9 +1153,9 @@ class TodayBreakTimeUpdateView(UpdateView):
     # データを保存
     self.object.save()
     edit_comment = f"昼休憩: {formatted_break_times[0][:2]}:{formatted_break_times[0][2:4]}～{formatted_break_times[0][4:6]}:{formatted_break_times[0][6:]}" + '\n' + \
-                   f"残業時間中の休憩時間1: {formatted_break_times[1][:2]}:{formatted_break_times[1][2:4]}～{formatted_break_times[1][4:6]}:{formatted_break_times[1][6:]}" + '\n' + \
-                   f"残業時間中の休憩時間2: {formatted_break_times[2][:2]}:{formatted_break_times[2][2:4]}～{formatted_break_times[2][4:6]}:{formatted_break_times[2][6:]}" + '\n' + \
-                   f"残業時間中の休憩時間3: {formatted_break_times[3][:2]}:{formatted_break_times[3][2:4]}～{formatted_break_times[3][4:6]}:{formatted_break_times[3][6:]}"
+                  f"残業時間中の休憩時間1: {formatted_break_times[1][:2]}:{formatted_break_times[1][2:4]}～{formatted_break_times[1][4:6]}:{formatted_break_times[1][6:]}" + '\n' + \
+                  f"残業時間中の休憩時間2: {formatted_break_times[2][:2]}:{formatted_break_times[2][2:4]}～{formatted_break_times[2][4:6]}:{formatted_break_times[2][6:]}" + '\n' + \
+                  f"残業時間中の休憩時間3: {formatted_break_times[3][:2]}:{formatted_break_times[3][2:4]}～{formatted_break_times[3][4:6]}:{formatted_break_times[3][6:]}"
 
     history_record('当日休憩変更画面', 'Business_Time_graph', 'OK', edit_comment, self.request)
     return redirect(self.get_success_url())

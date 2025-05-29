@@ -950,12 +950,9 @@ def index_change(start_index, end_index, time_list):
 # 休憩時間オーバー検出関数
 def break_time_over(start_hour, start_min, end_hour, end_min, limit_tome,comment, jump_point, request):
   # 昼休憩時間に長すぎる時間を登録しようとした時の処理
-  if (int(end_hour)*60 + int(end_min)) - \
-    (int(start_hour)*60 + int(start_min)) > limit_tome or \
-    (((int(end_hour)*60 + int(end_min)) < \
-    (int(start_hour)*60 + int(start_min))) and \
-    (int(end_hour)*60 + int(end_min) + 1440) - \
-    (int(start_hour)*60 + int(start_min)) > limit_tome):
+  if (int(end_hour)*60 + int(end_min)) - (int(start_hour)*60 + int(start_min)) > limit_tome or \
+    (((int(end_hour)*60 + int(end_min)) < (int(start_hour)*60 + int(start_min))) and \
+    (int(end_hour)*60 + int(end_min) + 1440) - (int(start_hour)*60 + int(start_min)) > limit_tome):
     # エラーメッセージ出力
     messages.error(request, f'{comment}が{limit_tome}分を超えています。正しい休憩時間を登録して下さい。ERROR032')
     # このページをリダイレクト
@@ -1233,14 +1230,14 @@ def break_get(tyoku, request):
   break_time_obj = member.objects.get(employee_no = request.session['login_No'])
 
   # 1直の場合の休憩時間取得
-  if tyoku == '1' or tyoku == '5':
+  if tyoku == '1':
     breaktime = break_time_obj.break_time1
     breaktime_over1 = break_time_obj.break_time1_over1
     breaktime_over2 = break_time_obj.break_time1_over2
     breaktime_over3 = break_time_obj.break_time1_over3
 
   # 2直の場合の休憩時間取得
-  if tyoku == '2' or tyoku == '6':
+  if tyoku == '2':
     breaktime = break_time_obj.break_time2
     breaktime_over1 = break_time_obj.break_time2_over1
     breaktime_over2 = break_time_obj.break_time2_over2
@@ -1259,6 +1256,20 @@ def break_get(tyoku, request):
     breaktime_over1 = break_time_obj.break_time4_over1
     breaktime_over2 = break_time_obj.break_time4_over2
     breaktime_over3 = break_time_obj.break_time4_over3
+
+  # 連1直の場合の休憩時間取得
+  if tyoku == '5':
+    breaktime = break_time_obj.break_time5
+    breaktime_over1 = break_time_obj.break_time5_over1
+    breaktime_over2 = break_time_obj.break_time5_over2
+    breaktime_over3 = break_time_obj.break_time5_over3
+
+  # 連2直の場合の休憩時間取得
+  if tyoku == '6':
+    breaktime = break_time_obj.break_time6
+    breaktime_over1 = break_time_obj.break_time6_over1
+    breaktime_over2 = break_time_obj.break_time6_over2
+    breaktime_over3 = break_time_obj.break_time6_over3
 
   return breaktime, breaktime_over1, breaktime_over2, breaktime_over3
 
