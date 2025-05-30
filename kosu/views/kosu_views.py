@@ -1116,23 +1116,9 @@ class TodayBreakTimeUpdateView(UpdateView):
           f"{start_hour.zfill(2)}{start_min}{end_hour.zfill(2)}{end_min}"
       )
 
-    # エラーラベル定義
-    over_time_labels = {
-      1: '昼休憩時間'
-      }
-
-    # 昼休憩時間が長すぎる場合のチェック
-    for i, label in over_time_labels.items():
-      response = break_time_over(
-          *time_index(break_times[i-1][0]), *time_index(break_times[i-1][1]), 60, label, '/today_break_time', self.request
-      )
-      if response:
-        history_record('当日休憩変更画面', 'Business_Time_graph', 'ERROR032', '昼休憩:' + str(break_times[i-1][0]) + ':' + str(break_times[i-1][1]), self.request)
-        return response
-
     # 詳細なエラー時間ラベル
     over_time_rest_labels = {
-      2: ('残業時間中の休憩時間1', 15), 3: ('残業時間中の休憩時間2', 60), 4: ('残業時間中の休憩時間3', 15),
+      1: ('昼休憩時間', 60), 2: ('残業時間中の休憩時間1', 15), 3: ('残業時間中の休憩時間2', 60), 4: ('残業時間中の休憩時間3', 15),
       }
 
     # 残業休憩時間が長すぎる場合のチェック

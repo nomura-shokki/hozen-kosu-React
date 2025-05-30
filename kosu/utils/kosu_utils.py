@@ -145,7 +145,7 @@ def handle_get_request(new_work_day, member_obj):
 
     # グラフリストが空でない場合の処理
     if graph_list != [0] * 288:
-      #　入力直が3直or2直(連2)でない場合の処理
+      # 入力直が3直or2直(連2)でない場合の処理
       if obj_get.tyoku2 not in ['3', '6']:
         # グラフデータの始まりのインデックス取得
         graph_start_index = get_graph_start_index(graph_list)
@@ -160,7 +160,7 @@ def handle_get_request(new_work_day, member_obj):
         del graph_item[graph_end_index:]
         del graph_item[:graph_start_index]
 
-      #　入力直が3直or2直(連2)である場合の処理
+      # 入力直が3直or2直(連2)である場合の処理
       else:
         # 16:00～のグラフ表示に変更
         graph_list = (graph_list * 2)[192:480]
