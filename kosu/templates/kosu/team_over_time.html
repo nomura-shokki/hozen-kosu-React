@@ -13,8 +13,8 @@
     <script src="{% static 'kosu/js/check_storage2.js' %}"></script>
     <script src="{% static 'kosu/js/schedule_switching.js' %}"></script>
   </head>
-  <body class="container">
-    <div id="content" class="content">
+  <body>
+    <div id="content" class="container content">
       <h1 class="display-4 text-danger">{{title}}</h1>
       <p class="h6"><a href="{% url 'team_main' %}" class="text-danger">班員MENUへ</a></p>
       <form action="{% url 'team_over_time' %}" method="post">

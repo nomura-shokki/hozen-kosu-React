@@ -9,56 +9,61 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/bootstrap.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/custom.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'kosu/css/console.css' %}">
+    <script src="{% static 'kosu/js/check_storage2.js' %}"></script>
     <script src="{% static 'kosu/js/shop_choice.js' %}"></script>
   </head>
-  <body class="container">
-    <h1 class="display-6 text-danger">{{data.name}}さんの{{title}}</h1>
-      <p class="h6"><a href="{% url 'team_main' %}" class="text-danger">班員MENUへ</a></p>
-    <form action="{% url 'team' %}" method="post">
-    {% csrf_token %}
-      <table class="table table-custom">
-        {% if data.shop == '組長以上(P,R,T,その他)' or data.shop == '組長以上(W,A)' %}
+  <body>
+    <div id="content" class="container content">
+      <h1 class="display-6 text-danger">{{data.name}}さんの{{title}}</h1>
+        <p class="h6"><a href="{% url 'team_main' %}" class="text-danger">班員MENUへ</a></p>
+      <form action="{% url 'team' %}" method="post">
+      {% csrf_token %}
+        <table class="table table-custom">
+          {% if data.shop == '組長以上(P,R,T,その他)' or data.shop == '組長以上(W,A)' %}
+            <tr>
+              <th>
+                ショップ絞り込み
+              </th>
+              <td>
+                <div class="number-input-group">
+                  {{form.shop}}{{form.shop2}}
+                  <button name="shop_choice" class="btn btn-link"></button>
+                </div>
+              </td>
+            </tr>
+          {% endif %}
           <tr>
-            <th>
-              ショップ絞り込み
+            <th class="text-nowrap">
+              フォローメッセージ
             </th>
             <td>
-              <div class="number-input-group">
-                {{form.shop}}{{form.shop2}}
-                <button name="shop_choice" class="btn btn-link"></button>
+              <div class="form-check form-check-inline custom-checkbox">
+                {{form.follow}}
               </div>
             </td>
           </tr>
-        {% endif %}
-        <tr>
-          <th class="text-nowrap">
-            フォローメッセージ
-          </th>
-          <td>
-            <div class="form-check form-check-inline custom-checkbox">
-              {{form.follow}}
-            </div>
-          </td>
-        </tr>
-        <tr><th>メンバー1</th><td>{{form.member1}}</td></tr>
-        <tr><th>メンバー2</th><td>{{form.member2}}</td></tr>
-        <tr><th>メンバー3</th><td>{{form.member3}}</td></tr>
-        <tr><th>メンバー4</th><td>{{form.member4}}</td></tr>
-        <tr><th>メンバー5</th><td>{{form.member5}}</td></tr>
-        <tr><th>メンバー6</th><td>{{form.member6}}</td></tr>
-        <tr><th>メンバー7</th><td>{{form.member7}}</td></tr>
-        <tr><th>メンバー8</th><td>{{form.member8}}</td></tr>
-        <tr><th>メンバー9</th><td>{{form.member9}}</td></tr>
-        <tr><th>メンバー10</th><td>{{form.member10}}</td></tr>
-        <tr><th>メンバー11</th><td>{{form.member11}}</td></tr>
-        <tr><th>メンバー12</th><td>{{form.member12}}</td></tr>
-        <tr><th>メンバー13</th><td>{{form.member13}}</td></tr>
-        <tr><th>メンバー14</th><td>{{form.member14}}</td></tr>
-        <tr><th>メンバー15</th><td>{{form.member15}}</td></tr>
-        <tr><th><td>
-          <input type="submit" value="班員登録" class="btn btn-orange7 mt-2" name="team_new">
-        </td></th></tr>
-      </table>
-    </form>
+          <tr><th>メンバー1</th><td>{{form.member1}}</td></tr>
+          <tr><th>メンバー2</th><td>{{form.member2}}</td></tr>
+          <tr><th>メンバー3</th><td>{{form.member3}}</td></tr>
+          <tr><th>メンバー4</th><td>{{form.member4}}</td></tr>
+          <tr><th>メンバー5</th><td>{{form.member5}}</td></tr>
+          <tr><th>メンバー6</th><td>{{form.member6}}</td></tr>
+          <tr><th>メンバー7</th><td>{{form.member7}}</td></tr>
+          <tr><th>メンバー8</th><td>{{form.member8}}</td></tr>
+          <tr><th>メンバー9</th><td>{{form.member9}}</td></tr>
+          <tr><th>メンバー10</th><td>{{form.member10}}</td></tr>
+          <tr><th>メンバー11</th><td>{{form.member11}}</td></tr>
+          <tr><th>メンバー12</th><td>{{form.member12}}</td></tr>
+          <tr><th>メンバー13</th><td>{{form.member13}}</td></tr>
+          <tr><th>メンバー14</th><td>{{form.member14}}</td></tr>
+          <tr><th>メンバー15</th><td>{{form.member15}}</td></tr>
+          <tr><th><td>
+            <input type="submit" value="班員登録" class="btn btn-orange7 mt-2" name="team_new">
+          </td></th></tr>
+        </table>
+      </form>
+    </div>
+    <div id="consoleDiv"></div>
   </body>
 </html>

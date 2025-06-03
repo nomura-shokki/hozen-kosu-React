@@ -959,6 +959,14 @@ class BreakTimeUpdateView(UpdateView):
         history_record('休憩変更画面', 'Business_Time_graph', 'ERROR032', f'{label}:' + str(break_times[i-1][0]) + ':' + str(break_times[i-1][1]), self.request)
         return response
 
+    # 空欄チェック
+    keys_to_check = [f'start_time{i}' for i in range(1, 25)] + [f'end_time{i}' for i in range(1, 25)]
+    for key in keys_to_check:
+      value = self.request.POST.get(key, '')
+      if not value.strip():
+        messages.error(self.request, '休憩時間の入力に空欄があります。ERROR087')
+        return redirect('/break_time')
+
     # 各休憩時間をフォーマットしてモデルのフィールドに設定
     self.object.break_time1 = "#" + formatted_break_times[0]
     self.object.break_time1_over1 = "#" + formatted_break_times[1]
