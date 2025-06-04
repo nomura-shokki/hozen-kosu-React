@@ -19,19 +19,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='member',
             name='break_time5_over1',
-            field=models.CharField(default='#00000000', max_length=9, verbose_name='連1直残業休憩時間1'),
+            field=models.CharField(default='#15101520', max_length=9, verbose_name='連1直残業休憩時間1'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='member',
             name='break_time5_over2',
-            field=models.CharField(default='#00000000', max_length=9, verbose_name='連1直残業休憩時間2'),
+            field=models.CharField(default='#19051955', max_length=9, verbose_name='連1直残業休憩時間2'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='member',
             name='break_time5_over3',
-            field=models.CharField(default='#00000000', max_length=9, verbose_name='連1直残業休憩時間3'),
+            field=models.CharField(default='#00400050', max_length=9, verbose_name='連1直残業休憩時間3'),
             preserve_default=False,
         ),
         migrations.AddField(
@@ -43,19 +43,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='member',
             name='break_time6_over1',
-            field=models.CharField(default='#00000000', max_length=9, verbose_name='連2直残業休憩時間1'),
+            field=models.CharField(default='#01500200', max_length=9, verbose_name='連2直残業休憩時間1'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='member',
             name='break_time6_over2',
-            field=models.CharField(default='#00000000', max_length=9, verbose_name='連2直残業休憩時間2'),
+            field=models.CharField(default='#07000750', max_length=9, verbose_name='連2直残業休憩時間2'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='member',
             name='break_time6_over3',
-            field=models.CharField(default='#00000000', max_length=9, verbose_name='連2直残業休憩時間3'),
+            field=models.CharField(default='#12201230', max_length=9, verbose_name='連2直残業休憩時間3'),
             preserve_default=False,
         ),
     ]

@@ -765,6 +765,12 @@ class TeamCalendarView(View):
       'default_day': default_day,
       'member_num': member_num,
       'day_list': day_list,
+      'member_name': member_names,
+      'work_list': work_lists,
+      'over_time_list': over_time_lists,
+      'kosu_list': kosu_lists,
+      'ok_ng_list': ok_ng_lists,
+      'loop_num': range(15),
     }
 
     # 各班員の表示内容をコンテキストに追加
