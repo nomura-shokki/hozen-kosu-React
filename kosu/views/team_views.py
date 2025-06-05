@@ -759,29 +759,17 @@ class TeamCalendarView(View):
     for ok_ng_list in ok_ng_lists:
       ok_ng_list.reverse()
 
+    # 各班員情報まとめ
+    team_total_list = zip(member_names, work_lists, over_time_lists, kosu_lists, ok_ng_lists)
+
     # コンテキスト定義
     context = {
       'title': '班員工数入力状況一覧',
       'default_day': default_day,
       'member_num': member_num,
       'day_list': day_list,
-      'member_name': member_names,
-      'work_list': work_lists,
-      'over_time_list': over_time_lists,
-      'kosu_list': kosu_lists,
-      'ok_ng_list': ok_ng_lists,
-      'loop_num': range(15),
+      'team_total_list': team_total_list,
     }
-
-    # 各班員の表示内容をコンテキストに追加
-    for i in range(1, 16):
-        context.update({
-          f'member_name{i}': member_names[i - 1],
-          f'work_list{i}': work_lists[i - 1],
-          f'over_time_list{i}': over_time_lists[i - 1],
-          f'kosu_list{i}': kosu_lists[i - 1],
-          f'ok_ng_list{i}': ok_ng_lists[i - 1],
-        })
 
     return context
 
