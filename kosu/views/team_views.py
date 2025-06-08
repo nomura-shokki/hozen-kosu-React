@@ -760,8 +760,8 @@ class TeamCalendarView(View):
       ok_ng_list.reverse()
 
     # 各班員情報まとめ
-    team_total_list = zip(member_names, work_lists, over_time_lists, kosu_lists, ok_ng_lists)
-
+    team_total_list = list(zip(member_names, work_lists, over_time_lists, kosu_lists, ok_ng_lists))
+ 
     # コンテキスト定義
     context = {
       'title': '班員工数入力状況一覧',

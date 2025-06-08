@@ -2329,15 +2329,13 @@ class Page_form(TestCase):
       # 変数を読み出し
       team_total_list = response.context['team_total_list']
       member_name = [x[0] for x in team_total_list]
-      print(team_total_list)
       work_list = [x[1] for x in team_total_list]
       over_time_list = [x[2] for x in team_total_list]
       kosu_list = [x[3] for x in team_total_list]
-      print(work_list)
       # 変数整合性チェック
       self.assertEqual(member_name[0], '')
       # 変数整合性チェック
-      self.assertEqual(member_name[1], 'テストユーザー')
+      self.assertEqual(member_name[1].name, 'テストユーザー')
       # 変数整合性チェック
       self.assertEqual(work_list[0], ['', '', '', '', '', '', ''])
       # 変数整合性チェック
