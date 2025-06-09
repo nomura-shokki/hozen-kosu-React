@@ -761,7 +761,7 @@ class TeamCalendarView(View):
 
     # 各班員情報まとめ
     team_total_list = list(zip(member_names, work_lists, over_time_lists, kosu_lists, ok_ng_lists))
- 
+
     # コンテキスト定義
     context = {
       'title': '班員工数入力状況一覧',
@@ -981,7 +981,8 @@ class ClassList(FormView):
 
     # 月の最終日取得
     last_day_of_month = calendar.monthrange(year, month)[1]
-
+    print(year)
+    print(month)
     # 従業員情報設定
     for member_obj in member_obj_filter:
       No_list.append(member_obj.employee_no)

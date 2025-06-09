@@ -211,5 +211,34 @@ class KosuListViewTests(TestCase):
 
 
 
+  # 工数区分定義一覧ページネーションテスト
+  def test_def_pagination_navigation(self):
+    # 最初のページにアクセス
+    response = self.client.get(reverse('def_list', kwargs={'num': 1}))
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.context['obj']), 20)
+    self.assertContains(response, '1/6')
+    
+    # 2ページにアクセス
+    response = self.client.get(reverse('def_list', kwargs={'num': 2}))
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.context['obj']), 20)
+    self.assertContains(response, '2/6')
+    self.assertContains(response, '&laquo; 最初', count=1)
+    self.assertNotContains(response, '/def_list/0">')
+
+    # 最終ページにアクセス
+    response = self.client.get(reverse('def_list', kwargs={'num': 6}))
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.context['obj']), 20)
+    self.assertContains(response, '6/6')
+    # 最後のページでは、「次」ボタンが無効化されていることを確認
+    self.assertContains(response, '次&raquo;', count=1)
+    self.assertNotContains(response, '/def_list/7">')
+
+    # 最後のページから「前」ボタンで5ページ目に遷移
+    response = self.client.get(reverse('def_list', kwargs={'num': 5}))
+    self.assertEqual(response.status_code, 200)
+    self.assertContains(response, '5/6')
 
 

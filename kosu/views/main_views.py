@@ -817,7 +817,6 @@ class HistoryList(ListView):
   model = Operation_history
   template_name = 'kosu/history_list.html'
   context_object_name = 'data'
-  paginate_by = 20
 
 
   # 画面処理前の初期設定
@@ -832,6 +831,19 @@ class HistoryList(ListView):
     # 権限がないユーザーの場合ログイン画面へ
     if not self.member_obj.administrator:
       return redirect('/')
+    
+    # ページネーション設定データの取得
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is None:
+      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
+      page_num = administrator_data(menu_row=20).menu_row
+    else:
+      page_num = last_record.menu_row
+
+    # 工数区分表示用のオブジェクト取得
+    self.data = Operation_history.objects.all().order_by('created_at').reverse()
+    self.page = Paginator(self.data, page_num)
+
     return super().dispatch(request, *args, **kwargs)
 
 
@@ -855,16 +867,6 @@ class HistoryList(ListView):
     request.session['filter_page_list'] = request.POST.get('page_list', '')
 
     return redirect(reverse_lazy('history_list', args = [1]))
-
-
-  # 1ページのレコード表示数オーバーライド
-  def get_paginate_by(self, queryset):
-    # 設定データ取得
-    last_record = administrator_data.objects.order_by("id").last()
-    # レコードが1件もない場合20件設定
-    if last_record is None:
-      return 20
-    return last_record.menu_row
 
 
   # フィルタリングしたデータ取得
@@ -924,6 +926,7 @@ class HistoryList(ListView):
     context['title'] = '編集履歴一覧'
     context['pk'] = self.kwargs.get('pk')
     context['form'] = self.get_form()
+    context['data'] = self.page.get_page(self.kwargs.get('pk'))
     return context
 
 
@@ -960,7 +963,7 @@ class HistoryDelete(DeleteView):
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
     obj_get = self.get_object()
-    context['title'] = '工数データ削除'
+    context['title'] = '編集履歴詳細'
     context['id'] = self.object.id
     context['obj'] = obj_get
     return context

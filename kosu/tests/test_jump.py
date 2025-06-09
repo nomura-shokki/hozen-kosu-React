@@ -2,7 +2,7 @@ import datetime
 from django.test import TestCase, Client
 from django.urls import reverse
 import os
-from kosu.models import member, kosu_division, Business_Time_graph, team_member, administrator_data, inquiry_data
+from kosu.models import member, kosu_division, Business_Time_graph, team_member, administrator_data, inquiry_data, Operation_history
 
 
 
@@ -136,7 +136,17 @@ class Page_jump(TestCase):
       inquiry = '',
       answer = '回答'
     )
-      
+
+    # Operation_historyダミーデータ
+    cls.Operation_history = Operation_history.objects.create(
+      employee_no4 = '111',
+      name = cls.member,
+      post_page = '工数入力画面：工数入力',
+      operation_models = 'Business_Time_graph',
+      status = 'OK',
+      operation_detail = 'トライ'
+    )
+
 
 
   # 初期データ
@@ -448,7 +458,7 @@ class Page_jump(TestCase):
 
     # ログアウトボタンを押した後に 'login' ページにリダイレクトされることを確認
     self.assertRedirects(response, reverse('login'))
-      
+
 
 
   # 工数MENUから工数登録へジャンプテスト
@@ -1805,7 +1815,7 @@ class Page_jump(TestCase):
 
 
 
-  # 班員工数入力状況一覧から班員MENUへジャンプテスト
+  # 班員残業管理から班員MENUへジャンプテスト
   def test_team_over_time_team_MENU_jump(self):
     # 班員残業管理ページにアクセス
     response = self.client.get(reverse('team_over_time'))
@@ -1853,6 +1863,29 @@ class Page_jump(TestCase):
     # リダイレクトが成功し、ステータスコードが200であることを確認
     self.assertEqual(response.status_code, 200)
     self.assertTemplateUsed(response, 'kosu/team_main.html')
+
+
+
+  # 工数入力可否(ショップ単位)から工数詳細へジャンプテスト
+  def test_class_list_team_detail_jump(self):
+    # セッション定義
+    self.session = self.client.session
+    self.session['find_year'] = 2000
+    self.session['find_month'] = 1
+    self.session.save()
+
+    # 工数入力可否(ショップ単位)ページにアクセス
+    response = self.client.get(reverse('class_list'))
+    self.assertEqual(response.status_code, 200)
+
+    # HTMLに含まれるボタンが正しく設定されているかを確認
+    self.assertContains(response, '<a href="' + reverse('team_detail', args=[self.Business_Time_graph.id]) + '" >OK</a>', html=True)
+    # ボタンを押すシミュレーション
+    response = self.client.get(reverse('team_detail', args=[self.Business_Time_graph.id]))
+
+    # リダイレクトが成功し、ステータスコードが200であることを確認
+    self.assertEqual(response.status_code, 200)
+    self.assertTemplateUsed(response, 'kosu/team_detail.html')
 
 
 
@@ -2051,11 +2084,86 @@ class Page_jump(TestCase):
 
 
 
+  # 管理者MENUから編集履歴一覧へジャンプテスト
+  def test_administrator_history_list_jump(self):
+    # 管理者MENUページにアクセス
+    response = self.client.get(reverse('administrator'))
+    self.assertEqual(response.status_code, 200)
+
+    # HTMLに含まれるボタンが正しく設定されているかを確認
+    self.assertContains(response, '<a href="' + reverse('history_list', args=[1]) + '" class="text-dark">データ操作履歴一覧へ</a>', html=True)
+    # ボタンを押すシミュレーション
+    response = self.client.get(reverse('history_list', args=[1]))
+
+    # リダイレクトが成功し、ステータスコードが200であることを確認
+    self.assertEqual(response.status_code, 200)
+    self.assertTemplateUsed(response, 'kosu/history_list.html')
 
 
 
+  # 編集履歴一覧から管理者MENUへジャンプテスト
+  def test_history_list_administrator_jump(self):
+    # 編集履歴一覧ページにアクセス
+    response = self.client.get(reverse('history_list', args=[1]))
+    self.assertEqual(response.status_code, 200)
+
+    # HTMLに含まれるボタンが正しく設定されているかを確認
+    self.assertContains(response, '<a href="' + reverse('administrator') + '" class="text-dark">管理者MENUへ</a>', html=True)
+    # ボタンを押すシミュレーション
+    response = self.client.get(reverse('administrator'))
+
+    # リダイレクトが成功し、ステータスコードが200であることを確認
+    self.assertEqual(response.status_code, 200)
+    self.assertTemplateUsed(response, 'kosu/administrator_menu.html')
 
 
 
+  # 編集履歴一覧からメインMENUへジャンプテスト
+  def test_history_list_main_jump(self):
+    # 編集履歴一覧ページにアクセス
+    response = self.client.get(reverse('history_list', args=[1]))
+    self.assertEqual(response.status_code, 200)
 
+    # HTMLに含まれるボタンが正しく設定されているかを確認
+    self.assertContains(response, '<a href="' + reverse('main') + '" class="text-dark">メインMENUへ</a>', html=True)
+    # ボタンを押すシミュレーション
+    response = self.client.get(reverse('main'))
+
+    # リダイレクトが成功し、ステータスコードが200であることを確認
+    self.assertEqual(response.status_code, 200)
+    self.assertTemplateUsed(response, 'kosu/main.html')
+
+
+
+  # 編集履歴一覧から編集履歴詳細へジャンプテスト
+  def test_history_list_history_delete(self):
+    # 編集履歴一覧ページにアクセス
+    response = self.client.get(reverse('history_list', args=[1]))
+    self.assertEqual(response.status_code, 200)
+
+    # HTMLに含まれるボタンが正しく設定されているかを確認
+    self.assertContains(response, '<a href="' + reverse('history_delete', args=[self.Operation_history.id]) + '" class="text-dark">詳細</a>', html=True)
+    # ボタンを押すシミュレーション
+    response = self.client.get(reverse('history_delete', args=[self.Operation_history.id]))
+
+    # リダイレクトが成功し、ステータスコードが200であることを確認
+    self.assertEqual(response.status_code, 200)
+    self.assertTemplateUsed(response, 'kosu/history_delete.html')
+
+
+
+  # 編集履歴詳細から編集履歴一覧へジャンプテスト
+  def test_history_delete_history_list(self):
+    # 編集履歴一覧ページにアクセス
+    response = self.client.get(reverse('history_delete', args=[self.Operation_history.id]))
+    self.assertEqual(response.status_code, 200)
+
+    # HTMLに含まれるボタンが正しく設定されているかを確認
+    self.assertContains(response, '<a href="' + reverse('history_list', args=[1]) + '" class="text-dark">一覧へ戻る</a>', html=True)
+    # ボタンを押すシミュレーション
+    response = self.client.get(reverse('history_list', args=[1]))
+
+    # リダイレクトが成功し、ステータスコードが200であることを確認
+    self.assertEqual(response.status_code, 200)
+    self.assertTemplateUsed(response, 'kosu/history_list.html')
 
