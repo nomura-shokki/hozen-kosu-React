@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     'bootstrap_datepicker_plus',
     'kosu',
     'django_q',
+    'rest_framework',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -46,7 +48,10 @@ MIDDLEWARE = [
     'kosu.middleware.clear_session_middleware.memberClearMiddleware',
     'kosu.middleware.clear_session_middleware.teamClearMiddleware',
     'kosu.middleware.clear_session_middleware.ClearMessagesOnPageChangeMiddleware',
+    'corsheaders.middleware.CorsMiddleware', 
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 SESSION_COOKIE_AGE = 315360000
 
@@ -70,6 +75,11 @@ TEMPLATES = [
         },
     },
 ]
+
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'frontend/build/static')]
+
+# Reactのbuild内のindex.htmlをテンプレートとして指定
+TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'frontend/build/static')]
 
 BOOTSTRAP4 = {
     'include_jquery': True,

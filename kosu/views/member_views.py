@@ -471,3 +471,22 @@ class MemberDeleteView(DeleteView):
 
 #--------------------------------------------------------------------------------------------------------
 
+
+
+
+
+from rest_framework import viewsets
+from ..models import member
+from .serializers import MemberSerializer
+from django.shortcuts import render
+
+def react_view(request):
+  return render(request, 'index.html')  # Reactのindex.htmlを表示
+
+
+class MemberViewSet(viewsets.ModelViewSet):
+  queryset = member.objects.all()
+  serializer_class = MemberSerializer
+
+
+
