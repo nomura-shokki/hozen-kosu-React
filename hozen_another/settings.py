@@ -79,7 +79,7 @@ TEMPLATES = [
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'frontend/build/static')]
 
 # Reactのbuild内のindex.htmlをテンプレートとして指定
-TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'frontend/build/static')]
+TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'frontend/build')]
 
 BOOTSTRAP4 = {
     'include_jquery': True,
