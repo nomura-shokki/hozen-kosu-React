@@ -1,8 +1,8 @@
-import React, { useState, ChangeEvent, FormEvent } from "react";
+import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 
-interface FormData {
+interface Member {
   employee_no: number;
   name: string;
   shop: string;
@@ -46,66 +46,39 @@ interface FormData {
   def_prediction: boolean;
 }
 
-const App: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
-    employee_no: 0,
-    name: "",
-    shop: "",
-    authority: false,
-    administrator: false,
-    break_time1: "#00000000",
-    break_time1_over1: "#00000000",
-    break_time1_over2: "#00000000",
-    break_time1_over3: "#00000000",
-    break_time2: "#00000000",
-    break_time2_over1: "#00000000",
-    break_time2_over2: "#00000000",
-    break_time2_over3: "#00000000",
-    break_time3: "#00000000",
-    break_time3_over1: "#00000000",
-    break_time3_over2: "#00000000",
-    break_time3_over3: "#00000000",
-    break_time4: "#00000000",
-    break_time4_over1: "#00000000",
-    break_time4_over2: "#00000000",
-    break_time4_over3: "#00000000",
-    break_time5: "#00000000",
-    break_time5_over1: "#00000000",
-    break_time5_over2: "#00000000",
-    break_time5_over3: "#00000000",
-    break_time6: "#00000000",
-    break_time6_over1: "#00000000",
-    break_time6_over2: "#00000000",
-    break_time6_over3: "#00000000",
-    pop_up1: "",
-    pop_up_id1: "",
-    pop_up2: "",
-    pop_up_id2: "",
-    pop_up3: "",
-    pop_up_id3: "",
-    pop_up4: "",
-    pop_up_id4: "",
-    pop_up5: "",
-    pop_up_id5: "",
-    break_check: false,
-    def_prediction: false,
-  });
+const EditForm: React.FC = () => {
+  const { employee_no } = useParams<{ employee_no: string }>();
+  const employeeNo = Number(employee_no); // 数値型に変換
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<Member | null>(null);
+
+  useEffect(() => {
+    axios
+      .get<Member>(`http://localhost:8000/api/member_update/${employeeNo}/`)
+      .then((response) => {
+        setFormData(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("指定したデータが見つかりません");
+      });
+  }, [employeeNo]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = event.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setFormData((prev) =>
+      prev ? { ...prev, [name]: type === "checkbox" ? checked : value } : prev
+    );
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     axios
-      .post("http://localhost:8000/api/member_new/", formData)
+      .put(`http://localhost:8000/api/member_update/${employeeNo}/`, formData)
       .then((response) => {
         console.log(response.data);
-        alert("データの送信が成功しました！");
+        alert("データが更新されました！");
+        navigate("/data-list");
       })
       .catch((error) => {
         console.error(error);
@@ -113,15 +86,17 @@ const App: React.FC = () => {
       });
   };
 
+  if (!formData) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="container mt-4">
       <nav className="mb-4">
         <Link to="/" className="btn btn-primary me-2">新規登録</Link>
         <Link to="/data-list" className="btn btn-secondary">データ一覧</Link>
       </nav>
-
-      <h1>メンバー新規登録</h1>
-
+      <h1>編集画面</h1>
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label htmlFor="employee_no" className="form-label">従業員番号:</label>
@@ -171,20 +146,11 @@ const App: React.FC = () => {
           />
         </div>
 
-        <div className="mb-3">
-          <label htmlFor="administrator" className="form-label">管理者権限:</label>
-          <input
-            type="checkbox"
-            id="administrator"
-            name="administrator"
-            checked={formData.administrator}
-            onChange={handleChange}
-            className="form-check-input"
-          />
-        </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time1" className="form-label">1直昼休憩時間:</label>
+          <label htmlFor="break_time1" className="form-label">
+            1直昼休憩時間:
+          </label>
           <input
             type="text"
             id="break_time1"
@@ -196,7 +162,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time1_over1" className="form-label">1直残業休憩時間1:</label>
+          <label htmlFor="break_time1_over1" className="form-label">
+            1直残業休憩時間1:
+          </label>
           <input
             type="text"
             id="break_time1_over1"
@@ -208,7 +176,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time1_over2" className="form-label">1直残業休憩時間2:</label>
+          <label htmlFor="break_time1_over2" className="form-label">
+            1直残業休憩時間2:
+          </label>
           <input
             type="text"
             id="break_time1_over2"
@@ -220,7 +190,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time1_over3" className="form-label">1直残業休憩時間3:</label>
+          <label htmlFor="break_time1_over3" className="form-label">
+            1直残業休憩時間3:
+          </label>
           <input
             type="text"
             id="break_time1_over3"
@@ -232,7 +204,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time2" className="form-label">2直昼休憩時間:</label>
+          <label htmlFor="break_time2" className="form-label">
+            2直昼休憩時間:
+          </label>
           <input
             type="text"
             id="break_time2"
@@ -244,7 +218,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time2_over1" className="form-label">2直残業休憩時間1:</label>
+          <label htmlFor="break_time2_over1" className="form-label">
+            2直残業休憩時間1:
+          </label>
           <input
             type="text"
             id="break_time2_over1"
@@ -256,7 +232,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time2_over2" className="form-label">2直残業休憩時間2:</label>
+          <label htmlFor="break_time2_over2" className="form-label">
+            2直残業休憩時間2:
+          </label>
           <input
             type="text"
             id="break_time2_over2"
@@ -268,7 +246,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time2_over3" className="form-label">2直残業休憩時間3:</label>
+          <label htmlFor="break_time2_over3" className="form-label">
+            2直残業休憩時間3:
+          </label>
           <input
             type="text"
             id="break_time2_over3"
@@ -280,7 +260,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time3" className="form-label">3直昼休憩時間:</label>
+          <label htmlFor="break_time3" className="form-label">
+            3直昼休憩時間:
+          </label>
           <input
             type="text"
             id="break_time3"
@@ -292,7 +274,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time3_over1" className="form-label">3直残業休憩時間1:</label>
+          <label htmlFor="break_time3_over1" className="form-label">
+            3直残業休憩時間1:
+          </label>
           <input
             type="text"
             id="break_time3_over1"
@@ -304,7 +288,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time3_over2" className="form-label">3直残業休憩時間2:</label>
+          <label htmlFor="break_time3_over2" className="form-label">
+            3直残業休憩時間2:
+          </label>
           <input
             type="text"
             id="break_time3_over2"
@@ -316,7 +302,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time3_over3" className="form-label">3直残業休憩時間3:</label>
+          <label htmlFor="break_time3_over3" className="form-label">
+            3直残業休憩時間3:
+          </label>
           <input
             type="text"
             id="break_time3_over3"
@@ -328,7 +316,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time4" className="form-label">常昼昼休憩時間:</label>
+          <label htmlFor="break_time4" className="form-label">
+            常昼昼休憩時間:
+          </label>
           <input
             type="text"
             id="break_time4"
@@ -340,7 +330,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time4_over1" className="form-label">常昼残業休憩時間1:</label>
+          <label htmlFor="break_time4_over1" className="form-label">
+            常昼残業休憩時間1:
+          </label>
           <input
             type="text"
             id="break_time4_over1"
@@ -352,7 +344,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time4_over2" className="form-label">常昼残業休憩時間2:</label>
+          <label htmlFor="break_time4_over2" className="form-label">
+            常昼残業休憩時間2:
+          </label>
           <input
             type="text"
             id="break_time4_over2"
@@ -364,7 +358,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time4_over3" className="form-label">常昼残業休憩時間3:</label>
+          <label htmlFor="break_time4_over3" className="form-label">
+            常昼残業休憩時間3:
+          </label>
           <input
             type="text"
             id="break_time4_over3"
@@ -376,7 +372,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time5" className="form-label">連1直昼休憩時間:</label>
+          <label htmlFor="break_time5" className="form-label">
+            連1直昼休憩時間:
+          </label>
           <input
             type="text"
             id="break_time5"
@@ -388,7 +386,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time5_over1" className="form-label">連1直残業休憩時間1:</label>
+          <label htmlFor="break_time5_over1" className="form-label">
+            連1直残業休憩時間1:
+          </label>
           <input
             type="text"
             id="break_time5_over1"
@@ -400,7 +400,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time5_over2" className="form-label">連1直残業休憩時間2:</label>
+          <label htmlFor="break_time5_over2" className="form-label">
+            連1直残業休憩時間2:
+          </label>
           <input
             type="text"
             id="break_time5_over2"
@@ -412,7 +414,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time5_over3" className="form-label">連1直残業休憩時間3:</label>
+          <label htmlFor="break_time5_over3" className="form-label">
+            連1直残業休憩時間3:
+          </label>
           <input
             type="text"
             id="break_time5_over3"
@@ -424,7 +428,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time6" className="form-label">連2直昼休憩時間:</label>
+          <label htmlFor="break_time6" className="form-label">
+            連2直昼休憩時間:
+          </label>
           <input
             type="text"
             id="break_time6"
@@ -436,7 +442,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time6_over1" className="form-label">連2直残業休憩時間1:</label>
+          <label htmlFor="break_time6_over1" className="form-label">
+            連2直残業休憩時間1:
+          </label>
           <input
             type="text"
             id="break_time6_over1"
@@ -448,7 +456,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time6_over2" className="form-label">連2直残業休憩時間2:</label>
+          <label htmlFor="break_time6_over2" className="form-label">
+            連2直残業休憩時間2:
+          </label>
           <input
             type="text"
             id="break_time6_over2"
@@ -460,7 +470,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_time6_over3" className="form-label">連2直残業休憩時間3:</label>
+          <label htmlFor="break_time6_over3" className="form-label">
+            連2直残業休憩時間3:
+          </label>
           <input
             type="text"
             id="break_time6_over3"
@@ -472,7 +484,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="pop_up1" className="form-label">ポップアップ1:</label>
+          <label htmlFor="pop_up1" className="form-label">
+            ポップアップ1:
+          </label>
           <input
             type="text"
             id="pop_up1"
@@ -484,7 +498,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="pop_up_id1" className="form-label">ポップアップID1:</label>
+          <label htmlFor="pop_up_id1" className="form-label">
+            ポップアップID1:
+          </label>
           <input
             type="text"
             id="pop_up_id1"
@@ -496,7 +512,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="pop_up2" className="form-label">ポップアップ2:</label>
+          <label htmlFor="pop_up2" className="form-label">
+            ポップアップ2:
+          </label>
           <input
             type="text"
             id="pop_up2"
@@ -508,7 +526,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="pop_up_id2" className="form-label">ポップアップID2:</label>
+          <label htmlFor="pop_up_id2" className="form-label">
+            ポップアップID2:
+          </label>
           <input
             type="text"
             id="pop_up_id2"
@@ -520,7 +540,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="pop_up3" className="form-label">ポップアップ3:</label>
+          <label htmlFor="pop_up3" className="form-label">
+            ポップアップ3:
+          </label>
           <input
             type="text"
             id="pop_up3"
@@ -532,7 +554,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="pop_up_id3" className="form-label">ポップアップID3:</label>
+          <label htmlFor="pop_up_id3" className="form-label">
+            ポップアップID3:
+          </label>
           <input
             type="text"
             id="pop_up_id3"
@@ -544,7 +568,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="pop_up4" className="form-label">ポップアップ4:</label>
+          <label htmlFor="pop_up4" className="form-label">
+            ポップアップ4:
+          </label>
           <input
             type="text"
             id="pop_up4"
@@ -556,7 +582,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="pop_up_id4" className="form-label">ポップアップID4:</label>
+          <label htmlFor="pop_up_id4" className="form-label">
+            ポップアップID4:
+          </label>
           <input
             type="text"
             id="pop_up_id4"
@@ -568,7 +596,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="pop_up5" className="form-label">ポップアップ5:</label>
+          <label htmlFor="pop_up5" className="form-label">
+            ポップアップ5:
+          </label>
           <input
             type="text"
             id="pop_up5"
@@ -580,7 +610,9 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="pop_up_id5" className="form-label">ポップアップID5:</label>
+          <label htmlFor="pop_up_id5" className="form-label">
+            ポップアップID5:
+          </label>
           <input
             type="text"
             id="pop_up_id5"
@@ -592,9 +624,11 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="break_check" className="form-label">休憩エラー有効チェック:</label>
+          <label htmlFor="break_check" className="form-label">
+            休憩エラー有効チェック:
+          </label>
           <input
-            type="checkbox"
+            type="checkbox" // チェックボックス入力
             id="break_check"
             name="break_check"
             checked={formData.break_check}
@@ -604,9 +638,11 @@ const App: React.FC = () => {
         </div>
 
         <div className="mb-3">
-          <label htmlFor="def_prediction" className="form-label">工数定義区分予測無効:</label>
+          <label htmlFor="def_prediction" className="form-label">
+            工数定義区分予測無効:
+          </label>
           <input
-            type="checkbox"
+            type="checkbox" // チェックボックス入力
             id="def_prediction"
             name="def_prediction"
             checked={formData.def_prediction}
@@ -615,10 +651,10 @@ const App: React.FC = () => {
           />
         </div>
 
-        <button type="submit" className="btn btn-primary">登録</button>
+        <button type="submit" className="btn btn-primary">更新</button>
       </form>
     </div>
   );
 };
 
-export default App;
+export default EditForm;

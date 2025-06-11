@@ -477,16 +477,72 @@ class MemberDeleteView(DeleteView):
 
 from rest_framework import viewsets
 from ..models import member
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
 from .serializers import MemberSerializer
 from django.shortcuts import render
 
+
+
 def react_view(request):
-  return render(request, 'index.html')  # Reactのindex.htmlを表示
+    return render(request, 'index.html')  # Reactのindex.htmlを表示
 
 
-class MemberViewSet(viewsets.ModelViewSet):
-  queryset = member.objects.all()
-  serializer_class = MemberSerializer
+
+@api_view(['GET'])
+def member_list(request):
+  members = member.objects.all()
+  serializer = MemberSerializer(members, many=True)
+  return Response(serializer.data)
+
+
+
+@api_view(['POST'])
+def member_new(request):
+  if request.method == 'POST':
+    serializer = MemberSerializer(data=request.data)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+  else:
+    pass
+
+
+
+@api_view(['GET', 'PUT'])
+def member_update(request, pk):
+  print(pk)
+  try:
+    member_instance = member.objects.get(employee_no =pk)
+  except member.DoesNotExist:
+    return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+  
+  if request.method == 'GET':
+    serializer = MemberSerializer(member_instance)
+    return Response(serializer.data)
+  
+  elif request.method == 'PUT':
+    serializer = MemberSerializer(member_instance, data=request.data)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+@api_view(['DELETE'])
+def member_delete(request, pk):
+  try:
+    member_instance = member.objects.get(employee_no =pk)
+  except member.DoesNotExist:
+    return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+  member_instance.delete()
+  return Response({'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+
+
 
 
 

@@ -12,6 +12,11 @@ from django.conf.urls.static import static
 
 
 urlpatterns = [
+  path('member_list/', member_views.member_list, name='member_list'),
+  path('member_new/', member_views.member_new, name='member_new'),
+  path('member_update/<int:pk>/', member_views.member_update, name='member_update'),
+  path('member_delete/<int:pk>/', member_views.member_delete, name='member_delete'),
+
   path('help', main_views.HelpView.as_view(), name='help'), # ヘルプ画面
   path('login', main_views.LoginView.as_view(), name='login'), # ログイン画面
   path('', main_views.MainView.as_view(), name='main'), # メイン画面
