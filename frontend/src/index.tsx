@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import App from './App';
+import MemberNew from './MemberNew';
 import DataList from './DataList';
 import EditForm from './EditForm';
 import DeletePage from './DeletePage';
@@ -12,7 +12,7 @@ root.render(
   <React.StrictMode>
     <Router>
       <Routes>
-        <Route path="/" element={<App />} />
+        <Route path="/" element={<MemberNew />} />
         <Route path="/data-list" element={<DataList />} />
         <Route path="/edit/:employee_no" element={<EditForm />} />
         <Route path="/delete/:employee_no" element={<DeletePage />} />

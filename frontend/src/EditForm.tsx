@@ -146,6 +146,17 @@ const EditForm: React.FC = () => {
           />
         </div>
 
+        <div className="mb-3">
+          <label htmlFor="administrator" className="form-label">管理者権限:</label>
+          <input
+            type="checkbox"
+            id="administrator"
+            name="administrator"
+            checked={formData.administrator}
+            onChange={handleChange}
+            className="form-check-input"
+          />
+        </div>
 
         <div className="mb-3">
           <label htmlFor="break_time1" className="form-label">
