@@ -10,7 +10,7 @@ interface Member {
   administrator: boolean;
 }
 
-const DeletePage: React.FC = () => {
+const MemberDelete: React.FC = () => {
   const { employee_no } = useParams<{ employee_no: string }>();
   const employeeNo = Number(employee_no); // number 型に変換
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ const DeletePage: React.FC = () => {
       .delete(`http://localhost:8000/api/member_delete/${employeeNo}/`)
       .then(() => {
         alert("データが削除されました");
-        navigate("/data-list");
+        navigate("/member-list");
       })
       .catch((error) => {
         console.error(error);
@@ -49,8 +49,8 @@ const DeletePage: React.FC = () => {
   return (
     <div className="container mt-4">
       <nav className="mb-4">
-        <Link to="/" className="btn btn-primary me-2">新規登録</Link>
-        <Link to="/data-list" className="btn btn-secondary">データ一覧</Link>
+        <Link to="/member-new" className="btn btn-primary me-2">新規登録</Link>
+        <Link to="/member-list" className="btn btn-secondary">データ一覧</Link>
       </nav>
 
       <h1>削除確認</h1>
@@ -88,4 +88,4 @@ const DeletePage: React.FC = () => {
   );
 };
 
-export default DeletePage;
+export default MemberDelete;

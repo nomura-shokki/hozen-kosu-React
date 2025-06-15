@@ -485,9 +485,6 @@ from django.shortcuts import render
 
 
 
-def react_view(request):
-  return render(request, 'index.html')  # Reactのindex.htmlを表示
-
 
 
 @api_view(['GET'])
@@ -495,19 +492,6 @@ def member_list(request):
   members = member.objects.all().order_by('employee_no')
   serializer = MemberSerializer(members, many=True)
   return Response(serializer.data)
-
-
-
-@api_view(['POST'])
-def member_new(request):
-  if request.method == 'POST':
-    serializer = MemberSerializer(data=request.data)
-    if serializer.is_valid():
-      serializer.save()
-      return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-  else:
-    pass
 
 
 
@@ -585,7 +569,6 @@ def member_new(request):
 
 @api_view(['GET', 'PUT'])
 def member_update(request, pk):
-  print(pk)
   try:
     member_instance = member.objects.get(employee_no =pk)
   except member.DoesNotExist:

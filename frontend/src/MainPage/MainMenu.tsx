@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 
 interface Member {
   employee_no: number;
@@ -44,17 +44,16 @@ interface Member {
   pop_up_id5: string;
   break_check: boolean;
   def_prediction: boolean;
-  id: string;
 }
 
-const DataList: React.FC = () => {
+const MemberMenu: React.FC = () => {
   const [data, setData] = useState<Member[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     axios
-      .get<Member[]>("http://localhost:8000/api/member_list/")
+      .get<Member[]>("http://localhost:8000/api/main_menu/")
       .then((response) => {
         setData(response.data);
         setLoading(false);
@@ -75,43 +74,12 @@ const DataList: React.FC = () => {
 
   return (
     <div className="container mt-4">
+      <p>こんにちは　{data.length > 0 ? data[0].name : ""}</p>
       <nav className="mb-4">
-        <Link to="/" className="btn btn-primary me-2">新規登録</Link>
-        <Link to="/data-list" className="btn btn-secondary">データ一覧</Link>
+        <Link to="/member-menu" className="btn btn-primary me-2">人員MENU</Link>
       </nav>
-      <h1>データ一覧</h1>
-      {data.length === 0 ? (
-        <p>No data found.</p>
-      ) : (
-        <table className="table table-bordered">
-          <thead>
-            <tr>
-              <th>従業員番号</th>
-              <th>氏名</th>
-              <th>ショップ</th>
-              <th>権限</th>
-              <th>管理者権限</th>
-              <th>編集</th>
-              <th>削除</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((item) => (
-              <tr key={item.employee_no}>
-                <td>{item.employee_no}</td>
-                <td>{item.name}</td>
-                <td>{item.shop}</td>
-                <td>{item.authority ? "有" : "無"}</td>
-                <td>{item.administrator ? "有" : "無"}</td>
-                <td><Link to={`/edit/${item.employee_no}`}>編集</Link></td>
-                <td><Link to={`/delete/${item.employee_no}`}>削除</Link></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
     </div>
   );
 };
 
-export default DataList;
+export default MemberMenu;

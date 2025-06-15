@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
-import ShopSelect from './components/ShopSelect';
+import ShopSelect from '../components/ShopSelect';
 import { Link } from 'react-router-dom';
 
 interface FormData {
@@ -134,8 +134,8 @@ const MemberNew: React.FC = () => {
   return (
     <div className="container mt-4">
       <nav className="mb-4">
-        <Link to="/" className="btn btn-primary me-2">新規登録</Link>
-        <Link to="/data-list" className="btn btn-secondary">データ一覧</Link>
+        <Link to="/member-new" className="btn btn-primary me-2">新規登録</Link>
+        <Link to="/member-list" className="btn btn-secondary">データ一覧</Link>
       </nav>
 
       <h1>メンバー新規登録</h1>

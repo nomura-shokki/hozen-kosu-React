@@ -1011,3 +1011,37 @@ def get_logs(request):
 
 #--------------------------------------------------------------------------------------------------------
 
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.http import JsonResponse
+from .serializers import MemberSerializer
+
+
+def react_view(request):
+  return render(request, 'index.html')
+
+
+
+def manifest(request):
+    data = {
+        "name": "My App",
+        "short_name": "App",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#000000"
+    }
+    return JsonResponse(data)
+
+
+
+@api_view(['GET'])
+def menu(request):
+  member_data = member.objects.get(employee_no=54414)
+  serializer = MemberSerializer([member_data], many=True)
+  return Response(serializer.data)
+
+
+
+

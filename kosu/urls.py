@@ -12,6 +12,8 @@ from django.conf.urls.static import static
 
 
 urlpatterns = [
+  path('main_menu/', main_views.menu, name='main_menu'),
+  path('member_menu/', main_views.menu, name='member_menu'),
   path('member_list/', member_views.member_list, name='member_list'),
   path('member_new/', member_views.member_new, name='member_new'),
   path('member_update/<int:pk>/', member_views.member_update, name='member_update'),
