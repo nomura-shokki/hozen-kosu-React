@@ -1,6 +1,6 @@
-import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface Member {
   employee_no: number;
@@ -50,10 +50,13 @@ const MemberMenu: React.FC = () => {
   const [data, setData] = useState<Member[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios
-      .get<Member[]>("http://localhost:8000/api/main_menu/")
+      .get<Member[]>("http://localhost:8000/api/main_menu/", {
+        withCredentials: true, // クッキーをリクエストに含める設定
+      })
       .then((response) => {
         setData(response.data);
         setLoading(false);
@@ -63,6 +66,24 @@ const MemberMenu: React.FC = () => {
         setLoading(false);
       });
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      // Django セッションを削除するリクエスト送信
+      await axios.post(
+        "http://localhost:8000/api/logout/", // セッション削除用のバックエンドエンドポイント
+        {},
+        {
+          withCredentials: true, // クッキーを送信する設定
+        }
+      );
+
+      // React Router を使用して `/login` に遷移
+      navigate("/login");
+    } catch (error) {
+      console.error("ログアウト中にエラーが発生しました。", error);
+    }
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -74,10 +95,13 @@ const MemberMenu: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <p>こんにちは　{data.length > 0 ? data[0].name : ""}</p>
+      <p>こんにちは {data.length > 0 ? data[0].name : ""}</p>
       <nav className="mb-4">
         <Link to="/member-menu" className="btn btn-primary me-2">人員MENU</Link>
       </nav>
+      <button className="btn btn-danger" onClick={handleLogout}>
+        ログアウト
+      </button>
     </div>
   );
 };

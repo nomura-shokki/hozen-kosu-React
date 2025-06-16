@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from './MainPage/Login';
 import MainMenu from './MainPage/MainMenu';
 import MemberMenu from './MemberPage/MemberMenu';
 import MemberNew from './MemberPage/MemberNew';
@@ -14,6 +15,7 @@ root.render(
   <React.StrictMode>
     <Router>
       <Routes>
+        <Route path="/login" element={<Login />} />
         <Route path="/" element={<MainMenu />} />
         <Route path="/member-menu" element={<MemberMenu />} />
         <Route path="/member-new" element={<MemberNew />} />

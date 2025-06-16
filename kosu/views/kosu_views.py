@@ -2100,7 +2100,7 @@ class ScheduleView(View):
               # 休日の場合の処理
               else:
                 # 就業を上書き
-                Business_Time_graph.objects.update_or_create(employee_no3 = request.session['login_No'],
+                Business_Time_graph.objects.update_or_create(employee_no3=request.session['login_No'],
                   work_day2 = datetime.date(context_data['year'], context_data['month'], self.day_list[i]),
                     defaults = {'work_time': '休日'})
                 day_history.append([f'{self.day_list[i]}日', '休日', 'データ編集'])

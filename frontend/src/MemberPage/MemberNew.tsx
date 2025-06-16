@@ -113,7 +113,7 @@ const MemberNew: React.FC = () => {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setErrorMessage(null); // エラーメッセージをリセット
+    setErrorMessage(null);
     axios
       .post('http://localhost:8000/api/member_new/', formData)
       .then((response) => {

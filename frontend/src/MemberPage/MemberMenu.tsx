@@ -53,7 +53,9 @@ const MemberMenu: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<Member[]>("http://localhost:8000/api/member_menu/")
+      .get<Member[]>("http://localhost:8000/api/member_menu/", {
+        withCredentials: true, // クッキーをリクエストに含める設定
+      })
       .then((response) => {
         setData(response.data);
         setLoading(false);
