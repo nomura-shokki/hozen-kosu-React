@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import '../styles/MemberList.css';
 
 interface Member {
   employee_no: number;
@@ -74,16 +75,16 @@ const MemberList: React.FC = () => {
   }
 
   return (
-    <div className="container mt-4">
-      <nav className="mb-4">
-        <Link to="/member-new" className="btn btn-primary me-2">新規登録</Link>
-        <Link to="/member-list" className="btn btn-secondary">データ一覧</Link>
+    <div>
+      <nav>
+        <Link to="/member-new">新規登録</Link>
+        <Link to="/member-list">データ一覧</Link>
       </nav>
       <h1>データ一覧</h1>
       {data.length === 0 ? (
         <p>No data found.</p>
       ) : (
-        <table className="table table-bordered">
+        <table>
           <thead>
             <tr>
               <th>従業員番号</th>

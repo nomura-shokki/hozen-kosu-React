@@ -36,6 +36,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -48,7 +49,6 @@ MIDDLEWARE = [
     'kosu.middleware.clear_session_middleware.memberClearMiddleware',
     'kosu.middleware.clear_session_middleware.teamClearMiddleware',
     'kosu.middleware.clear_session_middleware.ClearMessagesOnPageChangeMiddleware',
-    'corsheaders.middleware.CorsMiddleware', 
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -60,6 +60,9 @@ CORS_ALLOW_ORIGINS = [
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 SESSION_COOKIE_AGE = 315360000
+
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
 
 ROOT_URLCONF = 'hozen_another.urls'
 
