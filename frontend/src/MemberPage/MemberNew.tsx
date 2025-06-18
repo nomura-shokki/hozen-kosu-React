@@ -97,7 +97,7 @@ const MemberNew: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get('http://localhost:8000/api/member_new/', { withCredentials: true })
+      .get(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, { withCredentials: true })
       .catch((err) => {
         if (err.response?.status === 401) {
           // 認証エラーの際はログイン画面に遷移
@@ -129,9 +129,8 @@ const MemberNew: React.FC = () => {
     event.preventDefault();
     setErrorMessage(null);
     axios
-      .post('http://localhost:8000/api/member_new/', formData, { withCredentials: true }) // クッキーを含む設定を追加
+      .post(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, formData, { withCredentials: true }) // クッキーを含む設定を追加
       .then((response) => {
-        console.log(response.data);
         alert('登録完了！');
       })
       .catch((error) => {

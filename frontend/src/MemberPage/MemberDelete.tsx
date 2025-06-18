@@ -20,7 +20,7 @@ const MemberDelete: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<Member>(`http://localhost:8000/api/member_update/${employeeNo}/`, { withCredentials: true })
+      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, { withCredentials: true })
       .then((response) => {
         setRecord(response.data); 
         setLoading(false); // ロード状態を終了
@@ -50,7 +50,7 @@ const MemberDelete: React.FC = () => {
 
   const handleDelete = () => {
     axios
-      .delete(`http://localhost:8000/api/member_delete/${employeeNo}/`, { withCredentials: true })
+      .delete(`${process.env.REACT_APP_API_BASE_URL}/api/member_delete/${employeeNo}/`, { withCredentials: true })
       .then(() => {
         alert("データが削除されました");
         navigate("/member-list");

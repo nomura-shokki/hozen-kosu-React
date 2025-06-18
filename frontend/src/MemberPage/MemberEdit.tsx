@@ -57,7 +57,7 @@ const MemberEdit: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<Member>(`http://localhost:8000/api/member_update/${employeeNo}/`, { withCredentials: true })
+      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, { withCredentials: true })
       .then((response) => {
         setFormData(response.data);
         setLoading(false);
@@ -95,7 +95,7 @@ const MemberEdit: React.FC = () => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     axios
-      .put(`http://localhost:8000/api/member_update/${employeeNo}/`, formData, { withCredentials: true })
+      .put(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, formData, { withCredentials: true })
       .then(() => {
         alert("データが更新されました！");
         navigate("/member-list");

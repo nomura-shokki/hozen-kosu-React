@@ -4,30 +4,30 @@ import axios from 'axios';
 import '../styles/Login.css';
 
 const Login: React.FC = () => {
-  const [employee_no, setNumber] = useState<string>(''); // useStateを文字列として管理
+  const [employee_no, setNumber] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setErrorMessage(''); // エラーメッセージをリセット
+    setErrorMessage('');
 
     try {
       const response = await axios.post(
-        'http://localhost:8000/api/login/', // リクエストURL
-        { employee_no: Number(employee_no) }, // リクエストボディを数値型に変換して送信
+        `${process.env.REACT_APP_API_BASE_URL}/api/login/`,  // ← 環境変数を使ってURLを構築
+        { employee_no: Number(employee_no) },
         {
           headers: {
-            'Content-Type': 'application/json', // 必要なヘッダー
+            'Content-Type': 'application/json',
           },
-          withCredentials: true, // **クッキーを送信する設定**
+          withCredentials: true,
         }
       );
 
       const data = response.data;
 
       if (data.status === 'success') {
-        navigate('/'); // メインMENUに移動
+        navigate('/');
       } else {
         setErrorMessage(data.message || 'サーバーエラーが発生しました。');
       }
@@ -44,33 +44,22 @@ const Login: React.FC = () => {
       <h2>ログイン</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="numberInput">
-            従業員番号
-          </label>
+          <label htmlFor="numberInput">従業員番号</label>
           <input
             type="number"
             id="numberInput"
             value={employee_no}
             onChange={(e) => {
               const value = e.target.value;
-              // 入力が空の場合、空文字列を許可する
-              if (value === '') {
-                setNumber('');
-              } else {
-                setNumber(value);
-              }
+              setNumber(value === '' ? '' : value);
             }}
             required
           />
         </div>
         {errorMessage && (
-          <div role="alert">
-            {errorMessage}
-          </div>
+          <div role="alert">{errorMessage}</div>
         )}
-        <button type="submit">
-          ログイン
-        </button>
+        <button type="submit">ログイン</button>
       </form>
     </div>
   );

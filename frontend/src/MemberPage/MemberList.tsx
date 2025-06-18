@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import '../styles/MemberList.css';
+import ShopSelect from '../components/ShopSelect';
+import "../styles/MemberList.css";
 
 interface Member {
   employee_no: number;
@@ -52,12 +53,14 @@ const MemberList: React.FC = () => {
   const [data, setData] = useState<Member[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchNumber, setSearchNumber] = useState<string>('');
+  const [searchShop, setSearchShop] = useState<string>('');
   const navigate = useNavigate();
 
   useEffect(() => {
     axios
-      .get<Member[]>("http://localhost:8000/api/member_list/", {
-        withCredentials: true, // クッキーをリクエストに含める設定
+      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/member_list/`, {
+        withCredentials: true,
       })
       .then((response) => {
         setData(response.data);
@@ -65,7 +68,6 @@ const MemberList: React.FC = () => {
       })
       .catch((err) => {
         if (err.response?.status === 401) {
-          // ユーザーが未認証の場合はログイン画面にリダイレクト
           navigate("/login");
         } else {
           setError(err.message);
@@ -74,22 +76,47 @@ const MemberList: React.FC = () => {
       });
   }, [navigate]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const filteredData = data.filter((member) => {
+    const matchesNumber =
+      searchNumber === '' || member.employee_no.toString().includes(searchNumber);
+    const matchesShop =
+      searchShop === '' || member.shop === searchShop;
+    return matchesNumber && matchesShop;
+  });
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div>
+      <h1>人員データ一覧</h1>
+
       <nav>
         <Link to="/member-new">新規登録</Link>
         <Link to="/member-list">データ一覧</Link>
       </nav>
-      <h1>データ一覧</h1>
-      {data.length === 0 ? (
+
+      <div className="search-bar">
+        <label>
+          従業員番号：
+          <input
+            type="text"
+            value={searchNumber}
+            onChange={(e) => setSearchNumber(e.target.value)}
+            placeholder="12345"
+          />
+        </label>
+        <label>
+          ショップ：
+          <ShopSelect
+            name="shopFilter"
+            value={searchShop}
+            onChange={(e) => setSearchShop(e.target.value)}
+          />
+        </label>
+      </div>
+
+      {filteredData.length === 0 ? (
         <p>No data found.</p>
       ) : (
         <table>
@@ -105,7 +132,7 @@ const MemberList: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {data.map((item) => (
+            {filteredData.map((item) => (
               <tr key={item.employee_no}>
                 <td>{item.employee_no}</td>
                 <td>{item.name}</td>

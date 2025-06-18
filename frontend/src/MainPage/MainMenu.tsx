@@ -54,7 +54,7 @@ const MemberMenu: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<Member[]>("http://localhost:8000/api/main_menu/", {
+      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/main_menu/`, {
         withCredentials: true, // クッキーをリクエストに含める設定
       })
       .then((response) => {
@@ -76,7 +76,7 @@ const MemberMenu: React.FC = () => {
     try {
       // Django セッションを削除するリクエスト送信
       await axios.post(
-        "http://localhost:8000/api/logout/", // セッション削除用のバックエンドエンドポイント
+        `${process.env.REACT_APP_API_BASE_URL}/api/logout/`, // セッション削除用のバックエンドエンドポイント
         {},
         {
           withCredentials: true, // クッキーを送信する設定
