@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import '../styles/MemberList.css';
 
 interface Member {
@@ -52,19 +52,27 @@ const MemberList: React.FC = () => {
   const [data, setData] = useState<Member[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios
-      .get<Member[]>("http://localhost:8000/api/member_list/")
+      .get<Member[]>("http://localhost:8000/api/member_list/", {
+        withCredentials: true, // クッキーをリクエストに含める設定
+      })
       .then((response) => {
         setData(response.data);
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message);
+        if (err.response?.status === 401) {
+          // ユーザーが未認証の場合はログイン画面にリダイレクト
+          navigate("/login");
+        } else {
+          setError(err.message);
+        }
         setLoading(false);
       });
-  }, []);
+  }, [navigate]);
 
   if (loading) {
     return <div>Loading...</div>;

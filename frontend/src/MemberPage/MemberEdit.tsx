@@ -57,16 +57,21 @@ const MemberEdit: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<Member>(`http://localhost:8000/api/member_update/${employeeNo}/`)
+      .get<Member>(`http://localhost:8000/api/member_update/${employeeNo}/`, { withCredentials: true })
       .then((response) => {
         setFormData(response.data);
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message);
-        setLoading(false);
+        if (err.response?.status === 401) {
+          // 認証エラーの際はログイン画面に遷移
+          navigate("/login");
+        } else {
+          setError(err.message);
+        }
+        setLoading(false); // ロード状態は解除
       });
-  }, [employeeNo]);
+  }, [employeeNo, navigate]); // `navigate`を依存配列に追加
 
   if (loading) {
     return <div>Loading...</div>;
@@ -90,7 +95,7 @@ const MemberEdit: React.FC = () => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     axios
-      .put(`http://localhost:8000/api/member_update/${employeeNo}/`, formData)
+      .put(`http://localhost:8000/api/member_update/${employeeNo}/`, formData, { withCredentials: true })
       .then(() => {
         alert("データが更新されました！");
         navigate("/member-list");
@@ -106,7 +111,7 @@ const MemberEdit: React.FC = () => {
         <Link to="/member-new" className="btn btn-primary me-2">新規登録</Link>
         <Link to="/member-list" className="btn btn-secondary">データ一覧</Link>
       </nav>
-      <h1>編集画面</h1>
+      <h1>人員データ編集</h1>
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label htmlFor="employee_no" className="form-label">従業員番号:</label>

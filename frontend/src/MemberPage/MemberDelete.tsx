@@ -12,26 +12,45 @@ interface Member {
 
 const MemberDelete: React.FC = () => {
   const { employee_no } = useParams<{ employee_no: string }>();
-  const employeeNo = Number(employee_no); // number 型に変換
+  const employeeNo = Number(employee_no);
   const navigate = useNavigate();
   const [record, setRecord] = useState<Member | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     axios
-      .get<Member>(`http://localhost:8000/api/member_update/${employeeNo}/`)
+      .get<Member>(`http://localhost:8000/api/member_update/${employeeNo}/`, { withCredentials: true })
       .then((response) => {
-        setRecord(response.data);
+        setRecord(response.data); 
+        setLoading(false); // ロード状態を終了
       })
-      .catch((error) => {
-        console.error(error);
-        alert("指定したデータが見つかりません");
-        navigate("/data-list");
+      .catch((err) => {
+        if (err.response?.status === 401) {
+          // 認証エラーの際はログイン画面に遷移
+          navigate("/login");
+        } else {
+          setError(err.message);
+        }
+        setLoading(false); // エラー発生時にもロード状態を終了
       });
   }, [employeeNo, navigate]);
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!record) {
+    return <div>データが見つかりません</div>;
+  }
+
   const handleDelete = () => {
     axios
-      .delete(`http://localhost:8000/api/member_delete/${employeeNo}/`)
+      .delete(`http://localhost:8000/api/member_delete/${employeeNo}/`, { withCredentials: true })
       .then(() => {
         alert("データが削除されました");
         navigate("/member-list");
@@ -42,10 +61,6 @@ const MemberDelete: React.FC = () => {
       });
   };
 
-  if (!record) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className="container mt-4">
       <nav className="mb-4">
@@ -53,7 +68,7 @@ const MemberDelete: React.FC = () => {
         <Link to="/member-list" className="btn btn-secondary">データ一覧</Link>
       </nav>
 
-      <h1>削除確認</h1>
+      <h1>人員データ削除</h1>
       <p>以下のデータを削除しますか？</p>
 
       <table className="table table-bordered">
@@ -82,7 +97,7 @@ const MemberDelete: React.FC = () => {
       </table>
 
       <button className="btn btn-danger" onClick={handleDelete}>
-        削除する
+        削除
       </button>
     </div>
   );

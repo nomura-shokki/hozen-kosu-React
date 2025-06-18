@@ -491,12 +491,23 @@ from django.shortcuts import render
 def member_list(request):
   members = member.objects.all().order_by('employee_no')
   serializer = MemberSerializer(members, many=True)
+  login_no = request.session.get('login_No')
+  if not login_no:
+    return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
   return Response(serializer.data)
 
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def member_new(request):
+  if request.method == 'GET':
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+    member_data = member.objects.get(employee_no=login_no)
+    serializer = MemberSerializer([member_data], many=True)
+    return Response(serializer.data)
+
   if request.method == 'POST':
     data = request.data
 
@@ -575,6 +586,10 @@ def member_update(request, pk):
     return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
   
   if request.method == 'GET':
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+
     serializer = MemberSerializer(member_instance)
     return Response(serializer.data)
   

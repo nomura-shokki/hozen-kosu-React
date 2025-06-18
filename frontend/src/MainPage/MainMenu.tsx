@@ -62,10 +62,15 @@ const MemberMenu: React.FC = () => {
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message);
+        if (err.response?.status === 401) {
+          // ユーザーが未認証の場合はログイン画面にリダイレクト
+          navigate("/login");
+        } else {
+          setError(err.message);
+        }
         setLoading(false);
       });
-  }, []);
+  }, [navigate]);
 
   const handleLogout = async () => {
     try {

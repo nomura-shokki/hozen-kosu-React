@@ -1057,7 +1057,6 @@ def login(request):
       # 工数区分定義が存在する場合の処理
       else:
         request.session['input_def'] = def_Ver.kosu_name # 工数区分定義Verをセッションに保管
-        print("SESSION:", request.session.items())
         return JsonResponse({'status': 'success'}) # 画面移行可をフロントへ返す
     
     # 従業員番号が人員データに存在しない場合、画面移行不可とエラーメッセージをフロントへ返す
@@ -1076,13 +1075,13 @@ def logout(request):
 
 @api_view(['GET'])
 def menu(request):
-    login_no = request.session.get('login_No')
-    if not login_no:
-        return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+  login_no = request.session.get('login_No')
+  if not login_no:
+    return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
 
-    member_data = member.objects.get(employee_no=login_no)
-    serializer = MemberSerializer([member_data], many=True)
-    return Response(serializer.data)
+  member_data = member.objects.get(employee_no=login_no)
+  serializer = MemberSerializer([member_data], many=True)
+  return Response(serializer.data)
 
 
 

@@ -1,7 +1,7 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import axios from 'axios';
 import ShopSelect from '../components/ShopSelect';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface FormData {
   employee_no: number;
@@ -93,6 +93,20 @@ const MemberNew: React.FC = () => {
   });
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    axios
+      .get('http://localhost:8000/api/member_new/', { withCredentials: true })
+      .catch((err) => {
+        if (err.response?.status === 401) {
+          // 認証エラーの際はログイン画面に遷移
+          navigate('/login');
+        } else {
+          console.error('不明なエラー:', err);
+        }
+      });
+  }, [navigate]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = event.target;
@@ -115,7 +129,7 @@ const MemberNew: React.FC = () => {
     event.preventDefault();
     setErrorMessage(null);
     axios
-      .post('http://localhost:8000/api/member_new/', formData)
+      .post('http://localhost:8000/api/member_new/', formData, { withCredentials: true }) // クッキーを含む設定を追加
       .then((response) => {
         console.log(response.data);
         alert('登録完了！');

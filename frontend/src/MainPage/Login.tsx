@@ -40,7 +40,8 @@ const Login: React.FC = () => {
 
   return (
     <div>
-      <h1>ログイン</h1>
+      <h1>業務工数システム</h1>
+      <h2>ログイン</h2>
       <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="numberInput">
