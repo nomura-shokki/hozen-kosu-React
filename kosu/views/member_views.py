@@ -476,10 +476,11 @@ class MemberDeleteView(DeleteView):
 
 
 from rest_framework import viewsets
-from ..models import member
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
+from ..models import member
 from .serializers import MemberSerializer
 from django.shortcuts import render
 
@@ -487,14 +488,33 @@ from django.shortcuts import render
 
 
 
+class CustomPagination(PageNumberPagination):
+    page_size = 20  # 1ページに表示する件数
+
 @api_view(['GET'])
 def member_list(request):
-  members = member.objects.all().order_by('employee_no')
-  serializer = MemberSerializer(members, many=True)
-  login_no = request.session.get('login_No')
-  if not login_no:
-    return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
-  return Response(serializer.data)
+    login_no = request.session.get('login_No')
+    if not login_no:
+        return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+
+    # クエリパラメータで絞り込み条件を取得
+    search_number = request.query_params.get('employee_no', None)
+    search_shop = request.query_params.get('shop', None)
+
+    # フィルタリングを実行
+    members = member.objects.all().order_by('employee_no')
+    if search_number:
+        members = members.filter(employee_no__icontains=search_number)  # 部分一致の従業員番号のフィルタリング
+    if search_shop:
+        members = members.filter(shop=search_shop)  # 完全一致のショップ名のフィルタリング
+
+    # ページネーション処理
+    paginator = CustomPagination()
+    result_page = paginator.paginate_queryset(members, request)
+    serializer = MemberSerializer(result_page, many=True)
+
+    # ページネーション結果をレスポンスとして返却
+    return paginator.get_paginated_response(serializer.data)
 
 
 

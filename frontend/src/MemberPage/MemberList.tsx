@@ -46,37 +46,48 @@ interface Member {
   pop_up_id5: string;
   break_check: boolean;
   def_prediction: boolean;
-  id: string;
 }
 
 const MemberList: React.FC = () => {
-  const [data, setData] = useState<Member[]>([]);
+  const [data, setData] = useState<Member[]>([]); // 空配列で初期化
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchNumber, setSearchNumber] = useState<string>('');
   const [searchShop, setSearchShop] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(0);
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios
-      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/member_list/`, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        setData(response.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (err.response?.status === 401) {
-          navigate("/login");
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/member_list/`, {
+          params: { page: currentPage },
+          withCredentials: true,
+        });
+        const results = response.data.results || []; // 結果がない場合は空配列にフォールバック
+        setData(results);
+        setTotalPages(Math.ceil(response.data.count / 20));
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 401) {
+            navigate("/login");
+          } else {
+            setError(err.message);
+          }
         } else {
-          setError(err.message);
+          setError("予期しないエラーが発生しました");
         }
+      } finally {
         setLoading(false);
-      });
-  }, [navigate]);
+      }
+    };
 
-  const filteredData = data.filter((member) => {
+    fetchData();
+  }, [currentPage, navigate]);
+
+  const filteredData = (data || []).filter((member) => {
     const matchesNumber =
       searchNumber === '' || member.employee_no.toString().includes(searchNumber);
     const matchesShop =
@@ -86,6 +97,18 @@ const MemberList: React.FC = () => {
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
   return (
     <div>
@@ -119,32 +142,44 @@ const MemberList: React.FC = () => {
       {filteredData.length === 0 ? (
         <p>No data found.</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>従業員番号</th>
-              <th>氏名</th>
-              <th>ショップ</th>
-              <th>権限</th>
-              <th>管理者権限</th>
-              <th>編集</th>
-              <th>削除</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.map((item) => (
-              <tr key={item.employee_no}>
-                <td>{item.employee_no}</td>
-                <td>{item.name}</td>
-                <td>{item.shop}</td>
-                <td>{item.authority ? "有" : "無"}</td>
-                <td>{item.administrator ? "有" : "無"}</td>
-                <td><Link to={`/member-updata/${item.employee_no}`}>編集</Link></td>
-                <td><Link to={`/member-delete/${item.employee_no}`}>削除</Link></td>
+        <>
+          <table>
+            <thead>
+              <tr>
+                <th>従業員番号</th>
+                <th>氏名</th>
+                <th>ショップ</th>
+                <th>権限</th>
+                <th>管理者権限</th>
+                <th>編集</th>
+                <th>削除</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredData.map((item) => (
+                <tr key={item.employee_no}>
+                  <td>{item.employee_no}</td>
+                  <td>{item.name}</td>
+                  <td>{item.shop}</td>
+                  <td>{item.authority ? "有" : "無"}</td>
+                  <td>{item.administrator ? "有" : "無"}</td>
+                  <td><Link to={`/member-updata/${item.employee_no}`}>編集</Link></td>
+                  <td><Link to={`/member-delete/${item.employee_no}`}>削除</Link></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="pagination">
+            <button disabled={currentPage === 1} onClick={handlePreviousPage}>
+              前へ
+            </button>
+            <span>{currentPage} / {totalPages}</span>
+            <button disabled={currentPage === totalPages} onClick={handleNextPage}>
+              次へ
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
