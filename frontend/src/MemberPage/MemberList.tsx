@@ -126,7 +126,7 @@ const MemberList: React.FC = () => {
       {data.length === 0 ? (
         <p>No data found.</p>
       ) : (
-        <>
+        <div className="table-wrapper">
           <table>
             <thead>
               <tr>
@@ -174,7 +174,7 @@ const MemberList: React.FC = () => {
               最後
             </button>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

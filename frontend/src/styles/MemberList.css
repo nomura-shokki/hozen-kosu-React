@@ -118,10 +118,18 @@ nav a:hover {
   box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
 }
 
-table {
+/* テーブルを横スクロール可能にするコンテナ */
+.table-wrapper {
   width: 100%;
+  overflow-x: auto; /* 横スクロールを許可する */
+  -webkit-overflow-scrolling: touch; /* iOSでスムーズスクロールを有効化 */
+}
+
+table {
+  width: auto; /* テーブルの幅を内容に合わせる */
   border-collapse: collapse;
   margin-top: 10px;
+  white-space: nowrap; /* 改行を防止して横スクロールが可能に */
 }
 
 th,
