@@ -79,7 +79,6 @@ nav a:hover {
   padding: 8px 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  margin-top: 4px;
   font-size: 1rem;
   min-width: 180px;
 }
@@ -92,21 +91,31 @@ nav a:hover {
 }
 
 .search-bar button {
-  padding: 8px 12px; /* コンパクトなサイズ */
+  padding: 4px 8px; /* ボタンを文字分の高さに調整 */
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  width: auto; /* 幅を自動設定 */
-  max-width: 150px; /* 最大幅を指定してコンパクトに */
-  height: auto; /* ボタンの高さを文字分に調整 */
+  width: auto; /* ボタン幅を文字に応じて調整 */
+  line-height: 1.5; /* ボタン内部の文字を縦方向で正常に表示 */
+  display: inline-block; /* 横方向で柔軟レイアウトを維持 */
+  height: auto; /* ボタン高さを文字サイズに依存 */
+  vertical-align: middle; /* 他の要素の行の高さに影響されない */
+  position: relative; /* ボタンの描画位置をフォームから独立させる */
+  margin-top: auto; /* 上方向の余白を自動調整 */
+  margin-bottom: auto; /* 下方向の余白を自動調整 */
 }
 
 .search-bar button:hover {
   background-color: #0056b3;
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.search-bar button:focus {
+  outline: none;
+  box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
 }
 
 table {
@@ -164,7 +173,7 @@ p {
 /* 次へボタン: 右向きの三角形 */
 .pagination .next-button {
   position: relative;
-  width: 60px; /* ボタンの幅を少し広げる */
+  width: 70px; /* ボタンの幅を調整 */
   height: 50px;
   background-color: #007bff;
   border: none;
@@ -180,7 +189,7 @@ p {
 /* 前へボタン: 左向きの三角形 */
 .pagination .prev-button {
   position: relative;
-  width: 60px; /* ボタンの幅を少し広げる */
+  width: 70px; /* ボタンの幅を調整 */
   height: 50px;
   background-color: #007bff;
   border: none;

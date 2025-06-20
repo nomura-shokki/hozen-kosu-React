@@ -29,15 +29,16 @@ const MemberList: React.FC = () => {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/member_list/`, {
         params: {
           page: currentPage,
-          employee_no: searchNumber, // フォームで入力された番号をAPIに渡す
-          shop: searchShop, // フォームで入力されたショップをAPIに渡す
+          employee_no: searchNumber,
+          shop: searchShop,
         },
         withCredentials: true,
       });
-
+  
       const results = response.data.results || [];
+      const pageSize = response.data.page_size || 20; // バックエンドから表示件数を動的に取得
       setData(results);
-      setTotalPages(Math.ceil(response.data.count / 20)); // ページあたりの件数から総ページ数を計算
+      setTotalPages(Math.ceil(response.data.count / pageSize)); // ページ数を動的に計算
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {
@@ -73,6 +74,14 @@ const MemberList: React.FC = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1); // 前のページへ移動
     }
+  };
+
+  const handleFirstPage = () => {
+    setCurrentPage(1); // 最初のページへ移動
+  };
+
+  const handleLastPage = () => {
+    setCurrentPage(totalPages); // 最後のページへ移動
   };
 
   if (loading) return <div>Loading...</div>;
@@ -151,12 +160,18 @@ const MemberList: React.FC = () => {
 
           {/* ページネーター */}
           <div className="pagination">
+            <button className="prev-button" disabled={currentPage === 1} onClick={handleFirstPage}>
+              最初
+            </button>
             <button className="prev-button" disabled={currentPage === 1} onClick={handlePreviousPage}>
               前
             </button>
             <span>{currentPage} / {totalPages}</span>
             <button className="next-button" disabled={currentPage === totalPages} onClick={handleNextPage}>
               次
+            </button>
+            <button className="next-button" disabled={currentPage === totalPages} onClick={handleLastPage}>
+              最後
             </button>
           </div>
         </>

@@ -475,46 +475,58 @@ class MemberDeleteView(DeleteView):
 
 
 
-from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
-from ..models import member
+from ..models import member, administrator_data
 from .serializers import MemberSerializer
-from django.shortcuts import render
 
 
 
-
-
+# ページネーションクラス
 class CustomPagination(PageNumberPagination):
-    page_size = 20  # 1ページに表示する件数
+  page_size = 20  # デフォルトの設定値
 
+  def __init__(self):
+    # administrator_data から動的にページサイズを設定
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is not None:
+      self.page_size = last_record.menu_row
+
+  def get_paginated_response(self, data):
+    return Response({
+      'count': self.page.paginator.count,  # 合計件数
+      'page_size': self.page_size,  # ページサイズをレスポンスに含める
+      'results': data,  # 現在のページのデータ
+    })
+
+# エンドポイント: メンバー一覧を取得
 @api_view(['GET'])
 def member_list(request):
-    login_no = request.session.get('login_No')
-    if not login_no:
-        return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+  # ログイン情報をセッションから取得
+  login_no = request.session.get('login_No')
+  if not login_no:
+    return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
 
-    # クエリパラメータで絞り込み条件を取得
-    search_number = request.query_params.get('employee_no', None)
-    search_shop = request.query_params.get('shop', None)
+  # クエリパラメータで絞り込み条件を取得
+  search_number = request.query_params.get('employee_no', None)
+  search_shop = request.query_params.get('shop', None)
 
-    # フィルタリングを実行
-    members = member.objects.all().order_by('employee_no')
-    if search_number:
-        members = members.filter(employee_no__icontains=search_number)  # 部分一致の従業員番号のフィルタリング
-    if search_shop:
-        members = members.filter(shop=search_shop)  # 完全一致のショップ名のフィルタリング
+  # フィルタリングを実行
+  members = member.objects.all().order_by('employee_no')
+  if search_number:
+    members = members.filter(employee_no__icontains=search_number)  # 部分一致フィルタリング
+  if search_shop:
+    members = members.filter(shop=search_shop)  # 完全一致フィルタリング
 
-    # ページネーション処理
-    paginator = CustomPagination()
-    result_page = paginator.paginate_queryset(members, request)
-    serializer = MemberSerializer(result_page, many=True)
+  # ページネーション処理
+  paginator = CustomPagination()
+  result_page = paginator.paginate_queryset(members, request)  # ページごとにデータを分割
+  serializer = MemberSerializer(result_page, many=True)
 
-    # ページネーション結果をレスポンスとして返却
-    return paginator.get_paginated_response(serializer.data)
+  # ページネーション結果をレスポンスとして返却
+  return paginator.get_paginated_response(serializer.data)
 
 
 
