@@ -145,44 +145,40 @@ const MemberNew: React.FC = () => {
   };
 
   return (
-    <div className="container mt-4">
-      <nav className="mb-4">
-        <Link to="/member-new" className="btn btn-primary me-2">新規登録</Link>
-        <Link to="/member-list" className="btn btn-secondary">データ一覧</Link>
+    <div>
+      <h1>メンバー新規登録</h1>
+      <nav>
+        <Link to="/member-menu">人員MENU</Link>
       </nav>
 
-      <h1>メンバー新規登録</h1>
-
       {/* エラーメッセージを表示 */}
-      {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
+      {errorMessage && <div>{errorMessage}</div>}
 
       <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label htmlFor="employee_no" className="form-label">従業員番号:</label>
+        <div>
+          <label htmlFor="employee_no">従業員番号:</label>
           <input
             type="number"
             id="employee_no"
             name="employee_no"
             value={formData.employee_no}
             onChange={handleChange}
-            className="form-control"
           />
         </div>
 
-        <div className="mb-3">
-          <label htmlFor="name" className="form-label">氏名:</label>
+        <div>
+          <label htmlFor="name">氏名:</label>
           <input
             type="text"
             id="name"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="form-control"
           />
         </div>
 
-        <div className="mb-3">
-          <label htmlFor="shop" className="form-label">ショップ:</label>
+        <div>
+          <label htmlFor="shop">ショップ:</label>
           <ShopSelect
             name="shop"
             value={formData.shop}
@@ -190,31 +186,29 @@ const MemberNew: React.FC = () => {
           />
         </div>
 
-        <div className="mb-3">
-          <label htmlFor="authority" className="form-label">権限:</label>
+        <div>
+          <label htmlFor="authority">権限:</label>
           <input
             type="checkbox"
             id="authority"
             name="authority"
             checked={formData.authority}
             onChange={handleChange}
-            className="form-check-input"
           />
         </div>
 
-        <div className="mb-3">
-          <label htmlFor="administrator" className="form-label">管理者権限:</label>
+        <div>
+          <label htmlFor="administrator">管理者権限:</label>
           <input
             type="checkbox"
             id="administrator"
             name="administrator"
             checked={formData.administrator}
             onChange={handleChange}
-            className="form-check-input"
           />
         </div>
 
-        <button type="submit" className="btn btn-primary">登録</button>
+        <button type="submit">登録</button>
       </form>
     </div>
   );

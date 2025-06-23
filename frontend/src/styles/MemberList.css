@@ -9,6 +9,14 @@ body {
   min-height: 100vh;
 }
 
+@media (max-width: 768px) {
+  body {
+    justify-content: flex-start; /* 中央寄せをやめて左揃えに */
+    align-items: flex-start;
+    padding-left: 10px; /* 少し余白を追加して視認性を確保 */
+  }
+}
+
 .container {
   width: 100%;
   max-width: 900px;
@@ -34,16 +42,17 @@ nav {
 }
 
 nav a {
-  text-decoration: none;
-  background-color: #007bff;
-  color: white;
-  padding: 10px 15px;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  color: #007bff;
+  text-decoration: underline;
+  font-weight: normal;
+  transition: color 0.3s ease;
 }
 
 nav a:hover {
-  background-color: #0056b3;
+  color: #0056b3;
 }
 
 .search-bar {

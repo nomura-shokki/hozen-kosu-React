@@ -81,10 +81,14 @@ const MemberMenu: React.FC = () => {
   }
 
   return (
-    <div className="container mt-4">
-      <nav className="mb-4">
-        <Link to="/member-new" className="btn btn-primary me-2">人員登録</Link>
-        <Link to="/member-list" className="btn btn-secondary">人員一覧</Link>
+    <div>
+      <h1>人員MENU</h1>
+      <nav>
+        <Link to="/">メインMENU</Link>
+      </nav>
+      <nav>
+        <Link to="/member-new">人員登録</Link>
+        <Link to="/member-list">人員一覧</Link>
       </nav>
     </div>
   );
