@@ -626,8 +626,14 @@ def member_update(request, pk):
     return Response(serializer.data)
   
   elif request.method == 'PUT':
-    serializer = MemberSerializer(member_instance, data=request.data)
+    data = request.data
+    serializer = MemberSerializer(member_instance, data=data)
     if serializer.is_valid():
+      if data.get('employee_no') != pk and member.objects.filter(employee_no=data.get('employee_no')).exists():
+        return Response(
+          {'error': '入力した従業員番号はすでに登録されています。ERROR042'},
+          status=status.HTTP_400_BAD_REQUEST
+        )
       serializer.save()
       return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

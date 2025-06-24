@@ -40,6 +40,10 @@ img {
   display: block;
 }
 
+
+
+
+
 :root {
   --heading1: clamp(1rem, 1.3rem + 3vw, 4rem); 
   --heading2: clamp(0.5rem, 1rem + 2vw, 3rem);

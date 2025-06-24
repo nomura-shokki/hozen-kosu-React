@@ -1,5 +1,6 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
+import ShopSelect from '../components/ShopSelect';
 import { useNavigate, useParams, Link } from "react-router-dom";
 
 interface Member {
@@ -54,7 +55,7 @@ const MemberEdit: React.FC = () => {
   const [formData, setFormData] = useState<Member | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   useEffect(() => {
     axios
       .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, { withCredentials: true })
@@ -85,11 +86,29 @@ const MemberEdit: React.FC = () => {
     return <div>データが見つかりません</div>;
   }
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = event.target;
-    setFormData((prev) =>
-      prev ? { ...prev, [name]: type === "checkbox" ? checked : value } : prev
-    );
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = event.target;
+
+    if (type === 'checkbox') {
+      const { checked } = event.target as HTMLInputElement;
+      setFormData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          [name]: checked,
+        };
+      });
+    } else {
+      setFormData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          [name]: value,
+        };
+      });
+    }
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -101,79 +120,80 @@ const MemberEdit: React.FC = () => {
         navigate("/member-list");
       })
       .catch((error) => {
-        setError(error.message);
+        console.error(error);
+        // サーバーからのエラーメッセージを取得
+        if (error.response && error.response.data) {
+          setErrorMessage(error.response.data.error);
+        } else {
+          setErrorMessage('不明なエラーが発生しました。IT担当者に連絡してください。');
+        }
       });
   };
 
   return (
-    <div className="container mt-4">
-      <nav className="mb-4">
-        <Link to="/member-new" className="btn btn-primary me-2">新規登録</Link>
-        <Link to="/member-list" className="btn btn-secondary">データ一覧</Link>
+    <div>
+      <nav>
+        <Link to="/member-new">新規登録</Link>
+        <Link to="/member-list">データ一覧</Link>
       </nav>
       <h1>人員データ編集</h1>
       <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label htmlFor="employee_no" className="form-label">従業員番号:</label>
+        <div>
+          <label htmlFor="employee_no">従業員番号:</label>
           <input
             type="number"
             id="employee_no"
             name="employee_no"
             value={formData.employee_no}
             onChange={handleChange}
-            className="form-control"
           />
         </div>
 
-        <div className="mb-3">
-          <label htmlFor="name" className="form-label">氏名:</label>
+        <div>
+          <label htmlFor="name">氏名:</label>
           <input
             type="text"
             id="name"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="form-control"
           />
         </div>
 
-        <div className="mb-3">
-          <label htmlFor="shop" className="form-label">ショップ:</label>
-          <input
-            type="text"
-            id="shop"
+        <div>
+          <label htmlFor="shop">ショップ:</label>
+          <ShopSelect
             name="shop"
             value={formData.shop}
-            onChange={handleChange}
-            className="form-control"
+            onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
           />
         </div>
 
-        <div className="mb-3">
-          <label htmlFor="authority" className="form-label">権限:</label>
+        <div>
+          <label htmlFor="authority">権限:</label>
           <input
             type="checkbox"
             id="authority"
             name="authority"
             checked={formData.authority}
             onChange={handleChange}
-            className="form-check-input"
           />
         </div>
 
-        <div className="mb-3">
-          <label htmlFor="administrator" className="form-label">管理者権限:</label>
+        <div>
+          <label htmlFor="administrator">管理者権限:</label>
           <input
             type="checkbox"
             id="administrator"
             name="administrator"
             checked={formData.administrator}
             onChange={handleChange}
-            className="form-check-input"
           />
         </div>
-
-        <button type="submit" className="btn btn-primary">更新</button>
+        {errorMessage && (
+          <div role="alert">{errorMessage}</div>
+        )}
+        <button type="submit">更新</button>
       </form>
     </div>
   );

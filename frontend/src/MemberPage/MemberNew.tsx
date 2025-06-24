@@ -152,7 +152,9 @@ const MemberNew: React.FC = () => {
       </nav>
 
       {/* エラーメッセージを表示 */}
-      {errorMessage && <div>{errorMessage}</div>}
+      {errorMessage && (
+        <div role="alert">{errorMessage}</div>
+      )}
 
       <form onSubmit={handleSubmit}>
         <div>
