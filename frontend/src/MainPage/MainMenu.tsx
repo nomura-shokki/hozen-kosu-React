@@ -101,10 +101,10 @@ const MemberMenu: React.FC = () => {
   return (
     <div className="container mt-4">
       <h1>メインMENU</h1>
-      <p>こんにちは {data.length > 0 ? data[0].name : ""}</p>
       <nav className="mb-4">
         <Link to="/member-menu">人員MENU</Link>
       </nav>
+      <p>こんにちは {data.length > 0 ? data[0].name : ""}</p>
       <button onClick={handleLogout}>
         ログアウト
       </button>

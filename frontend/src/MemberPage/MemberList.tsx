@@ -105,7 +105,7 @@ const MemberList: React.FC = () => {
     <div>
       <h1>人員データ一覧</h1>
 
-      <nav>
+      <nav className="member-nav">
         <Link to="/member-menu">人員MENU</Link>
       </nav>
 

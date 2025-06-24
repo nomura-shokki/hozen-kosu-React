@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import '../styles/MainPage/Login.css';
+import styles from "../styles/MainPage/Login.module.css";
+
 
 const Login: React.FC = () => {
   const [employee_no, setNumber] = useState<string>('');
@@ -39,7 +40,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className={styles["login-wrapper"]}>
       <h1>業務工数システム</h1>
       <h2>ログイン</h2>
       <form onSubmit={handleSubmit}>
@@ -59,7 +60,7 @@ const Login: React.FC = () => {
         {errorMessage && (
           <div role="alert">{errorMessage}</div>
         )}
-        <button type="submit">ログイン</button>
+        <button type="submit" className="blue_button">ログイン</button>
       </form>
     </div>
   );
