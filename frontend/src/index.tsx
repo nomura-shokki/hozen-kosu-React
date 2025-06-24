@@ -20,7 +20,7 @@ root.render(
         <Route path="/member-menu" element={<MemberMenu />} />
         <Route path="/member-new" element={<MemberNew />} />
         <Route path="/member-list" element={<MemberList />} />
-        <Route path="/member-updata/:employee_no" element={<MemberEdit />} />
+        <Route path="/member-update/:employee_no" element={<MemberEdit />} />
         <Route path="/member-delete/:employee_no" element={<MemberDelete />} />
       </Routes>
     </Router>

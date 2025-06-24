@@ -20,6 +20,7 @@ const MemberList: React.FC = () => {
   const [searchShop, setSearchShop] = useState<string>(""); // 検索フォームのショップ名
   const [currentPage, setCurrentPage] = useState<number>(1); // 現在のページ
   const [totalPages, setTotalPages] = useState<number>(0); // 総ページ数
+  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight); // max-height を動的に設定
   const navigate = useNavigate();
 
   // APIを呼び出してデータを取得
@@ -53,6 +54,19 @@ const MemberList: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // max-height を計算する関数
+  const updateMaxHeight = () => {
+    const searchBarHeight = (document.querySelector(".search-bar") as HTMLElement)?.offsetHeight || 0; // 検索バーの高さを取得
+    const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0; // h1要素の高さを取得
+    setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40); // 40 は余白の調整値
+  };
+
+  useEffect(() => {
+    updateMaxHeight(); // 初回に高さを計算
+    window.addEventListener("resize", updateMaxHeight); // ウィンドウのリサイズ時に再計算
+    return () => window.removeEventListener("resize", updateMaxHeight); // クリーンアップ
+  }, []);
 
   // 現在のページが変わったときにデータを取得
   useEffect(() => {
@@ -125,7 +139,7 @@ const MemberList: React.FC = () => {
       {data.length === 0 ? (
         <p>No data found.</p>
       ) : (
-        <div className="table-wrapper">
+        <div className="table-wrapper" style={{ maxHeight: `${maxHeight}px`, overflowY: "auto" }}>
           <table>
             <thead>
               <tr>
