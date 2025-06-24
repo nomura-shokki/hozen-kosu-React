@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import './styles/global.css';
 import Login from './MainPage/Login';
 import MainMenu from './MainPage/MainMenu';
 import MemberMenu from './MemberPage/MemberMenu';

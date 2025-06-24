@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import '../styles/Login.css';
+import '../styles/MainPage/Login.css';
 
 const Login: React.FC = () => {
   const [employee_no, setNumber] = useState<string>('');
@@ -14,7 +14,7 @@ const Login: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/login/`,  // ← 環境変数を使ってURLを構築
+        `${process.env.REACT_APP_API_BASE_URL}/api/login/`,
         { employee_no: Number(employee_no) },
         {
           headers: {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import ShopSelect from "../components/ShopSelect";
-import "../styles/MemberList.css";
+import "../styles/MemberPage/MemberList.css";
 
 interface Member {
   employee_no: number;
