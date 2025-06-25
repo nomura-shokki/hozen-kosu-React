@@ -100,13 +100,12 @@ const MemberMenu: React.FC = () => {
   }
 
   return (
-    <div className={styles["main-menu-container"]}>
-      <h1>メインMENU</h1>
-      <button>
-        <Link to="/member-menu">人員MENU</Link>
-      </button>
-      <p>こんにちは {data.length > 0 ? data[0].name : ""}</p>
-      <button className={styles["logout-button"]} onClick={handleLogout}>
+    <div className={styles["menu-wrapper"]}>
+      <h1>MENU</h1>
+      <p>こんにちは {data.length > 0 ? data[0].name : ""}さん</p>
+      <p>　</p>
+      <Link to="/member-menu" className={styles["member-menu-button"]}>人員MENU</Link>
+      <button onClick={handleLogout} className="blue_button">
         ログアウト
       </button>
     </div>

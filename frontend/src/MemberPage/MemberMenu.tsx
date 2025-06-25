@@ -1,6 +1,9 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import styles from "../styles/MemberPage/MemberMenu.module.css";
+
+
 
 interface Member {
   employee_no: number;

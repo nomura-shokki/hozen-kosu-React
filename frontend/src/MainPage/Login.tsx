@@ -44,23 +44,28 @@ const Login: React.FC = () => {
       <h1>業務工数システム</h1>
       <h2>ログイン</h2>
       <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="numberInput">従業員番号</label>
-          <input
-            type="number"
-            id="numberInput"
-            value={employee_no}
-            onChange={(e) => {
-              const value = e.target.value;
-              setNumber(value === '' ? '' : value);
-            }}
-            required
-          />
+        <div className={styles["search-bar"]}>
+          <div className={styles["search-bar-row"]}>
+            <label>従業員番号</label>
+            <input
+              type="number"
+              id="numberInput"
+              value={employee_no}
+              onChange={(e) => {
+                const value = e.target.value;
+                setNumber(value === '' ? '' : value);
+              }}
+              required
+              className={styles["input-focus"]}
+            />
+            {errorMessage && (
+              <div role="alert">{errorMessage}</div>
+            )}
+          </div>
+          <div className={styles["search-bar-row"]}>
+            <button type="submit" className="blue_button">ログイン</button>
+          </div>
         </div>
-        {errorMessage && (
-          <div role="alert">{errorMessage}</div>
-        )}
-        <button type="submit" className="blue_button">ログイン</button>
       </form>
     </div>
   );
