@@ -1,0 +1,66 @@
+/* メインコンテナ */
+.main-menu-container {
+  background-color: #fff; /* 白背景 */
+  padding: 20px; /* 余白の設定 */
+  border-radius: 8px; /* コーナーを丸くする */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 柔らかな影 */
+  width: 100%;
+  max-width: 600px; /* 最大幅を設定してセンター表示 */
+  margin: 40px auto; /* 縦方向の余白と中央揃え */
+  text-align: center; /* 中央揃え */
+}
+
+/* ヘッダー（タイトル） */
+.main-menu-container h1 {
+  font-size: var(--heading1); /* グローバルCSSのヘッダースタイル */
+  margin-bottom: 1.5rem; /* 下に余白 */
+  color: #007bff; /* 強調された青色 */
+}
+
+/* 挨拶文 */
+.main-menu-container p {
+  font-size: var(--paragraph); /* グローバルCSSの段落スタイル */
+  margin-bottom: 1.5rem; /* 下に余白 */
+  color: #555; /* 少し薄いグレーで読みやすいテキスト */
+}
+
+/* ボタン */
+.main-menu-container button {
+  width: 100%;
+  max-width: 300px; /* ボタン幅を最大300pxに制限 */
+  background-color: #007bff; /* ボタン背景色：青 */
+  color: #fff; /* ボタンの文字色：白 */
+  padding: 10px; /* ボタン内側の余白 */
+  font-size: 1rem; /* 標準フォントサイズ */
+  border: none; /* ボーダーをなくしてフラットデザイン */
+  border-radius: 4px; /* 角を丸くする */
+  cursor: pointer; /* ポインターアイコンを表示 */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* アニメーション効果 */
+  margin-bottom: 15px; /* 下にスペースを追加 */
+}
+
+.main-menu-container button:hover {
+  background-color: #0056b3; /* ホバー時の色 */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* ホバー時の視覚効果 */
+}
+
+.main-menu-container button a {
+  color: inherit; /* グローバル設定に基づき文字色を継承 */
+  text-decoration: none; /* 下線を削除 */
+}
+
+/* メニューリンク */
+.main-menu-container button a:hover {
+  text-decoration: underline; /* ホバー時に下線を表示 */
+}
+
+/* ログアウトボタン */
+.main-menu-container .logout-button {
+  background-color: #f8d7da; /* 軽い赤背景 */
+  color: #721c24; /* ボタンの文字色：濃い赤 */
+}
+
+.main-menu-container .logout-button:hover {
+  background-color: #f5c6cb; /* ホバー時の色 */
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.3); /* ホバー時の影 */
+}

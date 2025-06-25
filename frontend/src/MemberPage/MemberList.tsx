@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import ShopSelect from "../components/ShopSelect";
-import "../styles/MemberPage/MemberList.css";
+import styles from "../styles/MemberPage/MemberList.module.css";
 
 interface Member {
   employee_no: number;
@@ -103,14 +103,14 @@ const MemberList: React.FC = () => {
 
   return (
     <div>
-      <h1>人員データ一覧</h1>
+      <h1 className={styles["h1-collar"]}>人員データ一覧</h1>
 
-      <nav className="member-nav">
+      <nav className={styles["member-nav"]}>
         <Link to="/member-menu">人員MENU</Link>
       </nav>
 
-      <div className="search-bar">
-        <div className="search-bar-row">
+      <div className={styles["search-bar"]}>
+        <div className={styles["search-bar-row"]}>
           <label>
             従業員番号：
             <input
@@ -131,7 +131,7 @@ const MemberList: React.FC = () => {
         </div>
 
         {/* 検索ボタン */}
-        <div className="search-button-row">
+        <div className={styles["search-button-row"]}>
           <button onClick={handleSearch}>検索</button>
         </div>
       </div>
@@ -139,17 +139,17 @@ const MemberList: React.FC = () => {
       {data.length === 0 ? (
         <p>No data found.</p>
       ) : (
-        <div className="table-wrapper" style={{ maxHeight: `${maxHeight}px`, overflowY: "auto" }}>
+        <div className={styles["table-wrapper"]} style={{ maxHeight: `${maxHeight}px`, overflowY: "auto" }}>
           <table>
             <thead>
               <tr>
-                <th>従業員番号</th>
-                <th>氏名</th>
-                <th>ショップ</th>
-                <th>権限</th>
-                <th>管理者権限</th>
-                <th>編集</th>
-                <th>削除</th>
+                <th className={styles["th-collar"]}>従業員番号</th>
+                <th className={styles["th-collar"]}>氏名</th>
+                <th className={styles["th-collar"]}>ショップ</th>
+                <th className={styles["th-collar"]}>権限</th>
+                <th className={styles["th-collar"]}>管理者権限</th>
+                <th className={styles["th-collar"]}>編集</th>
+                <th className={styles["th-collar"]}>削除</th>
               </tr>
             </thead>
             <tbody>
@@ -161,10 +161,10 @@ const MemberList: React.FC = () => {
                   <td>{item.authority ? "有" : "無"}</td>
                   <td>{item.administrator ? "有" : "無"}</td>
                   <td>
-                    <Link to={`/member-update/${item.employee_no}`}>編集</Link>
+                    <Link to={`/member-update/${item.employee_no}`} className={styles["a-collar"]}>編集</Link>
                   </td>
                   <td>
-                    <Link to={`/member-delete/${item.employee_no}`}>削除</Link>
+                    <Link to={`/member-delete/${item.employee_no}`} className={styles["a-collar"]}>削除</Link>
                   </td>
                 </tr>
               ))}
@@ -172,18 +172,18 @@ const MemberList: React.FC = () => {
           </table>
 
           {/* ページネーター */}
-          <div className="pagination">
-            <button className="prev-button" disabled={currentPage === 1} onClick={handleFirstPage}>
+          <div className={styles["pagination"]}>
+            <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handleFirstPage}>
               最初
             </button>
-            <button className="prev-button" disabled={currentPage === 1} onClick={handlePreviousPage}>
+            <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handlePreviousPage}>
               前
             </button>
             <span>{currentPage} / {totalPages}</span>
-            <button className="next-button" disabled={currentPage === totalPages} onClick={handleNextPage}>
+            <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleNextPage}>
               次
             </button>
-            <button className="next-button" disabled={currentPage === totalPages} onClick={handleLastPage}>
+            <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleLastPage}>
               最後
             </button>
           </div>

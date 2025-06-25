@@ -46,7 +46,8 @@ img {
 
 :root {
   --heading1: clamp(1rem, 1.3rem + 3vw, 4rem); 
-  --heading2: clamp(0.5rem, 1rem + 2vw, 3rem);
+  --heading2: clamp(0.5rem, 1rem + 3vw, 3rem);
+  --paragraph: clamp(0.3rem, 0.6rem + 3vw, 1rem);
 }
 
 body {
@@ -70,6 +71,19 @@ h2 {
   font-size: var(--heading2);
   margin-bottom: 1rem;
   text-align: center;
+}
+
+p {
+  font-size: var(--paragraph);
+  text-align: center;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 form {
@@ -108,6 +122,33 @@ input[type="number"] {
 input[type="number"]:focus {
   border-color: #007bff;
   outline: none;
+}
+
+table {
+  width: auto;
+  border-collapse: collapse;
+  margin-top: 10px;
+  white-space: nowrap;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+th {
+  color: white;
+  font-weight: bold;
+}
+
+tr:nth-child(even) {
+  background-color: #f4f7f9;
+}
+
+tr:hover {
+  background-color: #e0e0e0;
 }
 
 .blue_button {

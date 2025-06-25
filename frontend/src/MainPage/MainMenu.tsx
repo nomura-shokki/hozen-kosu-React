@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import styles from "../styles/MainPage/MainMenu.module.css";
 
 interface Member {
   employee_no: number;
@@ -99,13 +100,13 @@ const MemberMenu: React.FC = () => {
   }
 
   return (
-    <div className="container mt-4">
+    <div className={styles["main-menu-container"]}>
       <h1>メインMENU</h1>
-      <nav className="mb-4">
+      <button>
         <Link to="/member-menu">人員MENU</Link>
-      </nav>
+      </button>
       <p>こんにちは {data.length > 0 ? data[0].name : ""}</p>
-      <button onClick={handleLogout}>
+      <button className={styles["logout-button"]} onClick={handleLogout}>
         ログアウト
       </button>
     </div>
