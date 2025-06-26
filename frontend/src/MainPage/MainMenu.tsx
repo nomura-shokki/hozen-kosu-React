@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import logo from "../img/MenuRogo.png";
 import styles from "../styles/MainPage/MainMenu.module.css";
+
+
 
 interface Member {
   employee_no: number;
@@ -101,7 +104,7 @@ const MemberMenu: React.FC = () => {
 
   return (
     <div className={styles["menu-wrapper"]}>
-      <h1>MENU</h1>
+      <img src={logo} alt="Menuロゴ" className={styles["Menu-logo"]} />
       <p>こんにちは {data.length > 0 ? data[0].name : ""}さん</p>
       <p>　</p>
       <Link to="/member-menu" className={styles["member-menu-button"]}>人員MENU</Link>

@@ -1,0 +1,64 @@
+.menu-wrapper {
+  display: flex; /* 子要素をフレックスレイアウトにする */
+  flex-direction: column; /* 縦方向に要素を並べる */
+  justify-content: top;
+  align-items: center; /* 横方向の中央に配置 */
+  height: 100vh; /* 画面の高さいっぱいにする */
+  width: 100%;
+  margin: 0 auto; /* 横方向の中央寄せ */
+}
+
+.h1-collar {
+  color: #ffd700;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.member-button1 {
+  display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
+  width: 100%; /* 親要素いっぱいの横幅に広げる */
+  max-width: 300px; /* 最大幅を300pxに制限。画面が広くてもこの幅を超えない */
+  background-color: #ffd700; /* ボタンの背景色をゴールドに設定（鮮やかで目を引く色） */
+  color: #fff; /* ボタンの文字色を白に設定（背景とのコントラストを確保） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px; /* ボタン内側の余白を上下左右に10pxずつ確保。クリックしやすいサイズ感に */
+  font-size: 2rem; /* フォントサイズをブラウザの基準サイズ（通常16px）に設定 */
+  text-align: center; /* 文字を中央に配置 */
+  border: none; /* デフォルトのボーダーをなくし、フラットデザインに */
+  border-radius: 4px; /* 角をほんの少し丸めて、柔らかい印象に */
+  cursor: pointer; /* マウスホバー時に「ポインタ」カーソルを表示し、クリック可能と伝える */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化に滑らかなアニメーション効果を付加 */
+  margin-bottom: 15px; /* 下に15pxの余白をつけて、次の要素と間隔をあける */
+  text-decoration: none; /* リンクの下線を削除し、ボタンらしく見せる */
+}
+
+.member-button1:hover {
+  background-color: #ffa500; /* ゴールドより濃いオレンジ色に変化（視覚的に「反応している」と伝える） */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 軽めのドロップシャドウで立体感を演出 */
+  text-decoration: underline; /* ホバー時に下線を表示して「リンクである」ことを視覚的に補強 */
+  text-decoration: none;
+}
+
+.member-button2 {
+  display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
+  width: 100%; /* 親要素いっぱいの横幅に広げる */
+  max-width: 300px; /* 最大幅を300pxに制限。画面が広くてもこの幅を超えない */
+  background-color: #ffc400; /* ボタンの背景色をゴールドに設定（鮮やかで目を引く色） */
+  color: #fff; /* ボタンの文字色を白に設定（背景とのコントラストを確保） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px; /* ボタン内側の余白を上下左右に10pxずつ確保。クリックしやすいサイズ感に */
+  font-size: 2rem; /* フォントサイズをブラウザの基準サイズ（通常16px）に設定 */
+  text-align: center; /* 文字を中央に配置 */
+  border: none; /* デフォルトのボーダーをなくし、フラットデザインに */
+  border-radius: 4px; /* 角をほんの少し丸めて、柔らかい印象に */
+  cursor: pointer; /* マウスホバー時に「ポインタ」カーソルを表示し、クリック可能と伝える */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化に滑らかなアニメーション効果を付加 */
+  margin-bottom: 15px; /* 下に15pxの余白をつけて、次の要素と間隔をあける */
+  text-decoration: none; /* リンクの下線を削除し、ボタンらしく見せる */
+}
+
+.member-button2:hover {
+  background-color: #ff9200; /* ゴールドより濃いオレンジ色に変化（視覚的に「反応している」と伝える） */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 軽めのドロップシャドウで立体感を演出 */
+  text-decoration: underline; /* ホバー時に下線を表示して「リンクである」ことを視覚的に補強 */
+  text-decoration: none;
+}

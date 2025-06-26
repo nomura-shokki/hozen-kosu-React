@@ -25,6 +25,12 @@
   margin-bottom: 15px;
 }
 
+.login-logo {
+  max-width: 400px; /* ロゴの最大幅を指定 */
+  height: auto; /* 高さを自動調整 */
+  margin-bottom: 40px; /* ロゴの下部に余白を追加 */
+}
+
 .search-bar input {
   padding: 8px 10px; /* 内側の余白を上下8px、左右10pxに設定して、入力欄を広げ文字が快適に入力できるようにする */
   border: 1px solid #ccc; /* グレーの枠線を入力欄の周囲に描画し、視覚的に区別しやすくする */

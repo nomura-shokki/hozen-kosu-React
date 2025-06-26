@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import logo from "../img/TitleRogo.png";
 import styles from "../styles/MainPage/Login.module.css";
+
 
 
 const Login: React.FC = () => {
@@ -41,9 +43,9 @@ const Login: React.FC = () => {
 
   return (
     <div className={styles["login-wrapper"]}>
-      <h1>業務工数システム</h1>
-      <h2>ログイン</h2>
+      <img src={logo} alt="業務工数システムロゴ" className={styles["login-logo"]} />
       <form onSubmit={handleSubmit}>
+        <h2>ログイン</h2>
         <div className={styles["search-bar"]}>
           <div className={styles["search-bar-row"]}>
             <label>従業員番号</label>

@@ -32,3 +32,9 @@
   text-decoration: underline; /* ホバー時に下線を表示して「リンクである」ことを視覚的に補強 */
   text-decoration: none;
 }
+
+.Menu-logo {
+  max-width: 400px; /* ロゴの最大幅を指定 */
+  height: auto; /* 高さを自動調整 */
+  margin-bottom: 40px; /* ロゴの下部に余白を追加 */
+}
