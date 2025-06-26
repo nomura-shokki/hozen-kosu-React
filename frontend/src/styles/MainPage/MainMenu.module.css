@@ -34,7 +34,9 @@
 }
 
 .Menu-logo {
-  max-width: 400px; /* ロゴの最大幅を指定 */
-  height: auto; /* 高さを自動調整 */
-  margin-bottom: 40px; /* ロゴの下部に余白を追加 */
+  max-width: min(400px, 90%);
+  width: auto;
+  height: auto;
+  margin-bottom: 40px;
+  object-fit: contain;
 }

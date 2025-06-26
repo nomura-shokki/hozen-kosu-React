@@ -150,7 +150,7 @@ const MemberNew: React.FC = () => {
   return (
     <div className={styles["member-new-wrapper"]}>
       <h1 className={styles["h1-collar"]}>人員登録</h1>
-      <nav>
+      <nav className={styles["member-nav"]}>
         <Link to="/member-menu">人員MENU</Link>
       </nav>
 
@@ -160,60 +160,65 @@ const MemberNew: React.FC = () => {
       )}
 
       <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="employee_no">従業員番号:</label>
-          <input
-            type="number"
-            id="employee_no"
-            name="employee_no"
-            value={formData.employee_no}
-            onChange={handleChange}
-          />
-        </div>
+        <div className={styles["search-bar"]}>
+          <div className={styles["search-bar-row"]}>
+            <label htmlFor="employee_no">従業員番号:</label>
+            <input
+              type="number"
+              id="employee_no"
+              name="employee_no"
+              value={formData.employee_no}
+              onChange={handleChange}
+            />
 
-        <div>
-          <label htmlFor="name">氏名:</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-          />
-        </div>
+            <label htmlFor="name">氏名:</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+            />
 
-        <div>
-          <label htmlFor="shop">ショップ:</label>
-          <ShopSelect
-            name="shop"
-            value={formData.shop}
-            onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
-          />
-        </div>
+            <label htmlFor="shop">ショップ:</label>
+            <ShopSelect
+              name="shop"
+              value={formData.shop}
+              onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
+            />
 
-        <div>
-          <label htmlFor="authority">権限:</label>
-          <input
-            type="checkbox"
-            id="authority"
-            name="authority"
-            checked={formData.authority}
-            onChange={handleChange}
-          />
-        </div>
+            <div className={styles["switch-wrapper"]}>
+              <label htmlFor="authority">権限:</label>
+              <label className={styles["toggle-switch"]}>
+                <input
+                  type="checkbox"
+                  id="authority"
+                  name="authority"
+                  checked={formData.authority}
+                  onChange={handleChange}
+                />
+                <span className={styles["toggle-slider"]}></span>
+              </label>
+            </div>
 
-        <div>
-          <label htmlFor="administrator">管理者権限:</label>
-          <input
-            type="checkbox"
-            id="administrator"
-            name="administrator"
-            checked={formData.administrator}
-            onChange={handleChange}
-          />
+            <div className={styles["switch-wrapper"]}>
+              <label htmlFor="administrator">管理者権限:</label>
+              <label className={styles["toggle-switch"]}>
+                <input
+                  type="checkbox"
+                  id="administrator"
+                  name="administrator"
+                  checked={formData.administrator}
+                  onChange={handleChange}
+                />
+                <span className={styles["toggle-slider"]}></span>
+              </label>
+            </div>
+          </div>
+          <div className={styles["search-bar-row"]}>
+            <button type="submit" className="yellow_button">登録</button>
+          </div>
         </div>
-
-        <button type="submit">登録</button>
       </form>
     </div>
   );

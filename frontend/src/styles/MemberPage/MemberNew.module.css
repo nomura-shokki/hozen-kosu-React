@@ -6,7 +6,131 @@
 .member-new-wrapper {
   display: flex;
   flex-direction: column;
-  justify-content: top;
+  justify-content: flex-start;
   align-items: center;
-  height: 100vh;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.search-bar {
+  display: flex; /* Flexboxで子要素を柔軟に配置 */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: center; /* コンテナ内で縦方向中央寄せ */
+  align-items: center; /* コンテナ内で横方向中央寄せ */
+  gap: 15px; /* 子要素間のスペースを15pxに設定 */
+  margin: 20px 0; /* 上下に20pxのマージンを設定 */
+  flex-wrap: wrap; /* 幅が足りない場合に子要素を折り返し */
+}
+
+.search-bar-row {
+  display: flex; /* 子要素を横並びに配置（デフォルト方向） */
+  flex-direction: column; /* 子要素を縦に並べる（モバイル対応などを意識） */
+  justify-content: center; /* 子要素を中央に揃える */
+  flex-wrap: wrap; /* 子要素が幅に応じて折り返されるように */
+  gap: 20px; /* 子要素間の間隔を20pxに */
+  margin-bottom: 15px; /* 下に15pxのマージンを付与 */
+}
+
+.search-bar label {
+  margin: 0 50px;
+}
+
+.search-bar input {
+  padding: 8px 10px; /* 内側の余白を上下8px、左右10pxに設定して、入力欄を広げ文字が快適に入力できるようにする */
+  margin: 0 50px;
+  border: 1px solid #ccc; /* グレーの枠線を入力欄の周囲に描画し、視覚的に区別しやすくする */
+  border-radius: 4px; /* 四角い角を滑らかに（4pxの曲線）し、モダンなデザインに調整 */
+  font-size: 1rem; /* フォントサイズを標準的なサイズ（大体16px程度）に設定 */
+  min-width: 120px; /* 入力欄とセレクトボックスの最小幅を180pxに設定し、デザインを見やすく安定させる */
+}
+
+.search-bar input:focus {
+  border-color: #ffd700; /* フォーカス時（クリックまたはタブで選択）、枠線を変更し、視認性を向上 */
+  outline: none; /* デフォルトのアウトライン（ブラウザが自動生成する枠）を非表示にしてデザインを統一 */
+  box-shadow: 0 0 3px #555; /* フォーカス時に青色の柔らかな影を追加して、視覚的にエレメントがアクティブであることを強調 */
+}
+
+.search-bar select {
+  padding: 8px 10px; /* inputと同様の余白を設定 */
+  margin: 0 50px;
+  border: 1px solid #ccc; /* 枠線をinputと統一 */
+  border-radius: 4px; /* 角丸もinputと同様に */
+  font-size: 1rem; /* フォントサイズも揃える */
+  min-width: 120px; /* 横幅を入力欄と合わせて統一感を出す */
+}
+
+.search-bar select:focus {
+  border-color: #ffd700; /* フォーカス時の色もinputと同様に */
+  outline: none; /* ブラウザデフォルトのアウトラインを非表示に */
+  box-shadow: 0 0 3px #555; /* 選択時に柔らかな影をつけてアクティブ感を演出 */
+}
+
+.member-nav a {
+  color: #ffd700;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.member-nav a:hover {
+  color: #ffa500;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 75px;
+  height: 39px;
+  margin: 0 50px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 30px;
+  transition: 0.3s;
+}
+
+.toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 30px;
+  width: 30px;
+  left: 4.5px;
+  bottom: 4.5px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #ffd700;
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(36px);
+}
+
+.switch-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+@media (max-width: 768px) {
+  .search-bar input,
+  .search-bar select {
+    min-width: auto;
+  }
 }

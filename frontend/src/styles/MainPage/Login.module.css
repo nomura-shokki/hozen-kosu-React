@@ -1,34 +1,38 @@
 .login-wrapper {
   display: flex;
   flex-direction: column;
-  justify-content: top;
+  justify-content: flex-start;
   align-items: center;
-  height: 100vh;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .search-bar {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 20px 0;
-  flex-wrap: wrap;
+  display: flex; /* Flexboxで子要素を柔軟に配置 */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: center; /* コンテナ内で縦方向中央寄せ */
+  align-items: center; /* コンテナ内で横方向中央寄せ */
+  gap: 15px; /* 子要素間のスペースを15pxに設定 */
+  margin: 20px 0; /* 上下に20pxのマージンを設定 */
+  flex-wrap: wrap; /* 幅が足りない場合に子要素を折り返し */
 }
 
 .search-bar-row {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  flex-wrap: wrap; /* フォームフィールドが画面幅に応じて折り返される */
-  gap: 20px;
-  margin-bottom: 15px;
+  display: flex; /* 子要素を横並びに配置（デフォルト方向） */
+  flex-direction: column; /* 子要素を縦に並べる（モバイル対応などを意識） */
+  justify-content: center; /* 子要素を中央に揃える */
+  flex-wrap: wrap; /* 子要素が幅に応じて折り返されるように */
+  gap: 20px; /* 子要素間の間隔を20pxに */
+  margin-bottom: 15px; /* 下に15pxのマージンを付与 */
 }
 
 .login-logo {
-  max-width: 400px; /* ロゴの最大幅を指定 */
-  height: auto; /* 高さを自動調整 */
-  margin-bottom: 40px; /* ロゴの下部に余白を追加 */
+  max-width: min(400px, 90%);
+  width: auto;
+  height: auto;
+  margin-bottom: 40px;
+  object-fit: contain;
 }
 
 .search-bar input {
