@@ -534,7 +534,7 @@ def member_list(request):
 def member_new(request):
   if request.method == 'GET':
     login_no = request.session.get('login_No')
-    if not login_no:
+    if not login_no:# 403で権限エラー出す
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
     member_data = member.objects.get(employee_no=login_no)
     serializer = MemberSerializer([member_data], many=True)
