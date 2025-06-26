@@ -2,6 +2,9 @@ import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import axios from 'axios';
 import ShopSelect from '../components/ShopSelect';
 import { Link, useNavigate } from 'react-router-dom';
+import styles from "../styles/MemberPage/MemberNew.module.css";
+
+
 
 interface FormData {
   employee_no: number;
@@ -145,8 +148,8 @@ const MemberNew: React.FC = () => {
   };
 
   return (
-    <div>
-      <h1>メンバー新規登録</h1>
+    <div className={styles["member-new-wrapper"]}>
+      <h1 className={styles["h1-collar"]}>人員登録</h1>
       <nav>
         <Link to="/member-menu">人員MENU</Link>
       </nav>

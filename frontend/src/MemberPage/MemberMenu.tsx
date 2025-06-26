@@ -89,10 +89,8 @@ const MemberMenu: React.FC = () => {
       <nav>
         <Link to="/">メインMENU</Link>
       </nav>
-      <nav>
-        <Link to="/member-new" className={styles["member-button1"]}>人員登録</Link>
-        <Link to="/member-list" className={styles["member-button2"]}>人員一覧</Link>
-      </nav>
+      <Link to="/member-new" className={styles["member-button1"]}>人員登録</Link>
+      <Link to="/member-list" className={styles["member-button2"]}>人員一覧</Link>
     </div>
   );
 };
