@@ -57,7 +57,7 @@ const MemberMenu: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/main_menu/`, {
+      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/member_menu/`, {
         withCredentials: true, // クッキーをリクエストに含める設定
       })
       .then((response) => {
@@ -66,8 +66,9 @@ const MemberMenu: React.FC = () => {
       })
       .catch((err) => {
         if (err.response?.status === 401) {
-          // ユーザーが未認証の場合はログイン画面にリダイレクト
           navigate("/login");
+        } else if (err.response?.status === 403) {
+          navigate('/');
         } else {
           setError(err.message);
         }

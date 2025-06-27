@@ -509,6 +509,10 @@ def member_list(request):
   if not login_no:
     return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
 
+  member_data = member.objects.get(employee_no=login_no)
+  if not member_data.authority:
+    return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+
   # クエリパラメータで絞り込み条件を取得
   search_number = request.query_params.get('employee_no', None)
   search_shop = request.query_params.get('shop', None)
@@ -536,7 +540,11 @@ def member_new(request):
     login_no = request.session.get('login_No')
     if not login_no:# 403で権限エラー出す
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+    
     member_data = member.objects.get(employee_no=login_no)
+    if not member_data.authority:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data)
 
@@ -622,6 +630,10 @@ def member_update(request, pk):
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
 
+    member_data = member.objects.get(employee_no=login_no)
+    if not member_data.authority:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+
     serializer = MemberSerializer(member_instance)
     return Response(serializer.data)
   
@@ -642,6 +654,14 @@ def member_update(request, pk):
 
 @api_view(['DELETE'])
 def member_delete(request, pk):
+  login_no = request.session.get('login_No')
+  if not login_no:
+    return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+
+  member_data = member.objects.get(employee_no=login_no)
+  if not member_data.authority:
+    return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+
   try:
     member_instance = member.objects.get(employee_no =pk)
   except member.DoesNotExist:

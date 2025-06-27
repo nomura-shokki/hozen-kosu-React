@@ -27,8 +27,9 @@ const MemberDelete: React.FC = () => {
       })
       .catch((err) => {
         if (err.response?.status === 401) {
-          // 認証エラーの際はログイン画面に遷移
           navigate("/login");
+        } else if (err.response?.status === 403) {
+          navigate('/');
         } else {
           setError(err.message);
         }

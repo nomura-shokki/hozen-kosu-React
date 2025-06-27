@@ -4,13 +4,22 @@
 }
 
 .member-new-wrapper {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
   width: 100%;
-  padding: 20px;
-  box-sizing: border-box;
+  max-height: 100%;
+  max-width: 100vw;
+  overflow-x: auto; /* 横スクロールを許可する */
+  overflow-y: auto; /* 縦スクロールを許可する */
+  -webkit-overflow-scrolling: touch; /* iOSでスムーズスクロールを有効化 */
+  margin: 0 auto; /* デフォルトでは中央揃えにする */
+}
+
+/* 画面幅が768px以下の場合に左揃えに変更 */
+@media (max-width: 768px) {
+  .member-new-wrapper {
+    margin: 0; /* 左揃えにするため中央配置を解除 */
+    justify-content: flex-start; /* コンテンツを左寄せに */
+    padding-left: 10px; /* 少し余白を追加して視認性を向上 */
+  }
 }
 
 .search-bar {
@@ -30,40 +39,28 @@
   flex-wrap: wrap; /* 子要素が幅に応じて折り返されるように */
   gap: 20px; /* 子要素間の間隔を20pxに */
   margin-bottom: 15px; /* 下に15pxのマージンを付与 */
+  width: 100%;
 }
 
 .search-bar label {
   margin: 0 50px;
 }
 
-.search-bar input {
+.search-bar input,
+.search-bar select {
   padding: 8px 10px; /* 内側の余白を上下8px、左右10pxに設定して、入力欄を広げ文字が快適に入力できるようにする */
   margin: 0 50px;
   border: 1px solid #ccc; /* グレーの枠線を入力欄の周囲に描画し、視覚的に区別しやすくする */
   border-radius: 4px; /* 四角い角を滑らかに（4pxの曲線）し、モダンなデザインに調整 */
   font-size: 1rem; /* フォントサイズを標準的なサイズ（大体16px程度）に設定 */
-  min-width: 120px; /* 入力欄とセレクトボックスの最小幅を180pxに設定し、デザインを見やすく安定させる */
+  min-width: auto; /* 入力欄とセレクトボックスの最小幅を180pxに設定し、デザインを見やすく安定させる */
 }
 
-.search-bar input:focus {
+.search-bar input:focus,
+.search-bar select:focus {
   border-color: #ffd700; /* フォーカス時（クリックまたはタブで選択）、枠線を変更し、視認性を向上 */
   outline: none; /* デフォルトのアウトライン（ブラウザが自動生成する枠）を非表示にしてデザインを統一 */
   box-shadow: 0 0 3px #555; /* フォーカス時に青色の柔らかな影を追加して、視覚的にエレメントがアクティブであることを強調 */
-}
-
-.search-bar select {
-  padding: 8px 10px; /* inputと同様の余白を設定 */
-  margin: 0 50px;
-  border: 1px solid #ccc; /* 枠線をinputと統一 */
-  border-radius: 4px; /* 角丸もinputと同様に */
-  font-size: 1rem; /* フォントサイズも揃える */
-  min-width: 120px; /* 横幅を入力欄と合わせて統一感を出す */
-}
-
-.search-bar select:focus {
-  border-color: #ffd700; /* フォーカス時の色もinputと同様に */
-  outline: none; /* ブラウザデフォルトのアウトラインを非表示に */
-  box-shadow: 0 0 3px #555; /* 選択時に柔らかな影をつけてアクティブ感を演出 */
 }
 
 .member-nav a {
@@ -129,8 +126,14 @@
 }
 
 @media (max-width: 768px) {
+  .search-bar-row {
+    width: 100%; /* 幅を調整 */
+    justify-content: center; /* 横方向中央揃えを維持 */
+  }
+
   .search-bar input,
   .search-bar select {
-    min-width: auto;
+    min-width: auto; /* 横幅を自動調整にしてズレの防止 */
+    margin: 0 50px;
   }
 }

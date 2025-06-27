@@ -44,6 +44,8 @@ const MemberList: React.FC = () => {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {
           navigate("/login");
+        } else if (err.response?.status === 403) {
+          navigate('/');
         } else {
           setError(err.message);
         }

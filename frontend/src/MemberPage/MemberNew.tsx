@@ -103,8 +103,9 @@ const MemberNew: React.FC = () => {
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, { withCredentials: true })
       .catch((err) => {
         if (err.response?.status === 401) {
-          // 認証エラーの際はログイン画面に遷移
           navigate('/login');
+        } else if (err.response?.status === 403) {
+          navigate('/');
         } else {
           console.error('不明なエラー:', err);
         }
@@ -215,9 +216,7 @@ const MemberNew: React.FC = () => {
               </label>
             </div>
           </div>
-          <div className={styles["search-bar-row"]}>
-            <button type="submit" className="yellow_button">登録</button>
-          </div>
+          <button type="submit" className="yellow_button">登録</button>
         </div>
       </form>
     </div>

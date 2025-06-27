@@ -1085,4 +1085,15 @@ def menu(request):
 
 
 
+@api_view(['GET'])
+def member_menu(request):
+  login_no = request.session.get('login_No')
+  if not login_no:
+    return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
 
+  member_data = member.objects.get(employee_no=login_no)
+  if not member_data.authority:
+    return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+
+  serializer = MemberSerializer([member_data], many=True)
+  return Response(serializer.data)
