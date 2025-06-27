@@ -33,27 +33,30 @@
 }
 
 .search-bar-row {
-  display: flex; /* 子要素を横並びに配置（デフォルト方向） */
-  flex-direction: column; /* 子要素を縦に並べる（モバイル対応などを意識） */
-  justify-content: center; /* 子要素を中央に揃える */
-  flex-wrap: wrap; /* 子要素が幅に応じて折り返されるように */
-  gap: 20px; /* 子要素間の間隔を20pxに */
-  margin-bottom: 15px; /* 下に15pxのマージンを付与 */
+  display: flex; /* フレキシブルボックスレイアウト */
+  flex-direction: column;
+  justify-content: center; /* 横方向中央に配置 */
+  align-items: center; /* 縦方向中央に配置 */
+  flex-wrap: wrap; /* 必要に応じて折り返しを許可 */
+  gap: 20px; /* 子要素間の間隔を設定 */
+  margin: 0;
   width: 100%;
 }
 
 .search-bar label {
-  margin: 0 50px;
+  margin: 0;
 }
 
 .search-bar input,
 .search-bar select {
-  padding: 8px 10px; /* 内側の余白を上下8px、左右10pxに設定して、入力欄を広げ文字が快適に入力できるようにする */
-  margin: 0 50px;
-  border: 1px solid #ccc; /* グレーの枠線を入力欄の周囲に描画し、視覚的に区別しやすくする */
-  border-radius: 4px; /* 四角い角を滑らかに（4pxの曲線）し、モダンなデザインに調整 */
-  font-size: 1rem; /* フォントサイズを標準的なサイズ（大体16px程度）に設定 */
-  min-width: auto; /* 入力欄とセレクトボックスの最小幅を180pxに設定し、デザインを見やすく安定させる */
+  padding: 8px 10px; /* 内部の余白を設定 */
+  margin: 0 auto; /* 入力欄を中央揃えにする */
+  border: 1px solid #ccc; /* 枠線の設定 */
+  border-radius: 4px; /* 角を丸くする */
+  font-size: 1rem; /* フォントサイズ */
+  width: calc(100% - 60px); /* フォーム幅に応じて調整し、左右に隙間を持たせる */
+  max-width: 300px; /* 最大幅を設定（必要に応じて調整） */
+  box-sizing: border-box; /* パディングを含めて幅を計算 */
 }
 
 .search-bar input:focus,
@@ -73,50 +76,56 @@
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
+/* トグルスイッチの全体コンテナ */
 .toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 75px;
-  height: 39px;
-  margin: 0 50px;
+  position: relative; /* スライダーを絶対位置で配置するための基準 */
+  display: inline-block; /* インラインブロック要素として設定 */
+  width: 75px; /* トグルスイッチの幅 */
+  height: 39px; /* トグルスイッチの高さ */
+  margin: 0 auto; /* 横方向中央揃えに変更 */
 }
 
+/* トグルスイッチの入力部分（チェックボックス） */
 .toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
+  opacity: 0; /* 不透明度0にすることで視覚的に非表示にする */
+  width: 0; /* 要素の幅を完全にゼロにして通常の表示を削除 */
+  height: 0; /* 要素の高さも完全削除 */
 }
 
+/* トグルスイッチのスライダー部分 （背景部分） */
 .toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  border-radius: 30px;
-  transition: 0.3s;
+  position: absolute; /* .toggle-switchの相対位置を基準に絶対配置 */
+  cursor: pointer; /* ポインタがアイコンに変わるよう設定 */
+  top: 0; /* 親要素の上端に配置 */
+  left: 0; /* 親要素の左端に配置 */
+  right: 0; /* 親要素の右端に配置（幅が100%になる） */
+  bottom: 0; /* 親要素の下端に配置 */
+  background-color: #ccc; /* デフォルト時の背景色（未チェック時） */
+  border-radius: 30px; /* 丸みを帯びたスイッチの形状に調整 */
+  transition: 0.3s; /* 背景色の変更やスライダーの移動時のアニメーション速度 */
 }
 
+/* スライダーの丸い部分（切り替え部分） */
 .toggle-slider::before {
-  position: absolute;
-  content: "";
-  height: 30px;
-  width: 30px;
-  left: 4.5px;
-  bottom: 4.5px;
-  background-color: white;
-  border-radius: 50%;
-  transition: 0.3s;
+  position: absolute; /* .toggle-sliderの相対位置を基準に絶対配置 */
+  content: ""; /* 擬似要素として空のコンテンツを生成 */
+  height: 30px; /* スライダーの丸い部分の高さ */
+  width: 30px; /* スライダーの丸い部分の幅 */
+  left: 4.5px; /* スライダーの左端からの間隔（デフォルト位置） */
+  bottom: 4.5px; /* スライダーの下端からの間隔（デフォルト位置） */
+  background-color: white; /* スライダーの丸い部分の背景色 */
+  border-radius: 50%; /* 完全な円形にする */
+  transition: 0.3s; /* 円部分の移動時のアニメーション速度 */
 }
 
+/* チェックされた状態での背景部分（スライダーのカラー変更） */
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #ffd700;
+  background-color: #ffd700; /* チェック時の背景色（黄色） */
 }
 
+/* チェックされた状態でのスライダーの丸部分（スライダーの移動） */
 .toggle-switch input:checked + .toggle-slider::before {
-  transform: translateX(36px);
+  transform: translateX(36px); /* 右に36pxスライドさせる */
 }
 
 .switch-wrapper {
@@ -133,7 +142,8 @@
 
   .search-bar input,
   .search-bar select {
-    min-width: auto; /* 横幅を自動調整にしてズレの防止 */
-    margin: 0 50px;
+    width: 100%; /* モバイル画面では幅を100%に */
+    max-width: 250px; /* 限定的な最大幅を指定 */
+    margin: 0 auto; /* 中央揃え */
   }
 }

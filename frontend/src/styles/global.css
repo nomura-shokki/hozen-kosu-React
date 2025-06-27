@@ -90,19 +90,25 @@ a:hover {
 
 form {
   background-color: #fff;
-  padding: 20px 30px;
+  padding: 20px 10px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 550px;
-  margin: 0 30px;
+  min-width: 400px;
+  margin: 0;
+  display: flex; /* フレキシブルボックスモデルを使用する */
+  flex-direction: column; /* 子要素を縦に並べる */
+  max-width: 100%; /* 横幅を画面サイズに制限する */
+  overflow: hidden; /* 子要素がはみ出さないように設定する */
+  box-sizing: border-box; /* paddingをサイズ計算に含める */
 }
 
 @media (max-width: 768px) {
   form {
     padding: 15px;
     width: auto;
-    margin: 0 30px;
+    margin: 0;
+    min-width: unset; 
   }
 }
 
