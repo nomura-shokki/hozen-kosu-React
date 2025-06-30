@@ -44,7 +44,8 @@
 }
 
 .search-bar label {
-  margin: 0;
+  align-self: flex-start;
+  margin-left: 20px;
 }
 
 .search-bar input,
@@ -54,8 +55,8 @@
   border: 1px solid #ccc; /* 枠線の設定 */
   border-radius: 4px; /* 角を丸くする */
   font-size: 1rem; /* フォントサイズ */
-  width: calc(100% - 60px); /* フォーム幅に応じて調整し、左右に隙間を持たせる */
-  max-width: 300px; /* 最大幅を設定（必要に応じて調整） */
+  width: calc(100% - 40px); /* フォーム幅に応じて調整し、左右に隙間を持たせる */
+  max-width: 400px; /* 最大幅を設定（必要に応じて調整） */
   box-sizing: border-box; /* パディングを含めて幅を計算 */
 }
 
@@ -129,21 +130,27 @@
 }
 
 .switch-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: flex; /* Flexboxを使用 */
+  flex-direction: column; /* 子要素を縦に並べる */
+  gap: 4px; /* 子要素間の間隔を設定 */
+  align-items: flex-start; /* 子要素全体を左寄せ */
+  text-align: left; /* テキストを左寄せ */
+  width: 100%; /* 必要に応じて幅を全体に指定 */
+}
+
+.switch-wrapper label{
+  margin-left: 20px;
 }
 
 @media (max-width: 768px) {
   .search-bar-row {
-    width: 100%; /* 幅を調整 */
-    justify-content: center; /* 横方向中央揃えを維持 */
+    width: 100%;
+    justify-content: center;
   }
 
   .search-bar input,
   .search-bar select {
-    width: 100%; /* モバイル画面では幅を100%に */
+    width: calc(100% - 40px);
     max-width: 250px; /* 限定的な最大幅を指定 */
-    margin: 0 auto; /* 中央揃え */
   }
 }

@@ -1,0 +1,45 @@
+.h1-collar {
+  color: #ffd700;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.member-nav a {
+  color: #ffd700;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.member-nav a:hover {
+  color: #ffa500;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.table-wrapper {
+  width: 100%;
+  max-width: 100vw; /* テーブル幅を画面幅に対応 */
+  overflow-x: auto; /* 横スクロールを許可する */
+  overflow-y: auto; /* 縦スクロールを許可する */
+  border: 1px solid #ccc; /* 境界線を追加してスクロール領域を明確にする */
+  box-sizing: border-box; /* パディングやボーダーを含めてサイズを計算 */
+  -webkit-overflow-scrolling: touch; /* iOSでスムーズスクロールを有効化 */
+  margin: 0 auto; /* デフォルトでは中央揃えにする */
+}
+
+/* 画面幅が768px以下の場合にテーブルを左寄せに変更 */
+@media (max-width: 768px) {
+  .table-wrapper {
+    margin: 0; /* 左揃えにするため中央配置を解除 */
+    justify-content: flex-start; /* コンテンツを左寄せに */
+    padding-left: 10px; /* 左側に少し余白を追加して視認性を向上 */
+  }
+}
+
+.th-collar{
+  background-color: #ffd700;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+/* ボタンホバー時の効果 */
+.delete-button:hover {
+  background-color: #ffa500;
+  box-shadow: 0 0 5px #555;
+}

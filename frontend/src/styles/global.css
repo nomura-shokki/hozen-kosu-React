@@ -105,7 +105,6 @@ form {
 
 @media (max-width: 768px) {
   form {
-    padding: 15px;
     width: auto;
     margin: 0;
     min-width: unset; 

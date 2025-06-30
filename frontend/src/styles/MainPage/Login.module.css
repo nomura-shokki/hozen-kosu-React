@@ -1,4 +1,16 @@
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .login-wrapper {
+  animation: fadeInUp 1s ease-out;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
