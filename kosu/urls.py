@@ -12,13 +12,11 @@ from django.conf.urls.static import static
 
 
 urlpatterns = [
-  path('login/', main_views.login, name='login'),
+  path('login/', main_views.Login.as_view(), name='login'),
   path('logout/', main_views.logout, name='logout'),
   path('main_menu/', main_views.menu, name='main_menu'),
   path('def_menu/', main_views.def_menu, name='def_menu'),
-
-  path('def_ver/', def_views.KosuVersionAPIView.as_view(), name='def_ver'), 
-
+  path('def_ver/', def_views.DefVer.as_view(), name='def_ver'), 
   path('member_menu/', main_views.member_menu, name='member_menu'),
   path('member_list/', member_views.member_list, name='member_list'),
   path('member_new/', member_views.member_new, name='member_new'),

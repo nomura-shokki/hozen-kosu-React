@@ -1013,6 +1013,7 @@ def get_logs(request):
 
 
 from rest_framework.decorators import api_view
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import JsonResponse
 from .serializers import MemberSerializer
@@ -1037,29 +1038,25 @@ def manifest(request):
 
 
 # ログインページ
-@api_view(['POST'])
-def login(request):
-  # POST時の処理
-  if request.method == 'POST':
-    # POSTされた従業員番号取得
-    data = json.loads(request.body)
+class Login(APIView):
+  def post(self, request, *args, **kwargs):
+    try:
+      data = json.loads(request.body)
+    except json.JSONDecodeError:
+      return JsonResponse({'status': 'error', 'message': 'JSON形式が正しくありません。'}, status=400)
+
     input_number = data.get('employee_no')
 
-    # 従業員番号が人員データに存在する場合の処理
     if member.objects.filter(employee_no=input_number).exists():
-      request.session['login_No'] = input_number # 従業員番号をセッションに保管
-      def_Ver = kosu_division.objects.order_by("id").last() # 最新の工数区分を読み込む
+      request.session['login_No'] = input_number
+      def_Ver = kosu_division.objects.order_by("id").last()
 
-      # 工数区分定義が存在しない場合、画面移行不可とエラーメッセージをフロントへ返す
       if not def_Ver:
         return JsonResponse({'status': 'error', 'message': '利用可能な工数区分がありません。ERROR052'})
 
-      # 工数区分定義が存在する場合の処理
-      else:
-        request.session['input_def'] = def_Ver.kosu_name # 工数区分定義Verをセッションに保管
-        return JsonResponse({'status': 'success'}) # 画面移行可をフロントへ返す
-    
-    # 従業員番号が人員データに存在しない場合、画面移行不可とエラーメッセージをフロントへ返す
+      request.session['input_def'] = def_Ver.kosu_name
+      return JsonResponse({'status': 'success'})
+
     else:
       return JsonResponse({'status': 'error', 'message': '入力された従業員番号は登録がありません。ERROR048'})
 

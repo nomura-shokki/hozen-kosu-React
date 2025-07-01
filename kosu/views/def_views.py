@@ -502,17 +502,14 @@ from rest_framework import status
 from .serializers import MemberSerializer, DefSerializer
 
 
-class KosuVersionAPIView(APIView):
+class DefVer(APIView):
   def get(self, request, *args, **kwargs):
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
-
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=401)
-
-    member_data = member.objects.get(employee_no=login_no)
 
     # データベースから全ての工数区分データを取得
     divisions = kosu_division.objects.all()
@@ -527,15 +524,15 @@ class KosuVersionAPIView(APIView):
     }, status=status.HTTP_200_OK)  # HTTP 200で成功レスポンスを返す
 
   def post(self, request, *args, **kwargs):
-    # POSTリクエストのボディから選択されたバージョンを取得
+    # POSTリクエスト取得
     selected_version = request.data.get('versionchoice')
 
-    # 'versionchoice'が指定されていない場合のエラーハンドリング
+    # 未選択時のエラーハンドリング
     if not selected_version:
       return Response({'error': 'Versionchoice is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # セッションに選択されたバージョンを保存（'input_def'として保存）
+    # セッションに工数区分定義保存
     request.session['input_def'] = selected_version
 
-    # セッション保存後の成功レスポンスを返す
+    # 成功レスポンス
     return Response(status=status.HTTP_200_OK)

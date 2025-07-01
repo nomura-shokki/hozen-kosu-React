@@ -1,11 +1,11 @@
+// Reactのフックや型定義を読み込み
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
-import axios from "axios";
-import ShopSelect from '../components/ShopSelect';
-import { useNavigate, useParams, Link } from "react-router-dom";
-import styles from "../styles/MemberPage/MemberEdit.module.css";
+import axios from "axios"; // HTTP通信ライブラリ
+import ShopSelect from '../components/ShopSelect'; // カスタムのショップ選択コンポーネント
+import { useNavigate, useParams, Link } from "react-router-dom"; // ルーティング関係
+import styles from "../styles/MemberPage/MemberEdit.module.css"; // CSSモジュールでスタイリング
 
-
-
+// サーバーから取得・送信される人員データの型定義
 interface Member {
   employee_no: number;
   name: string;
@@ -51,50 +51,61 @@ interface Member {
 }
 
 const MemberEdit: React.FC = () => {
+  // URLパラメータから従業員番号（文字列）を取得 → 数値に変換
   const { employee_no } = useParams<{ employee_no: string }>();
   const employeeNo = Number(employee_no);
-  const navigate = useNavigate();
-  
+
+  const navigate = useNavigate(); // 画面遷移用フック
+
+  // 各ステート定義（人員情報、ロード状態、エラー表示など）
   const [formData, setFormData] = useState<Member | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // 初回マウント時に該当従業員のデータを取得
   useEffect(() => {
     axios
       .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, { withCredentials: true })
       .then((response) => {
-        setFormData(response.data);
+        setFormData(response.data); // 取得したデータをステートに格納
         setLoading(false);
       })
       .catch((err) => {
+        // エラーステータスによって遷移やメッセージ制御
         if (err.response?.status === 401) {
-          navigate("/login");
+          navigate("/login"); // 認証なし → ログインページへ
         } else if (err.response?.status === 403) {
-          navigate('/');
+          navigate('/'); // 権限なし → ホームへ
         } else {
-          setError(err.message);
+          setError(err.message); // その他のエラーをステートに格納
         }
-        setLoading(false); // ロード状態は解除
+        setLoading(false); // ローディング終了
       });
-  }, [employeeNo, navigate]); // `navigate`を依存配列に追加
+  }, [employeeNo, navigate]); // employeeNoやnavigateが変わったら再実行
 
+  // ローディング中の表示
   if (loading) {
     return <div>Loading...</div>;
   }
 
+  // エラー時の表示
   if (error) {
     return <div>Error: {error}</div>;
   }
 
+  // データが存在しない場合
   if (!formData) {
     return <div>データが見つかりません</div>;
   }
 
+  // 入力フォームで値が変更されたときのハンドラー
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = event.target;
 
+    // チェックボックス（boolean）の場合と、それ以外で処理を分ける
     if (type === 'checkbox') {
       const { checked } = event.target as HTMLInputElement;
       setFormData((prev) => {
@@ -115,17 +126,19 @@ const MemberEdit: React.FC = () => {
     }
   };
 
+  // フォーム送信時（PUTで更新）
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+    event.preventDefault(); // ページリロード防止
+
     axios
       .put(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, formData, { withCredentials: true })
       .then(() => {
         alert("データが更新されました！");
-        navigate("/member-list");
+        navigate("/member-list"); // 更新完了後は一覧ページへ
       })
       .catch((error) => {
         console.error(error);
-        // サーバーからのエラーメッセージを取得
+        // エラー内容を表示
         if (error.response && error.response.data) {
           setErrorMessage(error.response.data.error);
         } else {
@@ -134,6 +147,7 @@ const MemberEdit: React.FC = () => {
       });
   };
 
+  // JSXで画面描画
   return (
     <div className={styles["member-edit-wrapper"]}>
       <h1 className={styles["h1-collar"]}>人員データ編集</h1>
@@ -148,7 +162,7 @@ const MemberEdit: React.FC = () => {
       <form onSubmit={handleSubmit}>
         <div className={styles["search-bar"]}>
           <div className={styles["search-bar-row"]}>
-          <label htmlFor="employee_no">従業員番号:</label>
+            <label htmlFor="employee_no">従業員番号:</label>
             <input
               type="number"
               id="employee_no"
