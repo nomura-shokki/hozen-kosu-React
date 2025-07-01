@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
-import logo from "../img/MenuRogo.png";
-import styles from "../styles/MainPage/MainMenu.module.css";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import styles from "../styles/DefinitionPage/DefMenu.module.css";
 
 
 
@@ -50,7 +49,7 @@ interface Member {
   def_prediction: boolean;
 }
 
-const MemberMenu: React.FC = () => {
+const DefMenu: React.FC = () => {
   const [data, setData] = useState<Member[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,8 +57,8 @@ const MemberMenu: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/main_menu/`, {
-        withCredentials: true, // クッキーをリクエストに含める設定
+      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/def_menu/`, {
+        withCredentials: true,
       })
       .then((response) => {
         setData(response.data);
@@ -67,7 +66,6 @@ const MemberMenu: React.FC = () => {
       })
       .catch((err) => {
         if (err.response?.status === 401) {
-          // ユーザーが未認証の場合はログイン画面にリダイレクト
           navigate("/login");
         } else {
           setError(err.message);
@@ -75,24 +73,6 @@ const MemberMenu: React.FC = () => {
         setLoading(false);
       });
   }, [navigate]);
-
-  const handleLogout = async () => {
-    try {
-      // Django セッションを削除するリクエスト送信
-      await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/logout/`, // セッション削除用のバックエンドエンドポイント
-        {},
-        {
-          withCredentials: true, // クッキーを送信する設定
-        }
-      );
-
-      // React Router を使用して `/login` に遷移
-      navigate("/login");
-    } catch (error) {
-      console.error("ログアウト中にエラーが発生しました。", error);
-    }
-  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -104,16 +84,14 @@ const MemberMenu: React.FC = () => {
 
   return (
     <div className={styles["menu-wrapper"]}>
-      <img src={logo} alt="Menuロゴ" className={styles["Menu-logo"]} />
-      <p>こんにちは {data.length > 0 ? data[0].name : ""}さん</p>
-      <p>　</p>
-      <Link to="/def-menu" className={styles["def-menu-button"]}>工数定義区分MENU</Link>
-      <Link to="/member-menu" className={styles["member-menu-button"]}>人員MENU</Link>
-      <button onClick={handleLogout} className="blue_button">
-        ログアウト
-      </button>
+      <h1 className={styles["h1-collar"]}>工数区分定義MENU</h1>
+      <nav>
+        <Link to="/">メインMENU</Link>
+      </nav>
+      <Link to="/member-new" className={styles["def-button1"]}>工数区分内容確認</Link>
+      <Link to="/member-list" className={styles["def-button2"]}>工数区分定義切り替え</Link>
     </div>
   );
 };
 
-export default MemberMenu;
+export default DefMenu;

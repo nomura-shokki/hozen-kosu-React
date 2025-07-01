@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import './styles/global.css';
 import Login from './MainPage/Login';
 import MainMenu from './MainPage/MainMenu';
+import DefMenu from './DefinitionPage/DefMenu';
+import DefVer from './DefinitionPage/DefVer';
 import MemberMenu from './MemberPage/MemberMenu';
 import MemberNew from './MemberPage/MemberNew';
 import MemberList from './MemberPage/MemberList';
@@ -17,6 +19,8 @@ const App: React.FC = () => {
     const routeTitles: { [key: string]: string } = {
       "/login": "ログイン - 業務工数システム",
       "/": "Main Menu - 業務工数システム",
+      "/def-menu": "工数区分定義Menu - 業務工数システム",
+      "/def-ver": "工数区分定義切り替え - 業務工数システム",
       "/member-menu": "人員Menu - 業務工数システム",
       "/member-new": "人員登録 - 業務工数システム",
       "/member-list": "人員一覧 - 業務工数システム",
@@ -32,6 +36,8 @@ const App: React.FC = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<MainMenu />} />
+      <Route path="/def-menu" element={<DefMenu />} />
+      <Route path="/def-ver" element={<DefVer />} />
       <Route path="/member-menu" element={<MemberMenu />} />
       <Route path="/member-new" element={<MemberNew />} />
       <Route path="/member-list" element={<MemberList />} />

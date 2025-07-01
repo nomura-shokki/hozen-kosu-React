@@ -135,7 +135,7 @@ const MemberEdit: React.FC = () => {
   };
 
   return (
-    <div className={styles["member-new-wrapper"]}>
+    <div className={styles["member-edit-wrapper"]}>
       <h1 className={styles["h1-collar"]}>人員データ編集</h1>
       <nav className={styles["member-nav"]}>
         <Link to="/member-list">人員一覧</Link>

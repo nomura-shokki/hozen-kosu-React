@@ -132,7 +132,7 @@ const MemberList: React.FC = () => {
 
   // メインのJSX出力
   return (
-    <div>
+    <div className={styles["member-list-wrapper"]}>
       <h1 className={styles["h1-collar"]}>人員データ一覧</h1>
 
       <nav className={styles["member-nav"]}>

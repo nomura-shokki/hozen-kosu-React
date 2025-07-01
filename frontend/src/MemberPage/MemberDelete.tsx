@@ -19,15 +19,15 @@ const MemberDelete: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
-  const [tableWidth, setTableWidth] = useState<number>(0); // テーブルの幅を管理
-  const tableRef = useRef<HTMLTableElement>(null); // テーブルを参照
+  const [tableWidth, setTableWidth] = useState<number>(0);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   useEffect(() => {
     axios
       .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, { withCredentials: true })
       .then((response) => {
         setRecord(response.data); 
-        setLoading(false); // ロード状態を終了
+        setLoading(false);
       })
       .catch((err) => {
         if (err.response?.status === 401) {
@@ -37,21 +37,20 @@ const MemberDelete: React.FC = () => {
         } else {
           setError(err.message);
         }
-        setLoading(false); // エラー発生時にもロード状態を終了
+        setLoading(false);
       });
   }, [employeeNo, navigate]);
 
   useEffect(() => {
-    // テーブルの高さを更新
     const updateMaxHeight = () => {
       const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
-      setMaxHeight(window.innerHeight - headerHeight - 40); // 40pxは余白の調整値
+      setMaxHeight(window.innerHeight - headerHeight - 40);
     };
 
     // テーブルの幅を更新
     const updateTableWidth = () => {
       if (tableRef.current) {
-        setTableWidth(tableRef.current.offsetWidth + 5); // テーブル幅 + 5px
+        setTableWidth(tableRef.current.offsetWidth + 5);
       }
     };
 
@@ -64,7 +63,7 @@ const MemberDelete: React.FC = () => {
       window.removeEventListener("resize", updateMaxHeight);
       window.removeEventListener("resize", updateTableWidth);
     };
-  }, [record]); // recordが変更されるたびに再計算
+  }, [record]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -92,7 +91,7 @@ const MemberDelete: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className={styles["member-delete-wrapper"]}>
       <h1 className={styles["h1-collar"]}>人員削除</h1>
       <p>以下の人員のデータを削除しますか？</p>
       <nav className={styles["member-nav"]}>
@@ -102,9 +101,9 @@ const MemberDelete: React.FC = () => {
       <div
         className={styles["table-wrapper"]}
         style={{
-          maxHeight: `${maxHeight}px`, // 動的な高さを設定
-          width: `${tableWidth}px`,   // 動的な幅を設定
-          overflowY: "auto",          // コンテンツが高さを超えた場合はスクロール
+          maxHeight: `${maxHeight}px`,
+          width: `${tableWidth}px`,
+          overflowY: "auto",
         }}
       >
         <table ref={tableRef}>

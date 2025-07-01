@@ -18,6 +18,7 @@
   width: 100%;
   padding: 20px;
   box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 }
 
 .search-bar {

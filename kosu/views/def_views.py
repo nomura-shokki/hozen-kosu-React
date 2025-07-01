@@ -492,3 +492,43 @@ class DefNewView(CreateView):
 
 #--------------------------------------------------------------------------------------------------------
 
+
+
+
+from ..models import kosu_division, member, administrator_data
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import MemberSerializer, DefSerializer
+
+
+class KosuVersionAPIView(APIView):
+  def get(self, request, *args, **kwargs):
+    # データベースから全ての工数区分データを取得
+    divisions = kosu_division.objects.all()
+    
+    # シリアライザーを使用してデータをシリアライズ
+    serializer = DefSerializer(divisions, many=True)
+
+    # セッションから現在のバージョンを取得（存在しない場合はNoneを返す）
+    current_version = request.session.get('input_def', None)
+
+    # JSON形式で選択肢データ（choices）と現在のバージョンを返す
+    return Response({
+      'choices': serializer.data,  # シリアライズされた工数区分データ
+      'current_version': current_version  # 現在の工数区分定義のバージョン
+    }, status=status.HTTP_200_OK)  # HTTP 200で成功レスポンスを返す
+
+  def post(self, request, *args, **kwargs):
+    # POSTリクエストのボディから選択されたバージョンを取得
+    selected_version = request.data.get('versionchoice')
+
+    # 'versionchoice'が指定されていない場合のエラーハンドリング
+    if not selected_version:
+      return Response({'error': 'Versionchoice is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # セッションに選択されたバージョンを保存（'input_def'として保存）
+    request.session['input_def'] = selected_version
+
+    # セッション保存後の成功レスポンスを返す
+    return Response({'message': f'工数区分定義を {selected_version} に切り替えました。'}, status=status.HTTP_200_OK)

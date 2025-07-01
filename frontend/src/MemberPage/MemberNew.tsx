@@ -132,10 +132,56 @@ const MemberNew: React.FC = () => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
+
     axios
-      .post(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, formData, { withCredentials: true }) // クッキーを含む設定を追加
+      .post(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, formData, { withCredentials: true })
       .then((response) => {
         alert('登録完了！');
+        
+        // フォームを初期値に戻す
+        setFormData({
+          employee_no: 0,
+          name: '',
+          shop: '',
+          authority: false,
+          administrator: false,
+          break_time1: '#00000000',
+          break_time1_over1: '#00000000',
+          break_time1_over2: '#00000000',
+          break_time1_over3: '#00000000',
+          break_time2: '#00000000',
+          break_time2_over1: '#00000000',
+          break_time2_over2: '#00000000',
+          break_time2_over3: '#00000000',
+          break_time3: '#00000000',
+          break_time3_over1: '#00000000',
+          break_time3_over2: '#00000000',
+          break_time3_over3: '#00000000',
+          break_time4: '#00000000',
+          break_time4_over1: '#00000000',
+          break_time4_over2: '#00000000',
+          break_time4_over3: '#00000000',
+          break_time5: '#00000000',
+          break_time5_over1: '#00000000',
+          break_time5_over2: '#00000000',
+          break_time5_over3: '#00000000',
+          break_time6: '#00000000',
+          break_time6_over1: '#00000000',
+          break_time6_over2: '#00000000',
+          break_time6_over3: '#00000000',
+          pop_up1: '',
+          pop_up_id1: '',
+          pop_up2: '',
+          pop_up_id2: '',
+          pop_up3: '',
+          pop_up_id3: '',
+          pop_up4: '',
+          pop_up_id4: '',
+          pop_up5: '',
+          pop_up_id5: '',
+          break_check: false,
+          def_prediction: false,
+        });
       })
       .catch((error) => {
         console.error(error);
@@ -155,7 +201,6 @@ const MemberNew: React.FC = () => {
         <Link to="/member-menu">人員MENU</Link>
       </nav>
 
-      {/* エラーメッセージを表示 */}
       {errorMessage && (
         <div role="alert">{errorMessage}</div>
       )}

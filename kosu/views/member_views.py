@@ -501,7 +501,8 @@ class CustomPagination(PageNumberPagination):
       'results': data,  # 現在のページのデータ
     })
 
-# エンドポイント: メンバー一覧を取得
+
+
 @api_view(['GET'])
 def member_list(request):
   # ログイン情報をセッションから取得

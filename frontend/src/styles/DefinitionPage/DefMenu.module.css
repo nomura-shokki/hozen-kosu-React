@@ -21,11 +21,16 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.def-menu-button {
+.h1-collar {
+  color: #0f0;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.def-button1 {
   display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
   width: 100%; /* 親要素いっぱいの横幅に広げる */
   max-width: 400px;
-  background-color: #0f0; /* ボタンの背景色をゴールドに設定（鮮やかで目を引く色） */
+  background-color: #0f0;
   color: #fff; /* ボタンの文字色を白に設定（背景とのコントラストを確保） */
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
   padding: 10px; /* ボタン内側の余白を上下左右に10pxずつ確保。クリックしやすいサイズ感に */
@@ -39,18 +44,18 @@
   text-decoration: none; /* リンクの下線を削除し、ボタンらしく見せる */
 }
 
-.def-menu-button:hover {
-  background-color: #32cd32; /* ゴールドより濃いオレンジ色に変化（視覚的に「反応している」と伝える） */
+.def-button1:hover {
+  background-color: #32cd32;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 軽めのドロップシャドウで立体感を演出 */
   text-decoration: underline; /* ホバー時に下線を表示して「リンクである」ことを視覚的に補強 */
   text-decoration: none;
 }
 
-.member-menu-button {
+.def-button2 {
   display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
   width: 100%; /* 親要素いっぱいの横幅に広げる */
   max-width: 400px;
-  background-color: #ffd700; /* ボタンの背景色をゴールドに設定（鮮やかで目を引く色） */
+  background-color: #aaff00;
   color: #fff; /* ボタンの文字色を白に設定（背景とのコントラストを確保） */
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
   padding: 10px; /* ボタン内側の余白を上下左右に10pxずつ確保。クリックしやすいサイズ感に */
@@ -64,17 +69,9 @@
   text-decoration: none; /* リンクの下線を削除し、ボタンらしく見せる */
 }
 
-.member-menu-button:hover {
-  background-color: #ffa500; /* ゴールドより濃いオレンジ色に変化（視覚的に「反応している」と伝える） */
+.def-button2:hover {
+  background-color: #32cd32;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 軽めのドロップシャドウで立体感を演出 */
   text-decoration: underline; /* ホバー時に下線を表示して「リンクである」ことを視覚的に補強 */
   text-decoration: none;
-}
-
-.Menu-logo {
-  max-width: min(400px, 90%);
-  width: auto;
-  height: auto;
-  margin-bottom: 40px;
-  object-fit: contain;
 }

@@ -1,3 +1,26 @@
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.member-delete-wrapper {
+  animation: fadeInUp 1s ease-out;
+  display: flex; /* 子要素をフレックスレイアウトにする */
+  flex-direction: column; /* 縦方向に要素を並べる */
+  justify-content: top;
+  align-items: center; /* 横方向の中央に配置 */
+  height: 100vh; /* 画面の高さいっぱいにする */
+  width: 100%;
+  margin: 0 auto; /* 横方向の中央寄せ */
+  -webkit-overflow-scrolling: touch;
+}
+
 .h1-collar {
   color: #ffd700;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
@@ -21,7 +44,7 @@
   border: 1px solid #ccc; /* 境界線を追加してスクロール領域を明確にする */
   box-sizing: border-box; /* パディングやボーダーを含めてサイズを計算 */
   -webkit-overflow-scrolling: touch; /* iOSでスムーズスクロールを有効化 */
-  margin: 0 auto; /* デフォルトでは中央揃えにする */
+  margin: 10px auto; /* デフォルトでは中央揃えにする */
 }
 
 /* 画面幅が768px以下の場合にテーブルを左寄せに変更 */
