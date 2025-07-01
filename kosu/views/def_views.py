@@ -504,19 +504,26 @@ from .serializers import MemberSerializer, DefSerializer
 
 class KosuVersionAPIView(APIView):
   def get(self, request, *args, **kwargs):
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+
+    if not def_ver:
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=401)
+
+    member_data = member.objects.get(employee_no=login_no)
+
     # データベースから全ての工数区分データを取得
     divisions = kosu_division.objects.all()
     
     # シリアライザーを使用してデータをシリアライズ
     serializer = DefSerializer(divisions, many=True)
 
-    # セッションから現在のバージョンを取得（存在しない場合はNoneを返す）
-    current_version = request.session.get('input_def', None)
-
     # JSON形式で選択肢データ（choices）と現在のバージョンを返す
     return Response({
       'choices': serializer.data,  # シリアライズされた工数区分データ
-      'current_version': current_version  # 現在の工数区分定義のバージョン
+      'current_version': def_ver  # 現在の工数区分定義のバージョン
     }, status=status.HTTP_200_OK)  # HTTP 200で成功レスポンスを返す
 
   def post(self, request, *args, **kwargs):
@@ -531,4 +538,4 @@ class KosuVersionAPIView(APIView):
     request.session['input_def'] = selected_version
 
     # セッション保存後の成功レスポンスを返す
-    return Response({'message': f'工数区分定義を {selected_version} に切り替えました。'}, status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_200_OK)

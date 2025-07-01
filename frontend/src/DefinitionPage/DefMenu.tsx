@@ -89,7 +89,7 @@ const DefMenu: React.FC = () => {
         <Link to="/">メインMENU</Link>
       </nav>
       <Link to="/member-new" className={styles["def-button1"]}>工数区分内容確認</Link>
-      <Link to="/member-list" className={styles["def-button2"]}>工数区分定義切り替え</Link>
+      <Link to="/def-ver" className={styles["def-button2"]}>工数区分定義切り替え</Link>
     </div>
   );
 };

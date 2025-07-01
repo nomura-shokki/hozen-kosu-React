@@ -1,11 +1,11 @@
+// Reactの基本フックや型定義をインポート
 import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
-import axios from 'axios';
-import ShopSelect from '../components/ShopSelect';
-import { Link, useNavigate } from 'react-router-dom';
-import styles from "../styles/MemberPage/MemberNew.module.css";
+import axios from 'axios'; // HTTPクライアント
+import ShopSelect from '../components/ShopSelect'; // ショップ選択コンポーネント
+import { Link, useNavigate } from 'react-router-dom'; // 画面遷移に使用
+import styles from "../styles/MemberPage/MemberNew.module.css"; // CSSモジュール
 
-
-
+// フォームで取り扱うデータ型を定義
 interface FormData {
   employee_no: number;
   name: string;
@@ -51,6 +51,7 @@ interface FormData {
 }
 
 const MemberNew: React.FC = () => {
+  // 初期フォーム値と状態管理
   const [formData, setFormData] = useState<FormData>({
     employee_no: 0,
     name: '',
@@ -95,13 +96,18 @@ const MemberNew: React.FC = () => {
     def_prediction: false,
   });
 
+  // エラーメッセージ表示用の状態
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // ページ遷移用のフック
   const navigate = useNavigate();
 
+  // 初回マウント時、ログインチェック（セッション確認）
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, { withCredentials: true })
       .catch((err) => {
+        // 未認証や権限不足の場合のリダイレクト処理
         if (err.response?.status === 401) {
           navigate('/login');
         } else if (err.response?.status === 403) {
@@ -112,16 +118,19 @@ const MemberNew: React.FC = () => {
       });
   }, [navigate]);
 
+  // 入力項目が変更されたときの処理
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = event.target;
 
     if (type === 'checkbox') {
+      // チェックボックスのときは checked を利用
       const { checked } = event.target as HTMLInputElement;
       setFormData((prev) => ({
         ...prev,
         [name]: checked,
       }));
     } else {
+      // テキストやセレクトボックスなどは value を反映
       setFormData((prev) => ({
         ...prev,
         [name]: value,
@@ -129,16 +138,17 @@ const MemberNew: React.FC = () => {
     }
   };
 
+  // フォーム送信時の処理
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setErrorMessage(null);
+    setErrorMessage(null); // エラーリセット
 
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, formData, { withCredentials: true })
       .then((response) => {
         alert('登録完了！');
-        
-        // フォームを初期値に戻す
+
+        // フォームをリセット
         setFormData({
           employee_no: 0,
           name: '',
@@ -185,7 +195,7 @@ const MemberNew: React.FC = () => {
       })
       .catch((error) => {
         console.error(error);
-        // サーバーからのエラーメッセージを取得
+        // サーバーが返すエラーメッセージを表示
         if (error.response && error.response.data) {
           setErrorMessage(error.response.data.error);
         } else {
@@ -194,6 +204,7 @@ const MemberNew: React.FC = () => {
       });
   };
 
+  // JSXによるUI描画
   return (
     <div className={styles["member-new-wrapper"]}>
       <h1 className={styles["h1-collar"]}>人員登録</h1>

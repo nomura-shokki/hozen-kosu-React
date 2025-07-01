@@ -1,71 +1,91 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
+import axios from 'axios'; // HTTPクライアント
+import ShopSelect from '../components/ShopSelect'; // ショップ選択コンポーネント
+import { Link, useNavigate } from 'react-router-dom'; // 画面遷移に使用
 
-// CSRFトークンを取得するヘルパー関数
+
+
+// CSRFトークンをCookieから取得するヘルパー関数
 const getCSRFToken = () => {
-  const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken'))?.split('=')[1];
+  const csrfToken = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('csrftoken'))
+    ?.split('=')[1];
   return csrfToken || '';
 };
 
-interface KosuDivision {
+// APIから受け取る工数区分の型定義
+interface FormData {
   id: number;
   kosu_name: string;
 }
 
 function KosuVersion() {
-  const [choices, setChoices] = useState<KosuDivision[]>([]);
-  const [currentVersion, setCurrentVersion] = useState<string>('');
-  const [selectedVersion, setSelectedVersion] = useState<string>('');
-  const [message, setMessage] = useState<string>('');
+  // 状態変数の定義
+  const [choices, setChoices] = useState<FormData[]>([]); // プルダウンメニュー用の選択肢リスト
+  const [currentVersion, setCurrentVersion] = useState<string>(''); // 現在の工数定義バージョン
+  const [selectedVersion, setSelectedVersion] = useState<string>(''); // ユーザーが選択したバージョン
+  const [message, setMessage] = useState<string>(''); // 変更結果メッセージ
 
+  // 🔄 コンポーネントのマウント時にAPIから初期データを取得
   useEffect(() => {
-    axios.get('/api/def_ver/')
+    axios
+      .get('/api/def_ver/', {
+        withCredentials: true, // ✅ Cookie付きでGET
+      })
       .then(response => {
         setChoices(response.data.choices || []);
         setCurrentVersion(response.data.current_version || '');
       })
       .catch(error => {
-        console.error('Error fetching data:', error);
+        console.error('データ取得中にエラーが発生しました:', error);
         setChoices([]);
       });
   }, []);
 
+  // フォーム送信時のハンドラ（選択したバージョンをサーバーに送信）
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault(); // ページリロード防止
 
-    const csrfToken = getCSRFToken();
-    axios.post('/api/def_ver/', { versionchoice: selectedVersion }, {
-      headers: {
-        'X-CSRFToken': csrfToken, // CSRFトークンを付与
-      },
-    })
+    const csrfToken = getCSRFToken(); // CSRFトークンを取得
+    axios.post(
+      '/api/def_ver/',
+      { versionchoice: selectedVersion },
+      {
+        headers: {
+          'X-CSRFToken': csrfToken, // CSRFを明示
+        },
+        withCredentials: true, // Cookie付きでPOST
+      }
+    )
       .then(response => {
         setMessage(response.data.message);
         setCurrentVersion(selectedVersion);
       })
-      .catch(error => console.error('Error updating version:', error));
+      .catch(error => {
+        console.error('バージョン更新時にエラーが発生しました:', error);
+      });
   };
 
   return (
-    <div className="container content">
-      <h1 className="display-4 text-success">工数区分定義切り替え</h1>
-      <p className="h6">
-        <a href="/def_main" className="text-success">工数区分定義MENUへ</a>
+    <div>
+      <h1>工数区分定義切り替え</h1>
+      <p>
+        <a href="/def_main">工数区分定義MENUへ</a>
       </p>
       <p>現在の工数区分のVerは "{currentVersion}" です</p>
       <p>{message}</p>
       <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label htmlFor="versionchoice" className="form-label">工数区分の選択</label>
+        <div>
+          <label htmlFor="versionchoice">工数区分の選択</label>
           <select
             id="versionchoice"
             name="versionchoice"
-            className="form-select"
             value={selectedVersion}
             onChange={(e) => setSelectedVersion(e.target.value)}
           >
-            {choices && choices.length > 0 ? (
-              choices.map((choice) => (
+            {choices.length > 0 ? (
+              choices.map(choice => (
                 <option key={choice.id} value={choice.kosu_name}>
                   {choice.kosu_name}
                 </option>
@@ -75,7 +95,7 @@ function KosuVersion() {
             )}
           </select>
         </div>
-        <button type="submit" className="btn btn-green4 mt-2">
+        <button type="submit">
           工数区分定義切り替え
         </button>
       </form>
