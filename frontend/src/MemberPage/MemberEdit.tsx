@@ -1,9 +1,9 @@
-// Reactのフックや型定義を読み込み
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
-import axios from "axios"; // HTTP通信ライブラリ
-import ShopSelect from '../components/ShopSelect'; // カスタムのショップ選択コンポーネント
-import { useNavigate, useParams, Link } from "react-router-dom"; // ルーティング関係
-import styles from "../styles/MemberPage/MemberEdit.module.css"; // CSSモジュールでスタイリング
+import axios from "axios";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import Loading from "../components/Loading";
+import ShopSelect from '../components/ShopSelect'; 
+import styles from "../styles/MemberPage/MemberEdit.module.css"; 
 
 // サーバーから取得・送信される人員データの型定義
 interface Member {
@@ -60,6 +60,7 @@ const MemberEdit: React.FC = () => {
   // 各ステート定義（人員情報、ロード状態、エラー表示など）
   const [formData, setFormData] = useState<Member | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -70,6 +71,7 @@ const MemberEdit: React.FC = () => {
       .then((response) => {
         setFormData(response.data); // 取得したデータをステートに格納
         setLoading(false);
+        setTimeout(() => setIsLoading(false), 1000);
       })
       .catch((err) => {
         // エラーステータスによって遷移やメッセージ制御
@@ -80,13 +82,14 @@ const MemberEdit: React.FC = () => {
         } else {
           setError(err.message); // その他のエラーをステートに格納
         }
-        setLoading(false); // ローディング終了
+        setLoading(false);
+        setTimeout(() => setIsLoading(false), 1000);
       });
   }, [employeeNo, navigate]); // employeeNoやnavigateが変わったら再実行
 
   // ローディング中の表示
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>loading</div>;
   }
 
   // エラー時の表示
@@ -149,76 +152,79 @@ const MemberEdit: React.FC = () => {
 
   // JSXで画面描画
   return (
-    <div className={styles["member-edit-wrapper"]}>
-      <h1 className={styles["h1-collar"]}>人員データ編集</h1>
-      <nav className={styles["member-nav"]}>
-        <Link to="/member-list">人員一覧</Link>
-      </nav>
+    <>
+      <Loading isLoading={isLoading} />
+      <div className={styles["member-edit-wrapper"]}>
+        <h1 className={styles["h1-collar"]}>人員データ編集</h1>
+        <nav className={styles["member-nav"]}>
+          <Link to="/member-list">人員一覧</Link>
+        </nav>
 
-      {errorMessage && (
-        <div role="alert">{errorMessage}</div>
-      )}
+        {errorMessage && (
+          <div role="alert">{errorMessage}</div>
+        )}
 
-      <form onSubmit={handleSubmit}>
-        <div className={styles["search-bar"]}>
-          <div className={styles["search-bar-row"]}>
-            <label htmlFor="employee_no">従業員番号:</label>
-            <input
-              type="number"
-              id="employee_no"
-              name="employee_no"
-              value={formData.employee_no}
-              onChange={handleChange}
-            />
+        <form onSubmit={handleSubmit}>
+          <div className={styles["search-bar"]}>
+            <div className={styles["search-bar-row"]}>
+              <label htmlFor="employee_no">従業員番号:</label>
+              <input
+                type="number"
+                id="employee_no"
+                name="employee_no"
+                value={formData.employee_no}
+                onChange={handleChange}
+              />
 
-            <label htmlFor="name">氏名:</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-            />
+              <label htmlFor="name">氏名:</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+              />
 
-            <label htmlFor="shop">ショップ:</label>
-            <ShopSelect
-              name="shop"
-              value={formData.shop}
-              onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
-            />
+              <label htmlFor="shop">ショップ:</label>
+              <ShopSelect
+                name="shop"
+                value={formData.shop}
+                onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
+              />
 
-            <div className={styles["switch-wrapper"]}>
-              <label htmlFor="authority">権限:</label>
-              <label className={styles["toggle-switch"]}>
-                <input
-                  type="checkbox"
-                  id="authority"
-                  name="authority"
-                  checked={formData.authority}
-                  onChange={handleChange}
-                />
-                <span className={styles["toggle-slider"]}></span>
-              </label>
+              <div className={styles["switch-wrapper"]}>
+                <label htmlFor="authority">権限:</label>
+                <label className={styles["toggle-switch"]}>
+                  <input
+                    type="checkbox"
+                    id="authority"
+                    name="authority"
+                    checked={formData.authority}
+                    onChange={handleChange}
+                  />
+                  <span className={styles["toggle-slider"]}></span>
+                </label>
+              </div>
+
+              <div className={styles["switch-wrapper"]}>
+                <label htmlFor="administrator">管理者権限:</label>
+                <label className={styles["toggle-switch"]}>
+                  <input
+                    type="checkbox"
+                    id="administrator"
+                    name="administrator"
+                    checked={formData.administrator}
+                    onChange={handleChange}
+                  />
+                  <span className={styles["toggle-slider"]}></span>
+                </label>
+              </div>
             </div>
-
-            <div className={styles["switch-wrapper"]}>
-              <label htmlFor="administrator">管理者権限:</label>
-              <label className={styles["toggle-switch"]}>
-                <input
-                  type="checkbox"
-                  id="administrator"
-                  name="administrator"
-                  checked={formData.administrator}
-                  onChange={handleChange}
-                />
-                <span className={styles["toggle-slider"]}></span>
-              </label>
-            </div>
+            <button type="submit" className="yellow_button">更新</button>
           </div>
-          <button type="submit" className="yellow_button">更新</button>
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
+    </>
   );
 };
 

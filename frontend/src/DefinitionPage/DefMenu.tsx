@@ -85,7 +85,7 @@ const DefMenu: React.FC = () => {
   return (
     <div className={styles["menu-wrapper"]}>
       <h1 className={styles["h1-collar"]}>工数区分定義MENU</h1>
-      <nav>
+      <nav className={styles["def-nav"]}>
         <Link to="/">メインMENU</Link>
       </nav>
       <Link to="/member-new" className={styles["def-button1"]}>工数区分内容確認</Link>

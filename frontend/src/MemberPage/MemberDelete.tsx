@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import Loading from "../components/Loading";
 import styles from "../styles/MemberPage/MemberDelete.module.css";
 
 interface Member {
@@ -17,6 +18,7 @@ const MemberDelete: React.FC = () => {
   const navigate = useNavigate();
   const [record, setRecord] = useState<Member | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
   const [tableWidth, setTableWidth] = useState<number>(0);
@@ -28,6 +30,7 @@ const MemberDelete: React.FC = () => {
       .then((response) => {
         setRecord(response.data); 
         setLoading(false);
+        setTimeout(() => setIsLoading(false), 1000);
       })
       .catch((err) => {
         if (err.response?.status === 401) {
@@ -38,6 +41,7 @@ const MemberDelete: React.FC = () => {
           setError(err.message);
         }
         setLoading(false);
+        setTimeout(() => setIsLoading(false), 1000);
       });
   }, [employeeNo, navigate]);
 
@@ -66,7 +70,7 @@ const MemberDelete: React.FC = () => {
   }, [record]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>loading</div>;
   }
 
   if (error) {
@@ -91,51 +95,54 @@ const MemberDelete: React.FC = () => {
   };
 
   return (
-    <div className={styles["member-delete-wrapper"]}>
-      <h1 className={styles["h1-collar"]}>人員削除</h1>
-      <p>以下の人員のデータを削除しますか？</p>
-      <nav className={styles["member-nav"]}>
-        <Link to="/member-list">人員一覧</Link>
-      </nav>
+    <>
+      <Loading isLoading={isLoading} />
+      <div className={styles["member-delete-wrapper"]}>
+        <h1 className={styles["h1-collar"]}>人員削除</h1>
+        <p>以下の人員のデータを削除しますか？</p>
+        <nav className={styles["member-nav"]}>
+          <Link to="/member-list">人員一覧</Link>
+        </nav>
 
-      <div
-        className={styles["table-wrapper"]}
-        style={{
-          maxHeight: `${maxHeight}px`,
-          width: `${tableWidth}px`,
-          overflowY: "auto",
-        }}
-      >
-        <table ref={tableRef}>
-          <tbody>
-            <tr>
-              <th className={styles["th-collar"]}>従業員番号</th>
-              <td>{record.employee_no}</td>
-            </tr>
-            <tr>
-              <th className={styles["th-collar"]}>氏名</th>
-              <td>{record.name}</td>
-            </tr>
-            <tr>
-              <th className={styles["th-collar"]}>ショップ</th>
-              <td>{record.shop}</td>
-            </tr>
-            <tr>
-              <th className={styles["th-collar"]}>権限</th>
-              <td>{record.authority ? "有" : "無"}</td>
-            </tr>
-            <tr>
-              <th className={styles["th-collar"]}>管理者権限</th>
-              <td>{record.administrator ? "有" : "無"}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div
+          className={styles["table-wrapper"]}
+          style={{
+            maxHeight: `${maxHeight}px`,
+            width: `${tableWidth}px`,
+            overflowY: "auto",
+          }}
+        >
+          <table ref={tableRef}>
+            <tbody>
+              <tr>
+                <th className={styles["th-collar"]}>従業員番号</th>
+                <td>{record.employee_no}</td>
+              </tr>
+              <tr>
+                <th className={styles["th-collar"]}>氏名</th>
+                <td>{record.name}</td>
+              </tr>
+              <tr>
+                <th className={styles["th-collar"]}>ショップ</th>
+                <td>{record.shop}</td>
+              </tr>
+              <tr>
+                <th className={styles["th-collar"]}>権限</th>
+                <td>{record.authority ? "有" : "無"}</td>
+              </tr>
+              <tr>
+                <th className={styles["th-collar"]}>管理者権限</th>
+                <td>{record.administrator ? "有" : "無"}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button onClick={handleDelete} className="yellow_button">
+          削除
+        </button>
       </div>
-
-      <button onClick={handleDelete} className="yellow_button">
-        削除
-      </button>
-    </div>
+    </>
   );
 };
 

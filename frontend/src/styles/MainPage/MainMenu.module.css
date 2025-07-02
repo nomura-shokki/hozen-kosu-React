@@ -16,7 +16,7 @@
   justify-content: top;
   align-items: center; /* 横方向の中央に配置 */
   height: 100vh; /* 画面の高さいっぱいにする */
-  width: 100%;
+  width: 85%;
   margin: 0 auto; /* 横方向の中央寄せ */
   -webkit-overflow-scrolling: touch;
 }
@@ -72,7 +72,7 @@
 }
 
 .Menu-logo {
-  max-width: min(400px, 90%);
+  max-width: min(400px, 80%);
   width: auto;
   height: auto;
   margin-bottom: 40px;

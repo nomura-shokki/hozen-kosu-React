@@ -26,6 +26,16 @@
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
+.def-nav a {
+  color: #0f0;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.def-nav a:hover {
+  color: #32cd32;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
 .def-button1 {
   display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
   width: 100%; /* 親要素いっぱいの横幅に広げる */

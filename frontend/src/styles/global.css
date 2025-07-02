@@ -178,6 +178,25 @@ tr:hover {
   background-color: #ffa500;
 }
 
+.green_button {
+  background-color: #0f0;
+  color: #fff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  writing-mode: horizontal-tb;
+  white-space: nowrap;
+  width: auto;
+  max-width: 100%;
+}
+.green_button:hover {
+  background-color: #32cd32
+}
+
 div[role="alert"] {
   background-color: #f8d7da;
   color: #721c24;

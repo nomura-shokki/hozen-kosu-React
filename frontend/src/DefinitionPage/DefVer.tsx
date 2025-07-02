@@ -1,6 +1,9 @@
 import React, { useState, FormEvent, useEffect } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom'; 
+import { Link, useNavigate } from 'react-router-dom';
+import styles from "../styles/DefinitionPage/DefVer.module.css";
+
+
 
 // 工数区分の選択肢アイテムの型
 interface DefData {
@@ -81,9 +84,9 @@ const DefVer: React.FC = () => {
   }
 
   return (
-    <div>
-      <h1>工数区分定義切り替え</h1>
-      <nav>
+    <div className={styles["defver-wrapper"]}>
+      <h1 className={styles["h1-collar"]}>工数区分定義切り替え</h1>
+      <nav className={styles["def-nav"]}>
         <Link to="/def-menu">工数区分定義MENU</Link>
       </nav>
       {errorMessage && (
@@ -91,26 +94,26 @@ const DefVer: React.FC = () => {
       )}
       <p>現在の工数区分のVerは "{currentVersion}" です</p>
       <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="versionchoice">工数区分の選択</label>
-          <select
-            id="versionchoice"
-            name="versionchoice"
-            value={selectedVersion}
-            onChange={(e) => setSelectedVersion(e.target.value)}
-          >
-            {choices.length > 0 ? (
-              choices.map((choice) => (
-                <option key={choice.id} value={choice.kosu_name}>
-                  {choice.kosu_name}
-                </option>
-              ))
-            ) : (
-              <option disabled>選択肢が取得できません</option>
-            )}
-          </select>
+        <label htmlFor="versionchoice">工数区分の選択:</label>
+        <select
+          id="versionchoice"
+          name="versionchoice"
+          value={selectedVersion}
+          onChange={(e) => setSelectedVersion(e.target.value)}
+        >
+          {choices.length > 0 ? (
+            choices.map((choice) => (
+              <option key={choice.id} value={choice.kosu_name}>
+                {choice.kosu_name}
+              </option>
+            ))
+          ) : (
+            <option disabled>選択肢が取得できません</option>
+          )}
+        </select>
+        <div className={styles["search-button-row"]}>
+          <button type="submit" className="green_button">工数区分定義切り替え</button>
         </div>
-        <button type="submit">工数区分定義切り替え</button>
       </form>
     </div>
   );
