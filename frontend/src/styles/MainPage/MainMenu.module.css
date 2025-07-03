@@ -29,7 +29,7 @@
   color: #fff; /* ボタンの文字色を白に設定（背景とのコントラストを確保） */
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
   padding: 10px; /* ボタン内側の余白を上下左右に10pxずつ確保。クリックしやすいサイズ感に */
-  font-size: 2rem; /* フォントサイズをブラウザの基準サイズ（通常16px）に設定 */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem);
   text-align: center; /* 文字を中央に配置 */
   border: none; /* デフォルトのボーダーをなくし、フラットデザインに */
   border-radius: 4px; /* 角をほんの少し丸めて、柔らかい印象に */
@@ -54,7 +54,7 @@
   color: #fff; /* ボタンの文字色を白に設定（背景とのコントラストを確保） */
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
   padding: 10px; /* ボタン内側の余白を上下左右に10pxずつ確保。クリックしやすいサイズ感に */
-  font-size: 2rem; /* フォントサイズをブラウザの基準サイズ（通常16px）に設定 */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem);
   text-align: center; /* 文字を中央に配置 */
   border: none; /* デフォルトのボーダーをなくし、フラットデザインに */
   border-radius: 4px; /* 角をほんの少し丸めて、柔らかい印象に */

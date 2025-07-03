@@ -500,6 +500,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import MemberSerializer, DefSerializer
+from rest_framework.decorators import api_view
+from ..utils.main_utils import CustomPagination
+
 
 
 class DefVer(APIView):
@@ -536,3 +539,34 @@ class DefVer(APIView):
 
     # 成功レスポンス
     return Response(status=status.HTTP_200_OK)
+
+
+
+
+@api_view(['GET'])
+def def_list(request):
+  # ログイン情報をセッションから取得
+  login_no = request.session.get('login_No')
+  if not login_no:
+    return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+
+  member_data = member.objects.get(employee_no=login_no)
+  if not member_data.authority:
+    return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+
+  defs = kosu_division.objects.all().order_by('id')
+
+  # ページネーション処理
+  paginator = CustomPagination()
+  result_page = paginator.paginate_queryset(defs, request)  # ページごとにデータを分割
+  serializer = DefSerializer(result_page, many=True)
+
+  # ページネーション結果をレスポンスとして返却
+  return paginator.get_paginated_response(serializer.data)
+
+
+
+
+
+
+

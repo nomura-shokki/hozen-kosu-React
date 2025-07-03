@@ -51,6 +51,28 @@ def history_record(post_page, operation_models, status, operation_detail, reques
 #--------------------------------------------------------------------------------------------------------
 
 
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+
+# ページネーションクラス
+class CustomPagination(PageNumberPagination):
+  page_size = 20  # デフォルトの設定値
+
+  def __init__(self):
+    # administrator_data から動的にページサイズを設定
+    last_record = administrator_data.objects.order_by("id").last()
+    if last_record is not None:
+      self.page_size = last_record.menu_row
+
+  def get_paginated_response(self, data):
+    return Response({
+      'count': self.page.paginator.count,  # 合計件数
+      'page_size': self.page_size,  # ページサイズをレスポンスに含める
+      'results': data,  # 現在のページのデータ
+    })
+
+
+
 
 
 
