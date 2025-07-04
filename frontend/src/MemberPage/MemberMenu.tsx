@@ -87,7 +87,7 @@ const MemberMenu: React.FC = () => {
   return (
     <div className={styles["menu-wrapper"]}>
       <h1 className={styles["h1-collar"]}>人員MENU</h1>
-      <nav>
+      <nav className={styles["member-nav"]}>
         <Link to="/">メインMENU</Link>
       </nav>
       <Link to="/member-new" className={styles["member-button1"]}>人員登録</Link>

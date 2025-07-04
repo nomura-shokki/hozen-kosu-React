@@ -57,7 +57,7 @@ const MemberList: React.FC = () => {
       }
     } finally {
       setLoading(false);
-      setTimeout(() => setIsLoading(false), 1000);
+      setTimeout(() => setIsLoading(false), 500);
     }
   };
 

@@ -54,7 +54,7 @@ const DefList: React.FC = () => {
       }
     } finally {
       setLoading(false); // ローディング終了
-      setTimeout(() => setIsLoading(false), 1000); // 初期ローディング状態は遅延で変更
+      setTimeout(() => setIsLoading(false), 500); // 初期ローディング状態は遅延で変更
     }
   };
 

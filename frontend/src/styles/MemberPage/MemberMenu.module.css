@@ -26,9 +26,19 @@
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
+.member-nav a {
+  color: #ffd700;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.member-nav a:hover {
+  color: #ffa500;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
 .member-button1 {
-  display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
-  width: 100%; /* 親要素いっぱいの横幅に広げる */
+  display: inline-block;
+  width: 100%;
   max-width: 400px;
   background-color: #ffd700; /* ボタンの背景色をゴールドに設定（鮮やかで目を引く色） */
   color: #fff; /* ボタンの文字色を白に設定（背景とのコントラストを確保） */

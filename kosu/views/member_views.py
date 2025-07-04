@@ -520,7 +520,7 @@ def member_list(request):
 def member_new(request):
   if request.method == 'GET':
     login_no = request.session.get('login_No')
-    if not login_no:# 403で権限エラー出す
+    if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
     
     member_data = member.objects.get(employee_no=login_no)
@@ -535,7 +535,7 @@ def member_new(request):
 
     if member.objects.filter(employee_no=data.get('employee_no')).exists():
       return Response(
-        {'error': '入力した従業員番号はすでに登録されています。ERROR041'},
+        {'error': '入力した従業員番号はすでに登録されています'},
         status=status.HTTP_400_BAD_REQUEST
       )
 
@@ -625,7 +625,7 @@ def member_update(request, pk):
     if serializer.is_valid():
       if data.get('employee_no') != pk and member.objects.filter(employee_no=data.get('employee_no')).exists():
         return Response(
-          {'error': '入力した従業員番号はすでに登録されています。ERROR042'},
+          {'error': '入力した従業員番号はすでに登録されています'},
           status=status.HTTP_400_BAD_REQUEST
         )
       serializer.save()

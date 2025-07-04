@@ -1,4 +1,3 @@
-// Reactの基本フックや型定義をインポート
 import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import axios from 'axios'; // HTTPクライアント
 import ShopSelect from '../components/ShopSelect'; // ショップ選択コンポーネント

@@ -30,7 +30,7 @@ const MemberDelete: React.FC = () => {
       .then((response) => {
         setRecord(response.data); 
         setLoading(false);
-        setTimeout(() => setIsLoading(false), 1000);
+        setTimeout(() => setIsLoading(false), 500);
       })
       .catch((err) => {
         if (err.response?.status === 401) {
@@ -41,7 +41,7 @@ const MemberDelete: React.FC = () => {
           setError(err.message);
         }
         setLoading(false);
-        setTimeout(() => setIsLoading(false), 1000);
+        setTimeout(() => setIsLoading(false), 500);
       });
   }, [employeeNo, navigate]);
 

@@ -71,7 +71,7 @@ const MemberEdit: React.FC = () => {
       .then((response) => {
         setFormData(response.data); // 取得したデータをステートに格納
         setLoading(false);
-        setTimeout(() => setIsLoading(false), 1000);
+        setTimeout(() => setIsLoading(false), 500);
       })
       .catch((err) => {
         // エラーステータスによって遷移やメッセージ制御
@@ -83,7 +83,7 @@ const MemberEdit: React.FC = () => {
           setError(err.message); // その他のエラーをステートに格納
         }
         setLoading(false);
-        setTimeout(() => setIsLoading(false), 1000);
+        setTimeout(() => setIsLoading(false), 500);
       });
   }, [employeeNo, navigate]); // employeeNoやnavigateが変わったら再実行
 

@@ -566,6 +566,36 @@ def def_list(request):
 
 
 
+@api_view(['GET', 'POST'])
+def def_new(request):
+  if request.method == 'GET':
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+    
+    member_data = member.objects.get(employee_no=login_no)
+    if not member_data.authority:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+
+    serializer = MemberSerializer([member_data], many=True)
+    return Response(serializer.data)
+
+  if request.method == 'POST':
+    data = request.data
+
+    if kosu_division.objects.filter(kosu_name=data.get('kosu_name')).exists():
+      return Response(
+        {'error': '入力した従業員番号はすでに登録されています。ERROR041'},
+        status=status.HTTP_400_BAD_REQUEST
+      )
+
+    serializer = DefSerializer(data=data)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+  else:
+    pass
 
 
 

@@ -16,6 +16,7 @@ urlpatterns = [
   path('logout/', main_views.logout, name='logout'),
   path('main_menu/', main_views.menu, name='main_menu'),
   path('def_menu/', main_views.def_menu, name='def_menu'),
+  path('def_new/', def_views.def_new, name='def_new'), 
   path('def_list/', def_views.def_list, name='def_list'), 
   path('def_ver/', def_views.DefVer.as_view(), name='def_ver'), 
   path('member_menu/', main_views.member_menu, name='member_menu'),
