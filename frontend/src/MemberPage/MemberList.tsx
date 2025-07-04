@@ -156,7 +156,7 @@ const MemberList: React.FC = () => {
             style={{
               maxHeight: `${maxHeight}px`,
               overflowY: "auto",
-              width: `${tableWidth + 5}px`,
+              width: `${tableWidth + 20}px`,
             }}
           >
             <table ref={tableRef}>

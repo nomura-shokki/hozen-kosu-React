@@ -1,9 +1,10 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom'; // 画面遷移に使用
+import { Link, useNavigate } from 'react-router-dom';
 import styles from "../styles/DefinitionPage/DefNew.module.css";
 
-// 工数区分名と定義を動的に管理
+
+
 interface KosuDefinition {
   title: string;
   division1: string;
@@ -16,24 +17,20 @@ interface FormData {
 }
 
 const DefNew: React.FC = () => {
-  // 初期フォーム値と状態管理
   const [formData, setFormData] = useState<FormData>({
     kosu_name: "",
     kosu_definitions: Array(50).fill({ title: "", division1: "", division2: "" }), // 50個の工数区分と定義を初期化
   });
 
-  // エラーメッセージ表示用の状態
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // ページ遷移用のフック
   const navigate = useNavigate();
 
-  // 初回マウント時、ログインチェック（セッション確認）
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, { withCredentials: true })
       .catch((err) => {
-        // 未認証や権限不足の場合のリダイレクト処理
+
         if (err.response?.status === 401) {
           navigate('/login');
         } else if (err.response?.status === 403) {
@@ -44,21 +41,22 @@ const DefNew: React.FC = () => {
       });
   }, [navigate]);
 
-  // 入力項目が変更されたときの処理
-  const handleChange = (event: ChangeEvent<HTMLInputElement>, index?: number, field?: string) => {
+  const handleChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    index?: number,
+    field?: string
+  ) => {
     const { name, value } = event.target;
-
+  
     if (index !== undefined && field) {
-      // 特定の工数区分定義を更新
       const updatedDefinitions = [...formData.kosu_definitions];
       updatedDefinitions[index] = { ...updatedDefinitions[index], [field]: value };
-
+  
       setFormData((prev) => ({
         ...prev,
         kosu_definitions: updatedDefinitions,
       }));
     } else {
-      // 工数区分定義Ver名を更新
       setFormData((prev) => ({
         ...prev,
         [name]: value,
@@ -66,17 +64,20 @@ const DefNew: React.FC = () => {
     }
   };
 
-  // フォーム送信時の処理
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setErrorMessage(null); // エラーリセット
-
+    setErrorMessage(null);
+  
+    const confirmed = window.confirm("工数区分定義を追加すると全人員の工数入力に影響します。課内に変更を展開した上で土日など工数入力をがない時間に登録することを推奨します。");
+    if (!confirmed) {
+      return;
+    }
+  
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, formData, { withCredentials: true })
       .then(() => {
         alert('登録完了！');
-
-        // フォームをリセット
+  
         setFormData({
           kosu_name: "",
           kosu_definitions: Array(50).fill({ title: "", division1: "", division2: "" }),
@@ -84,27 +85,35 @@ const DefNew: React.FC = () => {
       })
       .catch((error) => {
         console.error(error);
-        // サーバーが返すエラーメッセージを表示
         if (error.response && error.response.data) {
           setErrorMessage(error.response.data.error);
         } else {
           setErrorMessage('不明なエラーが発生しました。IT担当者に連絡してください。');
         }
       });
-  };
+  };  
 
   return (
-    <div className={styles["member-new-wrapper"]}>
+    <div className={styles["def-new-wrapper"]}>
       <h1 className={styles["h1-collar"]}>工数区分定義登録</h1>
-      <nav className={styles["member-nav"]}>
+      <nav className={styles["def-nav"]}>
         <Link to="/def-menu">工数区分定義MENU</Link>
       </nav>
 
       {errorMessage && <div role="alert">{errorMessage}</div>}
 
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && e.target instanceof HTMLInputElement && e.target.type !== 'textarea') {
+            e.preventDefault();
+            (e.target as HTMLInputElement).blur();
+          }
+        }}
+      >
         <div className={styles["search-bar"]}>
-          {/* 工数区分定義Ver名 */}
+          <button type="submit" className="green_button">登録</button>
+
           <div className={styles["search-bar-row"]}>
             <label htmlFor="kosu_name">工数区分定義Ver名:</label>
             <input
@@ -116,9 +125,8 @@ const DefNew: React.FC = () => {
             />
           </div>
 
-          {/* 動的に工数区分名と定義を描画 */}
           {formData.kosu_definitions.map((def, index) => (
-            <div key={index} className={styles["search-bar-row"]}>
+            <div key={index} className={styles["definition-block"]}>
               <label htmlFor={`kosu_title_${index + 1}`}>{`工数区分名${index + 1}:`}</label>
               <input
                 type="text"
@@ -128,24 +136,24 @@ const DefNew: React.FC = () => {
               />
 
               <label htmlFor={`kosu_division_${index + 1}_1`}>{`定義${index + 1}:`}</label>
-              <input
-                type="text"
+              <textarea
                 id={`kosu_division_${index + 1}_1`}
                 value={def.division1}
                 onChange={(e) => handleChange(e, index, "division1")}
+                rows={3}
               />
 
               <label htmlFor={`kosu_division_${index + 1}_2`}>{`作業内容${index + 1}:`}</label>
-              <input
-                type="text"
+              <textarea
                 id={`kosu_division_${index + 1}_2`}
                 value={def.division2}
                 onChange={(e) => handleChange(e, index, "division2")}
+                rows={3}
               />
             </div>
           ))}
 
-          <button type="submit" className="yellow_button">登録</button>
+          <button type="submit" className="green_button">登録</button>
         </div>
       </form>
     </div>

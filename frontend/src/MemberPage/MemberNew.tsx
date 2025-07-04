@@ -215,7 +215,15 @@ const MemberNew: React.FC = () => {
         <div role="alert">{errorMessage}</div>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && e.target instanceof HTMLInputElement && e.target.type !== 'textarea') {
+            e.preventDefault();
+            (e.target as HTMLInputElement).blur();
+          }
+        }}
+      >
         <div className={styles["search-bar"]}>
           <div className={styles["search-bar-row"]}>
             <label htmlFor="employee_no">従業員番号:</label>

@@ -495,6 +495,7 @@ class DefNewView(CreateView):
 
 
 
+
 from ..models import kosu_division, member, administrator_data
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -542,27 +543,29 @@ class DefVer(APIView):
 
 
 
+class DefList(APIView):
+  def get(self, request):
+    # ログイン情報をセッションから取得
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
-@api_view(['GET'])
-def def_list(request):
-  # ログイン情報をセッションから取得
-  login_no = request.session.get('login_No')
-  if not login_no:
-    return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
 
-  member_data = member.objects.get(employee_no=login_no)
-  if not member_data.authority:
-    return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+    if not member_data.authority:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
-  defs = kosu_division.objects.all().order_by('id')
+    defs = kosu_division.objects.all().order_by('id')
 
-  # ページネーション処理
-  paginator = CustomPagination()
-  result_page = paginator.paginate_queryset(defs, request)  # ページごとにデータを分割
-  serializer = DefSerializer(result_page, many=True)
+    # ページネーション処理
+    paginator = CustomPagination()
+    result_page = paginator.paginate_queryset(defs, request)
+    serializer = DefSerializer(result_page, many=True)
 
-  # ページネーション結果をレスポンスとして返却
-  return paginator.get_paginated_response(serializer.data)
+    return paginator.get_paginated_response(serializer.data)
 
 
 
@@ -583,9 +586,15 @@ def def_new(request):
   if request.method == 'POST':
     data = request.data
 
+    if not data.get('kosu_name'):
+      return Response(
+        {'error': '工数区分定義Ver名を入力してください'},
+        status=status.HTTP_400_BAD_REQUEST
+      )
+
     if kosu_division.objects.filter(kosu_name=data.get('kosu_name')).exists():
       return Response(
-        {'error': '入力した従業員番号はすでに登録されています。ERROR041'},
+        {'error': '同一の工数区分定義Ver名が既に登録されています'},
         status=status.HTTP_400_BAD_REQUEST
       )
 

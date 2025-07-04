@@ -82,6 +82,11 @@ const MemberDelete: React.FC = () => {
   }
 
   const handleDelete = () => {
+    const confirmed = window.confirm("人員情報を削除すると該当人員の工数入力が見えなくなります。特別な意図がない場合は人員情報の編集でショップ選択を退社に変えるのみにして下さい。削除しますか？");
+    if (!confirmed) {
+      return;
+    }
+
     axios
       .delete(`${process.env.REACT_APP_API_BASE_URL}/api/member_delete/${employeeNo}/`, { withCredentials: true })
       .then(() => {

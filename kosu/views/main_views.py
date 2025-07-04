@@ -1025,15 +1025,15 @@ def react_view(request):
 
 
 def manifest(request):
-    data = {
-        "name": "My App",
-        "short_name": "App",
-        "start_url": "/",
-        "display": "standalone",
-        "background_color": "#ffffff",
-        "theme_color": "#000000"
-    }
-    return JsonResponse(data)
+  data = {
+    "name": "My App",
+    "short_name": "App",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000"
+  }
+  return JsonResponse(data)
 
 
 

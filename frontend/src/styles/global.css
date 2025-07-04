@@ -45,8 +45,8 @@ img {
 
 
 :root {
-  --heading1: clamp(1rem, 1.3rem + 3vw, 4rem); 
-  --heading2: clamp(0.5rem, 1rem + 3vw, 3rem);
+  --heading1: clamp(1.5rem, 1.5rem + 3vw, 4rem); 
+  --heading2: clamp(0.8rem, 0.8rem + 3vw, 3rem);
   --paragraph: clamp(0.3rem, 0.6rem + 3vw, 1rem);
 }
 
@@ -90,7 +90,7 @@ a:hover {
 
 form {
   background-color: #fff;
-  padding: 20px 10px;
+  padding: 0;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 100%;
