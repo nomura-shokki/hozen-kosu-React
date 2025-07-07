@@ -1020,6 +1020,8 @@ from django.http import JsonResponse
 from .serializers import MemberSerializer
 import json
 
+
+
 def react_view(request):
   return render(request, 'index.html')
 
@@ -1040,6 +1042,7 @@ def manifest(request):
 
 # ログイン動作
 class Login(APIView):
+  # POST時の動作
   def post(self, request, *args, **kwargs):
     try:
       data = json.loads(request.body)
