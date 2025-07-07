@@ -108,7 +108,9 @@ const MemberMenu: React.FC = () => {
       <p>こんにちは {data.length > 0 ? data[0].name : ""}さん</p>
       <p>　</p>
       <Link to="/def-menu" className={styles["def-menu-button"]}>工数定義区分MENU</Link>
-      <Link to="/member-menu" className={styles["member-menu-button"]}>人員MENU</Link>
+      {data.length > 0 && data[0].authority && (
+        <Link to="/member-menu" className={styles["member-menu-button"]}>人員MENU</Link>
+      )}
       <button onClick={handleLogout} className="blue_button">
         ログアウト
       </button>

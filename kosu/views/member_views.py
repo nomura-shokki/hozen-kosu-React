@@ -476,6 +476,7 @@ class MemberDeleteView(DeleteView):
 
 
 from rest_framework.decorators import api_view
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from ..models import member, administrator_data
@@ -484,35 +485,51 @@ from ..utils.main_utils import CustomPagination
 
 
 
-@api_view(['GET'])
-def member_list(request):
-  # ログイン情報をセッションから取得
-  login_no = request.session.get('login_No')
-  if not login_no:
-    return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
 
-  member_data = member.objects.get(employee_no=login_no)
-  if not member_data.authority:
-    return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
 
-  # クエリパラメータで絞り込み条件を取得
-  search_number = request.query_params.get('employee_no', None)
-  search_shop = request.query_params.get('shop', None)
+# 人員一覧動作
+class MemberList(APIView):
+  # GET時の動作
+  def get(self, request):
+    # セッションからデータ取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
 
-  # フィルタリングを実行
-  members = member.objects.all().order_by('employee_no')
-  if search_number:
-    members = members.filter(employee_no__icontains=search_number)  # 部分一致フィルタリング
-  if search_shop:
-    members = members.filter(shop=search_shop)  # 完全一致フィルタリング
+    # 未ログインや定義が未定義の場合はログイン画面へ
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
-  # ページネーション処理
-  paginator = CustomPagination()
-  result_page = paginator.paginate_queryset(members, request)  # ページごとにデータを分割
-  serializer = MemberSerializer(result_page, many=True)
+    try:
+      # ログインユーザーのデータ取得
+      member_data = member.objects.get(employee_no=login_no)
+      # 権限がない場合はMenu画面へ
+      if not member_data.authority:
+        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+    except member.DoesNotExist:
+      # 人員情報取得できない場合エラー
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
-  # ページネーション結果をレスポンスとして返却
-  return paginator.get_paginated_response(serializer.data)
+    # クエリパラメータで絞り込み条件を取得
+    search_number = request.query_params.get('employee_no', None)
+    search_shop = request.query_params.get('shop', None)
+
+    # 人員データ全取得
+    members = member.objects.all().order_by('employee_no')
+
+    # 絞り込みある場合はフィルタリング
+    if search_number:
+      members = members.filter(employee_no__icontains=search_number)
+    if search_shop:
+      members = members.filter(shop=search_shop)
+
+    # ページネーション処理
+    paginator = CustomPagination()
+    result_page = paginator.paginate_queryset(members, request)
+    serializer = MemberSerializer(result_page, many=True)
+
+    return paginator.get_paginated_response(serializer.data)
 
 
 
