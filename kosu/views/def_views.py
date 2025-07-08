@@ -517,7 +517,7 @@ class DefVer(APIView):
 
     # データベースから全ての工数区分データを取得
     divisions = kosu_division.objects.all()
-    
+
     # シリアライザーを使用してデータをシリアライズ
     serializer = DefSerializer(divisions, many=True)
 
@@ -566,6 +566,33 @@ class DefList(APIView):
     serializer = DefSerializer(result_page, many=True)
 
     return paginator.get_paginated_response(serializer.data)
+
+
+
+class DefSearch(APIView):
+  def get(self, request, *args, **kwargs):
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+    if not def_ver:
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=401)
+
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+
+    if not member_data.authority:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    # データベースから全ての工数区分データを取得
+    divisions = kosu_division.objects.filter(kosu_name=def_ver)
+
+    # シリアライザーを使用してデータをシリアライズ
+    serializer = DefSerializer(divisions, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 

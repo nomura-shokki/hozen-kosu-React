@@ -114,16 +114,14 @@ const DefNew: React.FC = () => {
         <div className={styles["search-bar"]}>
           <button type="submit" className="green_button">登録</button>
 
-          <div className={styles["search-bar-row"]}>
-            <label htmlFor="kosu_name">工数区分定義Ver名:</label>
-            <input
-              type="text"
-              id="kosu_name"
-              name="kosu_name"
-              value={formData.kosu_name}
-              onChange={handleChange}
-            />
-          </div>
+          <label htmlFor="kosu_name">工数区分定義Ver名:</label>
+          <input
+            type="text"
+            id="kosu_name"
+            name="kosu_name"
+            value={formData.kosu_name}
+            onChange={handleChange}
+          />
 
           {formData.kosu_definitions.map((def, index) => (
             <div key={index} className={styles["definition-block"]}>

@@ -31,15 +31,6 @@
   flex-wrap: wrap; /* 幅が足りない場合に子要素を折り返し */
 }
 
-.search-bar-row {
-  display: flex; /* 子要素を横並びに配置（デフォルト方向） */
-  flex-direction: column; /* 子要素を縦に並べる（モバイル対応などを意識） */
-  justify-content: center; /* 子要素を中央に揃える */
-  flex-wrap: wrap; /* 子要素が幅に応じて折り返されるように */
-  gap: 20px; /* 子要素間の間隔を20pxに */
-  margin-bottom: 15px; /* 下に15pxのマージンを付与 */
-}
-
 .login-logo {
   max-width: min(400px, 90%);
   width: auto;
@@ -53,7 +44,7 @@
   border: 1px solid #ccc; /* グレーの枠線を入力欄の周囲に描画し、視覚的に区別しやすくする */
   border-radius: 4px; /* 四角い角を滑らかに（4pxの曲線）し、モダンなデザインに調整 */
   font-size: 1rem; /* フォントサイズを標準的なサイズ（大体16px程度）に設定 */
-  min-width: 180px; /* 入力欄とセレクトボックスの最小幅を180pxに設定し、デザインを見やすく安定させる */
+  width: calc(100% - 20px);
 }
 
 .search-bar input:focus {

@@ -47,7 +47,6 @@ const Login: React.FC = () => {
       <form onSubmit={handleSubmit}>
         <h2>ログイン</h2>
         <div className={styles["search-bar"]}>
-          <div className={styles["search-bar-row"]}>
             <label>従業員番号</label>
             <input
               type="number"
@@ -63,10 +62,8 @@ const Login: React.FC = () => {
             {errorMessage && (
               <div role="alert">{errorMessage}</div>
             )}
-          </div>
-          <div className={styles["search-bar-row"]}>
-            <button type="submit" className="blue_button">ログイン</button>
-          </div>
+
+          <button type="submit" className="blue_button">ログイン</button>
         </div>
       </form>
     </div>
