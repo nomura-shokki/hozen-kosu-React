@@ -51,16 +51,16 @@ img {
 }
 
 body {
-  font-family: 'Arial', sans-serif; /* フォントファミリーを 'Arial' に設定。代替フォントとして sans-serif を指定。 */
-  margin: 0; /* 要素全体のデフォルトのマージンをリセット。 */
-  padding: 20px 0; /* 上下に 20px の余白を設定。左右の余白は 0。 */
-  background-color: #f4f7f9; /* 背景色を淡いグレー (#f4f7f9) に設定。 */
-  display: flex; /* フレックスボックスレイアウトを使用。要素内の子要素の配置を制御。 */
-  justify-content: center; /* 子要素を水平方向（横方向）に中央揃え。 */
-  align-items: flex-start; /* 子要素を垂直方向（縦方向）に上揃え。 */
-  min-height: 100vh; /* ビューポート（画面）の高さに対して最低でも 100% の高さを確保。 */
-  overflow-x: auto; /* 横方向（x軸）に要素が溢れた場合に、自動でスクロールバーを表示。 */
-  white-space: nowrap; /* 子要素の改行を禁止し、コンテンツが一行で表示されるように設定。 */
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 20px 0;
+  background-color: #f4f7f9;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 
 h1 {
@@ -93,14 +93,12 @@ form {
   padding: 0;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  min-width: 400px;
-  margin: 0;
-  display: flex; /* フレキシブルボックスモデルを使用する */
-  flex-direction: column; /* 子要素を縦に並べる */
-  max-width: 100%; /* 横幅を画面サイズに制限する */
-  overflow: hidden; /* 子要素がはみ出さないように設定する */
-  box-sizing: border-box; /* paddingをサイズ計算に含める */
+  max-width: 400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
