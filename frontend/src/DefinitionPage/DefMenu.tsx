@@ -89,9 +89,13 @@ const DefMenu: React.FC = () => {
         <Link to="/">メインMENU</Link>
       </nav>
       <Link to="/def-search" className={styles["def-button1"]}>工数区分定義確認</Link>
-      <Link to="/def-new" className={styles["def-button1"]}>工数区分定義登録</Link>
-      <Link to="/def-list" className={styles["def-button2"]}>工数区分定義一覧</Link>
-      <Link to="/def-ver" className={styles["def-button3"]}>工数区分定義切り替え</Link>
+      {data.length > 0 && data[0].administrator && (
+        <>
+          <Link to="/def-new" className={styles["def-button2"]}>工数区分定義登録</Link>
+          <Link to="/def-list" className={styles["def-button3"]}>工数区分定義一覧</Link>
+        </>
+      )}
+      <Link to="/def-ver" className={styles["def-button4"]}>工数区分定義切り替え</Link>
     </div>
   );
 };

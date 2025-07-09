@@ -16,21 +16,14 @@
 
 .def-search-wrapper {
   animation: fadeInUp 1s ease-out;
+  display: flex;
+  flex-direction: column;
+  justify-content: top;
+  align-items: center;
+  height: 100vh;
   width: 100%;
-  max-height: 100%;
-  max-width: 100vw;
-  overflow-x: auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
   margin: 0 auto;
-}
-
-/* 画面幅が768px以下の場合に左揃えに変更 */
-@media (max-width: 768px) {
-  .def-new-wrapper {
-    margin: 0; /* 左揃えにするため中央配置を解除 */
-    justify-content: flex-start; /* コンテンツを左寄せに */
-  }
+  -webkit-overflow-scrolling: touch;
 }
 
 .def-nav a {
@@ -75,7 +68,31 @@
   box-shadow: 0 0 3px #555;
 }
 
+.definition-content {
+  display: flex; /* フレックスボックスを有効化 */
+  flex-direction: column; /* 縦並びにする */
+  justify-content: flex-start; /* 上方向に揃える（未使用であれば削除してもOK） */
+  align-items: flex-start; /* 左揃えにする */
+  max-width: calc(100vw - 30px);; /* 親要素内での最大幅 */
+  overflow-x: auto; /* 横スクロールを有効に */
+  overflow-y: auto; /* 縦スクロールを有効に */
+  border: 1px solid #ccc;
+  margin: 15px;
+  box-sizing: border-box; /* パディングやボーダーを含めたサイズを計算 */
+  -webkit-overflow-scrolling: touch; /* モバイル向けスムーズスクロール */
+  scroll-behavior: auto; /* スクロール位置のアニメーションを無効化（必要に応じて） */
+}
+
+.definition-content h2 {
+  white-space: pre; /* 改行や空白をそのまま反映させる */
+  overflow-wrap: normal; /* 折り返しを抑制し、横方向にスクロール */
+  text-align: left; /* 左揃え */
+  margin: 0;
+}
+
 .definition-content p {
-  white-space: pre-wrap; /* 改行文字をそのまま反映 */
-  word-wrap: break-word; /* 長い単語を適切に折り返すようにする */
+  white-space: pre; /* 改行や空白をそのまま反映させる */
+  overflow-wrap: normal; /* 折り返しを抑制し、横方向にスクロール */
+  text-align: left; /* 左揃え */
+  margin: 0 10px 20px 10px; /* 左側の余白が加算されるため適切に調整 */
 }

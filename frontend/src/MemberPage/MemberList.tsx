@@ -125,28 +125,24 @@ const MemberList: React.FC = () => {
           <Link to="/member-menu">人員MENU</Link>
         </nav>
         <div className={styles["search-bar"]}>
-          <div className={styles["search-bar-row"]}>
-            <label>
-              従業員番号：
-              <input
-                type="text"
-                value={searchNumber}
-                onChange={(e) => setSearchNumber(e.target.value)}
-                placeholder="従業員番号を入力"
-              />
-            </label>
-            <label>
-              ショップ：
-              <ShopSelect
-                name="shopFilter"
-                value={searchShop}
-                onChange={(e) => setSearchShop(e.target.value)}
-              />
-            </label>
-          </div>
-          <div className={styles["search-button-row"]}>
-            <button onClick={handleSearch} className="yellow_button">検索</button>
-          </div>
+          <label>
+            従業員番号：
+            <input
+              type="text"
+              value={searchNumber}
+              onChange={(e) => setSearchNumber(e.target.value)}
+              placeholder="従業員番号を入力"
+            />
+          </label>
+          <label>
+            ショップ：
+            <ShopSelect
+              name="shopFilter"
+              value={searchShop}
+              onChange={(e) => setSearchShop(e.target.value)}
+            />
+          </label>
+          <button onClick={handleSearch} className="yellow_button">検索</button>
         </div>
         {data.length === 0 ? (
           <p>No data found.</p>

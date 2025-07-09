@@ -76,6 +76,24 @@
   display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
   width: 100%; /* 親要素いっぱいの横幅に広げる */
   max-width: 400px;
+  background-color: #99ff00;
+  color: #fff; /* ボタンの文字色を白に設定（背景とのコントラストを確保） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px; /* ボタン内側の余白を上下左右に10pxずつ確保。クリックしやすいサイズ感に */
+  font-size: 2rem; /* フォントサイズをブラウザの基準サイズ（通常16px）に設定 */
+  text-align: center; /* 文字を中央に配置 */
+  border: none; /* デフォルトのボーダーをなくし、フラットデザインに */
+  border-radius: 4px; /* 角をほんの少し丸めて、柔らかい印象に */
+  cursor: pointer; /* マウスホバー時に「ポインタ」カーソルを表示し、クリック可能と伝える */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化に滑らかなアニメーション効果を付加 */
+  margin-bottom: 15px; /* 下に15pxの余白をつけて、次の要素と間隔をあける */
+  text-decoration: none; /* リンクの下線を削除し、ボタンらしく見せる */
+}
+
+.def-button4 {
+  display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
+  width: 100%; /* 親要素いっぱいの横幅に広げる */
+  max-width: 400px;
   background-color: #bbff00;
   color: #fff; /* ボタンの文字色を白に設定（背景とのコントラストを確保） */
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
@@ -92,7 +110,8 @@
 
 .def-button1:hover,
 .def-button2:hover,
-.def-button3:hover {
+.def-button3:hover,
+.def-button4:hover {
   background-color: #32cd32;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 軽めのドロップシャドウで立体感を演出 */
   text-decoration: underline; /* ホバー時に下線を表示して「リンクである」ことを視覚的に補強 */

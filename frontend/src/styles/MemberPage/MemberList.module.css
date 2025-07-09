@@ -38,18 +38,12 @@
 
 .search-bar {
   display: flex;
+  flex-direction: row;
   justify-content: center;
+  align-items: center;
   gap: 15px;
   margin: 20px 0;
   flex-wrap: wrap;
-}
-
-.search-bar-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 20px;
 }
 
 .search-button-row {

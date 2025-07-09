@@ -18,6 +18,7 @@ urlpatterns = [
   path('def_menu/', main_views.DefMenu.as_view(), name='def_menu'),
   path('def_new/', def_views.def_new, name='def_new'), 
   path('def_list/', def_views.DefList.as_view(), name='def_list'), 
+  path('def_update/<int:pk>/', def_views.def_update, name='def_update'),
   path('def_ver/', def_views.DefVer.as_view(), name='def_ver'), 
   path('def_search/', def_views.DefSearch.as_view(), name='def_search'), 
   path('member_menu/', main_views.MemberMenu.as_view(), name='member_menu'),

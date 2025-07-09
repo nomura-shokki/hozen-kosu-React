@@ -63,3 +63,7 @@
   justify-content: center;
   margin: 20px;
 }
+
+.defver-wrapper p {
+  margin-bottom: 10px;
+}

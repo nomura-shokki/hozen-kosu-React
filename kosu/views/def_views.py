@@ -635,4 +635,34 @@ def def_new(request):
 
 
 
+@api_view(['GET', 'PUT'])
+def def_update(request, pk):
+  try:
+    def_instance = kosu_division.objects.get(id=pk)
+  except kosu_division.DoesNotExist:
+    return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+  
+  if request.method == 'GET':
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
 
+    member_data = member.objects.get(employee_no=login_no)
+    if not member_data.authority:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+
+    serializer = DefSerializer(def_instance)
+    return Response(serializer.data)
+  
+  elif request.method == 'PUT':
+    data = request.data
+    serializer = DefSerializer(def_instance, data=data)
+    if serializer.is_valid():
+      if data.get('kosu_name') != def_instance.kosu_name and kosu_division.objects.filter(kosu_name=data.get('kosu_name')).exists():
+        return Response(
+          {'error': '入力した工数区分定義Ver名はすでに登録されています'},
+          status=status.HTTP_400_BAD_REQUEST
+        )
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

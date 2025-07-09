@@ -166,59 +166,57 @@ const MemberEdit: React.FC = () => {
 
         <form onSubmit={handleSubmit}>
           <div className={styles["search-bar"]}>
-            <div className={styles["search-bar-row"]}>
-              <label htmlFor="employee_no">従業員番号:</label>
-              <input
-                type="number"
-                id="employee_no"
-                name="employee_no"
-                value={formData.employee_no}
-                onChange={handleChange}
-              />
+            <label htmlFor="employee_no">従業員番号:</label>
+            <input
+              type="number"
+              id="employee_no"
+              name="employee_no"
+              value={formData.employee_no}
+              onChange={handleChange}
+            />
 
-              <label htmlFor="name">氏名:</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-              />
+            <label htmlFor="name">氏名:</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+            />
 
-              <label htmlFor="shop">ショップ:</label>
-              <ShopSelect
-                name="shop"
-                value={formData.shop}
-                onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
-              />
+            <label htmlFor="shop">ショップ:</label>
+            <ShopSelect
+              name="shop"
+              value={formData.shop}
+              onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
+            />
 
-              <div className={styles["switch-wrapper"]}>
-                <label htmlFor="authority">権限:</label>
-                <label className={styles["toggle-switch"]}>
-                  <input
-                    type="checkbox"
-                    id="authority"
-                    name="authority"
-                    checked={formData.authority}
-                    onChange={handleChange}
-                  />
-                  <span className={styles["toggle-slider"]}></span>
-                </label>
-              </div>
+            <div className={styles["switch-wrapper"]}>
+              <label htmlFor="authority">権限:</label>
+              <label className={styles["toggle-switch"]}>
+                <input
+                  type="checkbox"
+                  id="authority"
+                  name="authority"
+                  checked={formData.authority}
+                  onChange={handleChange}
+                />
+                <span className={styles["toggle-slider"]}></span>
+              </label>
+            </div>
 
-              <div className={styles["switch-wrapper"]}>
-                <label htmlFor="administrator">管理者権限:</label>
-                <label className={styles["toggle-switch"]}>
-                  <input
-                    type="checkbox"
-                    id="administrator"
-                    name="administrator"
-                    checked={formData.administrator}
-                    onChange={handleChange}
-                  />
-                  <span className={styles["toggle-slider"]}></span>
-                </label>
-              </div>
+            <div className={styles["switch-wrapper"]}>
+              <label htmlFor="administrator">管理者権限:</label>
+              <label className={styles["toggle-switch"]}>
+                <input
+                  type="checkbox"
+                  id="administrator"
+                  name="administrator"
+                  checked={formData.administrator}
+                  onChange={handleChange}
+                />
+                <span className={styles["toggle-slider"]}></span>
+              </label>
             </div>
             <button type="submit" className="yellow_button">更新</button>
           </div>
