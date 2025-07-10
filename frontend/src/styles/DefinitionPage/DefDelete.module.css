@@ -1,0 +1,91 @@
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.def-Delete-wrapper {
+  animation: fadeInUp 1s ease-out;
+  display: flex; /* 子要素をフレックスレイアウトにする */
+  flex-direction: column; /* 縦方向に要素を並べる */
+  justify-content: top;
+  align-items: center; /* 横方向の中央に配置 */
+  height: 100vh; /* 画面の高さいっぱいにする */
+  width: 100%;
+  margin: 0 auto; /* 横方向の中央寄せ */
+  -webkit-overflow-scrolling: touch;
+}
+
+.h1-collar {
+  color: #0f0;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.def-nav a {
+  color: #0f0;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.def-nav a:hover {
+  color: #32cd32;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+/* デフォルトのスタイル */
+.table-wrapper {
+  width: 100%;
+  max-height: 400px; /* 明確な高さ制限を設定 */
+  max-width: 100vw;
+  overflow-x: auto; /* 横スクロールを許可する */
+  overflow-y: auto; /* 縦スクロールを許可する */
+  border: 1px solid #ccc; /* 境界線を追加してスクロール領域を明確にする */
+  box-sizing: border-box; /* パディングやボーダーを含めてサイズを計算 */
+  -webkit-overflow-scrolling: touch; /* iOSでスムーズスクロールを有効化 */
+  margin: 0 auto; /* デフォルトでは中央揃えにする */
+}
+
+/* 画面幅が768px以下の場合に左揃えに変更 */
+@media (max-width: 768px) {
+  .table-wrapper {
+    margin: 0; /* 左揃えにするため中央配置を解除 */
+    justify-content: flex-start; /* コンテンツを左寄せに */
+    padding-left: 10px; /* 少し余白を追加して視認性を向上 */
+  }
+}
+
+.th-collar{
+  background-color: #0f0;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.a-collar{
+  color: #0f0;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+/* ページネーション */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px; /* ボタンとページ番号の間隔 */
+  margin-top: 20px;
+  white-space: nowrap; /* 改行を防止して1行で表示 */
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .pagination {
+    gap: 10px; /* 狭くなったときにボタン間の距離を縮小 */
+  }
+
+  .search-bar {
+    flex-direction: column; /* 小さい画面ではフォームを縦に並べる */
+    gap: 10px;
+  }
+}

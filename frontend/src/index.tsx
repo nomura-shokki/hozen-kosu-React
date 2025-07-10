@@ -9,6 +9,7 @@ import DefSearch from './DefinitionPage/DefSearch';
 import DefNew from './DefinitionPage/DefNew';
 import DefList from './DefinitionPage/DefList';
 import DefEdit from './DefinitionPage/DefEdit';
+import DefDelete from './DefinitionPage/DefDelete';
 import DefVer from './DefinitionPage/DefVer';
 import MemberMenu from './MemberPage/MemberMenu';
 import MemberNew from './MemberPage/MemberNew';
@@ -30,6 +31,7 @@ const App: React.FC = () => {
       "/def-new": "工数区分定義登録 - 業務工数システム",
       "/def-list": "工数区分定義一覧 - 業務工数システム",
       "/def-update/:id": "工数区分定義編集 - 業務工数システム",
+      "/def-delete/:id": "工数区分定義削除 - 業務工数システム",
       "/def-ver": "工数区分定義切り替え - 業務工数システム",
       "/member-menu": "人員Menu - 業務工数システム",
       "/member-new": "人員登録 - 業務工数システム",
@@ -51,6 +53,7 @@ const App: React.FC = () => {
       <Route path="/def-new" element={<DefNew />} />
       <Route path="/def-list" element={<DefList />} />
       <Route path="/def-update/:id" element={<DefEdit />} />
+      <Route path="/def-delete/:id" element={<DefDelete />} />
       <Route path="/def-ver" element={<DefVer />} />
       <Route path="/member-menu" element={<MemberMenu />} />
       <Route path="/member-new" element={<MemberNew />} />

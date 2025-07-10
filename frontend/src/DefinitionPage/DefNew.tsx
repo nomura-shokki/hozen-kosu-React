@@ -1,70 +1,70 @@
+// 必要なReact hooksやライブラリをインポート
 import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from "../styles/DefinitionPage/DefNew.module.css";
 
-
-
-// 工数定義の型：個別の区分データを表す
+// 単一の工数定義ブロック（タイトル、定義1、定義2）用の型
 interface KosuDefinition {
   title: string;
   division1: string;
   division2: string;
 }
 
-// フォーム全体の型：バージョン名＋区分の配列
+// 全体のフォームデータ（工数定義Ver名 + 50件の定義）の型
 interface FormData {
   kosu_name: string;
   kosu_definitions: KosuDefinition[];
 }
 
-// 工数区分定義新規登録コンポーネント
 const DefNew: React.FC = () => {
-  // フォーム初期化
+  // 初期状態：空のVer名 + 空の工数定義を50件分生成
   const [formData, setFormData] = useState<FormData>({
     kosu_name: "",
     kosu_definitions: Array(50).fill({ title: "", division1: "", division2: "" }),
   });
 
-  // エラーメッセージの状態管理
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // エラー表示用
+  const navigate = useNavigate(); // ページ遷移用
 
-  // 認証チェック：ページ初回表示時にGETリクエストを送信
+  // 初回レンダリング時にAPI認証チェック（未ログインや権限なしを防止）
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, { withCredentials: true })
       .catch((err) => {
-        // 認証エラー時のリダイレクト処理
         if (err.response?.status === 401) {
-          navigate('/login');
+          navigate('/login'); // 未ログイン時
         } else if (err.response?.status === 403) {
-          navigate('/');
+          navigate('/'); // 権限なしの場合トップページへ
         } else {
-          console.error('不明なエラー:', err);
+          console.error('不明なエラー:', err); // その他例外
         }
       });
   }, [navigate]);
 
-  // 入力変更時のハンドラー
+  // 入力項目変更ハンドラー（Ver名または各定義の入力対応）
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     index?: number,
-    field?: string
+    field?: keyof KosuDefinition
   ) => {
     const { name, value } = event.target;
 
-    // 個別定義フィールドが対象の場合
     if (index !== undefined && field) {
+      // 工数定義ブロックの編集処理（特定インデックスのフィールドを更新）
       const updatedDefinitions = [...formData.kosu_definitions];
-      updatedDefinitions[index] = { ...updatedDefinitions[index], [field]: value };
+      updatedDefinitions[index] = {
+        ...updatedDefinitions[index],
+        [field]: value,
+      };
 
+      // 状態更新
       setFormData((prev) => ({
         ...prev,
         kosu_definitions: updatedDefinitions,
       }));
     } else {
-      // 工数定義Ver名などの直接フィールド
+      // 工数Ver名入力時の処理
       setFormData((prev) => ({
         ...prev,
         [name]: value,
@@ -72,20 +72,19 @@ const DefNew: React.FC = () => {
     }
   };
 
-  // 登録ボタン押下時の送信処理
+  // 登録処理：確認メッセージ後、APIへPOST送信
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setErrorMessage(null);
+    setErrorMessage(null); // 送信前にエラーをリセット
 
-    // ユーザーへの登録確認メッセージ
     const confirmed = window.confirm(
       "工数区分定義を追加すると全人員の工数入力に影響します。課内に変更を展開した上で土日など工数入力がない時間に登録することを推奨します。"
     );
     if (!confirmed) {
-      return;
+      return; // ユーザーがキャンセルした場合は処理終了
     }
 
-    // バックエンド仕様に合わせてデータを整形（フラットな構造へ変換）
+    // API送信用に形式を変換：key-value 形式へ
     const convertedData: { [key: string]: string } = {
       kosu_name: formData.kosu_name,
     };
@@ -97,13 +96,12 @@ const DefNew: React.FC = () => {
       convertedData[`kosu_division_2_${idx}`] = def.division2;
     });
 
-    // 登録APIへのPOST送信
+    // APIへPOST送信（新規登録）
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, convertedData, { withCredentials: true })
       .then(() => {
-        alert('登録完了！');
-
-        // 入力フォームの初期化処理
+        alert('登録完了！'); // 成功時の通知
+        // 初期状態にリセット
         setFormData({
           kosu_name: "",
           kosu_definitions: Array(50).fill({ title: "", division1: "", division2: "" }),
@@ -111,30 +109,31 @@ const DefNew: React.FC = () => {
       })
       .catch((error) => {
         console.error(error);
-        // エラー表示処理
         if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.error);
+          setErrorMessage(error.response.data.error); // APIからのエラーメッセージ
         } else {
-          setErrorMessage('不明なエラーが発生しました。IT担当者に連絡してください。');
+          setErrorMessage('不明なエラーが発生しました。IT担当者に連絡してください。'); // 汎用エラー
         }
       });
   };
 
-  // JSXで画面レンダリング
   return (
     <div className={styles["def-new-wrapper"]}>
       <h1 className={styles["h1-collar"]}>工数区分定義登録</h1>
+
+      {/* ナビゲーションメニュー */}
       <nav className={styles["def-nav"]}>
         <Link to="/def-menu">工数区分定義MENU</Link>
       </nav>
 
-      {/* エラー表示欄 */}
+      {/* エラーメッセージの表示 */}
       {errorMessage && <div role="alert">{errorMessage}</div>}
 
+      {/* 登録フォーム */}
       <form
         onSubmit={handleSubmit}
+        // Enterキー誤送信防止（テキストエリア以外での送信ブロック）
         onKeyDown={(e) => {
-          // Enterキーによる不意の送信を防止（textarea以外）
           if (e.key === 'Enter' && e.target instanceof HTMLInputElement && e.target.type !== 'textarea') {
             e.preventDefault();
             (e.target as HTMLInputElement).blur();
@@ -144,7 +143,7 @@ const DefNew: React.FC = () => {
         <div className={styles["search-bar"]}>
           <button type="submit" className="green_button">登録</button>
 
-          {/* 工数区分定義Ver名入力欄 */}
+          {/* 工数定義Ver名入力 */}
           <label htmlFor="kosu_name">工数区分定義Ver名:</label>
           <input
             type="text"
@@ -154,7 +153,7 @@ const DefNew: React.FC = () => {
             onChange={handleChange}
           />
 
-          {/* 工数定義（区分＋定義＋作業内容）の繰り返し入力欄 */}
+          {/* 50件分の工数区分の定義ブロックをレンダリング */}
           {formData.kosu_definitions.map((def, index) => (
             <div key={index} className={styles["definition-block"]}>
               <label htmlFor={`kosu_title_${index + 1}`}>{`工数区分名${index + 1}:`}</label>

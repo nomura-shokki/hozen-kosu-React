@@ -558,7 +558,7 @@ class DefList(APIView):
     if not member_data.authority:
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
-    defs = kosu_division.objects.all().order_by('id')
+    defs = kosu_division.objects.all().order_by('-id')
 
     # ページネーション処理
     paginator = CustomPagination()
@@ -666,3 +666,23 @@ def def_update(request, pk):
       serializer.save()
       return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+@api_view(['DELETE'])
+def def_delete(request, pk):
+  login_no = request.session.get('login_No')
+  if not login_no:
+    return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+
+  member_data = member.objects.get(employee_no=login_no)
+  if not member_data.authority:
+    return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+
+  try:
+    def_instance = kosu_division.objects.get(id=pk)
+  except kosu_division.DoesNotExist:
+    return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+  def_instance.delete()
+  return Response({'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
