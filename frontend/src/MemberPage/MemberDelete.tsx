@@ -90,12 +90,12 @@ const MemberDelete: React.FC = () => {
     axios
       .delete(`${process.env.REACT_APP_API_BASE_URL}/api/member_delete/${employeeNo}/`, { withCredentials: true })
       .then(() => {
-        alert("データが削除されました");
+        alert("削除が完了しました");
         navigate("/member-list");
       })
       .catch((error) => {
         console.error(error);
-        alert("エラーが発生しました");
+        alert("削除時にエラーが発生しました");
       });
   };
 

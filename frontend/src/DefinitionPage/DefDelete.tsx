@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Loading from "../components/Loading";
@@ -18,11 +18,13 @@ interface FormData {
 const DefDelete: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
+  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
   const [formData, setFormData] = useState<FormData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tableWidth, setTableWidth] = useState<number>(0);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   useEffect(() => {
     axios
@@ -53,12 +55,36 @@ const DefDelete: React.FC = () => {
         } else if (err.response?.status === 403) {
           navigate("/");
         } else {
-          setError("データ取得に失敗しました");
+          setError(err.message);
         }
         setLoading(false);
         setTimeout(() => setIsLoading(false), 500);
       });
   }, [id, navigate]);
+
+  useEffect(() => {
+    const updateMaxHeight = () => {
+      const searchBarHeight = (document.querySelector(".search-bar") as HTMLElement)?.offsetHeight || 0;
+      const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
+      setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40);
+    };
+
+    updateMaxHeight();
+    window.addEventListener("resize", updateMaxHeight);
+    return () => window.removeEventListener("resize", updateMaxHeight);
+  }, []);
+
+  useEffect(() => {
+    const updateTableWidth = () => {
+      if (tableRef.current) {
+        setTableWidth(tableRef.current.offsetWidth);
+      }
+    };
+
+    updateTableWidth();
+    window.addEventListener("resize", updateTableWidth);
+    return () => window.removeEventListener("resize", updateTableWidth);
+  }, [formData]);
 
   const handleDelete = () => {
     const confirmed = window.confirm("この工数区分定義を削除しますか？関連する工数入力に影響が出る可能性があります。");
@@ -88,41 +114,51 @@ const DefDelete: React.FC = () => {
         <p>以下の定義データを削除しますか？</p>
 
         <nav className={styles["def-nav"]}>
-          <Link to="/def-menu">工数区分定義MENU</Link>
+          <Link to="/def-list">工数区分定義一覧</Link>
         </nav>
-
-        <div className={styles["delete-table-wrapper"]}>
-          <button onClick={handleDelete} className="green_button">削除</button>
-          <table className={styles["def-table"]}>
+        <button onClick={handleDelete} className="green_button">削除</button>
+        <div
+          className={styles["table-wrapper"]}
+          style={{
+            maxHeight: `${maxHeight}px`,
+            overflowY: "auto",
+            width: `${tableWidth + 20}px`,
+          }}
+        >
+          <table ref={tableRef}>
             <tbody>
               <tr>
                 <th className={styles["th-collar"]}>定義Ver名</th>
-                <td>{formData.kosu_name}</td>
+                <td className={styles["td-left"]}>{formData.kosu_name}</td>
               </tr>
+
+              {formData.kosu_definitions.map((def, index) => (
+                def.title || def.division1 || def.division2 ? (
+                  <React.Fragment key={index}>
+                    <tr>
+                      <th className={index % 2 === 1 ? styles["th-collar"] : styles["th-collar-alt"]}>
+                        工数区分名{index + 1}
+                      </th>
+                      <td className={styles["td-left"]}>{def.title.split("\n").map((line, i) => <span key={i}>{line}<br /></span>)}</td>
+                    </tr>
+                    <tr>
+                      <th className={index % 2 === 1 ? styles["th-collar"] : styles["th-collar-alt"]}>
+                        定義{index + 1}
+                      </th>
+                      <td className={styles["td-left"]}>{def.division1.split("\n").map((line, i) => <span key={i}>{line}<br /></span>)}</td>
+                    </tr>
+                    <tr>
+                      <th className={index % 2 === 1 ? styles["th-collar"] : styles["th-collar-alt"]}>
+                        作業内容{index + 1}
+                      </th>
+                      <td className={styles["td-left"]}>{def.division2.split("\n").map((line, i) => <span key={i}>{line}<br /></span>)}</td>
+                    </tr>
+                  </React.Fragment>
+                ) : null
+              ))}
+
             </tbody>
           </table>
-
-          {/* 各工数区分定義を表示 */}
-          {formData.kosu_definitions.map((def, index) => (
-            def.title || def.division1 || def.division2 ? (
-              <table key={index} className={styles["def-table"]}>
-                <tbody>
-                  <tr>
-                    <th className={styles["th-collar"]}>工数区分名{index + 1}</th>
-                    <td>{def.title}</td>
-                  </tr>
-                  <tr>
-                    <th className={styles["th-collar"]}>定義{index + 1}</th>
-                    <td>{def.division1}</td>
-                  </tr>
-                  <tr>
-                    <th className={styles["th-collar"]}>作業内容{index + 1}</th>
-                    <td>{def.division2}</td>
-                  </tr>
-                </tbody>
-              </table>
-            ) : null
-          ))}
         </div>
 
         <button onClick={handleDelete} className="green_button">削除</button>

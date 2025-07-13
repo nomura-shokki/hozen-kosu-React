@@ -21,6 +21,24 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.kosu-menu-button {
+  display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
+  width: 100%; /* 親要素いっぱいの横幅に広げる */
+  max-width: 400px;
+  background-color: #0ff; /* ボタンの背景色をゴールドに設定（鮮やかで目を引く色） */
+  color: #fff; /* ボタンの文字色を白に設定（背景とのコントラストを確保） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px; /* ボタン内側の余白を上下左右に10pxずつ確保。クリックしやすいサイズ感に */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem);
+  text-align: center; /* 文字を中央に配置 */
+  border: none; /* デフォルトのボーダーをなくし、フラットデザインに */
+  border-radius: 4px; /* 角をほんの少し丸めて、柔らかい印象に */
+  cursor: pointer; /* マウスホバー時に「ポインタ」カーソルを表示し、クリック可能と伝える */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化に滑らかなアニメーション効果を付加 */
+  margin-bottom: 15px; /* 下に15pxの余白をつけて、次の要素と間隔をあける */
+  text-decoration: none; /* リンクの下線を削除し、ボタンらしく見せる */
+}
+
 .def-menu-button {
   display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
   width: 100%; /* 親要素いっぱいの横幅に広げる */

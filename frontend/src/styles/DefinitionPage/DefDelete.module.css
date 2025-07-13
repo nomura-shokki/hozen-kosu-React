@@ -9,7 +9,7 @@
   }
 }
 
-.def-Delete-wrapper {
+.def-delete-wrapper {
   animation: fadeInUp 1s ease-out;
   display: flex; /* 子要素をフレックスレイアウトにする */
   flex-direction: column; /* 縦方向に要素を並べる */
@@ -19,6 +19,7 @@
   width: 100%;
   margin: 0 auto; /* 横方向の中央寄せ */
   -webkit-overflow-scrolling: touch;
+  gap: 15px;
 }
 
 .h1-collar {
@@ -58,9 +59,18 @@
   }
 }
 
-.th-collar{
+.th-collar {
   background-color: #0f0;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.th-collar-alt {
+  background-color: #af0;
+  text-shadow: -0.5px -0.5px 0 #333, 0.5px -0.5px 0 #333, -0.5px 0.5px 0 #333, 0.5px 0.5px 0 #333;
+}
+
+.td-left {
+  text-align: left;
 }
 
 .a-collar{

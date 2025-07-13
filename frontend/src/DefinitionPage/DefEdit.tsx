@@ -141,7 +141,7 @@ const DefEdit: React.FC = () => {
 
         {/* ナビゲーション */}
         <nav className={styles["def-nav"]}>
-          <Link to="/def-menu">工数区分定義MENU</Link>
+          <Link to="/def-list">工数区分定義一覧</Link>
         </nav>
 
         {/* エラーメッセージ表示 */}
