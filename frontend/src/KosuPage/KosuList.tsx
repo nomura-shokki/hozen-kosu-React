@@ -35,7 +35,6 @@ const KosuList: React.FC = () => {
   const [totalPages, setTotalPages] = useState<number>(0);
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
   const [tableWidth, setTableWidth] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const tableRef = useRef<HTMLTableElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
@@ -74,7 +73,6 @@ const KosuList: React.FC = () => {
       }
     } finally {
       setLoading(false);
-      setTimeout(() => setIsLoading(false), 500);
     }
   };
 
@@ -89,8 +87,11 @@ const KosuList: React.FC = () => {
   }, [currentPage, searchDay, searchByMonth]);
 
   const handleSearch = () => {
-    setCurrentPage(1);
-    fetchData();
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      fetchData();
+    }
   };
 
   const handleNextPage = () => {
@@ -141,7 +142,7 @@ const KosuList: React.FC = () => {
 
   return (
     <>
-      <Loading isLoading={isLoading} />
+      <Loading isLoading={loading} />
       <div className={styles["kosu-list-wrapper"]}>
         <h1 className={styles["h1-collar"]}>工数履歴</h1>
         <nav className={styles["kosu-nav"]}>

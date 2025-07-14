@@ -18,7 +18,6 @@ const MemberDelete: React.FC = () => {
   const navigate = useNavigate();
   const [record, setRecord] = useState<Member | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
   const [tableWidth, setTableWidth] = useState<number>(0);
@@ -30,7 +29,6 @@ const MemberDelete: React.FC = () => {
       .then((response) => {
         setRecord(response.data); 
         setLoading(false);
-        setTimeout(() => setIsLoading(false), 500);
       })
       .catch((err) => {
         if (err.response?.status === 401) {
@@ -41,7 +39,6 @@ const MemberDelete: React.FC = () => {
           setError(err.message);
         }
         setLoading(false);
-        setTimeout(() => setIsLoading(false), 500);
       });
   }, [employeeNo, navigate]);
 
@@ -101,7 +98,7 @@ const MemberDelete: React.FC = () => {
 
   return (
     <>
-      <Loading isLoading={isLoading} />
+      <Loading isLoading={loading} />
       <div className={styles["member-delete-wrapper"]}>
         <h1 className={styles["h1-collar"]}>人員削除</h1>
         <p>以下の人員のデータを削除しますか？</p>

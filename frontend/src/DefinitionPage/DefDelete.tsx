@@ -21,7 +21,6 @@ const DefDelete: React.FC = () => {
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
   const [formData, setFormData] = useState<FormData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tableWidth, setTableWidth] = useState<number>(0);
   const tableRef = useRef<HTMLTableElement>(null);
@@ -47,7 +46,6 @@ const DefDelete: React.FC = () => {
         });
 
         setLoading(false);
-        setTimeout(() => setIsLoading(false), 500);
       })
       .catch((err) => {
         if (err.response?.status === 401) {
@@ -58,7 +56,6 @@ const DefDelete: React.FC = () => {
           setError(err.message);
         }
         setLoading(false);
-        setTimeout(() => setIsLoading(false), 500);
       });
   }, [id, navigate]);
 
@@ -102,13 +99,12 @@ const DefDelete: React.FC = () => {
       });
   };
 
-  if (loading) return <div>Loading...</div>;
   if (error) return <div role="alert">Error: {error}</div>;
   if (!formData) return <div>定義が見つかりません</div>;
 
   return (
     <>
-      <Loading isLoading={isLoading} />
+      <Loading isLoading={loading} />
       <div className={styles["def-delete-wrapper"]}>
         <h1 className={styles["h1-collar"]}>工数区分定義削除</h1>
         <p>以下の定義データを削除しますか？</p>

@@ -10,17 +10,15 @@ interface DefData {
 }
 
 const DefList: React.FC = () => {
-  // 各種状態の定義
   const [data, setData] = useState<DefData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true); // ローディング状態
-  const [error, setError] = useState<string | null>(null); // エラー情報
-  const [currentPage, setCurrentPage] = useState<number>(1); // カレントページ
-  const [totalPages, setTotalPages] = useState<number>(0); // 総ページ数
-  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight); // 表の最大高さ
-  const [tableWidth, setTableWidth] = useState<number>(0); // 表全体の幅
-  const [isLoading, setIsLoading] = useState<boolean>(true); // 初回ローディング状態
-  const tableRef = useRef<HTMLTableElement>(null); // テーブルの参照
-  const navigate = useNavigate(); // ルートの移動に使用
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
+  const [tableWidth, setTableWidth] = useState<number>(0);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const navigate = useNavigate();
 
   // データを取得する関数
   const fetchData = async () => {
@@ -52,8 +50,7 @@ const DefList: React.FC = () => {
         setError("予期しないエラーが発生しました"); // 予期しないエラーの場合
       }
     } finally {
-      setLoading(false); // ローディング終了
-      setTimeout(() => setIsLoading(false), 500); // 初期ローディング状態は遅延で変更
+      setLoading(false);
     }
   };
 
@@ -117,8 +114,7 @@ const DefList: React.FC = () => {
 
   return (
     <>
-      <Loading isLoading={isLoading} />
-
+      <Loading isLoading={loading} />
       <div className={styles["def-list-wrapper"]}>
         <h1 className={styles["h1-collar"]}>工数区分定義一覧</h1>
 

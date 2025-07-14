@@ -60,7 +60,6 @@ const MemberEdit: React.FC = () => {
   // 各ステート定義（人員情報、ロード状態、エラー表示など）
   const [formData, setFormData] = useState<Member | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -71,7 +70,6 @@ const MemberEdit: React.FC = () => {
       .then((response) => {
         setFormData(response.data); // 取得したデータをステートに格納
         setLoading(false);
-        setTimeout(() => setIsLoading(false), 500);
       })
       .catch((err) => {
         // エラーステータスによって遷移やメッセージ制御
@@ -83,7 +81,6 @@ const MemberEdit: React.FC = () => {
           setError(err.message); // その他のエラーをステートに格納
         }
         setLoading(false);
-        setTimeout(() => setIsLoading(false), 500);
       });
   }, [employeeNo, navigate]); // employeeNoやnavigateが変わったら再実行
 
@@ -153,7 +150,7 @@ const MemberEdit: React.FC = () => {
   // JSXで画面描画
   return (
     <>
-      <Loading isLoading={isLoading} />
+      <Loading isLoading={loading} />
       <div className={styles["member-edit-wrapper"]}>
         <h1 className={styles["h1-collar"]}>人員データ編集</h1>
         <nav className={styles["member-nav"]}>

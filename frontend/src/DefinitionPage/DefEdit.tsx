@@ -25,8 +25,7 @@ const DefEdit: React.FC = () => {
 
   // 状態管理：formDataに取得結果を格納。エラーメッセージやローディング制御も追加。
   const [formData, setFormData] = useState<FormData | null>(null);
-  const [loading, setLoading] = useState(true); // 初回レンダリング前処理のフラグ
-  const [isLoading, setIsLoading] = useState(true); // ローディングアニメーション制御
+  const [loading, setLoading] = useState(true); // ローディング制御（アニメーション含む）
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // 初回レンダリング時にAPIから定義データ取得
@@ -48,8 +47,9 @@ const DefEdit: React.FC = () => {
 
         // 取得したデータを状態に反映
         setFormData({ kosu_name: rawData.kosu_name || "", kosu_definitions });
+
+        // ローディングを遅延解除（アニメーション表示考慮）
         setLoading(false);
-        setTimeout(() => setIsLoading(false), 500); // ローディングアニメーションの遅延解除
       })
       .catch((err) => {
         // 権限チェック：未ログイン・権限なしは画面遷移
@@ -61,7 +61,6 @@ const DefEdit: React.FC = () => {
           console.error("不明なエラー:", err);
         }
         setLoading(false);
-        setTimeout(() => setIsLoading(false), 500);
       });
   }, [id, navigate]);
 
@@ -125,16 +124,13 @@ const DefEdit: React.FC = () => {
       });
   };
 
-  // ローディング状態の表示
-  if (loading) return <div>Loading...</div>;
-
   // データ取得失敗時の表示
   if (!formData || !formData.kosu_definitions) return <div>データが見つかりません</div>;
 
   return (
     <>
       {/* ローディングアニメーション */}
-      <Loading isLoading={isLoading} />
+      <Loading isLoading={loading} />
 
       <div className={styles["def-edit-wrapper"]}>
         <h1 className={styles["h1-collar"]}>工数区分定義編集</h1>

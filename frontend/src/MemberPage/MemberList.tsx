@@ -23,7 +23,6 @@ const MemberList: React.FC = () => {
   const [totalPages, setTotalPages] = useState<number>(0);
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
   const [tableWidth, setTableWidth] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const tableRef = useRef<HTMLTableElement>(null);
   const navigate = useNavigate();
 
@@ -57,7 +56,6 @@ const MemberList: React.FC = () => {
       }
     } finally {
       setLoading(false);
-      setTimeout(() => setIsLoading(false), 500);
     }
   };
 
@@ -66,8 +64,11 @@ const MemberList: React.FC = () => {
   }, [currentPage]);
 
   const handleSearch = () => {
-    setCurrentPage(1);
-    fetchData();
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      fetchData();
+    }
   };
 
   const handleNextPage = () => {
@@ -118,7 +119,7 @@ const MemberList: React.FC = () => {
 
   return (
     <>
-      <Loading isLoading={isLoading} />
+      <Loading isLoading={loading} />
       <div className={styles["member-list-wrapper"]}>
         <h1 className={styles["h1-collar"]}>人員データ一覧</h1>
         <nav className={styles["member-nav"]}>
