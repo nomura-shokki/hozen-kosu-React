@@ -2824,38 +2824,35 @@ from ..utils.main_utils import CustomPagination
 
 
 class KosuList(APIView):
-  # GET時の動作
   def get(self, request):
-    # セッションからデータ取得
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
-    # 未ログインや定義が未定義の場合はログイン画面へ
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
-      # ログインユーザーのデータ取得
       member_data = member.objects.get(employee_no=login_no)
-      # 権限がない場合はMenu画面へ
       if not member_data.authority:
         return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
-      # 人員情報取得できない場合エラー
       return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
-    # クエリパラメータで絞り込み条件を取得
-    search_day = request.query_params.get('day', None)
+    # 検索パラメータの取得
+    search_day = request.query_params.get('day')
+    mode = request.query_params.get('mode', 'day')
+    filter_flag = request.query_params.get('filter', 'false') == 'true'
 
-    # 工数履歴取得
-    kosus = Business_Time_graph.objects.filter(employee_no3=login_no).order_by('work_day2')
+    # 工数履歴データの取得
+    kosus = Business_Time_graph.objects.filter(employee_no3=login_no).order_by('-work_day2')
 
-    # 絞り込みある場合はフィルタリング
-    if search_day:
-      kosus = kosus.filter(work_day2__icontains=search_day)
-
+    if search_day and filter_flag:
+      if mode == 'month':
+        kosus = kosus.filter(work_day2__startswith=search_day[:7])
+      else:
+        kosus = kosus.filter(work_day2=search_day)
 
     # ページネーション処理
     paginator = CustomPagination()

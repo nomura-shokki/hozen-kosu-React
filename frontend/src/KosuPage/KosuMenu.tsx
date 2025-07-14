@@ -90,7 +90,7 @@ const KosuMenu: React.FC = () => {
       <nav className={styles["kosu-nav"]}>
         <Link to="/">メインMENU</Link>
       </nav>
-      <Link to="/member-new" className={styles["kosu-button1"]}>工数履歴</Link>
+      <Link to="/kosu-list" className={styles["kosu-button1"]}>工数履歴</Link>
     </div>
   );
 };

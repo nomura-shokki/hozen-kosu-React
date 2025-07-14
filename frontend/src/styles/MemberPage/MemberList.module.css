@@ -46,11 +46,6 @@
   flex-wrap: wrap;
 }
 
-.search-button-row {
-  display: flex;
-  justify-content: center;
-}
-
 .search-bar input,
 .search-bar select {
   padding: 8px 10px; /* 内側の余白を上下8px、左右10pxに設定して、入力欄を広げ文字が快適に入力できるようにする */

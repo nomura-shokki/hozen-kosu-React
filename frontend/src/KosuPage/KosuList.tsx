@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import Loading from "../components/Loading";
 import styles from "../styles/KosuPage/KosuList.module.css";
 
 interface Kosu {
+  id: number;
   employee_no3: number;
   name: string;
   work_day2: string;
@@ -12,26 +13,45 @@ interface Kosu {
   judgement: boolean;
 }
 
+const formatTyoku = (value: string | number): string => {
+  switch (Number(value)) {
+    case 1: return "1直";
+    case 2: return "2直";
+    case 3: return "3直";
+    case 4: return "常昼";
+    case 5: return "連1直";
+    case 6: return "連2直";
+    default: return "";
+  }
+};
+
 const KosuList: React.FC = () => {
   const [data, setData] = useState<Kosu[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchDay, setSearchDay] = useState<string>("");
+  const [searchByMonth, setSearchByMonth] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
   const [tableWidth, setTableWidth] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const tableRef = useRef<HTMLTableElement>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const location = useLocation();
   const navigate = useNavigate();
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/Kosu_list/`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_list/`, {
         params: {
-          page: currentPage, 
-          day: searchDay, 
+          page: currentPage,
+          ...(searchDay && {
+            day: searchDay,
+            mode: searchByMonth ? "month" : "day",
+            filter: "true",
+          }),
         },
         withCredentials: true,
       });
@@ -59,8 +79,14 @@ const KosuList: React.FC = () => {
   };
 
   useEffect(() => {
+    setSearchDay("");
+    setSearchByMonth(false);
+    setCurrentPage(1);
+  }, [location.pathname]);
+
+  useEffect(() => {
     fetchData();
-  }, [currentPage]);
+  }, [currentPage, searchDay, searchByMonth]);
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -116,22 +142,44 @@ const KosuList: React.FC = () => {
   return (
     <>
       <Loading isLoading={isLoading} />
-      <div className={styles["member-list-wrapper"]}>
+      <div className={styles["kosu-list-wrapper"]}>
         <h1 className={styles["h1-collar"]}>工数履歴</h1>
-        <nav className={styles["member-nav"]}>
+        <nav className={styles["kosu-nav"]}>
           <Link to="/kosu-menu">工数MENU</Link>
         </nav>
         <div className={styles["search-bar"]}>
-          <label>
-            従業員番号：
+          <label onClick={() => dateInputRef.current?.showPicker?.()}>
+            就業日：
             <input
-              type="text"
+              type="date"
+              ref={dateInputRef}
               value={searchDay}
               onChange={(e) => setSearchDay(e.target.value)}
-              placeholder="就業日を選択"
+              placeholder="日付を選択"
             />
           </label>
-          <button onClick={handleSearch} className="yellow_button">検索</button>
+
+          <div className={styles["button-group"]}>
+            <button
+              onClick={() => {
+                setSearchByMonth(true);
+                handleSearch();
+              }}
+              className="light_blue_button"
+            >
+              指定月
+            </button>
+            <button
+              onClick={() => {
+                setSearchByMonth(false);
+                handleSearch();
+              }}
+              className="light_blue_button"
+            >
+              指定日
+            </button>
+          </div>
+
         </div>
         {data.length === 0 ? (
           <p>No data found.</p>
@@ -156,15 +204,17 @@ const KosuList: React.FC = () => {
               </thead>
               <tbody>
                 {data.map((item) => (
-                  <tr key={item.work_day2}>
+                  <tr key={item.id}>
                     <td>{item.work_day2}</td>
-                    <td>{item.tyoku2}</td>
-                    <td>{item.judgement ? "OK" : "NG"}</td>
-                    <td>
-                      <Link to={`/member-update/${item.employee_no3}`} className={styles["a-collar"]}>編集</Link>
+                    <td>{formatTyoku(item.tyoku2)}</td>
+                    <td className={item.judgement ? styles["status-ok"] : styles["status-ng"]}>
+                      {item.judgement ? "OK" : "NG"}
                     </td>
                     <td>
-                      <Link to={`/member-delete/${item.employee_no3}`} className={styles["a-collar"]}>削除</Link>
+                      <Link to={`/member-update/${item.id}`} className={styles["a-collar"]}>編集</Link>
+                    </td>
+                    <td>
+                      <Link to={`/member-delete/${item.id}`} className={styles["a-collar"]}>削除</Link>
                     </td>
                   </tr>
                 ))}
