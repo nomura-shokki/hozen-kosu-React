@@ -84,7 +84,7 @@ const KosuList: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [currentPage, searchDay, searchByMonth]);
+  }, [currentPage]);
 
   const handleSearch = () => {
     if (currentPage !== 1) {
