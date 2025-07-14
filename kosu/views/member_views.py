@@ -671,5 +671,3 @@ def member_delete(request, pk):
 
 
 
-
-

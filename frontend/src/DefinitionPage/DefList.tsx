@@ -9,7 +9,6 @@ interface DefData {
   kosu_name: string;
 }
 
-// MemberListコンポーネント
 const DefList: React.FC = () => {
   // 各種状態の定義
   const [data, setData] = useState<DefData[]>([]);

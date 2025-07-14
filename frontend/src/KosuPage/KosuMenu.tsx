@@ -57,7 +57,7 @@ const KosuMenu: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/member_menu/`, {
+      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_menu/`, {
         withCredentials: true, // クッキーをリクエストに含める設定
       })
       .then((response) => {
@@ -87,11 +87,10 @@ const KosuMenu: React.FC = () => {
   return (
     <div className={styles["menu-wrapper"]}>
       <h1 className={styles["h1-collar"]}>工数MENU</h1>
-      <nav className={styles["member-nav"]}>
+      <nav className={styles["kosu-nav"]}>
         <Link to="/">メインMENU</Link>
       </nav>
-      <Link to="/member-new" className={styles["member-button1"]}>人員登録</Link>
-      <Link to="/member-list" className={styles["member-button2"]}>人員一覧</Link>
+      <Link to="/member-new" className={styles["kosu-button1"]}>工数履歴</Link>
     </div>
   );
 };
