@@ -40,7 +40,7 @@ const KosuList: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const fetchData = async () => {
+  const fetchData = async (targetMode: boolean | null = null) => {
     setLoading(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_list/`, {
@@ -48,7 +48,7 @@ const KosuList: React.FC = () => {
           page: currentPage,
           ...(searchDay && {
             day: searchDay,
-            mode: searchByMonth ? "month" : "day",
+            mode: targetMode !== null ? (targetMode ? "month" : "day") : (searchByMonth ? "month" : "day"),
             filter: "true",
           }),
         },
@@ -86,12 +86,10 @@ const KosuList: React.FC = () => {
     fetchData();
   }, [currentPage]);
 
-  const handleSearch = () => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    } else {
-      fetchData();
-    }
+  const handleSearch = (isMonthSearch: boolean) => {
+    setSearchByMonth(isMonthSearch);
+    fetchData(isMonthSearch);
+    setCurrentPage(1);
   };
 
   const handleNextPage = () => {
@@ -162,25 +160,18 @@ const KosuList: React.FC = () => {
 
           <div className={styles["button-group"]}>
             <button
-              onClick={() => {
-                setSearchByMonth(true);
-                handleSearch();
-              }}
+              onClick={() => handleSearch(true)}
               className="light_blue_button"
             >
               指定月
             </button>
             <button
-              onClick={() => {
-                setSearchByMonth(false);
-                handleSearch();
-              }}
+              onClick={() => handleSearch(false)}
               className="light_blue_button"
             >
               指定日
             </button>
           </div>
-
         </div>
         {data.length === 0 ? (
           <p>No data found.</p>

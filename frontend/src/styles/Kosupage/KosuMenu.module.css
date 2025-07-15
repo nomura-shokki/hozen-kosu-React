@@ -48,15 +48,34 @@
   text-align: center; /* 文字を中央に配置 */
   border: none; /* デフォルトのボーダーをなくし、フラットデザインに */
   border-radius: 4px; /* 角をほんの少し丸めて、柔らかい印象に */
-  cursor: pointer; /* マウスホバー時に「ポインタ」カーソルを表示し、クリック可能と伝える */
-  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化に滑らかなアニメーション効果を付加 */
-  margin-bottom: 15px; /* 下に15pxの余白をつけて、次の要素と間隔をあける */
-  text-decoration: none; /* リンクの下線を削除し、ボタンらしく見せる */
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 15px;
+  text-decoration: none;
 }
 
-.kosu-button1:hover {
+.kosu-button2 {
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+  background-color: #0ef;
+  color: #fff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: 2rem;
+  text-align: center;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 15px;
+  text-decoration: none;
+}
+
+.kosu-button1:hover, 
+.kosu-button2:hover {
   background-color: #0af;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 軽めのドロップシャドウで立体感を演出 */
-  text-decoration: underline; /* ホバー時に下線を表示して「リンクである」ことを視覚的に補強 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-decoration: underline;
   text-decoration: none;
 }

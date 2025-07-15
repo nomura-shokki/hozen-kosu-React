@@ -16,6 +16,7 @@ urlpatterns = [
   path('logout/', main_views.Logout.as_view(), name='logout'),
   path('main_menu/', main_views.Menu.as_view(), name='main_menu'),
   path('kosu_menu/', main_views.KosuMenu.as_view(), name='kosu_menu'),
+  path('kosu_new/', kosu_views.kosu_new, name='kosu_new'),
   path('kosu_list/', kosu_views.KosuList.as_view(), name='kosu_list'), 
   path('def_menu/', main_views.DefMenu.as_view(), name='def_menu'),
   path('def_new/', def_views.def_new, name='def_new'), 
