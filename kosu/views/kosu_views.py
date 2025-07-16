@@ -2867,24 +2867,57 @@ class KosuList(APIView):
 def kosu_new(request):
   if request.method == 'GET':
     login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
 
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
-    
-    member_data = member.objects.get(employee_no=login_no)
-    if not member_data.authority:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     day = request.session.get('day')
     if not day:
       request.session['day'] = str(datetime.date.today())
 
-    serializer = MemberSerializer([member_data], many=True)
-    return Response(serializer.data)
+    # member_data の取得
+    member_query_set = member.objects.filter(employee_no=login_no)
+    if member_query_set.count() == 0:
+      return Response({'status': 'error', 'message': 'メンバーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    elif member_query_set.count() > 1:
+      return Response({'status': 'error', 'message': '複数のメンバーが存在します'}, status=status.HTTP_400_BAD_REQUEST)
+    member_data = member_query_set.first()
+
+    # kosu_data の取得
+    kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+    if kosu_query_set.count() == 0:
+      return Response({'status': 'error', 'message': '工数データが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    elif kosu_query_set.count() > 1:
+      return Response({'status': 'error', 'message': '複数の工数データが存在します'}, status=status.HTTP_400_BAD_REQUEST)
+    kosu_data = kosu_query_set.first()
+
+    # def_data の取得
+    def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
+    if def_query_set.count() == 0:
+      return Response({'status': 'error', 'message': '工数区分データが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    elif def_query_set.count() > 1:
+      return Response({'status': 'error', 'message': '複数の工数区分データが存在します'}, status=status.HTTP_400_BAD_REQUEST)
+    def_data = def_query_set.first()
+
+    # シリアライザーによるシリアライズ処理
+    member_serializer = MemberSerializer(member_data, many=False)
+    kosu_serializer = KosuSerializer(kosu_data, many=False)
+    def_serializer = DefSerializer(def_data, many=False)
+
+    # レスポンスデータの構築
+    response_data = {
+      'member_data': member_serializer.data,
+      'kosu_data': kosu_serializer.data,
+      'def_data': def_serializer.data,
+    }
+    return Response(response_data)
 
   if request.method == 'POST':
     data = request.data
-    serializer = MemberSerializer(data=data)
+    serializer = KosuSerializer(data=data)
     if serializer.is_valid():
       serializer.save()
       return Response(serializer.data, status=status.HTTP_201_CREATED)
