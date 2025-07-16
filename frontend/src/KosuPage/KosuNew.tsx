@@ -3,200 +3,146 @@ import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../components/Loading";
 import ShopSelect from '../components/ShopSelect'; 
-import styles from "../styles/MemberPage/MemberEdit.module.css"; 
+import styles from "../styles/KosuPage/KosuNew.module.css"; 
 
-// サーバーから取得・送信される人員データの型定義
-interface Member {
-  employee_no: number;
-  name: string;
-  shop: string;
-  authority: boolean;
-  administrator: boolean;
-  break_check: boolean;
-  def_prediction: boolean;
-}
+
 
 interface Kosu {
-  id: number;
   employee_no3: number;
-  name: string;
-  shop: string;
-  authority: boolean;
-  administrator: boolean;
-  break_check: boolean;
-  def_prediction: boolean;
+  work_day2: string;
+  tyoku2: string;
+  time_work: string;
+  detail_work: string;
+  over_time: number;
+  breaktime: string;
+  breaktime_over1: string;
+  breaktime_over2: string;
+  breaktime_over3: string;
+  work_time: string;
+  judgement: boolean;
+  break_change: boolean;
 }
 
 const KosuNew: React.FC = () => {
-  // URLパラメータから従業員番号（文字列）を取得 → 数値に変換
-  const { employee_no } = useParams<{ employee_no: string }>();
-  const employeeNo = Number(employee_no);
+  const [data, setData] = useState<Kosu | null>(null); // 工数データ
+  const [loading, setLoading] = useState(true); // ローディング状態
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // エラーメッセージ
 
-  const navigate = useNavigate(); // 画面遷移用フック
-
-  // 各ステート定義（人員情報、ロード状態、エラー表示など）
-  const [formData, setFormData] = useState<Member | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // 初回マウント時に該当従業員のデータを取得
+  // 初回データ取得
   useEffect(() => {
     axios
-      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, { withCredentials: true })
+      .get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, { withCredentials: true })
       .then((response) => {
-        setFormData(response.data); // 取得したデータをステートに格納
-        setLoading(false);
-      })
-      .catch((err) => {
-        // エラーステータスによって遷移やメッセージ制御
-        if (err.response?.status === 401) {
-          navigate("/login"); // 認証なし → ログインページへ
-        } else if (err.response?.status === 403) {
-          navigate('/'); // 権限なし → ホームへ
+        // kosu_dataが存在しない場合は空データをセット
+        if (!response.data.kosu_data) {
+          setData({
+            employee_no3: 0,
+            work_day2: "",
+            tyoku2: "",
+            time_work: "",
+            detail_work: "",
+            over_time: 0,
+            breaktime: "",
+            breaktime_over1: "",
+            breaktime_over2: "",
+            breaktime_over3: "",
+            work_time: "",
+            judgement: false,
+            break_change: false,
+          });
         } else {
-          setError(err.message); // その他のエラーをステートに格納
+          setData(response.data.kosu_data);
         }
         setLoading(false);
+      })
+      .catch((error) => {
+        console.error("データ取得エラー:", error);
+        setErrorMessage("データの取得に失敗しました。");
+        setLoading(false);
       });
-  }, [employeeNo, navigate]); // employeeNoやnavigateが変わったら再実行
+  }, []);
 
-  // ローディング中の表示
-  if (loading) {
-    return <div>loading</div>;
-  }
-
-  // エラー時の表示
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-  // データが存在しない場合
-  if (!formData) {
-    return <div>データが見つかりません</div>;
-  }
-
-  // 入力フォームで値が変更されたときのハンドラー
-  const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = event.target;
-
-    // チェックボックス（boolean）の場合と、それ以外で処理を分ける
-    if (type === 'checkbox') {
-      const { checked } = event.target as HTMLInputElement;
-      setFormData((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          [name]: checked,
-        };
-      });
-    } else {
-      setFormData((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          [name]: value,
-        };
-      });
+  // フォームの値変更ハンドラー
+  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = event.target;
+    if (data) {
+      setData({ ...data, [name]: value });
     }
   };
 
-  // フォーム送信時（PUTで更新）
+  // フォーム送信（更新処理）
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // ページリロード防止
+    event.preventDefault();
+    if (!data) return;
 
     axios
-      .put(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, formData, { withCredentials: true })
+      .post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, data, { withCredentials: true })
       .then(() => {
-        alert("データが更新されました！");
-        navigate("/member-list"); // 更新完了後は一覧ページへ
+        alert("更新が成功しました！");
       })
       .catch((error) => {
-        console.error(error);
-        // エラー内容を表示
-        if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.error);
-        } else {
-          setErrorMessage('不明なエラーが発生しました。IT担当者に連絡してください。');
-        }
+        console.error("更新エラー:", error);
+        setErrorMessage("更新に失敗しました。再試行してください。");
       });
   };
 
-  // JSXで画面描画
+  // ローディング中の表示
+  if (loading) return <Loading isLoading={loading} />;
+  if (errorMessage) return <div>{errorMessage}</div>;
+
+  // フォーム表示
   return (
-    <>
-      <Loading isLoading={loading} />
-      <div className={styles["member-edit-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>人員データ編集</h1>
-        <nav className={styles["member-nav"]}>
-          <Link to="/member-list">人員一覧</Link>
-        </nav>
-
-        {errorMessage && (
-          <div role="alert">{errorMessage}</div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className={styles["search-bar"]}>
-            <label htmlFor="employee_no">従業員番号:</label>
-            <input
-              type="number"
-              id="employee_no"
-              name="employee_no"
-              value={formData.employee_no}
-              onChange={handleChange}
-            />
-
-            <label htmlFor="name">氏名:</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-            />
-
-            <label htmlFor="shop">ショップ:</label>
-            <ShopSelect
-              name="shop"
-              value={formData.shop}
-              onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
-            />
-
-            <div className={styles["switch-wrapper"]}>
-              <label htmlFor="authority">権限:</label>
-              <label className={styles["toggle-switch"]}>
-                <input
-                  type="checkbox"
-                  id="authority"
-                  name="authority"
-                  checked={formData.authority}
-                  onChange={handleChange}
-                />
-                <span className={styles["toggle-slider"]}></span>
-              </label>
-            </div>
-
-            <div className={styles["switch-wrapper"]}>
-              <label htmlFor="administrator">管理者権限:</label>
-              <label className={styles["toggle-switch"]}>
-                <input
-                  type="checkbox"
-                  id="administrator"
-                  name="administrator"
-                  checked={formData.administrator}
-                  onChange={handleChange}
-                />
-                <span className={styles["toggle-slider"]}></span>
-              </label>
-            </div>
-            <button type="submit" className="yellow_button">更新</button>
-          </div>
-        </form>
+    <form onSubmit={handleSubmit} className={styles["kosu-form"]}>
+      <div>
+        <label htmlFor="work_day2">就業日:</label>
+        <input
+          type="date"
+          id="work_day2"
+          name="work_day2"
+          value={data?.work_day2 || ""}
+          onChange={handleChange}
+        />
       </div>
-    </>
+      <div>
+        <label htmlFor="tyoku2">直:</label>
+        <input
+          type="text"
+          id="tyoku2"
+          name="tyoku2"
+          value={data?.tyoku2 || ""}
+          onChange={handleChange}
+        />
+      </div>
+      <div>
+        <label htmlFor="time_work">作業内容:</label>
+        <textarea
+          id="time_work"
+          name="time_work"
+          value={data?.time_work || ""}
+          onChange={handleChange}
+        />
+      </div>
+      <div>
+        <label htmlFor="detail_work">作業詳細:</label>
+        <textarea
+          id="detail_work"
+          name="detail_work"
+          value={data?.detail_work || ""}
+          onChange={handleChange}
+        />
+      </div>
+      <div>
+        <label htmlFor="over_time">残業時間:</label>
+        <input
+          type="number"
+          id="over_time"
+          name="over_time"
+          value={data?.over_time || 0}
+          onChange={handleChange}
+        />
+      </div>
+      <button type="submit">更新</button>
+    </form>
   );
 };
 

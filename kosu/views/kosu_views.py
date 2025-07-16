@@ -2863,9 +2863,8 @@ class KosuList(APIView):
 
 
 
-@api_view(['GET', 'POST'])
-def kosu_new(request):
-  if request.method == 'GET':
+class KosuNew(APIView):
+  def get(self, request, *args, **kwargs):
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
@@ -2888,9 +2887,7 @@ def kosu_new(request):
 
     # kosu_data の取得
     kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
-    if kosu_query_set.count() == 0:
-      return Response({'status': 'error', 'message': '工数データが存在しません'}, status=status.HTTP_404_NOT_FOUND)
-    elif kosu_query_set.count() > 1:
+    if kosu_query_set.count() > 1:
       return Response({'status': 'error', 'message': '複数の工数データが存在します'}, status=status.HTTP_400_BAD_REQUEST)
     kosu_data = kosu_query_set.first()
 
@@ -2915,13 +2912,5 @@ def kosu_new(request):
     }
     return Response(response_data)
 
-  if request.method == 'POST':
-    data = request.data
-    serializer = KosuSerializer(data=data)
-    if serializer.is_valid():
-      serializer.save()
-      return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-  else:
+  def post(self, request, *args, **kwargs):
     pass
-
