@@ -3,6 +3,9 @@ import axios from "axios";
 import Loading from "../components/Loading";
 import DefSelect from "../components/DefSelect";
 import styles from "../styles/KosuPage/KosuNew.module.css";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { MobileTimePicker } from "@mui/x-date-pickers";
 
 interface Kosu {
   employee_no3: number;
@@ -30,17 +33,17 @@ const KosuNew: React.FC = () => {
   const [loading, setLoading] = useState(true); // ローディング状態
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // エラーメッセージ
   const [memberName, setMemberName] = useState<string>(""); // Djangoから取得した従業員名
+  const [selectedTime, setSelectedTime] = useState<Date | null>(new Date()); // 初期値として現在時刻を設定
 
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, { withCredentials: true })
       .then((response) => {
-        // kosu_data のセット
         const kosu_data = response.data.kosu_data || {
           employee_no3: 0,
           work_day2: "",
           tyoku2: "",
-          time_work: "", // 初期値は空文字列
+          time_work: "",
           detail_work: "",
           over_time: 0,
           breaktime: "",
@@ -54,14 +57,12 @@ const KosuNew: React.FC = () => {
 
         setData(kosu_data);
 
-        // def_data のセット
         const def_data = response.data.def_data || {};
         setDefData(def_data);
 
-        // member_name のセット
-        const member_data = response.data.member_data; // APIのレスポンスから member_data を取得
+        const member_data = response.data.member_data;
         if (member_data?.name) {
-          setMemberName(member_data.name); // 名前を状態にセット
+          setMemberName(member_data.name);
         }
 
         setLoading(false);
@@ -73,11 +74,17 @@ const KosuNew: React.FC = () => {
       });
   }, []);
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = event.target;
     if (data) {
       setData({ ...data, [name]: value });
     }
+  };
+
+  const handleTimeChange = (newTime: Date | null) => {
+    setSelectedTime(newTime);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -100,7 +107,6 @@ const KosuNew: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit} className={styles["kosu-form"]}>
-      {/* Djangoから取得した従業員名をタイトルとして表示 */}
       <h1>{memberName}の工数入力</h1>
 
       <div>
@@ -148,6 +154,15 @@ const KosuNew: React.FC = () => {
           value={data?.over_time || 0}
           onChange={handleChange}
         />
+      </div>
+      <div>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <MobileTimePicker
+            value={selectedTime}
+            onChange={handleTimeChange}
+            ampm={false} // 24時間表示を有効に設定
+          />
+        </LocalizationProvider>
       </div>
       <button type="submit">更新</button>
     </form>
