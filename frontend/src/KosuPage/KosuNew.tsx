@@ -3,17 +3,12 @@ import axios from "axios";
 import Loading from "../components/Loading";
 import DefSelect from "../components/DefSelect";
 import styles from "../styles/KosuPage/KosuNew.module.css";
-import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs, { Dayjs } from "dayjs";
-import Clock from "react-clock";
-import "react-clock/dist/Clock.css";
 
 interface Kosu {
   employee_no3: number;
   work_day2: string;
   tyoku2: string;
-  time_work: string;
+  time_work: string; // 作業内容（選択肢）
   detail_work: string;
   over_time: number;
   breaktime: string;
@@ -26,28 +21,26 @@ interface Kosu {
 }
 
 interface DefData {
-  [key: string]: string | undefined;
+  [key: string]: string | undefined; // 工数区分データ: 動的なキー（例：kosu_title_1, kosu_title_2, ...）
 }
 
 const KosuNew: React.FC = () => {
-  const [data, setData] = useState<Kosu | null>(null);
-  const [defData, setDefData] = useState<DefData>({});
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [memberName, setMemberName] = useState<string>("");
-
-  const [selectedTime, setSelectedTime] = useState<Dayjs>(dayjs());
-  const [showClock, setShowClock] = useState<boolean>(false);
+  const [data, setData] = useState<Kosu | null>(null); // 工数データ
+  const [defData, setDefData] = useState<DefData>({}); // 工数区分データ
+  const [loading, setLoading] = useState(true); // ローディング状態
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // エラーメッセージ
+  const [memberName, setMemberName] = useState<string>(""); // Djangoから取得した従業員名
 
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, { withCredentials: true })
       .then((response) => {
+        // kosu_data のセット
         const kosu_data = response.data.kosu_data || {
           employee_no3: 0,
           work_day2: "",
           tyoku2: "",
-          time_work: "",
+          time_work: "", // 初期値は空文字列
           detail_work: "",
           over_time: 0,
           breaktime: "",
@@ -60,9 +53,16 @@ const KosuNew: React.FC = () => {
         };
 
         setData(kosu_data);
-        setDefData(response.data.def_data || {});
-        const member_data = response.data.member_data;
-        if (member_data?.name) setMemberName(member_data.name);
+
+        // def_data のセット
+        const def_data = response.data.def_data || {};
+        setDefData(def_data);
+
+        // member_name のセット
+        const member_data = response.data.member_data; // APIのレスポンスから member_data を取得
+        if (member_data?.name) {
+          setMemberName(member_data.name); // 名前を状態にセット
+        }
 
         setLoading(false);
       })
@@ -75,23 +75,20 @@ const KosuNew: React.FC = () => {
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
-    if (data) setData({ ...data, [name]: value });
+    if (data) {
+      setData({ ...data, [name]: value });
+    }
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!data) return;
 
-    const timeString = selectedTime.format("HH:mm");
-
-    const payload = {
-      ...data,
-      start_time: timeString,
-    };
-
     axios
-      .post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, payload, { withCredentials: true })
-      .then(() => alert("更新が成功しました！"))
+      .post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, data, { withCredentials: true })
+      .then(() => {
+        alert("更新が成功しました！");
+      })
       .catch((error) => {
         console.error("更新エラー:", error);
         setErrorMessage("更新に失敗しました。再試行してください。");
@@ -103,15 +100,28 @@ const KosuNew: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit} className={styles["kosu-form"]}>
+      {/* Djangoから取得した従業員名をタイトルとして表示 */}
       <h1>{memberName}の工数入力</h1>
 
       <div>
         <label htmlFor="work_day2">就業日:</label>
-        <input type="date" id="work_day2" name="work_day2" value={data?.work_day2 || ""} onChange={handleChange} />
+        <input
+          type="date"
+          id="work_day2"
+          name="work_day2"
+          value={data?.work_day2 || ""}
+          onChange={handleChange}
+        />
       </div>
       <div>
         <label htmlFor="tyoku2">直:</label>
-        <input type="text" id="tyoku2" name="tyoku2" value={data?.tyoku2 || ""} onChange={handleChange} />
+        <input
+          type="text"
+          id="tyoku2"
+          name="tyoku2"
+          value={data?.tyoku2 || ""}
+          onChange={handleChange}
+        />
       </div>
       <div>
         <label htmlFor="time_work">作業内容:</label>
@@ -122,30 +132,23 @@ const KosuNew: React.FC = () => {
       </div>
       <div>
         <label htmlFor="detail_work">作業詳細:</label>
-        <textarea id="detail_work" name="detail_work" value={data?.detail_work || ""} onChange={handleChange} />
+        <textarea
+          id="detail_work"
+          name="detail_work"
+          value={data?.detail_work || ""}
+          onChange={handleChange}
+        />
       </div>
       <div>
         <label htmlFor="over_time">残業時間:</label>
-        <input type="number" id="over_time" name="over_time" value={data?.over_time || 0} onChange={handleChange} />
+        <input
+          type="number"
+          id="over_time"
+          name="over_time"
+          value={data?.over_time || 0}
+          onChange={handleChange}
+        />
       </div>
-
-      {/* ⏰ 開始時間（Material UI TimePicker） */}
-      <div>
-        <label htmlFor="start_time">開始時間:</label>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <TimePicker
-            value={selectedTime}
-            onChange={(newTime) => {
-              if (newTime) setSelectedTime(newTime);
-              setShowClock(true);
-            }}
-            ampm={false}
-            views={["hours", "minutes"]}
-            minutesStep={5}
-          />
-        </LocalizationProvider>
-      </div>
-
       <button type="submit">更新</button>
     </form>
   );
