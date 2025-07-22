@@ -27,6 +27,15 @@ interface DefData {
   [key: string]: string | undefined; // 工数区分データ: 動的なキー（例：kosu_title_1, kosu_title_2, ...）
 }
 
+// 現在時刻を5分単位で丸める関数
+const roundToNearestFiveMinutes = (date: Date): Date => {
+  const msPerMinute = 60000;
+  const minutes = Math.floor(date.getMinutes() / 5) * 5;
+  const roundedDate = new Date(Math.floor(date.getTime() / msPerMinute) * msPerMinute);
+  roundedDate.setMinutes(minutes);
+  return roundedDate;
+};
+
 const KosuNew: React.FC = () => {
   const [data, setData] = useState<Kosu | null>(null); // 工数データ
   const [defData, setDefData] = useState<DefData>({}); // 工数区分データ
@@ -35,8 +44,14 @@ const KosuNew: React.FC = () => {
   const [memberName, setMemberName] = useState<string>(""); // Djangoから取得した従業員名
 
   // 2つの時間選択フォームの状態管理
-  const [selectedTime1, setSelectedTime1] = useState<Date | null>(new Date()); // 開始時間フォーム
-  const [selectedTime2, setSelectedTime2] = useState<Date | null>(new Date()); // 終了時間フォーム
+  const [selectedTime1, setSelectedTime1] = useState<Date | null>(() => {
+    const cachedTime1 = localStorage.getItem("time1");
+    return cachedTime1 ? new Date(cachedTime1) : roundToNearestFiveMinutes(new Date());
+  });
+  const [selectedTime2, setSelectedTime2] = useState<Date | null>(() => {
+    const cachedTime2 = localStorage.getItem("time2");
+    return cachedTime2 ? new Date(cachedTime2) : roundToNearestFiveMinutes(new Date());
+  });
 
   useEffect(() => {
     axios
@@ -110,6 +125,11 @@ const KosuNew: React.FC = () => {
       time2: formattedTime2,
     };
 
+    // time2 の値をキャッシュに保存
+    if (formattedTime2) {
+      localStorage.setItem("time2", formattedTime2);
+    }
+
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, updatedData, { withCredentials: true })
       .then(() => {
@@ -182,6 +202,10 @@ const KosuNew: React.FC = () => {
             onChange={handleTimeChange1}
             ampm={false} // 24時間表示を有効に設定
             minutesStep={5} // 5分間隔に設定
+            onAccept={() => {
+              const rootElement = document.getElementById("root");
+              if (rootElement) rootElement.removeAttribute("aria-hidden");
+            }}
           />
         </LocalizationProvider>
       </div>
@@ -193,6 +217,10 @@ const KosuNew: React.FC = () => {
             onChange={handleTimeChange2}
             ampm={false} // 24時間表示を有効に設定
             minutesStep={5} // 5分間隔に設定
+            onAccept={() => {
+              const rootElement = document.getElementById("root");
+              if (rootElement) rootElement.removeAttribute("aria-hidden");
+            }}
           />
         </LocalizationProvider>
       </div>

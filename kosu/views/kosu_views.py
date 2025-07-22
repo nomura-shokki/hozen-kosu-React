@@ -2912,5 +2912,42 @@ class KosuNew(APIView):
     }
     return Response(response_data)
 
+
+
   def post(self, request, *args, **kwargs):
-    pass
+      login_no = request.session.get('login_No')
+      day = request.session.get('day')
+
+      if not login_no:
+          return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+      # kosu_dataの取得または新規作成
+      kosu_data, created = Business_Time_graph.objects.get_or_create(
+          employee_no3=login_no,
+          work_day2=day,
+          defaults={
+              'employee_no3': login_no,
+              'work_day2': day,
+              # 必要に応じて他の初期値を設定
+          }
+      )
+
+      # Reactから送信されたデータを取得
+      post_data = request.data
+
+      # 更新可能なフィールドを定義
+      updatable_fields = [
+          'tyoku2', 'time_work', 'detail_work', 'over_time',
+          'breaktime', 'breaktime_over1', 'breaktime_over2', 'breaktime_over3',
+          'work_time', 'judgement', 'break_change'
+      ]
+
+      # 項目ごとにデータを上書き
+      for field in updatable_fields:
+          if field in post_data:
+              setattr(kosu_data, field, post_data[field])
+
+      # 保存処理
+      kosu_data.save()
+
+      return Response({'status': 'success', 'message': 'データが更新されました。'})
