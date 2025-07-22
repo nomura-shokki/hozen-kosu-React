@@ -33,7 +33,10 @@ const KosuNew: React.FC = () => {
   const [loading, setLoading] = useState(true); // ローディング状態
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // エラーメッセージ
   const [memberName, setMemberName] = useState<string>(""); // Djangoから取得した従業員名
-  const [selectedTime, setSelectedTime] = useState<Date | null>(new Date()); // 初期値として現在時刻を設定
+
+  // 2つの時間選択フォームの状態管理
+  const [selectedTime1, setSelectedTime1] = useState<Date | null>(new Date()); // 開始時間フォーム
+  const [selectedTime2, setSelectedTime2] = useState<Date | null>(new Date()); // 終了時間フォーム
 
   useEffect(() => {
     axios
@@ -83,16 +86,32 @@ const KosuNew: React.FC = () => {
     }
   };
 
-  const handleTimeChange = (newTime: Date | null) => {
-    setSelectedTime(newTime);
+  // 開始時間の変更ハンドラー
+  const handleTimeChange1 = (newTime: Date | null) => {
+    setSelectedTime1(newTime);
+  };
+
+  // 終了時間の変更ハンドラー
+  const handleTimeChange2 = (newTime: Date | null) => {
+    setSelectedTime2(newTime);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!data) return;
 
+    // 各時間を ISOフォーマット文字列に変換してデータに追加
+    const formattedTime1 = selectedTime1?.toISOString();
+    const formattedTime2 = selectedTime2?.toISOString();
+
+    const updatedData = {
+      ...data,
+      time1: formattedTime1,
+      time2: formattedTime2,
+    };
+
     axios
-      .post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, data, { withCredentials: true })
+      .post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, updatedData, { withCredentials: true })
       .then(() => {
         alert("更新が成功しました！");
       })
@@ -157,10 +176,23 @@ const KosuNew: React.FC = () => {
       </div>
       <div>
         <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <label htmlFor="time1">開始時間:</label>
           <MobileTimePicker
-            value={selectedTime}
-            onChange={handleTimeChange}
+            value={selectedTime1}
+            onChange={handleTimeChange1}
             ampm={false} // 24時間表示を有効に設定
+            minutesStep={5} // 5分間隔に設定
+          />
+        </LocalizationProvider>
+      </div>
+      <div>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <label htmlFor="time2">終了時間:</label>
+          <MobileTimePicker
+            value={selectedTime2}
+            onChange={handleTimeChange2}
+            ampm={false} // 24時間表示を有効に設定
+            minutesStep={5} // 5分間隔に設定
           />
         </LocalizationProvider>
       </div>
