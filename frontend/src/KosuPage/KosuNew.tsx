@@ -11,7 +11,7 @@ interface Kosu {
   employee_no3: number;
   work_day2: string;
   tyoku2: string;
-  time_work: string; // 作業内容（選択肢）
+  time_work: string;
   detail_work: string;
   over_time: number;
   breaktime: string;
@@ -24,7 +24,7 @@ interface Kosu {
 }
 
 interface DefData {
-  [key: string]: string | undefined; // 工数区分データ: 動的なキー（例：kosu_title_1, kosu_title_2, ...）
+  [key: string]: string | undefined;
 }
 
 // 現在時刻を5分単位で丸める関数
@@ -46,12 +46,19 @@ const KosuNew: React.FC = () => {
   // 2つの時間選択フォームの状態管理
   const [selectedTime1, setSelectedTime1] = useState<Date | null>(() => {
     const cachedTime1 = localStorage.getItem("time1");
-    return cachedTime1 ? new Date(cachedTime1) : roundToNearestFiveMinutes(new Date());
+    const cachedTime2 = localStorage.getItem("time2");
+    return cachedTime1 && cachedTime2 ? new Date(cachedTime2) : roundToNearestFiveMinutes(new Date());
   });
   const [selectedTime2, setSelectedTime2] = useState<Date | null>(() => {
     const cachedTime2 = localStorage.getItem("time2");
     return cachedTime2 ? new Date(cachedTime2) : roundToNearestFiveMinutes(new Date());
   });
+
+  // time1 と time2 のキャッシュ管理のための関数を追加
+  const updateCachedTimes = (time1: Date | null, time2: Date | null) => {
+    if (time1) localStorage.setItem("time1", time1.toISOString());
+    if (time2) localStorage.setItem("time2", time2.toISOString());
+  };
 
   useEffect(() => {
     axios
@@ -125,15 +132,36 @@ const KosuNew: React.FC = () => {
       time2: formattedTime2,
     };
 
-    // time2 の値をキャッシュに保存
-    if (formattedTime2) {
-      localStorage.setItem("time2", formattedTime2);
-    }
-
+    // POSTの成功時にキャッシュの更新を実施
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, updatedData, { withCredentials: true })
       .then(() => {
         alert("更新が成功しました！");
+        updateCachedTimes(selectedTime1, selectedTime2); // キャッシュの更新
+
+        // フォームを初期値にリセット (time2 を次の初期値として設定)
+        if (formattedTime2) {
+          setSelectedTime1(new Date(formattedTime2)); // time1 を現在の time2 に
+          setSelectedTime2(roundToNearestFiveMinutes(new Date(formattedTime2))); // 初期値に丸めた時間を設定
+          localStorage.setItem("time1", formattedTime2); // キャッシュ更新
+          localStorage.setItem("time2", formattedTime2); // キャッシュ更新
+        }
+
+        setData({
+          employee_no3: 0,
+          work_day2: "",
+          tyoku2: "",
+          time_work: "",
+          detail_work: "",
+          over_time: 0,
+          breaktime: "",
+          breaktime_over1: "",
+          breaktime_over2: "",
+          breaktime_over3: "",
+          work_time: "",
+          judgement: false,
+          break_change: false,
+        });
       })
       .catch((error) => {
         console.error("更新エラー:", error);
@@ -200,8 +228,8 @@ const KosuNew: React.FC = () => {
           <MobileTimePicker
             value={selectedTime1}
             onChange={handleTimeChange1}
-            ampm={false} // 24時間表示を有効に設定
-            minutesStep={5} // 5分間隔に設定
+            ampm={false}
+            minutesStep={5}
             onAccept={() => {
               const rootElement = document.getElementById("root");
               if (rootElement) rootElement.removeAttribute("aria-hidden");
@@ -215,8 +243,8 @@ const KosuNew: React.FC = () => {
           <MobileTimePicker
             value={selectedTime2}
             onChange={handleTimeChange2}
-            ampm={false} // 24時間表示を有効に設定
-            minutesStep={5} // 5分間隔に設定
+            ampm={false}
+            minutesStep={5}
             onAccept={() => {
               const rootElement = document.getElementById("root");
               if (rootElement) rootElement.removeAttribute("aria-hidden");

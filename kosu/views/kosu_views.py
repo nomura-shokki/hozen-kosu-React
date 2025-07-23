@@ -2913,41 +2913,40 @@ class KosuNew(APIView):
     return Response(response_data)
 
 
-
   def post(self, request, *args, **kwargs):
-      login_no = request.session.get('login_No')
-      day = request.session.get('day')
+    login_no = request.session.get('login_No')
 
-      if not login_no:
-          return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+    # Reactから送信されたデータを取得
+    post_data = request.data
 
-      # kosu_dataの取得または新規作成
-      kosu_data, created = Business_Time_graph.objects.get_or_create(
-          employee_no3=login_no,
-          work_day2=day,
-          defaults={
-              'employee_no3': login_no,
-              'work_day2': day,
-              # 必要に応じて他の初期値を設定
-          }
-      )
+    # work_day2 を React から送信されたデータから取得
+    day = post_data.get('work_day2')
+    if not day:
+      return Response({'status': 'error', 'message': '就業日が未指定です。'}, status=status.HTTP_400_BAD_REQUEST)
 
-      # Reactから送信されたデータを取得
-      post_data = request.data
+    # kosu_dataの取得または新規作成
+    kosu_data, created = Business_Time_graph.objects.get_or_create(
+      employee_no3=login_no,
+      work_day2=day,
+      defaults={
+        'employee_no3': login_no,
+        'work_day2': day,
+      }
+    )
 
-      # 更新可能なフィールドを定義
-      updatable_fields = [
-          'tyoku2', 'time_work', 'detail_work', 'over_time',
-          'breaktime', 'breaktime_over1', 'breaktime_over2', 'breaktime_over3',
-          'work_time', 'judgement', 'break_change'
-      ]
+    # 更新可能なフィールドを定義
+    updatable_fields = [
+        'tyoku2', 'time_work', 'detail_work', 'over_time',
+        'breaktime', 'breaktime_over1', 'breaktime_over2', 'breaktime_over3',
+        'work_time', 'judgement', 'break_change'
+    ]
 
-      # 項目ごとにデータを上書き
-      for field in updatable_fields:
-          if field in post_data:
-              setattr(kosu_data, field, post_data[field])
+    # 項目ごとにデータを上書き
+    for field in updatable_fields:
+        if field in post_data:
+            setattr(kosu_data, field, post_data[field])
 
-      # 保存処理
-      kosu_data.save()
+    # 保存処理
+    kosu_data.save()
 
-      return Response({'status': 'success', 'message': 'データが更新されました。'})
+    return Response({'status': 'success', 'message': 'データが更新されました。'})
