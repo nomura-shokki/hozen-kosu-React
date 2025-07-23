@@ -36,6 +36,17 @@ const roundToNearestFiveMinutes = (date: Date): Date => {
   return roundedDate;
 };
 
+// tyoku2 の候補リスト (表示: ラベル, 値: バックエンドへ送信する値)
+const tyokuOptions = [
+  { value: "", label: "" },
+  { value: "1", label: "1直" },
+  { value: "2", label: "2直" },
+  { value: "3", label: "3直" },
+  { value: "4", label: "常昼" },
+  { value: "5", label: "1直(連2)" },
+  { value: "6", label: "2直(連2)" },
+];
+
 const KosuNew: React.FC = () => {
   const [data, setData] = useState<Kosu | null>(null); // 工数データ
   const [defData, setDefData] = useState<DefData>({}); // 工数区分データ
@@ -188,13 +199,13 @@ const KosuNew: React.FC = () => {
       </div>
       <div>
         <label htmlFor="tyoku2">直:</label>
-        <input
-          type="text"
-          id="tyoku2"
-          name="tyoku2"
-          value={data?.tyoku2 || ""}
-          onChange={handleChange}
-        />
+        <select id="tyoku2" name="tyoku2" value={data?.tyoku2 || ""} onChange={handleChange}>
+          {tyokuOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       </div>
       <div>
         <label htmlFor="time_work">作業内容:</label>
