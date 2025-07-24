@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "../components/Loading";
@@ -26,7 +26,7 @@ const MemberList: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
   const navigate = useNavigate();
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/member_list/`, {
@@ -57,11 +57,11 @@ const MemberList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, navigate, searchNumber, searchShop]);
 
   useEffect(() => {
     fetchData();
-  }, [currentPage]);
+  }, [fetchData]);
 
   const handleSearch = () => {
     if (currentPage !== 1) {

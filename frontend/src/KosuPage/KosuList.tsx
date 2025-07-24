@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Loading from "../components/Loading";
@@ -40,7 +40,7 @@ const KosuList: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const fetchData = async (targetMode: boolean | null = null) => {
+  const fetchData = useCallback(async (targetMode: boolean | null = null) => {
     setLoading(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_list/`, {
@@ -74,7 +74,7 @@ const KosuList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, navigate, searchByMonth, searchDay]);
 
   useEffect(() => {
     setSearchDay("");
@@ -84,7 +84,7 @@ const KosuList: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [currentPage]);
+  }, [fetchData]);
 
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);

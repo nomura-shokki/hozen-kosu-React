@@ -1,6 +1,6 @@
-import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import styles from "../styles/KosuPage/KosuMenu.module.css";
 
 
@@ -50,7 +50,6 @@ interface Member {
 }
 
 const KosuMenu: React.FC = () => {
-  const [data, setData] = useState<Member[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -60,8 +59,7 @@ const KosuMenu: React.FC = () => {
       .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_menu/`, {
         withCredentials: true, // クッキーをリクエストに含める設定
       })
-      .then((response) => {
-        setData(response.data);
+      .then(() => {
         setLoading(false);
       })
       .catch((err) => {

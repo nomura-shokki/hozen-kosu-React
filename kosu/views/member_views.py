@@ -617,57 +617,85 @@ def member_new(request):
 
 
 
-@api_view(['GET', 'PUT'])
-def member_update(request, pk):
-  try:
-    member_instance = member.objects.get(employee_no =pk)
-  except member.DoesNotExist:
-    return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
-  
-  if request.method == 'GET':
+# 人員データ編集動作
+class MemberUpdate(APIView):
+  def get_object(self, pk):
+    try:
+      return member.objects.get(employee_no=pk)
+    except member.DoesNotExist:
+      return None
+
+  def get(self, request, pk):
+    # セッションからログイン情報を取得
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    member_data = member.objects.get(employee_no=login_no)
+    # ログインユーザーの権限を確認
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '権限確認中にエラーが発生しました'}, status=status.HTTP_403_FORBIDDEN)
     if not member_data.authority:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
+    # 指定された従業員データを取得
+    member_instance = self.get_object(pk)
+    if member_instance is None:
+      return Response({'error': 'error', 'message': '人員データが確認できません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # データをシリアライズして返却
     serializer = MemberSerializer(member_instance)
     return Response(serializer.data)
-  
-  elif request.method == 'PUT':
+
+  def put(self, request, pk):
+    # 特定の従業員データを取得
+    member_instance = self.get_object(pk)
+    if member_instance is None:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # クライアントから送られてきたデータをシリアライズ
     data = request.data
     serializer = MemberSerializer(member_instance, data=data)
     if serializer.is_valid():
+      # 従業員番号の一意性確認
       if data.get('employee_no') != pk and member.objects.filter(employee_no=data.get('employee_no')).exists():
-        return Response(
-          {'error': '入力した従業員番号はすでに登録されています'},
-          status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({'error': '入力した従業員番号はすでに登録されています'},status=status.HTTP_400_BAD_REQUEST)
       serializer.save()
       return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
-@api_view(['DELETE'])
-def member_delete(request, pk):
-  login_no = request.session.get('login_No')
-  if not login_no:
-    return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+# 人員データ削除動作
+class MemberDelete(APIView):
+  def get_object(self, pk):
+    try:
+      return member.objects.get(employee_no=pk)
+    except member.DoesNotExist:
+      return None
 
-  member_data = member.objects.get(employee_no=login_no)
-  if not member_data.authority:
-    return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+  def delete(self, request, pk):
+    # セッションからログイン情報を取得
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
-  try:
-    member_instance = member.objects.get(employee_no =pk)
-  except member.DoesNotExist:
-    return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+    # ログインユーザーの権限を確認
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '権限確認中にエラーが発生しました'}, status=status.HTTP_403_FORBIDDEN)
 
-  member_instance.delete()
-  return Response({'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+    if not member_data.authority:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
+    # 削除対象のオブジェクトを取得
+    member_instance = self.get_object(pk)
+    if member_instance is None:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    # レコードを削除
+    member_instance.delete()
+    return Response({'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
 

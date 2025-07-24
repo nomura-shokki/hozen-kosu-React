@@ -17,7 +17,6 @@ const DefSearch: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [divisions, setDivisions] = useState<DivisionData[]>([]);
   const [selectedDivision, setSelectedDivision] = useState<string>(""); // 選択中の工数名
@@ -89,11 +88,6 @@ const DefSearch: React.FC = () => {
       <nav className={styles["def-nav"]}>
         <Link to="/def-menu">工数区分定義MENUへ戻る</Link>
       </nav>
-      {errorMessage && (
-        <div role="alert" className={styles["error-message"]}>
-          {errorMessage}
-        </div>
-      )}
 
       <form>
         <div className={styles["search-bar"]}>

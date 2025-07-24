@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "../components/Loading";
@@ -21,7 +21,7 @@ const DefList: React.FC = () => {
   const navigate = useNavigate();
 
   // データを取得する関数
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true); // ローディング状態を開始
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/def_list/`, {
@@ -52,12 +52,12 @@ const DefList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, navigate]);
 
   // コンポーネントマウント時と `currentPage` の変更時に fetchData を実行
   useEffect(() => {
     fetchData();
-  }, [currentPage]);
+  }, [fetchData]);
 
   // ページング関数
   const handleNextPage = () => {
