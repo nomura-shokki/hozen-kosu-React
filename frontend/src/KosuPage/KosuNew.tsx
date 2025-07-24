@@ -1,6 +1,7 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
 import Loading from "../components/Loading";
+import TyokuSelect from "../components/TyokuSelect";
 import DefSelect from "../components/DefSelect";
 import styles from "../styles/KosuPage/KosuNew.module.css";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -35,17 +36,6 @@ const roundToNearestFiveMinutes = (date: Date): Date => {
   roundedDate.setMinutes(minutes);
   return roundedDate;
 };
-
-// tyoku2 の候補リスト (表示: ラベル, 値: バックエンドへ送信する値)
-const tyokuOptions = [
-  { value: "", label: "" },
-  { value: "1", label: "1直" },
-  { value: "2", label: "2直" },
-  { value: "3", label: "3直" },
-  { value: "4", label: "常昼" },
-  { value: "5", label: "1直(連2)" },
-  { value: "6", label: "2直(連2)" },
-];
 
 const KosuNew: React.FC = () => {
   const [data, setData] = useState<Kosu | null>(null); // 工数データ
@@ -199,20 +189,11 @@ const KosuNew: React.FC = () => {
       </div>
       <div>
         <label htmlFor="tyoku2">直:</label>
-        <select id="tyoku2" name="tyoku2" value={data?.tyoku2 || ""} onChange={handleChange}>
-          {tyokuOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <TyokuSelect value={data?.tyoku2 || ""} onChange={handleChange} />
       </div>
       <div>
         <label htmlFor="time_work">作業内容:</label>
-        <select id="time_work" name="time_work" value={data?.time_work || ""} onChange={handleChange}>
-          <option value="">選択してください</option>
-          <DefSelect defData={defData} />
-        </select>
+        <DefSelect value={data?.time_work || ""} onChange={handleChange} defData={defData} />
       </div>
       <div>
         <label htmlFor="detail_work">作業詳細:</label>
