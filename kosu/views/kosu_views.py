@@ -2873,9 +2873,11 @@ class KosuNew(APIView):
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    # セッション 'day' の処理と初期値設定
     day = request.session.get('day')
     if not day:
-      request.session['day'] = str(datetime.date.today())
+      day = str(datetime.date.today())
+      request.session['day'] = day
 
     # member_data の取得
     member_query_set = member.objects.filter(employee_no=login_no)
@@ -2909,9 +2911,9 @@ class KosuNew(APIView):
       'member_data': member_serializer.data,
       'kosu_data': kosu_serializer.data,
       'def_data': def_serializer.data,
+      'session_day': day,
     }
     return Response(response_data)
-
 
   def post(self, request, *args, **kwargs):
     login_no = request.session.get('login_No')
@@ -2924,7 +2926,7 @@ class KosuNew(APIView):
     if not day:
       return Response({'status': 'error', 'message': '就業日が未指定です。'}, status=status.HTTP_400_BAD_REQUEST)
     else:
-      request.session['day'] = str(day)
+      request.session['day'] = str(day)  # セッションに保存
 
     # kosu_dataの取得または新規作成
     kosu_data, created = Business_Time_graph.objects.get_or_create(
@@ -2951,3 +2953,17 @@ class KosuNew(APIView):
     kosu_data.save()
 
     return Response({'status': 'success', 'message': 'データが更新されました。'})
+
+
+
+class SetDay(APIView):
+    def post(self, request, *args, **kwargs):
+        # Reactから送信されたデータを取得
+        day = request.data.get('day')  # 修正部分
+        if not day:
+            return Response({'status': 'error', 'message': '就業日が未指定です。'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Djangoセッションに就業日を保存
+        request.session['day'] = str(day)
+        return Response({'status': 'success', 'message': '就業日がセッションに保存されました。'})
+

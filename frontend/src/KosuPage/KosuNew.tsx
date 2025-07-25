@@ -34,11 +34,11 @@ const roundToNearestFiveMinutes = (date: Date): Date => {
 };
 
 const KosuNew: React.FC = () => {
-  const [data, setData] = useState<Kosu | null>(null); // 工数データ
-  const [defData, setDefData] = useState<DefData>({}); // 工数区分データ
-  const [loading, setLoading] = useState(true); // ローディング状態
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); // エラーメッセージ
-  const [memberName, setMemberName] = useState<string>(""); // Djangoから取得した従業員名
+  const [data, setData] = useState<Kosu | null>(null);
+  const [defData, setDefData] = useState<DefData>({});
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [memberName, setMemberName] = useState<string>("");
 
   const [selectedTime1, setSelectedTime1] = useState<Date | null>(() => {
     const cachedTime1 = localStorage.getItem("time1");
@@ -76,7 +76,12 @@ const KosuNew: React.FC = () => {
           break_change: false,
         };
 
-        setData(kosu_data);
+        const sessionDay = response.data.session_day || "";
+
+        setData({
+          ...kosu_data,
+          work_day2: sessionDay,
+        });
 
         const def_data = response.data.def_data || {};
         setDefData(def_data);
@@ -102,31 +107,29 @@ const KosuNew: React.FC = () => {
     if (data) {
       setData({ ...data, [name]: value });
 
-      // 就業日が変更された場合の処理
       if (name === "work_day2") {
         axios
           .post(
-            `${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/set_day/`,
-            { day: value },
+            `${process.env.REACT_APP_API_BASE_URL}/api/set_day/`,
+            { day: value }, // 修正: キー名を 'day' に
             { withCredentials: true }
           )
           .then(() => {
-            fetchData(); // データを再取得
+            console.log("就業日がセッションに保存されました:", value);
+            fetchData();
           })
           .catch((error) => {
-            console.error("就業日の設定エラー:", error);
+            console.error("就業日のセッション保存エラー:", error.response?.data || error.message || error);
             setErrorMessage("就業日の設定に失敗しました。");
           });
       }
     }
   };
 
-  // 開始時間の変更ハンドラー
   const handleTimeChange1 = (newTime: Date | null) => {
     setSelectedTime1(newTime);
   };
 
-  // 終了時間の変更ハンドラー
   const handleTimeChange2 = (newTime: Date | null) => {
     setSelectedTime2(newTime);
   };
