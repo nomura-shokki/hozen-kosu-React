@@ -6,7 +6,7 @@ interface TyokuSelectProps {
 }
 
 const tyokuOptions = [
-  { value: "", label: "" },
+  { value: "", label: "選択してください" },
   { value: "1", label: "1直" },
   { value: "2", label: "2直" },
   { value: "3", label: "3直" },
