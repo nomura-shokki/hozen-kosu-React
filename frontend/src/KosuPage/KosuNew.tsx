@@ -1,4 +1,5 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import Loading from "../components/Loading";
 import TyokuSelect from "../components/TyokuSelect";
@@ -15,10 +16,6 @@ interface Kosu {
   time_work: string;
   detail_work: string;
   over_time: number;
-  breaktime: string;
-  breaktime_over1: string;
-  breaktime_over2: string;
-  breaktime_over3: string;
   work_time: string;
   judgement: boolean;
   break_change: boolean;
@@ -28,7 +25,6 @@ interface DefData {
   [key: string]: string | undefined;
 }
 
-// 現在時刻を5分単位で丸める関数
 const roundToNearestFiveMinutes = (date: Date): Date => {
   const msPerMinute = 60000;
   const minutes = Math.floor(date.getMinutes() / 5) * 5;
@@ -44,7 +40,6 @@ const KosuNew: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // エラーメッセージ
   const [memberName, setMemberName] = useState<string>(""); // Djangoから取得した従業員名
 
-  // 2つの時間選択フォームの状態管理
   const [selectedTime1, setSelectedTime1] = useState<Date | null>(() => {
     const cachedTime1 = localStorage.getItem("time1");
     const cachedTime2 = localStorage.getItem("time2");
@@ -62,6 +57,10 @@ const KosuNew: React.FC = () => {
   };
 
   useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = () => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, { withCredentials: true })
       .then((response) => {
@@ -72,10 +71,6 @@ const KosuNew: React.FC = () => {
           time_work: "",
           detail_work: "",
           over_time: 0,
-          breaktime: "",
-          breaktime_over1: "",
-          breaktime_over2: "",
-          breaktime_over3: "",
           work_time: "",
           judgement: false,
           break_change: false,
@@ -98,7 +93,7 @@ const KosuNew: React.FC = () => {
         setErrorMessage("データの取得に失敗しました。");
         setLoading(false);
       });
-  }, []);
+  };
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -106,6 +101,23 @@ const KosuNew: React.FC = () => {
     const { name, value } = event.target;
     if (data) {
       setData({ ...data, [name]: value });
+
+      // 就業日が変更された場合の処理
+      if (name === "work_day2") {
+        axios
+          .post(
+            `${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/set_day/`,
+            { day: value },
+            { withCredentials: true }
+          )
+          .then(() => {
+            fetchData(); // データを再取得
+          })
+          .catch((error) => {
+            console.error("就業日の設定エラー:", error);
+            setErrorMessage("就業日の設定に失敗しました。");
+          });
+      }
     }
   };
 
@@ -138,14 +150,13 @@ const KosuNew: React.FC = () => {
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, updatedData, { withCredentials: true })
       .then(() => {
         alert("更新が成功しました！");
-        updateCachedTimes(selectedTime1, selectedTime2); // キャッシュの更新
+        updateCachedTimes(selectedTime1, selectedTime2);
 
-        // フォームを初期値にリセット (time2 を次の初期値として設定)
         if (formattedTime2) {
-          setSelectedTime1(new Date(formattedTime2)); // time1 を現在の time2 に
-          setSelectedTime2(roundToNearestFiveMinutes(new Date(formattedTime2))); // 初期値に丸めた時間を設定
-          localStorage.setItem("time1", formattedTime2); // キャッシュ更新
-          localStorage.setItem("time2", formattedTime2); // キャッシュ更新
+          setSelectedTime1(new Date(formattedTime2));
+          setSelectedTime2(roundToNearestFiveMinutes(new Date(formattedTime2)));
+          localStorage.setItem("time1", formattedTime2);
+          localStorage.setItem("time2", formattedTime2);
         }
 
         setData({
@@ -155,10 +166,6 @@ const KosuNew: React.FC = () => {
           time_work: "",
           detail_work: "",
           over_time: 0,
-          breaktime: "",
-          breaktime_over1: "",
-          breaktime_over2: "",
-          breaktime_over3: "",
           work_time: "",
           judgement: false,
           break_change: false,
@@ -175,7 +182,11 @@ const KosuNew: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit} className={styles["kosu-form"]}>
-      <h1>{memberName}の工数入力</h1>
+
+      <h1 className={styles["h1-collar"]}>{memberName}の工数入力</h1>
+        <nav className={styles["kosu-nav"]}>
+          <Link to="/kosu-menu">工数MENU</Link>
+        </nav>
 
       <div>
         <label htmlFor="work_day2">就業日:</label>
