@@ -119,8 +119,13 @@ const KosuNew: React.FC = () => {
             fetchData();
           })
           .catch((error) => {
-            console.error("就業日のセッション保存エラー:", error.response?.data || error.message || error);
-            setErrorMessage("就業日の設定に失敗しました。");
+            console.error("就業日更新エラー:", error);
+          
+            if (error.response && error.response.data && error.response.data.error) {
+              setErrorMessage(error.response.data.error);
+            } else {
+              setErrorMessage("就業日の設定に失敗しました。");
+            }
           });
       }
     }
@@ -179,7 +184,7 @@ const KosuNew: React.FC = () => {
         if (error.response && error.response.data && error.response.data.error) {
           setErrorMessage(error.response.data.error);
         } else {
-          setErrorMessage("更新に失敗しました。再試行してください。"); // デフォルトメッセージ
+          setErrorMessage("更新に失敗しました。再試行してください。");
         }
       });
   };
