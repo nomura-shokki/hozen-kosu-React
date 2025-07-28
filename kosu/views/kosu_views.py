@@ -2957,13 +2957,13 @@ class KosuNew(APIView):
 
 
 class SetDay(APIView):
-    def post(self, request, *args, **kwargs):
-        # Reactから送信されたデータを取得
-        day = request.data.get('day')  # 修正部分
-        if not day:
-            return Response({'status': 'error', 'message': '就業日が未指定です。'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Djangoセッションに就業日を保存
-        request.session['day'] = str(day)
-        return Response({'status': 'success', 'message': '就業日がセッションに保存されました。'})
+  def post(self, request, *args, **kwargs):
+    # Reactから送信されたデータを取得
+    day = request.data.get('day')  # 修正部分
+    if not day:
+      return Response({'status': 'error', 'message': '就業日が未指定です。'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Djangoセッションに就業日を保存
+    request.session['day'] = str(day)
+    return Response({'status': 'success', 'message': '就業日がセッションに保存されました。'})
 

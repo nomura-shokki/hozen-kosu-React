@@ -111,7 +111,7 @@ const KosuNew: React.FC = () => {
         axios
           .post(
             `${process.env.REACT_APP_API_BASE_URL}/api/set_day/`,
-            { day: value }, // 修正: キー名を 'day' に
+            { day: value },
             { withCredentials: true }
           )
           .then(() => {
@@ -163,9 +163,7 @@ const KosuNew: React.FC = () => {
         }
 
         setData({
-          employee_no3: 0,
-          work_day2: "",
-          tyoku2: "",
+          ...data,
           time_work: "",
           detail_work: "",
           over_time: 0,
@@ -173,10 +171,16 @@ const KosuNew: React.FC = () => {
           judgement: false,
           break_change: false,
         });
+        setErrorMessage(null);
       })
       .catch((error) => {
         console.error("更新エラー:", error);
-        setErrorMessage("更新に失敗しました。再試行してください。");
+      
+        if (error.response && error.response.data && error.response.data.error) {
+          setErrorMessage(error.response.data.error);
+        } else {
+          setErrorMessage("更新に失敗しました。再試行してください。"); // デフォルトメッセージ
+        }
       });
   };
 
@@ -187,9 +191,13 @@ const KosuNew: React.FC = () => {
     <form onSubmit={handleSubmit} className={styles["kosu-form"]}>
 
       <h1 className={styles["h1-collar"]}>{memberName}の工数入力</h1>
-        <nav className={styles["kosu-nav"]}>
-          <Link to="/kosu-menu">工数MENU</Link>
-        </nav>
+      <nav className={styles["kosu-nav"]}>
+        <Link to="/kosu-menu">工数MENU</Link>
+      </nav>
+
+      {errorMessage && (
+        <div role="alert">{errorMessage}</div>
+      )}
 
       <div>
         <label htmlFor="work_day2">就業日:</label>
@@ -207,14 +215,14 @@ const KosuNew: React.FC = () => {
       </div>
       <div>
         <label htmlFor="time_work">作業内容:</label>
-        <DefSelect value={data?.time_work || ""} onChange={handleChange} defData={defData} />
+        <DefSelect value="" onChange={handleChange} defData={defData} />
       </div>
       <div>
         <label htmlFor="detail_work">作業詳細:</label>
         <textarea
           id="detail_work"
           name="detail_work"
-          value={data?.detail_work || ""}
+          value=""
           onChange={handleChange}
         />
       </div>
