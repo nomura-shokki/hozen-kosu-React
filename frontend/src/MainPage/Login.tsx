@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import logo from "../img/TitleRogo.png";
 import styles from "../styles/MainPage/Login.module.css";
 
 
 
 const Login: React.FC = () => {
-  const [employee_no, setNumber] = useState<string>('');
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [employee_no, setNumber] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setErrorMessage('');
+    setErrorMessage("");
 
     try {
       const response = await axios.post(
@@ -21,7 +21,7 @@ const Login: React.FC = () => {
         { employee_no: Number(employee_no) },
         {
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           withCredentials: true,
         }
@@ -29,14 +29,14 @@ const Login: React.FC = () => {
 
       const data = response.data;
 
-      if (data.status === 'success') {
-        navigate('/');
+      if (data.status === "success") {
+        navigate("/");
       } else {
-        setErrorMessage(data.message || 'サーバーエラーが発生しました。');
+        setErrorMessage(data.message || "サーバーエラーが発生しました。");
       }
     } catch (error: any) {
       setErrorMessage(
-        error.response?.data?.message || '通信エラーが発生しました。'
+        error.response?.data?.message || "通信エラーが発生しました。"
       );
     }
   };
@@ -54,7 +54,7 @@ const Login: React.FC = () => {
               value={employee_no}
               onChange={(e) => {
                 const value = e.target.value;
-                setNumber(value === '' ? '' : value);
+                setNumber(value === "" ? "" : value);
               }}
               required
               className={styles["input-focus"]}

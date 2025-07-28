@@ -1,7 +1,7 @@
-import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
-import axios from 'axios'; // HTTPクライアント
-import ShopSelect from '../components/ShopSelect'; // ショップ選択コンポーネント
-import { Link, useNavigate } from 'react-router-dom'; // 画面遷移に使用
+import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import axios from "axios"; // HTTPクライアント
+import ShopSelect from "../components/ShopSelect"; // ショップ選択コンポーネント
+import { Link, useNavigate } from "react-router-dom"; // 画面遷移に使用
 import styles from "../styles/MemberPage/MemberNew.module.css"; // CSSモジュール
 
 // フォームで取り扱うデータ型を定義
@@ -35,16 +35,6 @@ interface FormData {
   break_time6_over1: string;
   break_time6_over2: string;
   break_time6_over3: string;
-  pop_up1: string;
-  pop_up_id1: string;
-  pop_up2: string;
-  pop_up_id2: string;
-  pop_up3: string;
-  pop_up_id3: string;
-  pop_up4: string;
-  pop_up_id4: string;
-  pop_up5: string;
-  pop_up_id5: string;
   break_check: boolean;
   def_prediction: boolean;
 }
@@ -53,44 +43,34 @@ const MemberNew: React.FC = () => {
   // 初期フォーム値と状態管理
   const [formData, setFormData] = useState<FormData>({
     employee_no: 0,
-    name: '',
-    shop: '',
+    name: "",
+    shop: "",
     authority: false,
     administrator: false,
-    break_time1: '#00000000',
-    break_time1_over1: '#00000000',
-    break_time1_over2: '#00000000',
-    break_time1_over3: '#00000000',
-    break_time2: '#00000000',
-    break_time2_over1: '#00000000',
-    break_time2_over2: '#00000000',
-    break_time2_over3: '#00000000',
-    break_time3: '#00000000',
-    break_time3_over1: '#00000000',
-    break_time3_over2: '#00000000',
-    break_time3_over3: '#00000000',
-    break_time4: '#00000000',
-    break_time4_over1: '#00000000',
-    break_time4_over2: '#00000000',
-    break_time4_over3: '#00000000',
-    break_time5: '#00000000',
-    break_time5_over1: '#00000000',
-    break_time5_over2: '#00000000',
-    break_time5_over3: '#00000000',
-    break_time6: '#00000000',
-    break_time6_over1: '#00000000',
-    break_time6_over2: '#00000000',
-    break_time6_over3: '#00000000',
-    pop_up1: '',
-    pop_up_id1: '',
-    pop_up2: '',
-    pop_up_id2: '',
-    pop_up3: '',
-    pop_up_id3: '',
-    pop_up4: '',
-    pop_up_id4: '',
-    pop_up5: '',
-    pop_up_id5: '',
+    break_time1: "#00000000",
+    break_time1_over1: "#00000000",
+    break_time1_over2: "#00000000",
+    break_time1_over3: "#00000000",
+    break_time2: "#00000000",
+    break_time2_over1: "#00000000",
+    break_time2_over2: "#00000000",
+    break_time2_over3: "#00000000",
+    break_time3: "#00000000",
+    break_time3_over1: "#00000000",
+    break_time3_over2: "#00000000",
+    break_time3_over3: "#00000000",
+    break_time4: "#00000000",
+    break_time4_over1: "#00000000",
+    break_time4_over2: "#00000000",
+    break_time4_over3: "#00000000",
+    break_time5: "#00000000",
+    break_time5_over1: "#00000000",
+    break_time5_over2: "#00000000",
+    break_time5_over3: "#00000000",
+    break_time6: "#00000000",
+    break_time6_over1: "#00000000",
+    break_time6_over2: "#00000000",
+    break_time6_over3: "#00000000",
     break_check: false,
     def_prediction: false,
   });
@@ -108,11 +88,11 @@ const MemberNew: React.FC = () => {
       .catch((err) => {
         // 未認証や権限不足の場合のリダイレクト処理
         if (err.response?.status === 401) {
-          navigate('/login');
+          navigate("/login");
         } else if (err.response?.status === 403) {
-          navigate('/');
+          navigate("/");
         } else {
-          console.error('不明なエラー:', err);
+          console.error("不明なエラー:", err);
         }
       });
   }, [navigate]);
@@ -121,7 +101,7 @@ const MemberNew: React.FC = () => {
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = event.target;
 
-    if (type === 'checkbox') {
+    if (type === "checkbox") {
       // チェックボックスのときは checked を利用
       const { checked } = event.target as HTMLInputElement;
       setFormData((prev) => ({
@@ -145,49 +125,39 @@ const MemberNew: React.FC = () => {
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, formData, { withCredentials: true })
       .then((response) => {
-        alert('登録完了！');
+        alert("登録完了！");
 
         // フォームをリセット
         setFormData({
           employee_no: 0,
-          name: '',
-          shop: '',
+          name: "",
+          shop: "",
           authority: false,
           administrator: false,
-          break_time1: '#00000000',
-          break_time1_over1: '#00000000',
-          break_time1_over2: '#00000000',
-          break_time1_over3: '#00000000',
-          break_time2: '#00000000',
-          break_time2_over1: '#00000000',
-          break_time2_over2: '#00000000',
-          break_time2_over3: '#00000000',
-          break_time3: '#00000000',
-          break_time3_over1: '#00000000',
-          break_time3_over2: '#00000000',
-          break_time3_over3: '#00000000',
-          break_time4: '#00000000',
-          break_time4_over1: '#00000000',
-          break_time4_over2: '#00000000',
-          break_time4_over3: '#00000000',
-          break_time5: '#00000000',
-          break_time5_over1: '#00000000',
-          break_time5_over2: '#00000000',
-          break_time5_over3: '#00000000',
-          break_time6: '#00000000',
-          break_time6_over1: '#00000000',
-          break_time6_over2: '#00000000',
-          break_time6_over3: '#00000000',
-          pop_up1: '',
-          pop_up_id1: '',
-          pop_up2: '',
-          pop_up_id2: '',
-          pop_up3: '',
-          pop_up_id3: '',
-          pop_up4: '',
-          pop_up_id4: '',
-          pop_up5: '',
-          pop_up_id5: '',
+          break_time1: "#00000000",
+          break_time1_over1: "#00000000",
+          break_time1_over2: "#00000000",
+          break_time1_over3: "#00000000",
+          break_time2: "#00000000",
+          break_time2_over1: "#00000000",
+          break_time2_over2: "#00000000",
+          break_time2_over3: "#00000000",
+          break_time3: "#00000000",
+          break_time3_over1: "#00000000",
+          break_time3_over2: "#00000000",
+          break_time3_over3: "#00000000",
+          break_time4: "#00000000",
+          break_time4_over1: "#00000000",
+          break_time4_over2: "#00000000",
+          break_time4_over3: "#00000000",
+          break_time5: "#00000000",
+          break_time5_over1: "#00000000",
+          break_time5_over2: "#00000000",
+          break_time5_over3: "#00000000",
+          break_time6: "#00000000",
+          break_time6_over1: "#00000000",
+          break_time6_over2: "#00000000",
+          break_time6_over3: "#00000000",
           break_check: false,
           def_prediction: false,
         });
@@ -198,12 +168,11 @@ const MemberNew: React.FC = () => {
         if (error.response && error.response.data) {
           setErrorMessage(error.response.data.error);
         } else {
-          setErrorMessage('不明なエラーが発生しました。IT担当者に連絡してください。');
+          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
         }
       });
   };
 
-  // JSXによるUI描画
   return (
     <div className={styles["member-new-wrapper"]}>
       <h1 className={styles["h1-collar"]}>人員登録</h1>
@@ -218,7 +187,7 @@ const MemberNew: React.FC = () => {
       <form
         onSubmit={handleSubmit}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && e.target instanceof HTMLInputElement && e.target.type !== 'textarea') {
+          if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
             e.preventDefault();
             (e.target as HTMLInputElement).blur();
           }

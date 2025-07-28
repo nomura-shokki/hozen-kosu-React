@@ -2951,19 +2951,20 @@ class KosuNew(APIView):
 
     # 保存処理
     kosu_data.save()
-
     return Response({'status': 'success', 'message': 'データが更新されました。'})
 
 
 
+# 就業日切り替え処理
 class SetDay(APIView):
   def post(self, request, *args, **kwargs):
-    # Reactから送信されたデータを取得
-    day = request.data.get('day')  # 修正部分
+    # 就業日切り替え時に就業日取得、空の場合エラー出力
+    day = request.data.get('day', None)
     if not day:
-      return Response({'status': 'error', 'message': '就業日が未指定です。'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Djangoセッションに就業日を保存
-    request.session['day'] = str(day)
-    return Response({'status': 'success', 'message': '就業日がセッションに保存されました。'})
+      request.session['day'] = ""
+      return Response({'error': '就業日が未指定です。'},status=status.HTTP_400_BAD_REQUEST)
+    else:
+      # セッションに就業日保存
+      request.session['day'] = str(day)
+      return Response({'status': 'success', 'message': '就業日がセッションに保存されました。'})
 

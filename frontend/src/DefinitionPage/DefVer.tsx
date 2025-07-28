@@ -1,6 +1,6 @@
-import React, { useState, FormEvent, useEffect } from 'react';
-import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, FormEvent, useEffect } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/DefinitionPage/DefVer.module.css";
 
 
@@ -25,8 +25,8 @@ const DefVer: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [choices, setChoices] = useState<DefData[]>([]);
-  const [currentVersion, setCurrentVersion] = useState<string>('');
-  const [selectedVersion, setSelectedVersion] = useState<string>('');
+  const [currentVersion, setCurrentVersion] = useState<string>("");
+  const [selectedVersion, setSelectedVersion] = useState<string>("");
 
   // 初回マウント時に API からデータ取得
   useEffect(() => {
@@ -42,7 +42,7 @@ const DefVer: React.FC = () => {
       })
       .catch((err) => {
         if (err.response?.status === 401) {
-          navigate('/login');
+          navigate("/login");
         } else {
           setError(err.message);
         }
@@ -61,14 +61,14 @@ const DefVer: React.FC = () => {
       )
       .then(() => {
         setCurrentVersion(selectedVersion);
-        alert('切り替え完了！');
+        alert("切り替え完了！");
       })
       .catch((error) => {
         console.error(error);
         if (error.response && error.response.data) {
           setErrorMessage(error.response.data.error);
         } else {
-          setErrorMessage('不明なエラーが発生しました。IT担当者に連絡してください。');
+          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
         }
       });
   };

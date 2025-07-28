@@ -1,7 +1,7 @@
 // 必要なReact hooksやライブラリをインポート
-import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
-import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/DefinitionPage/DefNew.module.css";
 
 // 単一の工数定義ブロック（タイトル、定義1、定義2）用の型
@@ -33,11 +33,11 @@ const DefNew: React.FC = () => {
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, { withCredentials: true })
       .catch((err) => {
         if (err.response?.status === 401) {
-          navigate('/login'); // 未ログイン時
+          navigate("/login"); // 未ログイン時
         } else if (err.response?.status === 403) {
-          navigate('/'); // 権限なしの場合トップページへ
+          navigate("/"); // 権限なしの場合トップページへ
         } else {
-          console.error('不明なエラー:', err); // その他例外
+          console.error("不明なエラー:", err); // その他例外
         }
       });
   }, [navigate]);
@@ -100,7 +100,7 @@ const DefNew: React.FC = () => {
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, convertedData, { withCredentials: true })
       .then(() => {
-        alert('登録完了！'); // 成功時の通知
+        alert("登録完了！"); // 成功時の通知
         // 初期状態にリセット
         setFormData({
           kosu_name: "",
@@ -110,9 +110,9 @@ const DefNew: React.FC = () => {
       .catch((error) => {
         console.error(error);
         if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.error); // APIからのエラーメッセージ
+          setErrorMessage(error.response.data.error);
         } else {
-          setErrorMessage('不明なエラーが発生しました。IT担当者に連絡してください。'); // 汎用エラー
+          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
         }
       });
   };
@@ -134,7 +134,7 @@ const DefNew: React.FC = () => {
         onSubmit={handleSubmit}
         // Enterキー誤送信防止（テキストエリア以外での送信ブロック）
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && e.target instanceof HTMLInputElement && e.target.type !== 'textarea') {
+          if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
             e.preventDefault();
             (e.target as HTMLInputElement).blur();
           }

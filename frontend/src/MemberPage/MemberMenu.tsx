@@ -21,7 +21,7 @@ const MemberMenu: React.FC = () => {
           if (err.response?.status === 401) {
             navigate("/login");
           } else if (err.response?.status === 403) {
-            navigate('/');
+            navigate("/");
           } else {
             setError(err.message);
           }

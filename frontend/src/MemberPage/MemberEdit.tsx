@@ -2,7 +2,7 @@ import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../components/Loading";
-import ShopSelect from '../components/ShopSelect'; 
+import ShopSelect from "../components/ShopSelect"; 
 import styles from "../styles/MemberPage/MemberEdit.module.css"; 
 
 // サーバーから取得・送信される人員データの型定義
@@ -76,7 +76,7 @@ const MemberEdit: React.FC = () => {
         if (err.response?.status === 401) {
           navigate("/login"); // 認証なし → ログインページへ
         } else if (err.response?.status === 403) {
-          navigate('/'); // 権限なし → ホームへ
+          navigate("/"); // 権限なし → ホームへ
         } else {
           setError(err.message); // その他のエラーをステートに格納
         }
@@ -106,7 +106,7 @@ const MemberEdit: React.FC = () => {
     const { name, value, type } = event.target;
 
     // チェックボックス（boolean）の場合と、それ以外で処理を分ける
-    if (type === 'checkbox') {
+    if (type === "checkbox") {
       const { checked } = event.target as HTMLInputElement;
       setFormData((prev) => {
         if (!prev) return prev;
@@ -142,7 +142,7 @@ const MemberEdit: React.FC = () => {
         if (error.response && error.response.data) {
           setErrorMessage(error.response.data.error);
         } else {
-          setErrorMessage('不明なエラーが発生しました。IT担当者に連絡してください。');
+          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
         }
       });
   };

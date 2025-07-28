@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import Loading from "../components/Loading";
 import TyokuSelect from "../components/TyokuSelect";
+import WorkSelect from "../components/WorkSelect";
 import DefSelect from "../components/DefSelect";
 import styles from "../styles/KosuPage/KosuNew.module.css";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -111,20 +112,19 @@ const KosuNew: React.FC = () => {
         axios
           .post(
             `${process.env.REACT_APP_API_BASE_URL}/api/set_day/`,
-            { day: value },
+            { day: value || "" },
             { withCredentials: true }
           )
           .then(() => {
-            console.log("就業日がセッションに保存されました:", value);
-            fetchData();
+            if (value) fetchData();
           })
           .catch((error) => {
-            console.error("就業日更新エラー:", error);
-          
+            console.error("エラーが発生しました:", error);
+
             if (error.response && error.response.data && error.response.data.error) {
-              setErrorMessage(error.response.data.error);
+              setErrorMessage(error.response.data.error); 
             } else {
-              setErrorMessage("就業日の設定に失敗しました。");
+              setErrorMessage("日付切り替えで想定外のエラーが発生しました。");
             }
           });
       }
@@ -143,7 +143,6 @@ const KosuNew: React.FC = () => {
     event.preventDefault();
     if (!data) return;
 
-    // 各時間を ISOフォーマット文字列に変換してデータに追加
     const formattedTime1 = selectedTime1?.toISOString();
     const formattedTime2 = selectedTime2?.toISOString();
 
@@ -153,7 +152,6 @@ const KosuNew: React.FC = () => {
       time2: formattedTime2,
     };
 
-    // POSTの成功時にキャッシュの更新を実施
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, updatedData, { withCredentials: true })
       .then(() => {
@@ -172,7 +170,6 @@ const KosuNew: React.FC = () => {
           time_work: "",
           detail_work: "",
           over_time: 0,
-          work_time: "",
           judgement: false,
           break_change: false,
         });
@@ -189,90 +186,94 @@ const KosuNew: React.FC = () => {
       });
   };
 
-  if (loading) return <Loading isLoading={loading} />;
-  if (errorMessage) return <div>{errorMessage}</div>;
-
   return (
-    <form onSubmit={handleSubmit} className={styles["kosu-form"]}>
+    <>
+      <Loading isLoading={loading} />
+      <form onSubmit={handleSubmit} className={styles["kosu-form"]}>
 
-      <h1 className={styles["h1-collar"]}>{memberName}の工数入力</h1>
-      <nav className={styles["kosu-nav"]}>
-        <Link to="/kosu-menu">工数MENU</Link>
-      </nav>
+        <h1 className={styles["h1-collar"]}>{memberName}の工数入力</h1>
+        <nav className={styles["kosu-nav"]}>
+          <Link to="/kosu-menu">工数MENU</Link>
+        </nav>
 
-      {errorMessage && (
-        <div role="alert">{errorMessage}</div>
-      )}
+        {errorMessage && (
+          <div role="alert">{errorMessage}</div>
+        )}
 
-      <div>
-        <label htmlFor="work_day2">就業日:</label>
-        <input
-          type="date"
-          id="work_day2"
-          name="work_day2"
-          value={data?.work_day2 || ""}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <label htmlFor="tyoku2">直:</label>
-        <TyokuSelect value={data?.tyoku2 || ""} onChange={handleChange} />
-      </div>
-      <div>
-        <label htmlFor="time_work">作業内容:</label>
-        <DefSelect value="" onChange={handleChange} defData={defData} />
-      </div>
-      <div>
-        <label htmlFor="detail_work">作業詳細:</label>
-        <textarea
-          id="detail_work"
-          name="detail_work"
-          value=""
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <label htmlFor="over_time">残業時間:</label>
-        <input
-          type="number"
-          id="over_time"
-          name="over_time"
-          value={data?.over_time || 0}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <label htmlFor="time1">開始時間:</label>
-          <MobileTimePicker
-            value={selectedTime1}
-            onChange={handleTimeChange1}
-            ampm={false}
-            minutesStep={5}
-            onAccept={() => {
-              const rootElement = document.getElementById("root");
-              if (rootElement) rootElement.removeAttribute("aria-hidden");
-            }}
+        <div>
+          <label htmlFor="work_day2">就業日:</label>
+          <input
+            type="date"
+            id="work_day2"
+            name="work_day2"
+            value={data?.work_day2 || ""}
+            onChange={handleChange}
           />
-        </LocalizationProvider>
-      </div>
-      <div>
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <label htmlFor="time2">終了時間:</label>
-          <MobileTimePicker
-            value={selectedTime2}
-            onChange={handleTimeChange2}
-            ampm={false}
-            minutesStep={5}
-            onAccept={() => {
-              const rootElement = document.getElementById("root");
-              if (rootElement) rootElement.removeAttribute("aria-hidden");
-            }}
+        </div>
+        <div>
+          <label htmlFor="work_time">勤務:</label>
+          <WorkSelect value={data?.work_time || ""} onChange={handleChange} />
+        </div>
+        <div>
+          <label htmlFor="tyoku2">直:</label>
+          <TyokuSelect value={data?.tyoku2 || ""} onChange={handleChange} />
+        </div>
+        <div>
+          <label htmlFor="time_work">作業内容:</label>
+          <DefSelect value="" onChange={handleChange} defData={defData} />
+        </div>
+        <div>
+          <label htmlFor="detail_work">作業詳細:</label>
+          <textarea
+            id="detail_work"
+            name="detail_work"
+            value=""
+            onChange={handleChange}
           />
-        </LocalizationProvider>
-      </div>
-      <button type="submit">更新</button>
-    </form>
+        </div>
+        <div>
+          <label htmlFor="over_time">残業時間:</label>
+          <input
+            type="number"
+            id="over_time"
+            name="over_time"
+            value={data?.over_time || 0}
+            onChange={handleChange}
+          />
+        </div>
+        <div>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <label htmlFor="time1">開始時間:</label>
+            <MobileTimePicker
+              value={selectedTime1}
+              onChange={handleTimeChange1}
+              ampm={false}
+              minutesStep={5}
+              onAccept={() => {
+                const rootElement = document.getElementById("root");
+                if (rootElement) rootElement.removeAttribute("aria-hidden");
+              }}
+            />
+          </LocalizationProvider>
+        </div>
+        <div>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <label htmlFor="time2">終了時間:</label>
+            <MobileTimePicker
+              value={selectedTime2}
+              onChange={handleTimeChange2}
+              ampm={false}
+              minutesStep={5}
+              onAccept={() => {
+                const rootElement = document.getElementById("root");
+                if (rootElement) rootElement.removeAttribute("aria-hidden");
+              }}
+            />
+          </LocalizationProvider>
+        </div>
+        <button type="submit">更新</button>
+      </form>
+    </>
   );
 };
 

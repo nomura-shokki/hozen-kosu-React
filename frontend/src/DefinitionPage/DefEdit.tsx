@@ -1,7 +1,7 @@
 // 必要なライブラリとコンポーネントのインポート
-import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
-import axios from 'axios';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import axios from "axios";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Loading from "../components/Loading";
 import styles from "../styles/DefinitionPage/DefEdit.module.css";
 
