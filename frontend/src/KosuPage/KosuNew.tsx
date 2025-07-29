@@ -163,6 +163,11 @@ const KosuNew: React.FC = () => {
         return;
       }
     }
+    if (selectedTime1 && selectedTime2 && selectedTime1 < selectedTime2 && isTomorrowChecked) {
+      setErrorMessage("1日以上の工数は入力できません。誤って翌日チェックを入れていませんか？");
+      return;
+    }
+
     const updatedData = {
       ...data,
       time1: formattedTime1,
