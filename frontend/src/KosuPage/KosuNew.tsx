@@ -145,7 +145,24 @@ const KosuNew: React.FC = () => {
 
     const formattedTime1 = selectedTime1?.toISOString();
     const formattedTime2 = selectedTime2?.toISOString();
+    const isTomorrowChecked = (document.getElementById("tomorrow_check") as HTMLInputElement)?.checked;
 
+    if (formattedTime1 === formattedTime2) {
+      setErrorMessage("作業時間が誤っています。確認して下さい。");
+      return;
+    }
+    if (selectedTime1 && selectedTime2 && selectedTime1 > selectedTime2 && !isTomorrowChecked) {
+      setErrorMessage("作業開始時間が終了時間を越えています。翌日チェックを忘れていませんか？");
+      return;
+    }
+    if (selectedTime1 && selectedTime2) {
+      const timeDifference = Math.abs(selectedTime2.getTime() - selectedTime1.getTime());
+      const hoursDifference = timeDifference / (1000 * 60 * 60);
+      if (hoursDifference > 21) {
+        setErrorMessage("作業時間が21時間を超えています。入力できません。");
+        return;
+      }
+    }
     const updatedData = {
       ...data,
       time1: formattedTime1,

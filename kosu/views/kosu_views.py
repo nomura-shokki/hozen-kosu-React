@@ -2944,17 +2944,9 @@ class KosuNew(APIView):
     start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
     end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
 
-    # 作業開始時間が作業終了時間より遅い場合のリダイレクト
-    if start_time_ind > end_time_ind and check == 0:
-      return Response({'error': '作業開始時間が終了時間を越えています。翌日チェックを忘れていませんか？'},status=status.HTTP_400_BAD_REQUEST)
-
     # 1日以上の工数が入力された場合リダイレクト
     if start_time_ind <= end_time_ind and check == 1:
       return Response({'error': '1日以上の工数は入力できません。誤って翌日チェックを入れていませんか？'},status=status.HTTP_400_BAD_REQUEST)
-
-    # 入力時間が21時間を超える場合リダイレクト
-    if ((end_time_ind + 36) >= start_time_ind and check == 1) or ((end_time_ind - 252) >= start_time_ind and check == 0):
-      return Response({'error': '作業時間が21時間を超えています。入力できません。'},status=status.HTTP_400_BAD_REQUEST)
 
     obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
 
