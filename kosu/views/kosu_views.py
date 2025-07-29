@@ -2924,9 +2924,16 @@ class KosuNew(APIView):
     # work_day2 を React から送信されたデータから取得
     day = post_data.get('work_day2')
     if not day:
-      return Response({'status': 'error', 'message': '就業日が未指定です。'}, status=status.HTTP_400_BAD_REQUEST)
+      request.session['day'] = ""
+      return Response({'error': '就業日が未指定です。'},status=status.HTTP_400_BAD_REQUEST)
     else:
-      request.session['day'] = str(day)  # セッションに保存
+      request.session['day'] = str(day)
+
+    if not post_data.get('time1') or not post_data.get('time2'):
+      return Response({'error': '作業時間に空欄があります。'},status=status.HTTP_400_BAD_REQUEST)
+
+    print(post_data.get('time1'))
+    print(type(post_data.get('time1')))
 
     # kosu_dataの取得または新規作成
     kosu_data, created = Business_Time_graph.objects.get_or_create(
@@ -2948,6 +2955,8 @@ class KosuNew(APIView):
     for field in updatable_fields:
       if field in post_data:
         setattr(kosu_data, field, post_data[field])
+
+    kosu_data.time_work = "トライ"
 
     # 保存処理
     kosu_data.save()

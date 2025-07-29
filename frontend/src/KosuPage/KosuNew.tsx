@@ -143,8 +143,12 @@ const KosuNew: React.FC = () => {
     event.preventDefault();
     if (!data) return;
 
-    const formattedTime1 = selectedTime1?.toISOString();
-    const formattedTime2 = selectedTime2?.toISOString();
+    const formatTime = (date: Date | null): string | null => {
+        return date ? `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}` : null;
+    };
+
+    const formattedTime1 = formatTime(selectedTime1);
+    const formattedTime2 = formatTime(selectedTime2);
 
     const updatedData = {
       ...data,
@@ -158,18 +162,17 @@ const KosuNew: React.FC = () => {
         alert("更新が成功しました！");
         updateCachedTimes(selectedTime1, selectedTime2);
 
-        if (formattedTime2) {
-          setSelectedTime1(new Date(formattedTime2));
-          setSelectedTime2(roundToNearestFiveMinutes(new Date(formattedTime2)));
-          localStorage.setItem("time1", formattedTime2);
-          localStorage.setItem("time2", formattedTime2);
+        if (selectedTime2) {
+          setSelectedTime1(selectedTime2);
+          setSelectedTime2(roundToNearestFiveMinutes(selectedTime2));
+          localStorage.setItem("time1", formattedTime2 || "");
+          localStorage.setItem("time2", formattedTime2 || "");
         }
 
         setData({
           ...data,
           time_work: "",
           detail_work: "",
-          over_time: 0,
           judgement: false,
           break_change: false,
         });
@@ -177,7 +180,7 @@ const KosuNew: React.FC = () => {
       })
       .catch((error) => {
         console.error("更新エラー:", error);
-      
+
         if (error.response && error.response.data && error.response.data.error) {
           setErrorMessage(error.response.data.error);
         } else {
@@ -270,6 +273,15 @@ const KosuNew: React.FC = () => {
               }}
             />
           </LocalizationProvider>
+        </div>
+        <div>
+          <label htmlFor="tomorrow_check"></label>
+          <input
+            type="checkbox"
+            id="tomorrow_check"
+            name="tomorrow_check"
+            onChange={handleChange}
+          />
         </div>
         <button type="submit">更新</button>
       </form>
