@@ -2820,7 +2820,9 @@ from rest_framework import status
 from .serializers import MemberSerializer, DefSerializer, KosuSerializer
 from rest_framework.decorators import api_view
 from ..utils.main_utils import CustomPagination
-
+from ..utils.kosu_utils import time_index
+import datetime
+import itertools
 
 
 class KosuList(APIView):
@@ -2917,11 +2919,8 @@ class KosuNew(APIView):
 
   def post(self, request, *args, **kwargs):
     login_no = request.session.get('login_No')
-
-    # Reactから送信されたデータを取得
     post_data = request.data
 
-    # work_day2 を React から送信されたデータから取得
     day = post_data.get('work_day2')
     if not day:
       request.session['day'] = ""
@@ -2932,8 +2931,39 @@ class KosuNew(APIView):
     if not post_data.get('time1') or not post_data.get('time2'):
       return Response({'error': '作業時間に空欄があります。'},status=status.HTTP_400_BAD_REQUEST)
 
-    print(post_data.get('time1'))
-    print(type(post_data.get('time1')))
+    check = 1 if 'tomorrow_check' in post_data else 0
+    jst = datetime.timezone(datetime.timedelta(hours=9))
+    start_time = datetime.datetime.strptime(post_data.get('time1'), "%Y-%m-%dT%H:%M:%S.%fZ")
+    end_time = datetime.datetime.strptime(post_data.get('time2'), "%Y-%m-%dT%H:%M:%S.%fZ")
+    start_time = start_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
+    end_time = end_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
+    start_time = start_time.strftime("%H:%M")
+    end_time = end_time.strftime("%H:%M")
+    start_time_hour, start_time_min = time_index(start_time)
+    end_time_hour, end_time_min = time_index(end_time)
+    start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
+    end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
+
+    # 作業開始時間が作業終了時間より遅い場合のリダイレクト
+    if start_time_ind > end_time_ind and check == 0:
+      return Response({'error': '作業開始時間が終了時間を越えています。翌日チェックを忘れていませんか？'},status=status.HTTP_400_BAD_REQUEST)
+
+    # 1日以上の工数が入力された場合リダイレクト
+    if start_time_ind <= end_time_ind and check == 1:
+      return Response({'error': '1日以上の工数は入力できません。誤って翌日チェックを入れていませんか？'},status=status.HTTP_400_BAD_REQUEST)
+
+    # 入力時間が21時間を超える場合リダイレクト
+    if ((end_time_ind + 36) >= start_time_ind and check == 1) or ((end_time_ind - 252) >= start_time_ind and check == 0):
+      return Response({'error': '作業時間が21時間を超えています。入力できません。'},status=status.HTTP_400_BAD_REQUEST)
+
+    obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+
+    # 工数データ取得しリスト化
+    obj = obj_filter.first() if obj_filter.exists() else None
+    work_list, detail_list = (
+      (list(obj.time_work), obj.detail_work.split('$'))
+      if obj else (list(itertools.repeat('#', 288)), list(itertools.repeat('', 288)))
+    )
 
     # kosu_dataの取得または新規作成
     kosu_data, created = Business_Time_graph.objects.get_or_create(
