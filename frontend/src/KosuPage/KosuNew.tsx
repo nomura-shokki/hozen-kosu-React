@@ -40,6 +40,7 @@ const KosuNew: React.FC = () => {
   const [defData, setDefData] = useState<DefData>({});
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [memberName, setMemberName] = useState<string>("");
 
   const [selectedTime1, setSelectedTime1] = useState<Date | null>(() => {
@@ -66,6 +67,11 @@ const KosuNew: React.FC = () => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, { withCredentials: true })
       .then((response) => {
+        if (response.data.warning) {
+          setWarningMessage(response.data.warning); // 警告メッセージを状態に設定
+        } else {
+          setWarningMessage(null); // 警告がなければリセット
+        }
         const kosu_data = response.data.kosu_data || {
           employee_no3: 0,
           work_day2: "",
@@ -249,6 +255,10 @@ const KosuNew: React.FC = () => {
         <nav className={styles["kosu-nav"]}>
           <Link to="/kosu-menu">工数MENU</Link>
         </nav>
+
+        {warningMessage && (
+          <div role="alert">{warningMessage}</div>
+        )}
 
         {errorMessage && (
           <div role="alert">{errorMessage}</div>

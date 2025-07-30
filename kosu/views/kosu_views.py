@@ -2904,6 +2904,13 @@ class KosuNew(APIView):
       return Response({'error': '複数の工数区分データが存在します'}, status=status.HTTP_400_BAD_REQUEST)
     def_data = def_query_set.first()
 
+    # kosu_division の最新データを取得して比較
+    def_new_obj = kosu_division.objects.order_by('-id').first()
+    warning_message = None
+
+    if def_new_obj and def_new_obj.kosu_name != def_ver:
+      warning_message = f"警告: 設定されている工数区分定義は最新の工数区分定義ではありません。任意に過去の工数入力する以外の場合は工数区分定義を最新のものにして工数入力を実施してください。"
+
     # シリアライザーによるシリアライズ処理
     member_serializer = MemberSerializer(member_data, many=False)
     kosu_serializer = KosuSerializer(kosu_data, many=False)
@@ -2917,6 +2924,9 @@ class KosuNew(APIView):
       'session_day': day,
       'session_def': def_ver,
     }
+    if warning_message:
+      response_data['warning'] = warning_message
+
     return Response(response_data)
 
   def post(self, request, *args, **kwargs):
