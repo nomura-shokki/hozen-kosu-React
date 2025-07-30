@@ -147,6 +147,11 @@ const KosuNew: React.FC = () => {
     const formattedTime2 = selectedTime2?.toISOString();
     const isTomorrowChecked = (document.getElementById("tomorrow_check") as HTMLInputElement)?.checked;
 
+    if (!data.work_time || !data.tyoku2 || !data.time_work || !formattedTime1 || !formattedTime2) {
+      setErrorMessage("入力必要項目が入力されていません");
+      return;
+    }
+
     if (formattedTime1 === formattedTime2) {
       setErrorMessage("作業時間が誤っています。確認して下さい。");
       return;
@@ -242,14 +247,14 @@ const KosuNew: React.FC = () => {
         </div>
         <div>
           <label htmlFor="time_work">作業内容:</label>
-          <DefSelect value="" onChange={handleChange} defData={defData} />
+          <DefSelect value={data?.time_work || ""} onChange={handleChange} defData={defData} />
         </div>
         <div>
           <label htmlFor="detail_work">作業詳細:</label>
           <textarea
             id="detail_work"
             name="detail_work"
-            value=""
+            value={data?.detail_work || ""}
             onChange={handleChange}
           />
         </div>
