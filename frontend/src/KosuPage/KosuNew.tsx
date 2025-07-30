@@ -18,6 +18,7 @@ interface Kosu {
   detail_work: string;
   over_time: number;
   work_time: string;
+  def_ver2: string;
   judgement: boolean;
   break_change: boolean;
 }
@@ -96,7 +97,12 @@ const KosuNew: React.FC = () => {
       })
       .catch((error) => {
         console.error("データ取得エラー:", error);
-        setErrorMessage("データの取得に失敗しました。");
+
+        if (error.response && error.response.data && error.response.data.error) {
+          setErrorMessage(error.response.data.error);
+        } else {
+          setErrorMessage("データの取得で想定外のエラーが発生しました。");
+        }
         setLoading(false);
       });
   };
@@ -222,6 +228,18 @@ const KosuNew: React.FC = () => {
       });
   };
 
+  const handleIncrement = (field: keyof Kosu) => {
+    if (data) {
+      setData({ ...data, [field]: (data[field] as number || 0) + 15 });
+    }
+  };
+  
+  const handleDecrement = (field: keyof Kosu) => {
+    if (data) {
+      setData({ ...data, [field]: (data[field] as number || 0) - 15 });
+    }
+  }; 
+
   return (
     <>
       <Loading isLoading={loading} />
@@ -269,6 +287,13 @@ const KosuNew: React.FC = () => {
         </div>
         <div>
           <label htmlFor="over_time">残業時間:</label>
+          <button
+            type="button"
+            className={styles["custom-button"]}
+            onClick={() => handleIncrement("over_time")}
+          >
+            +
+          </button>
           <input
             type="number"
             id="over_time"
@@ -276,6 +301,13 @@ const KosuNew: React.FC = () => {
             value={data?.over_time || 0}
             onChange={handleChange}
           />
+          <button
+            type="button"
+            className={styles["custom-button"]}
+            onClick={() => handleDecrement("over_time")}
+          >
+            -
+          </button>
         </div>
         <div>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
