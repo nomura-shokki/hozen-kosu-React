@@ -146,6 +146,7 @@ const KosuNew: React.FC = () => {
     const formattedTime1 = selectedTime1?.toISOString();
     const formattedTime2 = selectedTime2?.toISOString();
     const isTomorrowChecked = (document.getElementById("tomorrow_check") as HTMLInputElement)?.checked;
+    const overTime = data.over_time || 0;
 
     if (!data.work_time || !data.tyoku2 || !data.time_work || !formattedTime1 || !formattedTime2) {
       setErrorMessage("入力必要項目が入力されていません");
@@ -170,6 +171,14 @@ const KosuNew: React.FC = () => {
     }
     if (selectedTime1 && selectedTime2 && selectedTime1 < selectedTime2 && isTomorrowChecked) {
       setErrorMessage("1日以上の工数は入力できません。誤って翌日チェックを入れていませんか？");
+      return;
+    }
+    if (data.work_time !== "休出" && overTime % 15 !== 0) {
+      setErrorMessage("残業の最小単位は15分です。確認してください。");
+      return;
+    }
+    if (data.work_time === "休出" && overTime % 5 !== 0) {
+      setErrorMessage("休出時の残業は(15n+5)分です。確認してください。");
       return;
     }
 

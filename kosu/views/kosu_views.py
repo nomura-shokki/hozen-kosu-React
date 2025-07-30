@@ -2928,9 +2928,6 @@ class KosuNew(APIView):
     else:
       request.session['day'] = str(day)
 
-    if not post_data.get('time1') or not post_data.get('time2'):
-      return Response({'error': '作業時間に空欄があります。'},status=status.HTTP_400_BAD_REQUEST)
-
     check = 1 if 'tomorrow_check' in post_data else 0
     jst = datetime.timezone(datetime.timedelta(hours=9))
     start_time = datetime.datetime.strptime(post_data.get('time1'), "%Y-%m-%dT%H:%M:%S.%fZ")
