@@ -2873,9 +2873,9 @@ class KosuNew(APIView):
     def_ver = request.session.get('input_def')
 
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # セッション 'day' の処理と初期値設定
     day = request.session.get('day')
@@ -2886,23 +2886,23 @@ class KosuNew(APIView):
     # member_data の取得
     member_query_set = member.objects.filter(employee_no=login_no)
     if not member_query_set.exists():
-      return Response({'error': 'メンバーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
     elif member_query_set.count() > 1:
-      return Response({'error': '複数のメンバーが存在します'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     member_data = member_query_set.first()
 
     # kosu_data の取得
     kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
     if kosu_query_set.count() > 1:
-      return Response({'error': '複数の工数データが存在します'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'error': '複数の工数データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     kosu_data = kosu_query_set.first()
 
     # def_data の取得
     def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
     if not def_query_set.exists():
-      return Response({'error': '工数区分データが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
     elif def_query_set.count() > 1:
-      return Response({'error': '複数の工数区分データが存在します'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     def_data = def_query_set.first()
 
     # kosu_division の最新データを取得して比較
@@ -3008,8 +3008,7 @@ class KosuNew(APIView):
           if work_list[bt] != '#':
             # 作業内容リストが休憩でない場合の処理
             if work_list[bt] != '$':
-              # えらー出す
-              return work_list, detail_list
+              return Response({'error': '休憩時間に工数を入力できません。休憩変更するor休憩エラー無効で入力できます。'},status=status.HTTP_400_BAD_REQUEST)
 
         # ユーザーが休憩エラー有効チェックOFFの場合の処理   
         else:
