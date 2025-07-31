@@ -162,44 +162,44 @@ const KosuNew: React.FC = () => {
     const overTime = data.over_time || 0;
 
     if (!data.work_time || !data.tyoku2 || !data.time_work || !formattedTime1 || !formattedTime2) {
-      setErrorMessage("入力必要項目が入力されていません");
+      setErrorMessage("入力必要項目が入力されていません。");
       return;
     }
 
     if (formattedTime1 === formattedTime2) {
-      setErrorMessage("作業時間が誤っています確認して下さい");
+      setErrorMessage("作業時間が誤っています確認して下さい。");
       return;
     }
     if (selectedTime1 && selectedTime2 && selectedTime1 > selectedTime2 && !isTomorrowChecked) {
-      setErrorMessage("作業開始時間が終了時間を越えています　翌日チェックを忘れていませんか？");
+      setErrorMessage("作業開始時間が終了時間を越えています。翌日チェックを忘れていませんか？");
       return;
     }
     if (selectedTime1 && selectedTime2) {
       const timeDifference = Math.abs(selectedTime2.getTime() - selectedTime1.getTime());
       const hoursDifference = timeDifference / (1000 * 60 * 60);
       if (hoursDifference > 21) {
-        setErrorMessage("作業時間が21時間を超えています　入力できません");
+        setErrorMessage("作業時間が21時間を超えています。入力できません。");
         return;
       }
     }
     if (selectedTime1 && selectedTime2 && selectedTime1 < selectedTime2 && isTomorrowChecked) {
-      setErrorMessage("1日以上の工数は入力できません　誤って翌日チェックを入れていませんか？");
+      setErrorMessage("1日以上の工数は入力できません。誤って翌日チェックを入れていませんか？");
       return;
     }
     if (data.work_time !== "休出" && overTime % 15 !== 0) {
-      setErrorMessage("残業の最小単位は15分です　確認してください");
+      setErrorMessage("残業の最小単位は15分です。確認してください。");
       return;
     }
     if (data.work_time === "休出" && overTime % 5 !== 0) {
-      setErrorMessage("休出時の残業は(15n+5)分です　確認してください");
+      setErrorMessage("休出時の残業は(15n+5)分です。確認してください。");
       return;
     }
     if (data.detail_work && data.detail_work.length > 100) {
-      setErrorMessage("作業詳細は100文字以内にしてください");
+      setErrorMessage("作業詳細は100文字以内にしてください。");
       return;
     }
     if (data.detail_work.includes("$")) {
-      setErrorMessage("作業詳細に『$』は使用できません");
+      setErrorMessage("作業詳細に『$』は使用できません。");
       return;
     }
 
@@ -240,7 +240,7 @@ const KosuNew: React.FC = () => {
         if (error.response && error.response.data && error.response.data.error) {
           setErrorMessage(error.response.data.error);
         } else {
-          setErrorMessage("更新に失敗しました　再試行してください");
+          setErrorMessage("更新に失敗しました。再試行してください。");
         }
       });
   };
