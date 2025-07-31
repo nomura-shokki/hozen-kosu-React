@@ -2967,20 +2967,29 @@ class KosuNew(APIView):
     if obj.def_ver2 and obj.def_ver2 != def_ver:
       return Response({'error': '指定就業日を入力している工数定義区分と使用しようとしている工数定義区分が違います。'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # 工数データに休憩時間データ無いか直が変更されている場合の処理
-    if obj.breaktime in [None, ""] or obj.breaktime_over1 in [None, ""] or \
-      obj.breaktime_over2 in [None, ""] or obj.breaktime_over3 in [None, ""] or \
-        obj.tyoku2 != tyoku:
-      # 休憩時間取得
-      breaktime, breaktime_over1, breaktime_over2, breaktime_over3 = break_get(tyoku, request)
+    if obj_filter.exists():
+      # 工数データに休憩時間データ無いか直が変更されている場合の処理
+      if obj.breaktime in [None, ""] or obj.breaktime_over1 in [None, ""] or \
+        obj.breaktime_over2 in [None, ""] or obj.breaktime_over3 in [None, ""] or \
+          obj.tyoku2 != tyoku:
+        # 休憩時間取得
+        breaktime, breaktime_over1, breaktime_over2, breaktime_over3 = break_get(tyoku, request)
 
-    # 工数データに休憩時間データある場合の処理
-    else:
-      # 休憩時間取得
-      breaktime = obj.breaktime
-      breaktime_over1 = obj.breaktime_over1
-      breaktime_over2 = obj.breaktime_over2
-      breaktime_over3 = obj.breaktime_over3
+      # 工数データに休憩時間データある場合の処理
+      else:
+        # 休憩時間取得
+        breaktime = obj.breaktime
+        breaktime_over1 = obj.breaktime_over1
+        breaktime_over2 = obj.breaktime_over2
+        breaktime_over3 = obj.breaktime_over3
+
+      # 工数に被りがないかチェック
+      ranges = [(start_time_ind, end_time_ind)] if check == 0 else [(start_time_ind, 288), (0, end_time_ind)]
+
+
+
+
+
 
     # kosu_dataの取得または新規作成
     kosu_data, created = Business_Time_graph.objects.get_or_create(
