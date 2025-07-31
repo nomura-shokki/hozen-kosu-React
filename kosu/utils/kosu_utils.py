@@ -3,6 +3,7 @@ from ..models import member
 from ..models import kosu_division
 from django.contrib import messages
 from django.shortcuts import redirect
+from rest_framework.response import Response
 import datetime
 import itertools
 from .main_utils import history_record
@@ -326,13 +327,13 @@ def break_time_process(breaktime_str):
 
 
 # 工数書き込み関数
-def kosu_write(start_ind, end_ind, kosu_def, detail_list, request):
+def kosu_write(start_ind, end_ind, kosu_def, detail_list, post_data):
   # 作業内容と作業詳細を書き込むループ
   for kosu in range(start_ind, end_ind):
     # 作業内容リストに入力された工数定義区分の対応する記号を入れる
-    kosu_def[kosu] = request.POST['kosu_def_list']
+    kosu_def[kosu] = post_data.get('time_work')
     # 作業詳細リストに入力した作業詳細を入れる
-    detail_list[kosu] = request.POST['work_detail']
+    detail_list[kosu] = post_data.get('detail_work')
 
   return kosu_def, detail_list
 
@@ -347,7 +348,7 @@ def kosu_write(start_ind, end_ind, kosu_def, detail_list, request):
 
 
 # 休憩範囲工数削除関数
-def break_time_delete(break_start_ind, break_end_ind, kosu_def, detail_list, member_obj, request):
+def break_time_delete(break_start_ind, break_end_ind, kosu_def, detail_list, member_obj):
   # 休憩時間ループ
   for bt in range(int(break_start_ind), int(break_end_ind)):
     # ユーザーが休憩エラー有効チェックONの場合の処理
@@ -356,8 +357,6 @@ def break_time_delete(break_start_ind, break_end_ind, kosu_def, detail_list, mem
       if kosu_def[bt] != '#':
         # 作業内容リストが休憩でない場合の処理
         if kosu_def[bt] != '$':
-          # エラーメッセージ出力
-          messages.error(request, '休憩時間に工数は入力できません。休憩変更チェックBOXをONにするか休憩変更登録をして下さい。ERROR031')
           return kosu_def, detail_list
 
     # ユーザーが休憩エラー有効チェックOFFの場合の処理   
@@ -1168,11 +1167,16 @@ def double_form(employee_no, work_day, request):
 
 # 休憩書き込み関数
 def handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_list, member_obj, request):
+  error = None
   # 日を超えている場合の処理
   if break_next_day == 1:
     # 休憩時間内の工数データを削除
-    kosu_def, detail_list = break_time_delete(break_start, 288, kosu_def, detail_list, member_obj, request)
-    kosu_def, detail_list = break_time_delete(0, break_end, kosu_def, detail_list, member_obj, request)
+    kosu_def, detail_list, error = break_time_delete(break_start, 288, kosu_def, detail_list, member_obj, request)
+    if error:
+      return Response({'error': error['error']}, status=400)
+    kosu_def, detail_list, error = break_time_delete(0, break_end, kosu_def, detail_list, member_obj, request)
+    if error:
+      return Response({'error': error['error']}, status=400)
     # エラー発生の場合の処理
     if messages.get_messages(request)._queued_messages:
       return None
@@ -1186,10 +1190,9 @@ def handle_break_time(break_start, break_end, break_next_day, kosu_def, detail_l
   # 日を超えていない場合の処理
   else:
     # 休憩時間内の工数データを削除
-    kosu_def, detail_list = break_time_delete(break_start, break_end, kosu_def, detail_list, member_obj, request)
-    # エラー発生の場合の処理
-    if messages.get_messages(request)._queued_messages:
-      return None
+    kosu_def, detail_list, error = break_time_delete(break_start, break_end, kosu_def, detail_list, member_obj, request)
+    if error:
+      return Response({'error': error['error']}, status=400)
 
     # 休憩時間直後の時間に工数入力がある場合の処理
     if kosu_def[int(break_end)] != '#':
@@ -1225,9 +1228,9 @@ def session_del(key, request):
 
 
 # 休憩時間取得関数
-def break_get(tyoku, request):
+def break_get(tyoku, login_no):
   # 休憩時間取得
-  break_time_obj = member.objects.get(employee_no = request.session['login_No'])
+  break_time_obj = member.objects.get(employee_no=login_no)
 
   # 1直の場合の休憩時間取得
   if tyoku == '1':

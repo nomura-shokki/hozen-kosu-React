@@ -533,21 +533,26 @@ class MemberList(APIView):
 
 
 
-@api_view(['GET', 'POST'])
-def member_new(request):
-  if request.method == 'GET':
+# 人員データ新規登録動作
+class MemberNew(APIView):
+  def get(self, request):
     login_no = request.session.get('login_No')
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
-    
-    member_data = member.objects.get(employee_no=login_no)
+
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '該当するデータが見つかりません'}, status=404)
+
     if not member_data.authority:
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
 
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data)
 
-  if request.method == 'POST':
+
+  def post(self, request):
     data = request.data
 
     if member.objects.filter(employee_no=data.get('employee_no')).exists():
@@ -557,63 +562,66 @@ def member_new(request):
       )
 
     if data.get('shop') in ['W1', 'W2', 'A1', 'A2', 'J', '組長以上(W,A)']:
-      data['break_time1'] = '#11401240'
-      data['break_time1_over1'] = '#17201735'
-      data['break_time1_over2'] = '#23350035'
-      data['break_time1_over2'] = '#04350450'
-      data['break_time2'] = '#14101510'
-      data['break_time2_over1'] = '#22002215'
-      data['break_time2_over2'] = '#04150515'
-      data['break_time2_over2'] = '#09150930'
-      data['break_time3'] = '#23500050'
-      data['break_time3_over1'] = '#06400655'
-      data['break_time3_over2'] = '#12551355'
-      data['break_time3_over2'] = '#17551810'
-      data['break_time4'] = '#12001300'
-      data['break_time4_over1'] = '#19001915'
-      data['break_time4_over2'] = '#01150215'
-      data['break_time4_over2'] = '#06150630'
-      data['break_time5'] = '#10401130'
-      data['break_time5_over1'] = '#15101520'
-      data['break_time5_over2'] = '#20202110'
-      data['break_time5_over2'] = '#01400150'
-      data['break_time6'] = '#21202210'
-      data['break_time6_over1'] = '#01500200'
-      data['break_time6_over2'] = '#07000750'
-      data['break_time6_over2'] = '#12201230'
+      data.update({
+        'break_time1': '#11401240',
+        'break_time1_over1': '#17201735',
+        'break_time1_over2': '#23350035',
+        'break_time1_over3': '#04350450',
+        'break_time2': '#14101510',
+        'break_time2_over1': '#22002215',
+        'break_time2_over2': '#04150515',
+        'break_time2_over3': '#09150930',
+        'break_time3': '#23500050',
+        'break_time3_over1': '#06400655',
+        'break_time3_over2': '#12551355',
+        'break_time3_over3': '#17551810',
+        'break_time4': '#12001300',
+        'break_time4_over1': '#19001915',
+        'break_time4_over2': '#01150215',
+        'break_time4_over3': '#06150630',
+        'break_time5': '#10401130',
+        'break_time5_over1': '#15101520',
+        'break_time5_over2': '#20202110',
+        'break_time5_over3': '#01400150',
+        'break_time6': '#21202210',
+        'break_time6_over1': '#01500200',
+        'break_time6_over2': '#07000750',
+        'break_time6_over3': '#12201230',
+      })
     else:
-      data['break_time1'] = '#10401130'
-      data['break_time1_over1'] = '#15101520'
-      data['break_time1_over2'] = '#20202110'
-      data['break_time1_over2'] = '#01400150'
-      data['break_time2'] = '#17501840'
-      data['break_time2_over1'] = '#22302240'
-      data['break_time2_over2'] = '#03400430'
-      data['break_time2_over2'] = '#09000910'
-      data['break_time3'] = '#01400230'
-      data['break_time3_over1'] = '#07050715'
-      data['break_time3_over2'] = '#12151305'
-      data['break_time3_over2'] = '#17351745'
-      data['break_time4'] = '#12001300'
-      data['break_time4_over1'] = '#19001915'
-      data['break_time4_over2'] = '#01150215'
-      data['break_time4_over2'] = '#06150630'
-      data['break_time5'] = '#10401130'
-      data['break_time5_over1'] = '#15101520'
-      data['break_time5_over2'] = '#20202110'
-      data['break_time5_over2'] = '#01400150'
-      data['break_time6'] = '#21202210'
-      data['break_time6_over1'] = '#01500200'
-      data['break_time6_over2'] = '#07000750'
-      data['break_time6_over2'] = '#12201230'
+      data.update({
+        'break_time1': '#10401130',
+        'break_time1_over1': '#15101520',
+        'break_time1_over2': '#20202110',
+        'break_time1_over3': '#01400150',
+        'break_time2': '#17501840',
+        'break_time2_over1': '#22302240',
+        'break_time2_over2': '#03400430',
+        'break_time2_over3': '#09000910',
+        'break_time3': '#01400230',
+        'break_time3_over1': '#07050715',
+        'break_time3_over2': '#12151305',
+        'break_time3_over3': '#17351745',
+        'break_time4': '#12001300',
+        'break_time4_over1': '#19001915',
+        'break_time4_over2': '#01150215',
+        'break_time4_over3': '#06150630',
+        'break_time5': '#10401130',
+        'break_time5_over1': '#15101520',
+        'break_time5_over2': '#20202110',
+        'break_time5_over3': '#01400150',
+        'break_time6': '#21202210',
+        'break_time6_over1': '#01500200',
+        'break_time6_over2': '#07000750',
+        'break_time6_over3': '#12201230',
+      })
 
     serializer = MemberSerializer(data=data)
     if serializer.is_valid():
       serializer.save()
       return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-  else:
-    pass
 
 
 

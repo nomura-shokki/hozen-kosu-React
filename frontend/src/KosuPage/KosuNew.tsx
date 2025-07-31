@@ -158,6 +158,7 @@ const KosuNew: React.FC = () => {
     const formattedTime1 = selectedTime1?.toISOString();
     const formattedTime2 = selectedTime2?.toISOString();
     const isTomorrowChecked = (document.getElementById("tomorrow_check") as HTMLInputElement)?.checked;
+    const isBreakChangeChecked = (document.getElementById("break_change") as HTMLInputElement)?.checked;
     const overTime = data.over_time || 0;
 
     if (!data.work_time || !data.tyoku2 || !data.time_work || !formattedTime1 || !formattedTime2) {
@@ -193,7 +194,7 @@ const KosuNew: React.FC = () => {
       setErrorMessage("休出時の残業は(15n+5)分です　確認してください");
       return;
     }
-    if (!data.detail_work || data.detail_work.length > 100) {
+    if (data.detail_work && data.detail_work.length > 100) {
       setErrorMessage("作業詳細は100文字以内にしてください");
       return;
     }
@@ -206,6 +207,8 @@ const KosuNew: React.FC = () => {
       ...data,
       time1: formattedTime1,
       time2: formattedTime2,
+      tomorrow_check: isTomorrowChecked,
+      break_change: isBreakChangeChecked,
     };
 
     axios
@@ -247,7 +250,6 @@ const KosuNew: React.FC = () => {
       setData({ ...data, [field]: (data[field] as number || 0) + 15 });
     }
   };
-  
   const handleDecrement = (field: keyof Kosu) => {
     if (data) {
       setData({ ...data, [field]: (data[field] as number || 0) - 15 });
@@ -329,7 +331,7 @@ const KosuNew: React.FC = () => {
         </div>
         <div>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <label htmlFor="time1">開始時間:</label>
+            <label>作業時間:</label>
             <MobileTimePicker
               value={selectedTime1}
               onChange={handleTimeChange1}
@@ -341,10 +343,8 @@ const KosuNew: React.FC = () => {
               }}
             />
           </LocalizationProvider>
-        </div>
-        <div>
+
           <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <label htmlFor="time2">終了時間:</label>
             <MobileTimePicker
               value={selectedTime2}
               onChange={handleTimeChange2}
@@ -358,11 +358,20 @@ const KosuNew: React.FC = () => {
           </LocalizationProvider>
         </div>
         <div>
-          <label htmlFor="tomorrow_check"></label>
+          <label htmlFor="tomorrow_check">翌日</label>
           <input
             type="checkbox"
             id="tomorrow_check"
             name="tomorrow_check"
+            onChange={handleChange}
+          />
+        </div>
+        <div>
+          <label htmlFor="break_change">休憩変更</label>
+          <input
+            type="checkbox"
+            id="break_change"
+            name="break_change"
             onChange={handleChange}
           />
         </div>

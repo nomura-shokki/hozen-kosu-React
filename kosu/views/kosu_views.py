@@ -2818,9 +2818,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import MemberSerializer, DefSerializer, KosuSerializer
-from rest_framework.decorators import api_view
 from ..utils.main_utils import CustomPagination
 from ..utils.kosu_utils import time_index
+from ..utils.kosu_utils import break_get
+from ..utils.kosu_utils import break_time_process
 import datetime
 import itertools
 
@@ -2929,6 +2930,7 @@ class KosuNew(APIView):
 
     return Response(response_data)
 
+
   def post(self, request, *args, **kwargs):
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
@@ -2936,13 +2938,16 @@ class KosuNew(APIView):
 
     day = post_data.get('work_day2')
     tyoku = post_data.get('tyoku2')
+    member_obj = member.objects.get(employee_no=login_no)
+
     if not day:
       request.session['day'] = ""
       return Response({'error': '就業日が未指定です。'},status=status.HTTP_400_BAD_REQUEST)
     else:
       request.session['day'] = str(day)
 
-    check = 1 if 'tomorrow_check' in post_data else 0
+    check = 1 if request.data.get("tomorrow_check", False) else 0
+    break_change = 1 if request.data.get("break_change", False) else 0
     jst = datetime.timezone(datetime.timedelta(hours=9))
     start_time = datetime.datetime.strptime(post_data.get('time1'), "%Y-%m-%dT%H:%M:%S.%fZ")
     end_time = datetime.datetime.strptime(post_data.get('time2'), "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -2964,8 +2969,9 @@ class KosuNew(APIView):
       if obj else (list(itertools.repeat('#', 288)), list(itertools.repeat('', 288)))
     )
 
-    if obj.def_ver2 and obj.def_ver2 != def_ver:
-      return Response({'error': '指定就業日を入力している工数定義区分と使用しようとしている工数定義区分が違います。'}, status=status.HTTP_400_BAD_REQUEST)
+    if obj:
+      if obj.def_ver2 != def_ver:
+        return Response({'error': '指定就業日を入力している工数定義区分と使用しようとしている工数定義区分が違います。'}, status=status.HTTP_400_BAD_REQUEST)
 
     if obj_filter.exists():
       # 工数データに休憩時間データ無いか直が変更されている場合の処理
@@ -2973,7 +2979,7 @@ class KosuNew(APIView):
         obj.breaktime_over2 in [None, ""] or obj.breaktime_over3 in [None, ""] or \
           obj.tyoku2 != tyoku:
         # 休憩時間取得
-        breaktime, breaktime_over1, breaktime_over2, breaktime_over3 = break_get(tyoku, request)
+        breaktime, breaktime_over1, breaktime_over2, breaktime_over3 = break_get(tyoku, login_no)
 
       # 工数データに休憩時間データある場合の処理
       else:
@@ -2983,8 +2989,94 @@ class KosuNew(APIView):
         breaktime_over2 = obj.breaktime_over2
         breaktime_over3 = obj.breaktime_over3
 
-      # 工数に被りがないかチェック
-      ranges = [(start_time_ind, end_time_ind)] if check == 0 else [(start_time_ind, 288), (0, end_time_ind)]
+    else:
+      breaktime, breaktime_over1, breaktime_over2, breaktime_over3 = break_get(tyoku, login_no)
+
+    # 休憩時間のインデックス＆日またぎ変数定義
+    break_start1, break_end1, break_next_day1 = break_time_process(breaktime)
+    break_start2, break_end2, break_next_day2 = break_time_process(breaktime_over1)
+    break_start3, break_end3, break_next_day3 = break_time_process(breaktime_over2)
+    break_start4, break_end4, break_next_day4 = break_time_process(breaktime_over3)
+
+
+    def break_time_delete(break_start_ind, break_end_ind, work_list, detail_list, member_obj):
+      # 休憩時間ループ
+      for bt in range(int(break_start_ind), int(break_end_ind)):
+        # ユーザーが休憩エラー有効チェックONの場合の処理
+        if member_obj.break_check == True:
+          # 作業内容リストが空でない場合の処理
+          if work_list[bt] != '#':
+            # 作業内容リストが休憩でない場合の処理
+            if work_list[bt] != '$':
+              # えらー出す
+              return work_list, detail_list
+
+        # ユーザーが休憩エラー有効チェックOFFの場合の処理   
+        else:
+          # 作業内容リストの要素を空にする
+          work_list[bt] = '#'
+          # 作業詳細リストの要素を空にする
+          detail_list[bt] = ''
+
+      return work_list, detail_list
+
+
+    def break_time_write(break_start_ind, break_end_ind, work_list, detail_list):
+      # 休憩時間内の工数データを休憩に書き換えるループ
+      for bt in range(int(break_start_ind), int(break_end_ind)):
+        # 作業内容リストの要素を休憩に書き換え
+        work_list[bt] = '$'
+        detail_list[bt] = ''
+
+      return work_list, detail_list
+
+
+    # 工数に被りがないかチェック
+    ranges = [(start_time_ind, end_time_ind)] if check == 0 else [(start_time_ind, 288), (0, end_time_ind)]
+
+    # 工数に被りがないかチェックするループ
+    for ind in ranges:
+      for kosu in range(ind[0], ind[1]):
+        # 工数データの要素が空でない場合の処理
+        if work_list[kosu] != '$':
+          if work_list[kosu] != '#':
+            return Response({'error': '入力された作業時間には既に工数が入力されているので入力できません。'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 作業内容、作業詳細書き込み
+    for start, end in ranges:
+      work_list, detail_list = kosu_write(start, end, work_list, detail_list, post_data)
+
+    # 休憩変更チェックが入っていない時の処理
+    if break_change == 0:
+      # 各休憩時間の処理
+      for break_num in range(1, 5):
+        # 各変数の値を動的に取得
+        break_start = locals()[f'break_start{break_num}']
+        break_end = locals()[f'break_end{break_num}']
+        break_next_day = locals()[f'break_next_day{break_num}']
+
+        # 日を超えている場合の処理
+        if check == 1:
+          # 休憩時間内の工数データを削除
+          work_list, detail_list = break_time_delete(break_start, 288, work_list, detail_list, member_obj)
+          work_list, detail_list = break_time_delete(0, break_end, work_list, detail_list, member_obj)
+
+          # 休憩時間直後の時間に工数入力がある場合の処理
+          if work_list[int(break_end)] != '#':
+            # 休憩時間内の工数データを休憩に書き換え
+            work_list, detail_list = break_time_write(break_start, 288, work_list, detail_list)
+            work_list, detail_list = break_time_write(0, break_end, work_list, detail_list)
+
+        # 日を超えていない場合の処理
+        else:
+          # 休憩時間内の工数データを削除
+          work_list, detail_list = break_time_delete(break_start, break_end, work_list, detail_list, member_obj)
+
+          # 休憩時間直後の時間に工数入力がある場合の処理
+          if work_list[int(break_end)] != '#':
+            # 休憩時間内の工数データを休憩に書き換え
+            work_list, detail_list = break_time_write(break_start, break_end, work_list, detail_list)
+
 
 
 

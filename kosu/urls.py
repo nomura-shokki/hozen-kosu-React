@@ -28,7 +28,7 @@ urlpatterns = [
   path('def_search/', def_views.DefSearch.as_view(), name='def_search'), 
   path('member_menu/', main_views.MemberMenu.as_view(), name='member_menu'),
   path('member_list/', member_views.MemberList.as_view(), name='member_list'),
-  path('member_new/', member_views.member_new, name='member_new'),
+  path('member_new/', member_views.MemberNew.as_view(), name='member_new'),
   path('member_update/<int:pk>/', member_views.MemberUpdate.as_view(), name='member_update'),
   path('member_delete/<int:pk>/', member_views.MemberDelete.as_view(), name='member_delete'),
 
