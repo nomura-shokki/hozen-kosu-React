@@ -1,0 +1,2 @@
+# 行末記号をWindows(CRLF)で明示
+* text eol=crlf
