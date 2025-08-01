@@ -89,6 +89,7 @@ const KosuNew: React.FC = () => {
         setData({
           ...kosu_data,
           work_day2: sessionDay,
+          detail_work: "",
         });
 
         const def_data = response.data.def_data || {};

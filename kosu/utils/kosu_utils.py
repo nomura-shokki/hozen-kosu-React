@@ -348,25 +348,25 @@ def kosu_write(start_ind, end_ind, kosu_def, detail_list, post_data):
 
 
 # 休憩範囲工数削除関数
-def break_time_delete(break_start_ind, break_end_ind, kosu_def, detail_list, member_obj):
+def break_time_delete(break_start_ind, break_end_ind, work_list, detail_list, member_obj):
   # 休憩時間ループ
   for bt in range(int(break_start_ind), int(break_end_ind)):
     # ユーザーが休憩エラー有効チェックONの場合の処理
     if member_obj.break_check == True:
       # 作業内容リストが空でない場合の処理
-      if kosu_def[bt] != '#':
+      if work_list[bt] != '#':
         # 作業内容リストが休憩でない場合の処理
-        if kosu_def[bt] != '$':
-          return kosu_def, detail_list
+        if work_list[bt] != '$':
+          return '休憩時間に工数を入力できません。休憩変更するor休憩エラー無効で入力できます。', None, None
 
     # ユーザーが休憩エラー有効チェックOFFの場合の処理   
     else:
       # 作業内容リストの要素を空にする
-      kosu_def[bt] = '#'
+      work_list[bt] = '#'
       # 作業詳細リストの要素を空にする
       detail_list[bt] = ''
 
-  return kosu_def, detail_list
+  return None, work_list, detail_list
 
 
 

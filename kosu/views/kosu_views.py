@@ -2822,6 +2822,9 @@ from ..utils.main_utils import CustomPagination
 from ..utils.kosu_utils import time_index
 from ..utils.kosu_utils import break_get
 from ..utils.kosu_utils import break_time_process
+from ..utils.kosu_utils import break_time_delete
+from ..utils.kosu_utils import break_time_write
+from ..utils.kosu_utils import detail_list_summarize
 import datetime
 import itertools
 
@@ -2998,38 +3001,6 @@ class KosuNew(APIView):
     break_start3, break_end3, break_next_day3 = break_time_process(breaktime_over2)
     break_start4, break_end4, break_next_day4 = break_time_process(breaktime_over3)
 
-
-    def break_time_delete(break_start_ind, break_end_ind, work_list, detail_list, member_obj):
-      # 休憩時間ループ
-      for bt in range(int(break_start_ind), int(break_end_ind)):
-        # ユーザーが休憩エラー有効チェックONの場合の処理
-        if member_obj.break_check == True:
-          # 作業内容リストが空でない場合の処理
-          if work_list[bt] != '#':
-            # 作業内容リストが休憩でない場合の処理
-            if work_list[bt] != '$':
-              return Response({'error': '休憩時間に工数を入力できません。休憩変更するor休憩エラー無効で入力できます。'},status=status.HTTP_400_BAD_REQUEST)
-
-        # ユーザーが休憩エラー有効チェックOFFの場合の処理   
-        else:
-          # 作業内容リストの要素を空にする
-          work_list[bt] = '#'
-          # 作業詳細リストの要素を空にする
-          detail_list[bt] = ''
-
-      return work_list, detail_list
-
-
-    def break_time_write(break_start_ind, break_end_ind, work_list, detail_list):
-      # 休憩時間内の工数データを休憩に書き換えるループ
-      for bt in range(int(break_start_ind), int(break_end_ind)):
-        # 作業内容リストの要素を休憩に書き換え
-        work_list[bt] = '$'
-        detail_list[bt] = ''
-
-      return work_list, detail_list
-
-
     # 工数に被りがないかチェック
     ranges = [(start_time_ind, end_time_ind)] if check == 0 else [(start_time_ind, 288), (0, end_time_ind)]
 
@@ -3057,9 +3028,10 @@ class KosuNew(APIView):
         # 日を超えている場合の処理
         if check == 1:
           # 休憩時間内の工数データを削除
-          work_list, detail_list = break_time_delete(break_start, 288, work_list, detail_list, member_obj)
-          work_list, detail_list = break_time_delete(0, break_end, work_list, detail_list, member_obj)
-
+          error_message, work_list, detail_list = break_time_delete(break_start, 288, work_list, detail_list, member_obj)
+          error_message, work_list, detail_list = break_time_delete(0, break_end, work_list, detail_list, member_obj)
+          if error_message:
+            return Response({'error': error_message}, status=status.HTTP_400_BAD_REQUEST)
           # 休憩時間直後の時間に工数入力がある場合の処理
           if work_list[int(break_end)] != '#':
             # 休憩時間内の工数データを休憩に書き換え
@@ -3069,18 +3041,14 @@ class KosuNew(APIView):
         # 日を超えていない場合の処理
         else:
           # 休憩時間内の工数データを削除
-          work_list, detail_list = break_time_delete(break_start, break_end, work_list, detail_list, member_obj)
+          error_message, work_list, detail_list = break_time_delete(break_start, break_end, work_list, detail_list, member_obj)
+          if error_message:
+            return Response({'error': error_message}, status=status.HTTP_400_BAD_REQUEST)
 
           # 休憩時間直後の時間に工数入力がある場合の処理
           if work_list[int(break_end)] != '#':
             # 休憩時間内の工数データを休憩に書き換え
             work_list, detail_list = break_time_write(break_start, break_end, work_list, detail_list)
-
-
-
-
-
-
 
     # kosu_dataの取得または新規作成
     kosu_data, created = Business_Time_graph.objects.get_or_create(
@@ -3094,8 +3062,7 @@ class KosuNew(APIView):
 
     # 更新可能なフィールドを定義
     updatable_fields = [
-      'tyoku2', 'time_work', 'detail_work', 'over_time',
-      'work_time', 'judgement', 'break_change',
+      'tyoku2', 'over_time','work_time', 'break_change',
     ]
 
     # 項目ごとにデータを上書き
@@ -3103,7 +3070,8 @@ class KosuNew(APIView):
       if field in post_data:
         setattr(kosu_data, field, post_data[field])
 
-    kosu_data.time_work = "トライ"
+    kosu_data.time_work = ''.join(work_list)
+    kosu_data.detail_work = detail_list_summarize(detail_list)
     kosu_data.def_ver2 = def_ver
 
     # 保存処理
