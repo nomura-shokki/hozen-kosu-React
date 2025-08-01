@@ -2825,6 +2825,7 @@ from ..utils.kosu_utils import break_time_process
 from ..utils.kosu_utils import break_time_delete
 from ..utils.kosu_utils import break_time_write
 from ..utils.kosu_utils import detail_list_summarize
+from ..utils.kosu_utils import judgement_check
 import datetime
 import itertools
 
@@ -2949,8 +2950,8 @@ class KosuNew(APIView):
     else:
       request.session['day'] = str(day)
 
-    check = 1 if request.data.get("tomorrow_check", False) else 0
-    break_change = 1 if request.data.get("break_change", False) else 0
+    check = 1 if post_data.get("tomorrow_check", False) else 0
+    break_change = 1 if post_data.get("break_change", False) else 0
     jst = datetime.timezone(datetime.timedelta(hours=9))
     start_time = datetime.datetime.strptime(post_data.get('time1'), "%Y-%m-%dT%H:%M:%S.%fZ")
     end_time = datetime.datetime.strptime(post_data.get('time2'), "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -3070,11 +3071,11 @@ class KosuNew(APIView):
       if field in post_data:
         setattr(kosu_data, field, post_data[field])
 
+    kosu_data.name = member.objects.get(employee_no=login_no)
     kosu_data.time_work = ''.join(work_list)
     kosu_data.detail_work = detail_list_summarize(detail_list)
+    kosu_data.judgement = judgement_check(work_list, post_data.get('work_time'), tyoku, member_obj, post_data.get('over_time', 0))
     kosu_data.def_ver2 = def_ver
-
-    # 保存処理
     kosu_data.save()
     return Response({'status': 'success', 'message': 'データが更新されました。'})
 
