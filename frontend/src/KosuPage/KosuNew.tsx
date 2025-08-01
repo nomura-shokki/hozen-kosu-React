@@ -5,6 +5,7 @@ import Loading from "../components/Loading";
 import TyokuSelect from "../components/TyokuSelect";
 import WorkSelect from "../components/WorkSelect";
 import DefSelect from "../components/DefSelect";
+import KosuDisplay from "../components/KosuDisplay";
 import styles from "../styles/KosuPage/KosuNew.module.css";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -378,6 +379,7 @@ const KosuNew: React.FC = () => {
         </div>
         <button type="submit">更新</button>
       </form>
+      <KosuDisplay timeWork={data?.time_work || ""} updatedAt={new Date()} />
     </>
   );
 };
