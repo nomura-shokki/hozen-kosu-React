@@ -43,7 +43,8 @@ const KosuNew: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [memberName, setMemberName] = useState<string>("");
-
+  const [initialTimeWork, setInitialTimeWork] = useState<string | null>(null);
+  const [initialWorkDetail, setInitialWorkDetail] = useState<string | null>(null);
   const [selectedTime1, setSelectedTime1] = useState<Date | null>(() => {
     const cachedTime1 = localStorage.getItem("time1");
     const cachedTime2 = localStorage.getItem("time2");
@@ -100,7 +101,8 @@ const KosuNew: React.FC = () => {
         if (member_data?.name) {
           setMemberName(member_data.name);
         }
-
+        setInitialTimeWork(kosu_data.time_work);
+        setInitialWorkDetail(kosu_data.detail_work);
         setLoading(false);
       })
       .catch((error) => {
@@ -218,6 +220,7 @@ const KosuNew: React.FC = () => {
       .then(() => {
         alert("更新が成功しました！");
         updateCachedTimes(selectedTime1, selectedTime2);
+        fetchData();
 
         if (formattedTime2) {
           setSelectedTime1(new Date(formattedTime2));
@@ -379,7 +382,7 @@ const KosuNew: React.FC = () => {
         </div>
         <button type="submit">更新</button>
       </form>
-      <KosuDisplay timeWork={data?.time_work || ""} updatedAt={new Date()} />
+      <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""} />
     </>
   );
 };
