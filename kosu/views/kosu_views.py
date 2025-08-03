@@ -2968,10 +2968,16 @@ class KosuNew(APIView):
 
     # 工数データ取得しリスト化
     obj = obj_filter.first() if obj_filter.exists() else None
-    work_list, detail_list = (
-      (list(obj.time_work), obj.detail_work.split('$'))
-      if obj else (list(itertools.repeat('#', 288)), list(itertools.repeat('', 288)))
-    )
+
+    if obj and obj.time_work:
+      work_list = list(obj.time_work)
+    else:
+      work_list = list(itertools.repeat('#', 288))
+
+    if obj and obj.detail_work:
+      detail_list = obj.detail_work.split('$')
+    else:
+      detail_list = list(itertools.repeat('', 288))
 
     if obj:
       if obj.def_ver2 != def_ver:

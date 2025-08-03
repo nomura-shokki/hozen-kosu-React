@@ -6,6 +6,7 @@ import TyokuSelect from "../components/TyokuSelect";
 import WorkSelect from "../components/WorkSelect";
 import DefSelect from "../components/DefSelect";
 import KosuDisplay from "../components/KosuDisplay";
+import KosuBarChart from "../components/KosuBarChart"; 
 import styles from "../styles/KosuPage/KosuNew.module.css";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -96,7 +97,6 @@ const KosuNew: React.FC = () => {
 
         const def_data = response.data.def_data || {};
         setDefData(def_data);
-
         const member_data = response.data.member_data;
         if (member_data?.name) {
           setMemberName(member_data.name);
@@ -209,6 +209,7 @@ const KosuNew: React.FC = () => {
 
     const updatedData = {
       ...data,
+      over_time: data.over_time || 0,
       time1: formattedTime1,
       time2: formattedTime2,
       tomorrow_check: isTomorrowChecked,
@@ -382,7 +383,10 @@ const KosuNew: React.FC = () => {
         </div>
         <button type="submit">更新</button>
       </form>
-      <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""} />
+      <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""}  defData={defData} />
+      {initialTimeWork && (
+        <KosuBarChart initialTimeWork={initialTimeWork} />
+      )}
     </>
   );
 };

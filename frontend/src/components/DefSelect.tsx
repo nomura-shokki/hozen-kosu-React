@@ -1,37 +1,52 @@
 import React from "react";
 
+// Propsの型定義を行う部分。DefSelectPropsインターフェースは、コンポーネントに渡されるプロパティを型安全に扱うためのもの。
 interface DefSelectProps {
-  value: string;
-  onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  defData: { [key: string]: string | undefined };
-  className?: string;
-  name?: string;
-  id?: string;
+  value: string; // セレクトボックスの現在の選択値
+  onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void; // 値変更時のコールバック関数
+  defData: { [key: string]: string | undefined }; // デフォルトデータのマップ。キーは文字列、値は文字列またはundefined
+  className?: string; // オプションで指定可能なCSSクラス名
+  name?: string; // セレクトボックスのname属性
+  id?: string; // セレクトボックスのid属性
 }
 
+// Reactの関数コンポーネントとしてDefSelectを定義。
 const DefSelect: React.FC<DefSelectProps> = ({
   value,
   onChange,
   defData,
-  className = "form-select",
-  name = "time_work",
-  id = "time_work",
+  className = "form-select", // classNameのデフォルト値を設定
+  name = "time_work", // name属性のデフォルト値を設定
+  id = "time_work", // id属性のデフォルト値を設定
 }) => {
+  // A～Z、a～xまでの英字を格納した文字列。オプションのvalue値として利用。
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx";
 
+  // defDataオブジェクトのキーから"kosu_title_"で始まるものをフィルタリングし、
+  // それに対応するラベルとアルファベットを使用してオプションリストを生成。
   const defOptions = Object.keys(defData)
-    .filter((key) => key.startsWith("kosu_title_"))
+    .filter((key) => key.startsWith("kosu_title_")) // キーが"kosu_title_"で始まるもののみ取得
     .map((key, index) => ({
-      value: alphabet[index],
-      label: defData[key] || "",
+      value: alphabet[index], // アルファベット順でvalueを設定
+      label: defData[key] || "", // データが存在しない場合は空文字に
     }))
-    .filter(({ label }) => label !== "");
+    .filter(({ label }) => label !== ""); // ラベルが空でないもののみ残す
 
+  // オプションリストに固定値として「休憩」を追加。
   defOptions.push({ value: "#", label: "休憩" });
 
+  // JSXを返す部分。セレクトボックスの構造を定義。
   return (
-    <select id={id} name={name} value={value} onChange={onChange} className={className}>
+    <select
+      id={id} // セレクトボックスのidを設定
+      name={name} // セレクトボックスのnameを設定
+      value={value} // 現在の選択値を設定
+      onChange={onChange} // 値変更時にコールバックを実行
+      className={className} // クラス名を適用
+    >
+      {/* 初期状態のプレースホルダーオプション */}
       <option value="">選択してください</option>
+      {/* 生成したオプションリストを展開 */}
       {defOptions.map(({ value, label }) => (
         <option key={value} value={value}>
           {label}
@@ -41,4 +56,4 @@ const DefSelect: React.FC<DefSelectProps> = ({
   );
 };
 
-export default DefSelect;
+export default DefSelect; // このコンポーネントをエクスポートして外部で利用可能にする
