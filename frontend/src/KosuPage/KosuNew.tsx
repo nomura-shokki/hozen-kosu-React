@@ -48,10 +48,11 @@ const KosuNew: React.FC = () => {
   const [initialWorkDetail, setInitialWorkDetail] = useState<string | null>(null);
   const [initialTyoku, setInitialTyoku] = useState<string | null>(null);
   const [memberShop, setMemberShop] = useState<string>("");
+  const [isTomorrowChecked, setIsTomorrowChecked] = useState<boolean>(false);
+  const [isBreakChangeChecked, setIsBreakChangeChecked] = useState<boolean>(false);
   const [selectedTime1, setSelectedTime1] = useState<Date | null>(() => {
-    const cachedTime1 = localStorage.getItem("time1");
     const cachedTime2 = localStorage.getItem("time2");
-    return cachedTime1 && cachedTime2 ? new Date(cachedTime2) : roundToNearestFiveMinutes(new Date());
+    return cachedTime2 ? new Date(cachedTime2) : roundToNearestFiveMinutes(new Date());
   });
   const [selectedTime2, setSelectedTime2] = useState<Date | null>(() => {
     const cachedTime2 = localStorage.getItem("time2");
@@ -72,11 +73,7 @@ const KosuNew: React.FC = () => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, { withCredentials: true })
       .then((response) => {
-        if (response.data.warning) {
-          setWarningMessage(response.data.warning); // 警告メッセージを状態に設定
-        } else {
-          setWarningMessage(null); // 警告がなければリセット
-        }
+        setWarningMessage(response.data.warning || null);
         const kosu_data = response.data.kosu_data || {
           employee_no3: 0,
           work_day2: "",
@@ -167,8 +164,6 @@ const KosuNew: React.FC = () => {
 
     const formattedTime1 = selectedTime1?.toISOString();
     const formattedTime2 = selectedTime2?.toISOString();
-    const isTomorrowChecked = (document.getElementById("tomorrow_check") as HTMLInputElement)?.checked;
-    const isBreakChangeChecked = (document.getElementById("break_change") as HTMLInputElement)?.checked;
     const overTime = data.over_time || 0;
 
     if (!data.work_time || !data.tyoku2 || !data.time_work || !formattedTime1 || !formattedTime2) {
@@ -370,21 +365,23 @@ const KosuNew: React.FC = () => {
           </LocalizationProvider>
         </div>
         <div>
-          <label htmlFor="tomorrow_check">翌日</label>
+          <label htmlFor="tomorrow_check">翌日:</label>
           <input
             type="checkbox"
             id="tomorrow_check"
             name="tomorrow_check"
-            onChange={handleChange}
+            checked={isTomorrowChecked}
+            onChange={(e) => setIsTomorrowChecked(e.target.checked)}
           />
         </div>
         <div>
-          <label htmlFor="break_change">休憩変更</label>
+          <label htmlFor="break_change">休憩変更:</label>
           <input
             type="checkbox"
             id="break_change"
             name="break_change"
-            onChange={handleChange}
+            checked={isBreakChangeChecked}
+            onChange={(e) => setIsBreakChangeChecked(e.target.checked)}
           />
         </div>
         <button type="submit">更新</button>

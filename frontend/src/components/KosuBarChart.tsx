@@ -58,25 +58,66 @@ const generateColorPalette = (): string[] => {
 };
 
 // 棒グラフコンポーネントの定義
-const KosuBarChart: React.FC<Props> = ({ initialTimeWork }) => {
+const KosuBarChart: React.FC<Props> = ({ initialTimeWork, tyoku, shop }) => {
   // 入力データを数値配列に変換
   const chartData = convertToData(initialTimeWork);
   // 色パレットを生成
   const colorPalette = generateColorPalette();
 
+  // ラベル生成
+  const originalLabels = generateTimeLabels();
+  const labels =
+    tyoku === "1"
+      ? [...originalLabels.slice(54), ...originalLabels.slice(0, 54)]
+      : tyoku === "2" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")
+      ? [...originalLabels.slice(108), ...originalLabels.slice(0, 108)]
+      : tyoku === "2"
+      ? [...originalLabels.slice(138), ...originalLabels.slice(0, 138)]
+      : tyoku === "3" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")
+      ? [...originalLabels.slice(216), ...originalLabels.slice(0, 216)]
+      : tyoku === "3"
+      ? [...originalLabels.slice(240), ...originalLabels.slice(0, 240)]
+      : tyoku === "4"
+      ? [...originalLabels.slice(72), ...originalLabels.slice(0, 72)]
+      : tyoku === "5"
+      ? [...originalLabels.slice(54), ...originalLabels.slice(0, 54)]
+      : tyoku === "6"
+      ? [...originalLabels.slice(180), ...originalLabels.slice(0, 180)]
+      : originalLabels;
+
+  // データ移動
+  const chartDataModified =
+    tyoku === "1"
+      ? [...chartData.slice(54), ...chartData.slice(0, 54)]
+      : tyoku === "2" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")
+      ? [...chartData.slice(108), ...chartData.slice(0, 108)]
+      : tyoku === "2"
+      ? [...chartData.slice(138), ...chartData.slice(0, 138)]
+      : tyoku === "3" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")
+      ? [...chartData.slice(216), ...chartData.slice(0, 216)]
+      : tyoku === "3"
+      ? [...chartData.slice(240), ...chartData.slice(0, 240)]
+      : tyoku === "4"
+      ? [...chartData.slice(72), ...chartData.slice(0, 72)]
+      : tyoku === "5"
+      ? [...chartData.slice(54), ...chartData.slice(0, 54)]
+      : tyoku === "6"
+      ? [...chartData.slice(180), ...chartData.slice(0, 180)]
+      : chartData;
+
   // Chart.jsで使用するデータオブジェクトを定義
   const data = {
     // グラフのラベル（時間帯）
-    labels: generateTimeLabels(),
+    labels,
     // データセットの定義
     datasets: [
       {
         label: "作業時間データ", // データセットのラベル
-        data: chartData, // 作業時間に基づくデータ
+        data: chartDataModified, // 作業時間に基づくデータ
         // 背景色はデータ値に応じて色パレットから選択（データ値がマッピング外の場合はデフォルト色）
-        backgroundColor: chartData.map((value) => colorPalette[value - 1] || "rgba(200, 200, 200, 0.6)"),
+        backgroundColor: chartDataModified.map((value) => colorPalette[value - 1] || "rgba(200, 200, 200, 0.6)"),
         // 枠線色（背景色と同じロジックで選択）
-        borderColor: chartData.map((value) => colorPalette[value - 1] || "rgba(200, 200, 200, 1)"),
+        borderColor: chartDataModified.map((value) => colorPalette[value - 1] || "rgba(200, 200, 200, 1)"),
         borderWidth: 1, // 枠線の幅
         barPercentage: 1, // 棒グラフの幅を最大化（カテゴリ間の隙間を削減）
         categoryPercentage: 1, // カテゴリ間の幅を最小化（隙間を削減）
