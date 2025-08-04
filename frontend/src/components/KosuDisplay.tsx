@@ -6,6 +6,8 @@ interface KosuDisplayProps {
   workDetail: string; // `workDetail`は`$`で区切られた作業詳細を表す文字列
   updatedAt: Date; // データが最後に更新されたタイムスタンプ（Date型）
   defData: { [key: string]: string | undefined }; // 作業内容のマッピングを行うキーと値のペア
+  tyoku: string;
+  shop: string;
 }
 
 // KosuDisplayコンポーネントの定義

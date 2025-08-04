@@ -46,6 +46,8 @@ const KosuNew: React.FC = () => {
   const [memberName, setMemberName] = useState<string>("");
   const [initialTimeWork, setInitialTimeWork] = useState<string | null>(null);
   const [initialWorkDetail, setInitialWorkDetail] = useState<string | null>(null);
+  const [initialTyoku, setInitialTyoku] = useState<string | null>(null);
+  const [memberShop, setMemberShop] = useState<string>("");
   const [selectedTime1, setSelectedTime1] = useState<Date | null>(() => {
     const cachedTime1 = localStorage.getItem("time1");
     const cachedTime2 = localStorage.getItem("time2");
@@ -101,8 +103,12 @@ const KosuNew: React.FC = () => {
         if (member_data?.name) {
           setMemberName(member_data.name);
         }
+        if (member_data?.shop) {
+          setMemberShop(member_data.shop);
+        }
         setInitialTimeWork(kosu_data.time_work);
         setInitialWorkDetail(kosu_data.detail_work);
+        setInitialTyoku(kosu_data.tyoku2);
         setLoading(false);
       })
       .catch((error) => {
@@ -383,9 +389,9 @@ const KosuNew: React.FC = () => {
         </div>
         <button type="submit">更新</button>
       </form>
-      <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""}  defData={defData} />
+      <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""}  defData={defData} tyoku={initialTyoku || ""} shop={memberShop || ""}/>
       {initialTimeWork && (
-        <KosuBarChart initialTimeWork={initialTimeWork} />
+        <KosuBarChart initialTimeWork={initialTimeWork} tyoku={initialTyoku || ""} shop={memberShop || ""} />
       )}
     </>
   );
