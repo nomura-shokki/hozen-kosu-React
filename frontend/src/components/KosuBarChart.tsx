@@ -86,7 +86,7 @@ const KosuBarChart: React.FC<Props> = ({ initialTimeWork, tyoku, shop }) => {
       : originalLabels;
 
   // データ移動
-  const chartDataModified =
+  let chartDataModified =
     tyoku === "1"
       ? [...chartData.slice(54), ...chartData.slice(0, 54)]
       : tyoku === "2" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")
@@ -104,6 +104,38 @@ const KosuBarChart: React.FC<Props> = ({ initialTimeWork, tyoku, shop }) => {
       : tyoku === "6"
       ? [...chartData.slice(180), ...chartData.slice(0, 180)]
       : chartData;
+
+  // tyokuが1の場合にデータ調整
+  if (tyoku === "1") {
+    // 後ろから探索して0以外の値が出た位置を取得
+    let lastNonZeroIndex = chartDataModified.length - 1;
+    while (lastNonZeroIndex >= 0 && chartDataModified[lastNonZeroIndex] === 0) {
+      lastNonZeroIndex--;
+    }
+
+    // 削除対象の範囲を計算（ただし130要素より前は削除しない）
+    const removeIndex = Math.max(lastNonZeroIndex + 2, 130);
+    chartDataModified = chartDataModified.slice(0, removeIndex);
+
+    // ラベルもchartDataModifiedの長さに合わせて切り詰める
+    labels.length = chartDataModified.length;
+  }
+
+  // tyokuが2かつshopが特定値の場合にデータ調整
+  if (tyoku === "2" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")) {
+    // 後ろから探索して0以外の値が出た位置を取得
+    let lastNonZeroIndex = chartDataModified.length - 1;
+    while (lastNonZeroIndex >= 0 && chartDataModified[lastNonZeroIndex] === 0) {
+      lastNonZeroIndex--;
+    }
+
+    // 削除対象の範囲を計算（ただし132要素より前は削除しない）
+    const removeIndex = Math.max(lastNonZeroIndex + 2, 132);
+    chartDataModified = chartDataModified.slice(0, removeIndex);
+
+    // ラベルもchartDataModifiedの長さに合わせて切り詰める
+    labels.length = chartDataModified.length;
+  }
 
   // Chart.jsで使用するデータオブジェクトを定義
   const data = {
