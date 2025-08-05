@@ -7,6 +7,7 @@ import WorkSelect from "../components/WorkSelect";
 import DefSelect from "../components/DefSelect";
 import KosuDisplay from "../components/KosuDisplay";
 import KosuBarChart from "../components/KosuBarChart"; 
+import DefTable from "../components/DefTable";
 import styles from "../styles/KosuPage/KosuNew.module.css";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -175,6 +176,8 @@ const KosuNew: React.FC = () => {
       setErrorMessage("作業時間が誤っています確認して下さい。");
       return;
     }
+    console.log(selectedTime1);
+    console.log(selectedTime2);
     if (selectedTime1 && selectedTime2 && selectedTime1 > selectedTime2 && !isTomorrowChecked) {
       setErrorMessage("作業開始時間が終了時間を越えています。翌日チェックを忘れていませんか？");
       return;
@@ -390,6 +393,7 @@ const KosuNew: React.FC = () => {
       {initialTimeWork && (
         <KosuBarChart initialTimeWork={initialTimeWork} tyoku={initialTyoku || ""} shop={memberShop || ""} />
       )}
+      <DefTable defData={defData} />
     </>
   );
 };

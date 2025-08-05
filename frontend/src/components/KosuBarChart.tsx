@@ -11,7 +11,6 @@ import {
 } from "chart.js";
 
 // Chart.jsのモジュールを登録
-// 以下のモジュールを使用してグラフを構築する
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 // コンポーネントのプロパティ型定義
@@ -39,7 +38,6 @@ const convertToData = (input: string | null): number[] => {
 const generateTimeLabels = () => {
   const labels: string[] = [];
   for (let i = 0; i < 288; i++) {
-    // 1日を5分刻みで区切るためには288スロットが必要（24時間 × 60分 ÷ 5分）
     const hours = Math.floor(i * 5 / 60).toString().padStart(2, "0"); // 時間を計算しゼロ埋め
     const minutes = (i * 5 % 60).toString().padStart(2, "0"); // 分を計算しゼロ埋め
     labels.push(`${hours}:${minutes}`); // 時間:分としてラベルを生成
@@ -50,145 +48,128 @@ const generateTimeLabels = () => {
 // 色パレットを生成する関数（50色を生成）
 const generateColorPalette = (): string[] => {
   const colors = [];
+  const step = Math.floor(360 / 50);
   for (let i = 0; i < 50; i++) {
-    // 色相を均等に分割し、鮮やかさと明るさを固定（HSL形式）
-    colors.push(`hsl(${(i * 360) / 50}, 70%, 50%)`);
+    colors.push(`hsl(${(i * step) % 360}, 70%, 50%)`);
   }
-  return colors; // 生成された色の配列を返す
+  return colors;
 };
 
 // 棒グラフコンポーネントの定義
 const KosuBarChart: React.FC<Props> = ({ initialTimeWork, tyoku, shop }) => {
-  // 入力データを数値配列に変換
   const chartData = convertToData(initialTimeWork);
-  // 色パレットを生成
   const colorPalette = generateColorPalette();
-
-  // ラベル生成
   const originalLabels = generateTimeLabels();
+
   const labels =
     tyoku === "1"
       ? [...originalLabels.slice(54), ...originalLabels.slice(0, 54)]
       : tyoku === "2" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")
-      ? [...originalLabels.slice(108), ...originalLabels.slice(0, 108)]
+      ? [...originalLabels.slice(106), ...originalLabels.slice(0, 106)]
       : tyoku === "2"
-      ? [...originalLabels.slice(138), ...originalLabels.slice(0, 138)]
+      ? [...originalLabels.slice(140), ...originalLabels.slice(0, 140)]
       : tyoku === "3" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")
-      ? [...originalLabels.slice(216), ...originalLabels.slice(0, 216)]
+      ? [...originalLabels.slice(214), ...originalLabels.slice(0, 214)]
       : tyoku === "3"
-      ? [...originalLabels.slice(240), ...originalLabels.slice(0, 240)]
+      ? [...originalLabels.slice(242), ...originalLabels.slice(0, 242)]
       : tyoku === "4"
       ? [...originalLabels.slice(72), ...originalLabels.slice(0, 72)]
       : tyoku === "5"
       ? [...originalLabels.slice(54), ...originalLabels.slice(0, 54)]
       : tyoku === "6"
-      ? [...originalLabels.slice(180), ...originalLabels.slice(0, 180)]
+      ? [...originalLabels.slice(182), ...originalLabels.slice(0, 182)]
       : originalLabels;
 
-  // データ移動
   let chartDataModified =
     tyoku === "1"
       ? [...chartData.slice(54), ...chartData.slice(0, 54)]
       : tyoku === "2" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")
-      ? [...chartData.slice(108), ...chartData.slice(0, 108)]
+      ? [...chartData.slice(106), ...chartData.slice(0, 106)]
       : tyoku === "2"
-      ? [...chartData.slice(138), ...chartData.slice(0, 138)]
+      ? [...chartData.slice(140), ...chartData.slice(0, 140)]
       : tyoku === "3" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")
-      ? [...chartData.slice(216), ...chartData.slice(0, 216)]
+      ? [...chartData.slice(214), ...chartData.slice(0, 214)]
       : tyoku === "3"
-      ? [...chartData.slice(240), ...chartData.slice(0, 240)]
+      ? [...chartData.slice(242), ...chartData.slice(0, 242)]
       : tyoku === "4"
       ? [...chartData.slice(72), ...chartData.slice(0, 72)]
       : tyoku === "5"
       ? [...chartData.slice(54), ...chartData.slice(0, 54)]
       : tyoku === "6"
-      ? [...chartData.slice(180), ...chartData.slice(0, 180)]
+      ? [...chartData.slice(182), ...chartData.slice(0, 182)]
       : chartData;
 
-  // tyokuが1の場合にデータ調整
-  if (tyoku === "1") {
-    // 後ろから探索して0以外の値が出た位置を取得
-    let lastNonZeroIndex = chartDataModified.length - 1;
-    while (lastNonZeroIndex >= 0 && chartDataModified[lastNonZeroIndex] === 0) {
-      lastNonZeroIndex--;
-    }
-
-    // 削除対象の範囲を計算（ただし130要素より前は削除しない）
-    const removeIndex = Math.max(lastNonZeroIndex + 2, 130);
-    chartDataModified = chartDataModified.slice(0, removeIndex);
-
-    // ラベルもchartDataModifiedの長さに合わせて切り詰める
-    labels.length = chartDataModified.length;
+  // 後ろから探索して0以外の値が出た位置を取得
+  let lastNonZeroIndex = chartDataModified.length - 1;
+  while (lastNonZeroIndex >= 0 && chartDataModified[lastNonZeroIndex] === 0) {
+    lastNonZeroIndex--;
   }
 
-  // tyokuが2かつshopが特定値の場合にデータ調整
-  if (tyoku === "2" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")) {
-    // 後ろから探索して0以外の値が出た位置を取得
-    let lastNonZeroIndex = chartDataModified.length - 1;
-    while (lastNonZeroIndex >= 0 && chartDataModified[lastNonZeroIndex] === 0) {
-      lastNonZeroIndex--;
-    }
+  // 削除対象の範囲を計算（ただし130要素より前は削除しない）
+  const removeEndIndex = Math.max(lastNonZeroIndex + 2, 130);
+  chartDataModified = chartDataModified.slice(0, removeEndIndex);
 
-    // 削除対象の範囲を計算（ただし132要素より前は削除しない）
-    const removeIndex = Math.max(lastNonZeroIndex + 2, 132);
-    chartDataModified = chartDataModified.slice(0, removeIndex);
-
-    // ラベルもchartDataModifiedの長さに合わせて切り詰める
-    labels.length = chartDataModified.length;
+  // === ここから新しい前方修正の追加コード ===
+  // 前方から探索して0以外の値が出た最初の位置を取得
+  let firstNonZeroIndex = 0;
+  while (firstNonZeroIndex < chartDataModified.length && chartDataModified[firstNonZeroIndex] === 0) {
+    firstNonZeroIndex++;
   }
 
-  // Chart.jsで使用するデータオブジェクトを定義
+  // 削除対象の範囲を計算（ただし0より前は削除しない）
+  const removeStartIndex = Math.max(firstNonZeroIndex - 2, 0);
+  chartDataModified = chartDataModified.slice(removeStartIndex);
+
+  // ラベルもchartDataModifiedの長さに合わせて切り詰める
+  labels.splice(0, removeStartIndex);
+  labels.length = chartDataModified.length;
+  // === 変更終了 ===
+
   const data = {
-    // グラフのラベル（時間帯）
     labels,
-    // データセットの定義
     datasets: [
       {
-        label: "作業時間データ", // データセットのラベル
-        data: chartDataModified, // 作業時間に基づくデータ
-        // 背景色はデータ値に応じて色パレットから選択（データ値がマッピング外の場合はデフォルト色）
+        label: "作業時間データ",
+        data: chartDataModified,
         backgroundColor: chartDataModified.map((value) => colorPalette[value - 1] || "rgba(200, 200, 200, 0.6)"),
-        // 枠線色（背景色と同じロジックで選択）
         borderColor: chartDataModified.map((value) => colorPalette[value - 1] || "rgba(200, 200, 200, 1)"),
-        borderWidth: 1, // 枠線の幅
-        barPercentage: 1, // 棒グラフの幅を最大化（カテゴリ間の隙間を削減）
-        categoryPercentage: 1, // カテゴリ間の幅を最小化（隙間を削減）
+        borderWidth: 1,
+        barPercentage: 1,
+        categoryPercentage: 1,
       },
     ],
   };
 
-  // Chart.jsのオプション設定
   const options = {
-    responsive: true, // グラフがレスポンシブデザインをサポートする
+    responsive: true,
     plugins: {
       legend: {
-        display: false, // 凡例を非表示
+        display: false,
       },
       title: {
-        display: false, // タイトルを非表示
+        display: false,
       },
     },
     scales: {
       y: {
-        beginAtZero: true, // Y軸の値を0から開始
-        max: 1, // Y軸の最大値を1に固定（データ値に関係なく）
+        beginAtZero: true,
+        max: 1,
         ticks: {
-          display: false, // Y軸の目盛りを非表示
+          display: false,
         },
         grid: {
-          display: false, // Y軸のグリッドラインを非表示
+          display: false,
         },
       },
       x: {
-        type: 'category', // X軸をカテゴリタイプに設定
-        barPercentage: 1.0, // バーの幅を最大化
-        categoryPercentage: 1.0, // カテゴリー幅を最大化
-        barThickness: 'flex', // バーの間隔を調整して隙間を完全になくす
+        type: 'category',
+        barPercentage: 1.0,
+        categoryPercentage: 1.0,
+        barThickness: 'flex',
       },
     },
-  } as const; // TypeScriptでオプション型を強制するために型安全性を確保
+  } as const;
 
-  // グラフを表示
   return <Bar data={data} options={options} />;
 };
 
