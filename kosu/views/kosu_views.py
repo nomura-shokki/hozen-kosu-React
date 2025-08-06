@@ -2978,10 +2978,11 @@ class KosuNew(APIView):
       detail_list = obj.detail_work.split('$')
     else:
       detail_list = list(itertools.repeat('', 288))
-
+    print(obj.def_ver2)
     if obj:
-      if obj.def_ver2 != def_ver:
-        return Response({'error': '指定就業日を入力している工数定義区分と使用しようとしている工数定義区分が違います。'}, status=status.HTTP_400_BAD_REQUEST)
+      if obj.def_ver2:
+        if obj.def_ver2 != def_ver:
+          return Response({'error': '指定就業日を入力している工数定義区分と使用しようとしている工数定義区分が違います。'}, status=status.HTTP_400_BAD_REQUEST)
 
     if obj_filter.exists():
       # 工数データに休憩時間データ無いか直が変更されている場合の処理
@@ -3100,3 +3101,56 @@ class SetDay(APIView):
       request.session['day'] = str(day)
       return Response({'status': 'success', 'message': '就業日がセッションに保存されました。'})
 
+
+
+# 残業登録
+class OverTime(APIView):
+  def post(self, request, *args, **kwargs):
+    login_no = request.session.get('login_No')
+    post_data = request.data
+    day = post_data.get('work_day2')
+
+    if not day:
+      request.session['day'] = ""
+      return Response({'error': '就業日が未指定です。'},status=status.HTTP_400_BAD_REQUEST)
+    else:
+      request.session['day'] = str(day)
+
+    obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+
+    # 工数データ取得しリスト化
+    obj = obj_filter.first() if obj_filter.exists() else None
+
+    if obj == None or not obj.time_work :
+      work_list = '#'* 288
+    else:
+      work_list = obj.time_work
+
+    if obj == None or not obj.detail_work:
+      detail_list = '$'*287
+    else:
+      detail_list = obj.detail_work
+
+    # 更新可能なフィールドを定義
+    updatable_fields = ['over_time']
+
+    # kosu_dataの取得または新規作成
+    kosu_data, created = Business_Time_graph.objects.get_or_create(
+      employee_no3=login_no,
+      work_day2=day,
+      defaults={
+        'employee_no3': login_no,
+        'work_day2': day,
+      }
+    )
+
+    # 項目ごとにデータを上書き
+    for field in updatable_fields:
+      if field in post_data:
+        setattr(kosu_data, field, post_data[field])
+
+    kosu_data.name = member.objects.get(employee_no=login_no)
+    kosu_data.time_work = work_list
+    kosu_data.detail_work = detail_list
+    kosu_data.save()
+    return Response({'status': 'success', 'message': '残業が更新されました。'})

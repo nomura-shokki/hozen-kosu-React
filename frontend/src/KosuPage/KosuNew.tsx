@@ -30,12 +30,14 @@ interface DefData {
   [key: string]: string | undefined;
 }
 
-const roundToNearestFiveMinutes = (date: Date): Date => {
-  const msPerMinute = 60000;
+const roundToNearestFiveMinutes = (date: Date, workDay: Date): Date => {
   const minutes = Math.floor(date.getMinutes() / 5) * 5;
-  const roundedDate = new Date(Math.floor(date.getTime() / msPerMinute) * msPerMinute);
-  roundedDate.setMinutes(minutes);
-  return roundedDate;
+  date.setMinutes(minutes, 0, 0);
+  date.setHours(date.getHours());
+  date.setFullYear(workDay.getFullYear());
+  date.setMonth(workDay.getMonth());
+  date.setDate(workDay.getDate());
+  return date;
 };
 
 const KosuNew: React.FC = () => {
@@ -51,16 +53,29 @@ const KosuNew: React.FC = () => {
   const [memberShop, setMemberShop] = useState<string>("");
   const [isTomorrowChecked, setIsTomorrowChecked] = useState<boolean>(false);
   const [isBreakChangeChecked, setIsBreakChangeChecked] = useState<boolean>(false);
-  const [selectedTime1, setSelectedTime1] = useState<Date | null>(() => {
-    const cachedTime2 = localStorage.getItem("time2");
-    return cachedTime2 ? new Date(cachedTime2) : roundToNearestFiveMinutes(new Date());
-  });
-  const [selectedTime2, setSelectedTime2] = useState<Date | null>(() => {
-    const cachedTime2 = localStorage.getItem("time2");
-    return cachedTime2 ? new Date(cachedTime2) : roundToNearestFiveMinutes(new Date());
+  const [selectedTimes, setSelectedTimes] = useState<{
+    time1: Date | null;
+    time2: Date | null;
+  }>({
+    time1: (() => {
+      const cachedTime1 = localStorage.getItem("time1");
+      const workDay = data ? new Date(data.work_day2) : new Date();
+      return cachedTime1 ? new Date(cachedTime1) : roundToNearestFiveMinutes(new Date(), workDay);
+    })(),
+    time2: (() => {
+      const cachedTime2 = localStorage.getItem("time2");
+      const workDay = data ? new Date(data.work_day2) : new Date();
+      return cachedTime2 ? new Date(cachedTime2) : roundToNearestFiveMinutes(new Date(), workDay);
+    })(),
   });
 
-  // time1 と time2 のキャッシュ管理のための関数を追加
+  const handleTimeChange = (
+    field: "time1" | "time2",
+    newTime: Date | null
+  ) => {
+    setSelectedTimes((prev) => ({ ...prev, [field]: newTime }));
+  };
+
   const updateCachedTimes = (time1: Date | null, time2: Date | null) => {
     if (time1) localStorage.setItem("time1", time1.toISOString());
     if (time2) localStorage.setItem("time2", time2.toISOString());
@@ -69,6 +84,14 @@ const KosuNew: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleError = (error: any, defaultMessage: string) => {
+    if (error.response && error.response.data && error.response.data.error) {
+      setErrorMessage(error.response.data.error);
+    } else {
+      setErrorMessage(defaultMessage);
+    }
+  };
 
   const fetchData = () => {
     axios
@@ -111,12 +134,7 @@ const KosuNew: React.FC = () => {
       })
       .catch((error) => {
         console.error("データ取得エラー:", error);
-
-        if (error.response && error.response.data && error.response.data.error) {
-          setErrorMessage(error.response.data.error);
-        } else {
-          setErrorMessage("データの取得で想定外のエラーが発生しました");
-        }
+        handleError(error, "データの取得で想定外のエラーが発生しました");
         setLoading(false);
       });
   };
@@ -140,31 +158,44 @@ const KosuNew: React.FC = () => {
           })
           .catch((error) => {
             console.error("エラーが発生しました:", error);
-
-            if (error.response && error.response.data && error.response.data.error) {
-              setErrorMessage(error.response.data.error); 
-            } else {
-              setErrorMessage("日付切り替えで想定外のエラーが発生しました");
-            }
+            handleError(error, "日付切り替えで想定外のエラーが発生しました");
           });
       }
     }
   };
 
-  const handleTimeChange1 = (newTime: Date | null) => {
-    setSelectedTime1(newTime);
-  };
-
-  const handleTimeChange2 = (newTime: Date | null) => {
-    setSelectedTime2(newTime);
+  const setTime2ToCurrentRounded = () => {
+    if (data) {
+      const workDay = new Date(data.work_day2);
+      const now = roundToNearestFiveMinutes(new Date(), workDay);
+      setSelectedTimes((prev) => ({ ...prev, time2: now }));
+  
+      if (selectedTimes.time1 && now.getTime() < selectedTimes.time1.getTime()) {
+        setIsTomorrowChecked(true);
+      } else {
+        setIsTomorrowChecked(false);
+      }
+    }
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!data) return;
 
-    const formattedTime1 = selectedTime1?.toISOString();
-    const formattedTime2 = selectedTime2?.toISOString();
+    const workDay = new Date(data.work_day2);
+    if (selectedTimes.time1) {
+      selectedTimes.time1.setFullYear(workDay.getFullYear());
+      selectedTimes.time1.setMonth(workDay.getMonth());
+      selectedTimes.time1.setDate(workDay.getDate());
+    }
+    if (selectedTimes.time2) {
+      selectedTimes.time2.setFullYear(workDay.getFullYear());
+      selectedTimes.time2.setMonth(workDay.getMonth());
+      selectedTimes.time2.setDate(workDay.getDate());
+    }
+  
+    const formattedTime1 = selectedTimes.time1?.toISOString();
+    const formattedTime2 = selectedTimes.time2?.toISOString();
     const overTime = data.over_time || 0;
 
     if (!data.work_time || !data.tyoku2 || !data.time_work || !formattedTime1 || !formattedTime2) {
@@ -176,21 +207,19 @@ const KosuNew: React.FC = () => {
       setErrorMessage("作業時間が誤っています確認して下さい。");
       return;
     }
-    console.log(selectedTime1);
-    console.log(selectedTime2);
-    if (selectedTime1 && selectedTime2 && selectedTime1 > selectedTime2 && !isTomorrowChecked) {
+    if (selectedTimes.time1 && selectedTimes.time2 && selectedTimes.time1 > selectedTimes.time2 && !isTomorrowChecked) {
       setErrorMessage("作業開始時間が終了時間を越えています。翌日チェックを忘れていませんか？");
       return;
     }
-    if (selectedTime1 && selectedTime2) {
-      const timeDifference = Math.abs(selectedTime2.getTime() - selectedTime1.getTime());
+    if (selectedTimes.time1 && selectedTimes.time2) {
+      const timeDifference = Math.abs(selectedTimes.time2.getTime() - selectedTimes.time1.getTime());
       const hoursDifference = timeDifference / (1000 * 60 * 60);
       if (hoursDifference > 21) {
         setErrorMessage("作業時間が21時間を超えています。入力できません。");
         return;
       }
     }
-    if (selectedTime1 && selectedTime2 && selectedTime1 < selectedTime2 && isTomorrowChecked) {
+    if (selectedTimes.time1 && selectedTimes.time2 && selectedTimes.time1 < selectedTimes.time2 && isTomorrowChecked) {
       setErrorMessage("1日以上の工数は入力できません。誤って翌日チェックを入れていませんか？");
       return;
     }
@@ -224,12 +253,15 @@ const KosuNew: React.FC = () => {
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, updatedData, { withCredentials: true })
       .then(() => {
         alert("更新が成功しました！");
-        updateCachedTimes(selectedTime1, selectedTime2);
+        updateCachedTimes(selectedTimes.time1, selectedTimes.time2);
         fetchData();
 
         if (formattedTime2) {
-          setSelectedTime1(new Date(formattedTime2));
-          setSelectedTime2(roundToNearestFiveMinutes(new Date(formattedTime2)));
+          const workDay = new Date(data.work_day2);
+          setSelectedTimes({ 
+            time1: new Date(formattedTime2),
+            time2: roundToNearestFiveMinutes(new Date(formattedTime2), workDay),
+          });
           localStorage.setItem("time1", formattedTime2);
           localStorage.setItem("time2", formattedTime2);
         }
@@ -246,12 +278,32 @@ const KosuNew: React.FC = () => {
       })
       .catch((error) => {
         console.error("更新エラー:", error);
-      
-        if (error.response && error.response.data && error.response.data.error) {
-          setErrorMessage(error.response.data.error);
-        } else {
-          setErrorMessage("更新に失敗しました。再試行してください。");
-        }
+        handleError(error, "更新に失敗しました。再試行してください。"); // 共通関数を使用
+      });
+  };
+
+  const handleSendOverTime = () => {
+    if (!data) {
+      return;
+    }
+    const overTime = data.over_time || 0;
+    if (data.work_time !== "休出" && overTime % 15 !== 0) {
+      setErrorMessage("残業の最小単位は15分です。確認してください。");
+      return;
+    }
+    if (data.work_time === "休出" && overTime % 5 !== 0) {
+      setErrorMessage("休出時の残業は(15n+5)分です。確認してください。");
+      return;
+    }
+
+    axios
+      .post(`${process.env.REACT_APP_API_BASE_URL}/api/over_time/`, data, { withCredentials: true })
+      .then(() => {
+        alert("残業情報を送信しました！");
+      })
+      .catch((error) => {
+        console.error("残業送信エラー:", error);
+        handleError(error, "残業情報送信でエラーが発生しました。");
       });
   };
 
@@ -305,6 +357,7 @@ const KosuNew: React.FC = () => {
         <div>
           <label htmlFor="time_work">作業内容:</label>
           <DefSelect value={data?.time_work || ""} onChange={handleChange} defData={defData} />
+          <Link to="/def-search">工数区分定義確認</Link>
         </div>
         <div>
           <label htmlFor="detail_work">作業詳細:</label>
@@ -340,11 +393,18 @@ const KosuNew: React.FC = () => {
           </button>
         </div>
         <div>
+          <button
+            type="button"
+            onClick={handleSendOverTime}
+          >
+            残業送信
+          </button>
+        </div>
+        <div>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <label>作業時間:</label>
             <MobileTimePicker
-              value={selectedTime1}
-              onChange={handleTimeChange1}
+              value={selectedTimes.time1}
+              onChange={(newTime) => handleTimeChange("time1", newTime)}
               ampm={false}
               minutesStep={5}
               onAccept={() => {
@@ -356,8 +416,8 @@ const KosuNew: React.FC = () => {
 
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <MobileTimePicker
-              value={selectedTime2}
-              onChange={handleTimeChange2}
+              value={selectedTimes.time2}
+              onChange={(newTime) => handleTimeChange("time2", newTime)}
               ampm={false}
               minutesStep={5}
               onAccept={() => {
@@ -378,6 +438,14 @@ const KosuNew: React.FC = () => {
           />
         </div>
         <div>
+          <button
+            type="button"
+            onClick={setTime2ToCurrentRounded}
+          >
+            現在時刻
+          </button>
+        </div>
+        <div>
           <label htmlFor="break_change">休憩変更:</label>
           <input
             type="checkbox"
@@ -389,11 +457,13 @@ const KosuNew: React.FC = () => {
         </div>
         <button type="submit">更新</button>
       </form>
-      <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""}  defData={defData} tyoku={initialTyoku || ""} shop={memberShop || ""}/>
       {initialTimeWork && (
-        <KosuBarChart initialTimeWork={initialTimeWork} tyoku={initialTyoku || ""} shop={memberShop || ""} />
+        <>
+          <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""}  defData={defData} tyoku={initialTyoku || ""} shop={memberShop || ""}/>
+          <KosuBarChart initialTimeWork={initialTimeWork} tyoku={initialTyoku || ""} shop={memberShop || ""} />
+          <DefTable defData={defData} />
+        </>
       )}
-      <DefTable defData={defData} />
     </>
   );
 };

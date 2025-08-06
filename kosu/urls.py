@@ -18,6 +18,7 @@ urlpatterns = [
   path('kosu_menu/', main_views.KosuMenu.as_view(), name='kosu_menu'),
   path('kosu_new/', kosu_views.KosuNew.as_view(), name='kosu_new'),
   path('set_day/', kosu_views.SetDay.as_view(), name='set_day'),
+  path('over_time/', kosu_views.OverTime.as_view(), name='over_time'),
   path('kosu_list/', kosu_views.KosuList.as_view(), name='kosu_list'), 
   path('def_menu/', main_views.DefMenu.as_view(), name='def_menu'),
   path('def_new/', def_views.def_new, name='def_new'), 

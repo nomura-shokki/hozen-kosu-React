@@ -11,42 +11,6 @@ interface Member {
   shop: string;
   authority: boolean;
   administrator: boolean;
-  break_time1: string;
-  break_time1_over1: string;
-  break_time1_over2: string;
-  break_time1_over3: string;
-  break_time2: string;
-  break_time2_over1: string;
-  break_time2_over2: string;
-  break_time2_over3: string;
-  break_time3: string;
-  break_time3_over1: string;
-  break_time3_over2: string;
-  break_time3_over3: string;
-  break_time4: string;
-  break_time4_over1: string;
-  break_time4_over2: string;
-  break_time4_over3: string;
-  break_time5: string;
-  break_time5_over1: string;
-  break_time5_over2: string;
-  break_time5_over3: string;
-  break_time6: string;
-  break_time6_over1: string;
-  break_time6_over2: string;
-  break_time6_over3: string;
-  pop_up1: string;
-  pop_up_id1: string;
-  pop_up2: string;
-  pop_up_id2: string;
-  pop_up3: string;
-  pop_up_id3: string;
-  pop_up4: string;
-  pop_up_id4: string;
-  pop_up5: string;
-  pop_up_id5: string;
-  break_check: boolean;
-  def_prediction: boolean;
 }
 
 const DefMenu: React.FC = () => {

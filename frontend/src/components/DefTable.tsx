@@ -2,7 +2,7 @@ import React from "react";
 import styles from "../styles/components/DefTable.module.css";
 
 interface DefDataProps {
-  defData: { [key: string]: string | undefined }; // defDataタイプを柔軟に定義
+  defData: { [key: string]: string | undefined };
 }
 
 const generateColorPalette = (): string[] => {
@@ -18,7 +18,7 @@ const DefTable: React.FC<DefDataProps> = ({ defData }) => {
   const colorPalette = generateColorPalette();
 
   const titles = Object.keys(defData)
-    .filter((key) => key.startsWith("kosu_title_") && defData[key]) // `null` または `undefined` を除外
+    .filter((key) => key.startsWith("kosu_title_") && defData[key])
     .map((key, index) => ({
       title: defData[key]!,
       color: colorPalette[index],

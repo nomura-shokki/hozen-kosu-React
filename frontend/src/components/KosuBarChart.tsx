@@ -109,21 +109,22 @@ const KosuBarChart: React.FC<Props> = ({ initialTimeWork, tyoku, shop }) => {
   const removeEndIndex = Math.max(lastNonZeroIndex + 2, 130);
   chartDataModified = chartDataModified.slice(0, removeEndIndex);
 
-  // === ここから新しい前方修正の追加コード ===
   // 前方から探索して0以外の値が出た最初の位置を取得
   let firstNonZeroIndex = 0;
   while (firstNonZeroIndex < chartDataModified.length && chartDataModified[firstNonZeroIndex] === 0) {
     firstNonZeroIndex++;
   }
 
-  // 削除対象の範囲を計算（ただし0より前は削除しない）
-  const removeStartIndex = Math.max(firstNonZeroIndex - 2, 0);
-  chartDataModified = chartDataModified.slice(removeStartIndex);
+  // データがすべて0でない場合のみ切り捨て処理を行う
+  if (firstNonZeroIndex < chartDataModified.length) {
+    // 削除対象の範囲を計算（ただし0より前は削除しない）
+    const removeStartIndex = Math.max(firstNonZeroIndex - 2, 0);
+    chartDataModified = chartDataModified.slice(removeStartIndex);
 
-  // ラベルもchartDataModifiedの長さに合わせて切り詰める
-  labels.splice(0, removeStartIndex);
-  labels.length = chartDataModified.length;
-  // === 変更終了 ===
+    // ラベルもchartDataModifiedの長さに合わせて切り詰める
+    labels.splice(0, removeStartIndex);
+    labels.length = chartDataModified.length;
+  }
 
   const data = {
     labels,
