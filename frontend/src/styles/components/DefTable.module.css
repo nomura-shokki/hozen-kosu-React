@@ -1,28 +1,8 @@
-
-.def-table {
-  margin: 1rem;
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-}
-
-.def-table table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.def-table th,
-.def-table td {
-  border: 1px solid #ccc;
-  padding: 10px;
-  text-align: left;
-}
-
-.def-table th {
-  background-color: #eee;
-}
-
 .color-dot {
   vertical-align: middle;
+}
+
+.th-collar{
+  background-color: #0ff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }

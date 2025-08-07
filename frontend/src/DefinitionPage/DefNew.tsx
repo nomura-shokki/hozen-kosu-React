@@ -132,7 +132,6 @@ const DefNew: React.FC = () => {
       {/* 登録フォーム */}
       <form
         onSubmit={handleSubmit}
-        // Enterキー誤送信防止（テキストエリア以外での送信ブロック）
         onKeyDown={(e) => {
           if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
             e.preventDefault();

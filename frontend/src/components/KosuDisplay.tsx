@@ -97,21 +97,20 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
   // レンダリング: パースされた作業データを表示する
   return (
     <div>
-      <h2>作業時間と内容</h2>
       <table>
         <thead>
           <tr>
-            <th>作業時間</th> {/* 時間範囲を表示する列 */}
-            <th>作業内容</th> {/* 作業内容を表示する列 */}
-            <th>作業詳細</th> {/* 作業詳細を表示する列 */}
+            <th>作業時間</th>
+            <th>作業内容</th>
+            <th>作業詳細</th>
           </tr>
         </thead>
         <tbody>
           {parsedData.map((item, index) => (
-            <tr key={index}> {/* 配列のデータごとに新しい行を作成 */}
-              <td>{item.time}</td> {/* 作業時間 */}
-              <td>{item.work}</td> {/* 作業内容 */}
-              <td>{item.detail}</td> {/* 作業詳細 */}
+            <tr key={index}>
+              <td>{item.time}</td>
+              <td>{item.work}</td>
+              <td>{item.detail}</td>
             </tr>
           ))}
         </tbody>

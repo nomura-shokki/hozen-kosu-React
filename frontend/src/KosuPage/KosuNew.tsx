@@ -321,8 +321,7 @@ const KosuNew: React.FC = () => {
   return (
     <>
       <Loading isLoading={loading} />
-      <form onSubmit={handleSubmit} className={styles["kosu-form"]}>
-
+      <div className={styles["kosu-new-wrapper"]}>
         <h1 className={styles["h1-collar"]}>{memberName}の工数入力</h1>
         <nav className={styles["kosu-nav"]}>
           <Link to="/kosu-menu">工数MENU</Link>
@@ -336,134 +335,154 @@ const KosuNew: React.FC = () => {
           <div role="alert">{errorMessage}</div>
         )}
 
-        <div>
-          <label htmlFor="work_day2">就業日:</label>
-          <input
-            type="date"
-            id="work_day2"
-            name="work_day2"
-            value={data?.work_day2 || ""}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label htmlFor="work_time">勤務:</label>
-          <WorkSelect value={data?.work_time || ""} onChange={handleChange} />
-        </div>
-        <div>
-          <label htmlFor="tyoku2">直:</label>
-          <TyokuSelect value={data?.tyoku2 || ""} onChange={handleChange} />
-        </div>
-        <div>
-          <label htmlFor="time_work">作業内容:</label>
-          <DefSelect value={data?.time_work || ""} onChange={handleChange} defData={defData} />
-          <Link to="/def-search">工数区分定義確認</Link>
-        </div>
-        <div>
-          <label htmlFor="detail_work">作業詳細:</label>
-          <textarea
-            id="detail_work"
-            name="detail_work"
-            value={data?.detail_work || ""}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label htmlFor="over_time">残業時間:</label>
-          <button
-            type="button"
-            className={styles["custom-button"]}
-            onClick={() => handleIncrement("over_time")}
-          >
-            +
-          </button>
-          <input
-            type="number"
-            id="over_time"
-            name="over_time"
-            value={data?.over_time || 0}
-            onChange={handleChange}
-          />
-          <button
-            type="button"
-            className={styles["custom-button"]}
-            onClick={() => handleDecrement("over_time")}
-          >
-            -
-          </button>
-        </div>
-        <div>
-          <button
-            type="button"
-            onClick={handleSendOverTime}
-          >
-            残業送信
-          </button>
-        </div>
-        <div>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <MobileTimePicker
-              value={selectedTimes.time1}
-              onChange={(newTime) => handleTimeChange("time1", newTime)}
-              ampm={false}
-              minutesStep={5}
-              onAccept={() => {
-                const rootElement = document.getElementById("root");
-                if (rootElement) rootElement.removeAttribute("aria-hidden");
-              }}
+        <form 
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
+              e.preventDefault();
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+        >
+          <div className={styles["search-bar"]}>
+            <label htmlFor="work_day2">就業日:</label>
+            <input
+              type="date"
+              id="work_day2"
+              name="work_day2"
+              value={data?.work_day2 || ""}
+              onChange={handleChange}
             />
-          </LocalizationProvider>
 
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <MobileTimePicker
-              value={selectedTimes.time2}
-              onChange={(newTime) => handleTimeChange("time2", newTime)}
-              ampm={false}
-              minutesStep={5}
-              onAccept={() => {
-                const rootElement = document.getElementById("root");
-                if (rootElement) rootElement.removeAttribute("aria-hidden");
-              }}
+            <label htmlFor="work_time">勤務・直:</label>
+            <div className={styles["work-tyoku-wrapper"]}>
+              <WorkSelect value={data?.work_time || ""} onChange={handleChange} />
+              <TyokuSelect value={data?.tyoku2 || ""} onChange={handleChange} />
+            </div>
+
+            <label htmlFor="time_work">
+              作業内容:
+              <Link to="/def-search" className="green_button">
+                工数区分定義確認
+              </Link>
+            </label>
+            <DefSelect value={data?.time_work || ""} onChange={handleChange} defData={defData} />
+
+            <label htmlFor="detail_work">作業詳細:</label>
+            <input
+              type="text"
+              id="detail_work"
+              name="detail_work"
+              value={data?.detail_work || ""}
+              onChange={handleChange}
             />
-          </LocalizationProvider>
-        </div>
-        <div>
-          <label htmlFor="tomorrow_check">翌日:</label>
-          <input
-            type="checkbox"
-            id="tomorrow_check"
-            name="tomorrow_check"
-            checked={isTomorrowChecked}
-            onChange={(e) => setIsTomorrowChecked(e.target.checked)}
-          />
-        </div>
-        <div>
-          <button
-            type="button"
-            onClick={setTime2ToCurrentRounded}
-          >
-            現在時刻
-          </button>
-        </div>
-        <div>
-          <label htmlFor="break_change">休憩変更:</label>
-          <input
-            type="checkbox"
-            id="break_change"
-            name="break_change"
-            checked={isBreakChangeChecked}
-            onChange={(e) => setIsBreakChangeChecked(e.target.checked)}
-          />
-        </div>
-        <button type="submit">更新</button>
-      </form>
-      {initialTimeWork && (
-        <>
-          <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""}  defData={defData} tyoku={initialTyoku || ""} shop={memberShop || ""}/>
-          <KosuBarChart initialTimeWork={initialTimeWork} tyoku={initialTyoku || ""} shop={memberShop || ""} />
-          <DefTable defData={defData} />
-        </>
-      )}
+
+            <label>
+              作業時間:
+              <button type="button" onClick={setTime2ToCurrentRounded}  className="light_blue_button">
+                現在時刻
+              </button>
+            </label>
+            <div className={styles["time-picker-wrapper"]}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <MobileTimePicker
+                  className={styles["time-picker"]}
+                  value={selectedTimes.time1}
+                  onChange={(newTime) => handleTimeChange("time1", newTime)}
+                  ampm={false}
+                  minutesStep={5}
+                  onAccept={() => {
+                    const rootElement = document.getElementById("root");
+                    if (rootElement) rootElement.removeAttribute("aria-hidden");
+                  }}
+                />
+              </LocalizationProvider>
+              <span>〜</span>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <MobileTimePicker
+                  className={styles["time-picker"]}
+                  value={selectedTimes.time2}
+                  onChange={(newTime) => handleTimeChange("time2", newTime)}
+                  ampm={false}
+                  minutesStep={5}
+                  onAccept={() => {
+                    const rootElement = document.getElementById("root");
+                    if (rootElement) rootElement.removeAttribute("aria-hidden");
+                  }}
+                />
+              </LocalizationProvider>
+              <div>
+                <label htmlFor="tomorrow_check">翌日:</label>
+                <input
+                  type="checkbox"
+                  id="tomorrow_check"
+                  name="tomorrow_check"
+                  checked={isTomorrowChecked}
+                  onChange={(e) => setIsTomorrowChecked(e.target.checked)}
+                />
+              </div>
+            </div>
+
+            <label htmlFor="over_time">残業時間:</label>
+            <div className={styles["over-time-wrapper"]}>
+              <button
+                type="button"
+                className={styles["custom-button"]}
+                onClick={() => handleIncrement("over_time")}
+              >
+                +
+              </button>
+              <input
+                type="number"
+                id="over_time"
+                name="over_time"
+                value={data?.over_time || 0}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                className={styles["custom-button"]}
+                onClick={() => handleDecrement("over_time")}
+              >
+                -
+              </button>
+              <button
+                type="button"
+                onClick={handleSendOverTime}
+                className="light_blue_button"
+              >
+                残業のみ登録
+              </button>
+            </div>
+
+            <div className={styles["switch-wrapper"]}>
+              <label htmlFor="break_change">休憩変更:</label>
+              <div
+                className={styles["toggle-switch"]}
+                onClick={() => setIsBreakChangeChecked(!isBreakChangeChecked)}
+              >
+                <input
+                  type="checkbox"
+                  id="break_change"
+                  name="break_change"
+                  checked={isBreakChangeChecked}
+                  onChange={(e) => setIsBreakChangeChecked(e.target.checked)}
+                />
+                <span className={styles["toggle-slider"]}></span>
+              </div>
+            </div>
+
+            <button type="submit" className="light_blue_button">更新</button>
+          </div>
+        </form>
+        {initialTimeWork && (
+          <>
+            <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""}  defData={defData} tyoku={initialTyoku || ""} shop={memberShop || ""}/>
+            <KosuBarChart initialTimeWork={initialTimeWork} tyoku={initialTyoku || ""} shop={memberShop || ""} />
+            <DefTable defData={defData} />
+          </>
+        )}
+      </div>
     </>
   );
 };

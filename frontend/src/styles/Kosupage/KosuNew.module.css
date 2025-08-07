@@ -1,6 +1,62 @@
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .h1-collar {
   color: #0ff;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.kosu-new-wrapper {
+  animation: fadeInUp 1s ease-out;
+  width: 100%;
+  max-height: 100%;
+  max-width: 100vw;
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .kosu-new-wrapper {
+    margin: 0;
+    justify-content: flex-start;
+  }
+}
+
+.search-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.search-bar label {
+  align-self: flex-start;
+  margin-left: 20px;
+}
+
+.search-bar input,
+.search-bar select {
+  padding: 8px 10px;
+  margin: 0 auto;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  width: calc(100% - 40px);
+  max-width: 400px;
+  box-sizing: border-box;
 }
 
 .kosu-nav a {
@@ -13,20 +69,84 @@
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
+.over-time-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: calc(100% - 40px);
+  max-width: 400px;
+  box-sizing: border-box;
+}
+
+.over-time-wrapper input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.work-tyoku-wrapper {
+  display: flex; /* フレックスボックスで横並びにする */
+  justify-content: space-between; /* 子要素間に均等なスペースを配置 */
+  gap: 10px; /* 子要素間の間隔を設定 */
+  width: calc(100% - 40px); /* `.search-bar input` に合わせた幅にする */
+  max-width: 400px; /* `.search-bar input` と同じ制限を適用 */
+  box-sizing: border-box; /* パディングとボーダーを要素のサイズに含める */
+}
+.work-tyoku-wrapper select {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.time-picker-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 40px);
+  max-width: 400px;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+}
+
+.time-picker-wrapper label {
+  font-size: 1rem;
+  margin-left: 5px;
+}
+
+.time-picker-wrapper input[type="checkbox"] {
+  width: auto;
+  margin-left: 5px;
+}
+
+.time-picker {
+  flex: 1;
+}
+
+.time-picker input {
+  font-size: 1rem;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
 .custom-button {
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0;
   border: none;
-  background-color: #00aeff;  /* ボタンの背景色を設定 */
-  color: white;  /* テキストの色を設定 */
+  background-color: #00aeff;
+  color: white;
   font-size: 1.2em;
   cursor: pointer;
   width: 30px;
   height: 30px;
-  border-radius: 50%;  /* 丸いボタンにする */
-  margin: 0 5px;  /* ボタン間のスペースを設定 */
+  border-radius: 50%;
+  margin: 0 5px;
   text-shadow:
     -0.5px -0.5px 0 #000,
     0.5px -0.5px 0 #000,
@@ -36,4 +156,69 @@
 
 .custom-button:hover {
   background-color: #009eb3;
+}
+
+.switch-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+}
+
+.switch-wrapper label {
+  margin-left: 20px;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  cursor: pointer; /* マウスオーバー時にカーソルを表示 */
+  width: 75px;
+  height: 39px;
+  margin: 0 auto;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 30px;
+  transition: 0.3s;
+}
+
+.toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 30px;
+  width: 30px;
+  left: 4.5px;
+  bottom: 4.5px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle-switch .toggle-slider {
+  display: block; /* ボタン部分をクリックエリアにする */
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #0ff;
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(36px);
 }

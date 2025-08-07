@@ -210,6 +210,8 @@ tr:hover {
   white-space: nowrap;
   width: auto;
   max-width: 100%;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 .light_blue_button:hover {
   background-color: #0af

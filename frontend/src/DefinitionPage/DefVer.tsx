@@ -93,7 +93,15 @@ const DefVer: React.FC = () => {
         <div role="alert">{errorMessage}</div>
       )}
       <p>現在の工数区分のVerは "{currentVersion}" です</p>
-      <form onSubmit={handleSubmit}>
+      <form 
+        onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
+            e.preventDefault();
+            (e.target as HTMLInputElement).blur();
+          }
+        }}
+      >
         <label htmlFor="versionchoice">工数区分の選択:</label>
         <select
           id="versionchoice"

@@ -44,7 +44,15 @@ const Login: React.FC = () => {
   return (
     <div className={styles["login-wrapper"]}>
       <img src={logo} alt="業務工数システムロゴ" className={styles["login-logo"]} />
-      <form onSubmit={handleSubmit}>
+      <form 
+        onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
+            e.preventDefault();
+            (e.target as HTMLInputElement).blur();
+          }
+        }}
+      >
         <h2>ログイン</h2>
         <div className={styles["search-bar"]}>
             <label>従業員番号</label>

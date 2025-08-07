@@ -29,8 +29,8 @@ const DefTable: React.FC<DefDataProps> = ({ defData }) => {
       <table>
         <thead>
           <tr>
-            <th>工数タイトル</th>
-            <th>色</th>
+            <th className={styles["th-collar"]}>工数タイトル</th>
+            <th className={styles["th-collar"]}>色</th>
           </tr>
         </thead>
         <tbody>

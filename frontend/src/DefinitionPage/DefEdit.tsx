@@ -144,7 +144,15 @@ const DefEdit: React.FC = () => {
         {errorMessage && <div role="alert">{errorMessage}</div>}
 
         {/* 編集フォーム */}
-        <form onSubmit={handleSubmit}>
+        <form 
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
+              e.preventDefault();
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+        >
           <div className={styles["search-bar"]}>
             {/* 上部・下部に更新ボタン重複配置 */}
             <button type="submit" className="green_button">更新</button>
