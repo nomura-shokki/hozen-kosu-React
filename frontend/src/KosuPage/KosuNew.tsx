@@ -345,10 +345,11 @@ const KosuNew: React.FC = () => {
           }}
         >
           <div className={styles["search-bar"]}>
-            <label htmlFor="work_day2">就業日:</label>
-            <span style={{ color: data?.judgement ? "blue" : "red", marginLeft: "8px" }}>
-              {data?.judgement ? "OK" : "NG"}
-            </span>
+            <label htmlFor="work_day2">就業日:
+              <span style={{ color: data?.judgement ? "blue" : "red", marginLeft: "8px" }}>
+                {data?.judgement ? "OK" : "NG"}
+              </span>
+            </label>
             <input
               type="date"
               id="work_day2"
