@@ -2978,7 +2978,7 @@ class KosuNew(APIView):
       detail_list = obj.detail_work.split('$')
     else:
       detail_list = list(itertools.repeat('', 288))
-    print(obj.def_ver2)
+
     if obj:
       if obj.def_ver2:
         if obj.def_ver2 != def_ver:
@@ -3109,6 +3109,7 @@ class OverTime(APIView):
     login_no = request.session.get('login_No')
     post_data = request.data
     day = post_data.get('work_day2')
+    member_obj = member.objects.get(employee_no=login_no)
 
     if not day:
       request.session['day'] = ""
@@ -3131,6 +3132,16 @@ class OverTime(APIView):
     else:
       detail_list = obj.detail_work
 
+    if obj == None or not obj.work_time :
+      work_time = ''
+    else:
+      work_time = obj.work_time
+
+    if obj == None or not obj.tyoku2 :
+      tyoku = ''
+    else:
+      tyoku = obj.tyoku2
+
     # 更新可能なフィールドを定義
     updatable_fields = ['over_time']
 
@@ -3150,7 +3161,9 @@ class OverTime(APIView):
         setattr(kosu_data, field, post_data[field])
 
     kosu_data.name = member.objects.get(employee_no=login_no)
-    kosu_data.time_work = work_list
-    kosu_data.detail_work = detail_list
+    if obj == None or not obj.time_work :
+      kosu_data.time_work = work_list
+      kosu_data.detail_work = detail_list
+    kosu_data.judgement = judgement_check(work_list, work_time, tyoku, member_obj, post_data.get('over_time', 0))
     kosu_data.save()
     return Response({'status': 'success', 'message': '残業が更新されました。'})

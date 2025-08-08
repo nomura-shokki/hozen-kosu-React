@@ -25,7 +25,7 @@ const DefTable: React.FC<DefDataProps> = ({ defData }) => {
     }));
 
   return (
-    <div className={styles["def-table"]}>
+    <div>
       <table>
         <thead>
           <tr>
