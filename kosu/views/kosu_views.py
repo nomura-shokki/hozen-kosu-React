@@ -3083,6 +3083,10 @@ class KosuNew(APIView):
     kosu_data.detail_work = detail_list_summarize(detail_list)
     kosu_data.judgement = judgement_check(work_list, post_data.get('work_time'), tyoku, member_obj, post_data.get('over_time', 0))
     kosu_data.def_ver2 = def_ver
+    kosu_data.breaktime = breaktime
+    kosu_data.breaktime_over1 = breaktime_over1
+    kosu_data.breaktime_over2 = breaktime_over2
+    kosu_data.breaktime_over3 = breaktime_over3
     kosu_data.save()
     return Response({'status': 'success', 'message': 'データが更新されました。'})
 
@@ -3167,3 +3171,71 @@ class OverTime(APIView):
     kosu_data.judgement = judgement_check(work_list, work_time, tyoku, member_obj, post_data.get('over_time', 0))
     kosu_data.save()
     return Response({'status': 'success', 'message': '残業が更新されました。'})
+
+
+
+# 当日休憩変更
+class TodayBreakTime(APIView):
+  def get(self, request, *args, **kwargs):
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
+    if not login_no:
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # セッション 'day' の処理と初期値設定
+    day = request.session.get('day')
+    if not day:
+      day = str(datetime.date.today())
+      request.session['day'] = day
+
+    # kosu_data の取得
+    kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+    if kosu_query_set.count() > 1:
+      return Response({'error': '複数の工数データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+    kosu_data = kosu_query_set.first()
+
+    # シリアライザーによるシリアライズ処理
+    kosu_serializer = KosuSerializer(kosu_data, many=False)
+
+    # レスポンスデータの構築
+    response_data = {
+      'kosu_data': kosu_serializer.data,
+      'session_day': day,
+    }
+
+    return Response(response_data)
+
+  def post(self, request, *args, **kwargs):
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
+    if not login_no:
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # セッション 'day' の処理と初期値設定
+    day = request.session.get('day')
+    if not day:
+      day = str(datetime.date.today())
+      request.session['day'] = day
+
+    # kosu_data の取得
+    kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+    if kosu_query_set.count() > 1:
+      return Response({'error': '複数の工数データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+    kosu_data = kosu_query_set.first()
+
+    # シリアライザーによるシリアライズ処理
+    kosu_serializer = KosuSerializer(kosu_data, many=False)
+
+    # レスポンスデータの構築
+    response_data = {
+      'kosu_data': kosu_serializer.data,
+      'session_day': day,
+    }
+
+    return Response(response_data)
