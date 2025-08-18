@@ -2871,6 +2871,7 @@ class KosuList(APIView):
 
 
 
+# 工数入力
 class KosuNew(APIView):
   def get(self, request, *args, **kwargs):
     login_no = request.session.get('login_No')
@@ -3176,22 +3177,25 @@ class OverTime(APIView):
 
 # 当日休憩変更
 class TodayBreakTime(APIView):
+  # GET処理
   def get(self, request, *args, **kwargs):
+    # ユーザーの従業員番号、使用工数区分定義取得
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
+    # セッションない場合エラー出力
     if not login_no:
       return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
       return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    # セッション 'day' の処理と初期値設定
+    # 就業日取得
     day = request.session.get('day')
     if not day:
       day = str(datetime.date.today())
       request.session['day'] = day
 
-    # kosu_data の取得
+    # 工数データ取得
     kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
     if kosu_query_set.count() > 1:
       return Response({'error': '複数の工数データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
@@ -3207,35 +3211,53 @@ class TodayBreakTime(APIView):
     }
 
     return Response(response_data)
+
 
   def post(self, request, *args, **kwargs):
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
-
-    if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # セッション 'day' の処理と初期値設定
     day = request.session.get('day')
-    if not day:
-      day = str(datetime.date.today())
-      request.session['day'] = day
+    post_data = request.data
 
-    # kosu_data の取得
+    jst = datetime.timezone(datetime.timedelta(hours=9))
+    start_time1 = datetime.datetime.strptime(post_data.get('breakTime1'), "%Y-%m-%dT%H:%M:%S.%fZ")
+    end_time1 = datetime.datetime.strptime(post_data.get('breakTime2'), "%Y-%m-%dT%H:%M:%S.%fZ")
+    start_time1 = start_time1.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
+    end_time1 = end_time1.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
+    start_time1 = start_time1.strftime("%H:%M")
+    end_time1 = end_time1.strftime("%H:%M")
+    start_time2 = datetime.datetime.strptime(post_data.get('breakTime3'), "%Y-%m-%dT%H:%M:%S.%fZ")
+    end_time2 = datetime.datetime.strptime(post_data.get('breakTime4'), "%Y-%m-%dT%H:%M:%S.%fZ")
+    start_time2 = start_time2.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
+    end_time2 = end_time2.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
+    start_time2 = start_time2.strftime("%H:%M")
+    end_time2 = end_time2.strftime("%H:%M")
+
+    start_time_hour1, start_time_min1 = time_index(start_time1)
+    end_time_hour1, end_time_min1 = time_index(end_time1)
+    start_time_ind1 = int(int(start_time_hour1)*12 + int(start_time_min1)/5)
+    end_time_ind1 = int(int(end_time_hour1)*12 + int(end_time_min1)/5)
+    start_time_hour2, start_time_min2 = time_index(start_time2)
+    end_time_hour2, end_time_min2 = time_index(end_time2)
+    start_time_ind2 = int(int(start_time_hour2)*12 + int(start_time_min2)/5)
+    end_time_ind2 = int(int(end_time_hour2)*12 + int(end_time_min2)/5)
+
+    # 工数データ取得
     kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
     if kosu_query_set.count() > 1:
       return Response({'error': '複数の工数データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
-    kosu_data = kosu_query_set.first()
 
-    # シリアライザーによるシリアライズ処理
-    kosu_serializer = KosuSerializer(kosu_data, many=False)
+    # kosu_dataの取得または新規作成
+    kosu_data, created = Business_Time_graph.objects.get_or_create(
+      employee_no3=login_no,
+      work_day2=day,
+      defaults={
+        'employee_no3': login_no,
+        'work_day2': day,
+      }
+    )
 
-    # レスポンスデータの構築
-    response_data = {
-      'kosu_data': kosu_serializer.data,
-      'session_day': day,
-    }
-
-    return Response(response_data)
+    kosu_data.name = member.objects.get(employee_no=login_no)
+    kosu_data.def_ver2 = def_ver
+    kosu_data.save()
+    return Response({'status': 'success', 'message': '休憩時間が更新されました。'})

@@ -7,7 +7,7 @@
   border: 1px solid #ccc; /* 境界線を追加してスクロール領域を明確にする */
   box-sizing: border-box; /* パディングやボーダーを含めてサイズを計算 */
   -webkit-overflow-scrolling: touch; /* iOSでスムーズスクロールを有効化 */
-  margin: 0 auto; /* デフォルトでは中央揃えにする */
+  margin: 20px auto; /* デフォルトでは中央揃えにする */
 }
 
 /* 画面幅が768px以下の場合に左揃えに変更 */

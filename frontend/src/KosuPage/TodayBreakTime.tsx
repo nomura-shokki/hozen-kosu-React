@@ -104,18 +104,32 @@ const TodayBreakTime: React.FC = () => {
     setErrorMessage(null);
 
     axios
-      .post(`${process.env.REACT_APP_API_BASE_URL}/api/today_break_time/`, { withCredentials: true })
-      .then(() => {
-        alert("変更完了！");
-      })
-      .catch((error) => {
-        console.error(error);
-        if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.error);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
-      });
+    .post(
+      `${process.env.REACT_APP_API_BASE_URL}/api/today_break_time/`,
+      {
+        breakTime1: breakTime1 ? breakTime1.toISOString() : null,
+        breakTime2: breakTime2 ? breakTime2.toISOString() : null,
+        breakTime3: breakTime3 ? breakTime3.toISOString() : null,
+        breakTime4: breakTime4 ? breakTime4.toISOString() : null,
+        breakTime5: breakTime5 ? breakTime5.toISOString() : null,
+        breakTime6: breakTime6 ? breakTime6.toISOString() : null,
+        breakTime7: breakTime7 ? breakTime7.toISOString() : null,
+        breakTime8: breakTime8 ? breakTime8.toISOString() : null,
+        sessionDay: sessionDay,
+      },
+      { withCredentials: true }
+    )
+    .then(() => {
+      alert("変更完了！");
+    })
+    .catch((error) => {
+      console.error(error);
+      if (error.response && error.response.data) {
+        setErrorMessage(error.response.data.error);
+      } else {
+        setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      }
+    });
   };
 
   return (

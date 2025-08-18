@@ -130,7 +130,7 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
       style={{
         maxHeight: `${maxHeight}px`, // テーブルの縦サイズを設定
         overflowY: "auto",
-        width: `${tableWidth + 20}px`, // テーブル横サイズを設定
+        width: `${tableWidth + 10}px`, // テーブル横サイズを設定
       }}
     >
       <table ref={tableRef}>

@@ -432,9 +432,9 @@ const KosuNew: React.FC = () => {
               <button
                 type="button"
                 className={styles["custom-button"]}
-                onClick={() => handleIncrement("over_time")}
+                onClick={() => handleDecrement("over_time")}
               >
-                +
+                -
               </button>
               <input
                 type="number"
@@ -446,9 +446,9 @@ const KosuNew: React.FC = () => {
               <button
                 type="button"
                 className={styles["custom-button"]}
-                onClick={() => handleDecrement("over_time")}
+                onClick={() => handleIncrement("over_time")}
               >
-                -
+                +
               </button>
               <button
                 type="button"
