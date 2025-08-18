@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import styles from "../styles/components/KosuDisplay.module.css";
 
 // 受け取るデータ構造指定
 interface KosuDisplayProps {
@@ -14,6 +15,9 @@ interface KosuDisplayProps {
 const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updatedAt, defData }) => {
   // パースされた作業データを保持する状態変数
   const [parsedData, setParsedData] = useState<{ time: string; work: string; detail: string }[]>([]);
+  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight); // テーブルの最大高さ
+  const [tableWidth, setTableWidth] = useState<number>(0); // テーブルの幅
+  const tableRef = useRef<HTMLTableElement>(null); // テーブル要素の参照
 
   // Reactのライフサイクルメソッドを使用してデータを解析する
   useEffect(() => {
@@ -94,15 +98,47 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
     setParsedData(parseTimeWorkAndDetail());
   }, [timeWork, workDetail, updatedAt, defData]); // 依存配列で監視する値を指定
 
+  // ウィンドウサイズ変更時にテーブルの最大高さを再計算
+  useEffect(() => {
+    const updateMaxHeight = () => {
+      const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
+      setMaxHeight(window.innerHeight - headerHeight - 40); // スペースを差し引いて高さを設定
+    };
+
+    updateMaxHeight();
+    window.addEventListener("resize", updateMaxHeight); // リサイズイベントのリスナー追加
+    return () => window.removeEventListener("resize", updateMaxHeight); // クリーンアップ
+  }, []);
+
+  // テーブルの幅を更新するuseEffect
+  useEffect(() => {
+    const updateTableWidth = () => {
+      if (tableRef.current) {
+        setTableWidth(tableRef.current.offsetWidth);
+      }
+    };
+
+    updateTableWidth();
+    window.addEventListener("resize", updateTableWidth);
+    return () => window.removeEventListener("resize", updateTableWidth); // リサイズイベント
+  }, [parsedData]);
+
   // レンダリング: パースされた作業データを表示する
   return (
-    <div>
-      <table>
+    <div
+      className={styles["table-wrapper"]}
+      style={{
+        maxHeight: `${maxHeight}px`, // テーブルの縦サイズを設定
+        overflowY: "auto",
+        width: `${tableWidth + 20}px`, // テーブル横サイズを設定
+      }}
+    >
+      <table ref={tableRef}>
         <thead>
           <tr>
-            <th>作業時間</th>
-            <th>作業内容</th>
-            <th>作業詳細</th>
+            <th className={styles["th-collar"]}>作業時間</th>
+            <th className={styles["th-collar"]}>作業内容</th>
+            <th className={styles["th-collar"]}>作業詳細</th>
           </tr>
         </thead>
         <tbody>

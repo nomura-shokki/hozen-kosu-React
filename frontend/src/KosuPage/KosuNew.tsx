@@ -480,11 +480,11 @@ const KosuNew: React.FC = () => {
           </div>
         </form>
         {initialTimeWork && (
-          <>
+          <div className={styles["centeredContainer"]}>
             <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""}  defData={defData} tyoku={initialTyoku || ""} shop={memberShop || ""}/>
             <KosuBarChart initialTimeWork={initialTimeWork} tyoku={initialTyoku || ""} shop={memberShop || ""} />
             <DefTable defData={defData} />
-          </>
+          </div>
         )}
       </div>
     </>
