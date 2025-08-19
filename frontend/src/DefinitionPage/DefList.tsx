@@ -82,9 +82,7 @@ const DefList: React.FC = () => {
 
   useEffect(() => {
     const updateMaxHeight = () => {
-      const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
-
-      setMaxHeight(window.innerHeight - headerHeight - 40);
+      setMaxHeight(window.innerHeight);
     };
 
     updateMaxHeight();

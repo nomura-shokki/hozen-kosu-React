@@ -144,7 +144,13 @@ const KosuNew: React.FC = () => {
   ) => {
     const { name, value } = event.target;
     if (data) {
-      setData({ ...data, [name]: value });
+      const updatedValue =
+        name === "over_time" ? parseInt(value, 10) || 0 : value;
+  
+      setData({
+        ...data,
+        [name]: updatedValue,
+      });
 
       if (name === "work_day2") {
         axios
@@ -365,7 +371,7 @@ const KosuNew: React.FC = () => {
             </div>
 
             <label htmlFor="time_work">
-              作業内容:
+              作業内容：
               <Link to="/def-search" className="green_button">
                 工数区分定義確認
               </Link>
@@ -460,7 +466,11 @@ const KosuNew: React.FC = () => {
             </div>
 
             <div className={styles["switch-wrapper"]}>
-              <label htmlFor="break_change">休憩変更:</label>
+              <label htmlFor="break_change">休憩変更：
+                <Link to="/today-break-time" className="light_blue_button">
+                  休憩登録
+                </Link>
+              </label>
               <div
                 className={styles["toggle-switch"]}
                 onClick={() => setIsBreakChangeChecked(!isBreakChangeChecked)}

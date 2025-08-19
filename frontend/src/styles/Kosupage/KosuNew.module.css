@@ -161,7 +161,7 @@
 .switch-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 15px;
   align-items: flex-start;
   text-align: left;
   width: 100%;
@@ -174,7 +174,7 @@
 .toggle-switch {
   position: relative;
   display: inline-block;
-  cursor: pointer; /* マウスオーバー時にカーソルを表示 */
+  cursor: pointer;
   width: 75px;
   height: 39px;
   margin: 0 auto;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 import styles from "../styles/components/DefTable.module.css";
 
 interface DefDataProps {
@@ -24,9 +24,44 @@ const DefTable: React.FC<DefDataProps> = ({ defData }) => {
       color: colorPalette[index],
     }));
 
+  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight); // テーブルの最大高さ
+  const [tableWidth, setTableWidth] = useState<number>(0); // テーブルの幅
+  const tableRef = useRef<HTMLTableElement>(null); // テーブル要素の参照
+
+  // ウィンドウサイズ変更時に最大高さを更新
+  useEffect(() => {
+    const updateMaxHeight = () => {
+      setMaxHeight(window.innerHeight);
+    };
+
+    updateMaxHeight();
+    window.addEventListener("resize", updateMaxHeight);
+    return () => window.removeEventListener("resize", updateMaxHeight);
+  }, []);
+
+  // テーブルの幅を更新
+  useEffect(() => {
+    const updateTableWidth = () => {
+      if (tableRef.current) {
+        setTableWidth(tableRef.current.offsetWidth);
+      }
+    };
+
+    updateTableWidth();
+    window.addEventListener("resize", updateTableWidth);
+    return () => window.removeEventListener("resize", updateTableWidth);
+  }, [titles]);
+
   return (
-    <div>
-      <table>
+    <div
+      className={styles["table-wrapper"]}
+      style={{
+        maxHeight: `${maxHeight}px`,
+        overflowY: "auto",
+        width: `${tableWidth + 20}px`,
+      }}
+    >
+      <table ref={tableRef}>
         <thead>
           <tr>
             <th className={styles["th-collar"]}>工数タイトル</th>

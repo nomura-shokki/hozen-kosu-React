@@ -79,9 +79,9 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
 
             const timeRange = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}～${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`; // 時間範囲を文字列に整形
             result.push({
-              time: timeRange, // 時間範囲を格納
-              work: currentWork, // 作業内容を格納
-              detail: currentDetail, // 作業詳細を格納
+              time: timeRange,
+              work: currentWork,
+              detail: currentDetail,
             });
           }
           // 新しいセッションを開始
@@ -101,13 +101,12 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
   // ウィンドウサイズ変更時にテーブルの最大高さを再計算
   useEffect(() => {
     const updateMaxHeight = () => {
-      const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
-      setMaxHeight(window.innerHeight - headerHeight - 40); // スペースを差し引いて高さを設定
+      setMaxHeight(window.innerHeight);
     };
 
     updateMaxHeight();
-    window.addEventListener("resize", updateMaxHeight); // リサイズイベントのリスナー追加
-    return () => window.removeEventListener("resize", updateMaxHeight); // クリーンアップ
+    window.addEventListener("resize", updateMaxHeight);
+    return () => window.removeEventListener("resize", updateMaxHeight);
   }, []);
 
   // テーブルの幅を更新するuseEffect
@@ -120,7 +119,7 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
 
     updateTableWidth();
     window.addEventListener("resize", updateTableWidth);
-    return () => window.removeEventListener("resize", updateTableWidth); // リサイズイベント
+    return () => window.removeEventListener("resize", updateTableWidth);
   }, [parsedData]);
 
   // レンダリング: パースされた作業データを表示する
@@ -128,9 +127,9 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
     <div
       className={styles["table-wrapper"]}
       style={{
-        maxHeight: `${maxHeight}px`, // テーブルの縦サイズを設定
+        maxHeight: `${maxHeight}px`,
         overflowY: "auto",
-        width: `${tableWidth + 10}px`, // テーブル横サイズを設定
+        width: `${tableWidth + 5}px`,
       }}
     >
       <table ref={tableRef}>
@@ -155,4 +154,4 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
   );
 };
 
-export default KosuDisplay; // コンポーネントをエクスポート
+export default KosuDisplay;
