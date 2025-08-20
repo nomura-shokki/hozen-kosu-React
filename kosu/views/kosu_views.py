@@ -3219,28 +3219,46 @@ class TodayBreakTime(APIView):
     day = request.session.get('day')
     post_data = request.data
 
-    jst = datetime.timezone(datetime.timedelta(hours=9))
-    start_time1 = datetime.datetime.strptime(post_data.get('breakTime1'), "%Y-%m-%dT%H:%M:%S.%fZ")
-    end_time1 = datetime.datetime.strptime(post_data.get('breakTime2'), "%Y-%m-%dT%H:%M:%S.%fZ")
-    start_time1 = start_time1.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
-    end_time1 = end_time1.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
-    start_time1 = start_time1.strftime("%H:%M")
-    end_time1 = end_time1.strftime("%H:%M")
-    start_time2 = datetime.datetime.strptime(post_data.get('breakTime3'), "%Y-%m-%dT%H:%M:%S.%fZ")
-    end_time2 = datetime.datetime.strptime(post_data.get('breakTime4'), "%Y-%m-%dT%H:%M:%S.%fZ")
-    start_time2 = start_time2.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
-    end_time2 = end_time2.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
-    start_time2 = start_time2.strftime("%H:%M")
-    end_time2 = end_time2.strftime("%H:%M")
+    def parse_break_time(break_time_start, break_time_end, jst):
+      # 引数チェック: Noneや空文字列の場合
+      if not break_time_start or not break_time_end:
+        return Response({'error': '未入力箇所があります'}, status=status.HTTP_400_BAD_REQUEST)
 
-    start_time_hour1, start_time_min1 = time_index(start_time1)
-    end_time_hour1, end_time_min1 = time_index(end_time1)
-    start_time_ind1 = int(int(start_time_hour1)*12 + int(start_time_min1)/5)
-    end_time_ind1 = int(int(end_time_hour1)*12 + int(end_time_min1)/5)
-    start_time_hour2, start_time_min2 = time_index(start_time2)
-    end_time_hour2, end_time_min2 = time_index(end_time2)
-    start_time_ind2 = int(int(start_time_hour2)*12 + int(start_time_min2)/5)
-    end_time_ind2 = int(int(end_time_hour2)*12 + int(end_time_min2)/5)
+      try:
+        start_time = datetime.datetime.strptime(break_time_start, "%Y-%m-%dT%H:%M:%S.%fZ")
+        end_time = datetime.datetime.strptime(break_time_end, "%Y-%m-%dT%H:%M:%S.%fZ")
+        start_time = start_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst).strftime("%H:%M")
+        end_time = end_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst).strftime("%H:%M")
+        start_time_hour, start_time_min = time_index(start_time)
+        end_time_hour, end_time_min = time_index(end_time)
+        start_time_ind = int(int(start_time_hour) * 12 + int(start_time_min) / 5)
+        end_time_ind = int(int(end_time_hour) * 12 + int(end_time_min) / 5)
+      except ValueError as e:
+        return Response({'error': '入力値の形式が不正です'}, status=status.HTTP_400_BAD_REQUEST)
+
+      return start_time_ind, end_time_ind
+
+    # JSTタイムゾーンの作成
+    jst = datetime.timezone(datetime.timedelta(hours=9))
+
+    # breakTime1〜breakTime8を処理
+    time_data = []
+    for i in range(1, 5):
+      start_ind, end_ind = parse_break_time(
+        post_data.get(f'breakTime{2 * i - 1}'), 
+        post_data.get(f'breakTime{2 * i}'), 
+        jst
+      )
+      time_data.append((start_ind, end_ind))
+
+    # 取得後、必要な用途に応じてtime_dataを利用する
+    (start_time_ind1, end_time_ind1) = time_data[0]
+    (start_time_ind2, end_time_ind2) = time_data[1]
+    (start_time_ind3, end_time_ind3) = time_data[2]
+    (start_time_ind4, end_time_ind4) = time_data[3]
+
+
+
 
     # 工数データ取得
     kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
