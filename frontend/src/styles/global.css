@@ -152,9 +152,9 @@ tr:hover {
   width: auto;
   max-width: 100%;
 }
-
 .blue_button:hover {
   background-color: #0056b3;
+  text-decoration: none; 
 }
 
 .yellow_button {
@@ -172,9 +172,9 @@ tr:hover {
   width: auto;
   max-width: 100%;
 }
-
 .yellow_button:hover {
   background-color: #ffa500;
+  text-decoration: none; 
 }
 
 .green_button {
@@ -193,7 +193,8 @@ tr:hover {
   max-width: 100%;
 }
 .green_button:hover {
-  background-color: #32cd32
+  background-color: #32cd32;
+  text-decoration: none; 
 }
 
 .light_blue_button {
@@ -214,7 +215,8 @@ tr:hover {
   margin-right: 10px;
 }
 .light_blue_button:hover {
-  background-color: #0af
+  background-color: #0af;
+  text-decoration: none; 
 }
 
 div[role="alert"] {

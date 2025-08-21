@@ -3257,7 +3257,13 @@ class TodayBreakTime(APIView):
     (start_time_ind3, end_time_ind3) = time_data[2]
     (start_time_ind4, end_time_ind4) = time_data[3]
 
-
+    for ind, time_inds in enumerate(time_data):
+      if ind in [0, 2]:
+        if (time_inds[0] <= time_inds[1] and time_inds[1] - time_inds[0] > 12) or (time_inds[0] >= time_inds[1] and time_inds[1] - time_inds[0] + 288 > 12):
+          return Response({'error': '昼休憩及び残業休憩2は60分を越える時間を設定できません'}, status=status.HTTP_400_BAD_REQUEST)
+      else:
+        if (time_inds[0] <= time_inds[1] and time_inds[1] - time_inds[0] > 3) or (time_inds[0] >= time_inds[1] and time_inds[1] - time_inds[0] + 288 > 3):
+          return Response({'error': '残業休憩1及び残業休憩3は15分を越える時間を設定できません'}, status=status.HTTP_400_BAD_REQUEST)
 
 
     # 工数データ取得
