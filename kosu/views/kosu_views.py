@@ -3250,14 +3250,17 @@ class TodayBreakTime(APIView):
 
     # breakTime1〜breakTime8を処理
     time_data = []
+    time_str_list = []
     try:
       for i in range(1, 5):
-        start_ind, end_ind = parse_break_time(
+        start_ind, end_ind, time_str = parse_break_time(
           post_data.get(f'breakTime{2 * i - 1}'),
           post_data.get(f'breakTime{2 * i}'),
           jst
         )
         time_data.append((start_ind, end_ind))
+        time_str_list.append(time_str)
+
     except ValueError as e:
       return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -3277,17 +3280,10 @@ class TodayBreakTime(APIView):
         for k in range(0, time_inds[0]):
           kosu_list[k] = '#'
 
-    # kosu_dataの取得または新規作成
-    kosu_data, created = Business_Time_graph.objects.get_or_create(
-      employee_no3=login_no,
-      work_day2=day,
-      defaults={
-        'employee_no3': login_no,
-        'work_day2': day,
-      }
-    )
+    kosu_obj.breaktime = time_str_list[0]
+    kosu_obj.breaktime_over1 = time_str_list[1]
+    kosu_obj.breaktime_over2 = time_str_list[2]
+    kosu_obj.breaktime_over3 = time_str_list[3]
 
-    kosu_data.name = member.objects.get(employee_no=login_no)
-    kosu_data.def_ver2 = def_ver
-    kosu_data.save()
+    kosu_obj.save()
     return Response({'status': 'success', 'message': '休憩時間が更新されました。'})

@@ -1490,6 +1490,7 @@ def parse_break_time(break_time_start, break_time_end, jst):
         .astimezone(jst)
         .strftime("%H:%M")
     )
+    time_str = '#' + start_time[0:2] + start_time[3:5] + end_time[0:2] + end_time[3:5]
     start_time_hour, start_time_min = time_index(start_time)
     end_time_hour, end_time_min = time_index(end_time)
     start_time_ind = int(int(start_time_hour) * 12 + int(start_time_min) / 5)
@@ -1497,7 +1498,7 @@ def parse_break_time(break_time_start, break_time_end, jst):
   except ValueError:
     raise ValueError("入力値の形式が不正です")
 
-  return start_time_ind, end_time_ind
+  return start_time_ind, end_time_ind, time_str
 
 
 
