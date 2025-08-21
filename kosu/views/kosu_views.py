@@ -3261,12 +3261,6 @@ class TodayBreakTime(APIView):
     except ValueError as e:
       return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    # 取得後、必要な用途に応じてtime_dataを利用する
-    (start_time_ind1, end_time_ind1) = time_data[0]
-    (start_time_ind2, end_time_ind2) = time_data[1]
-    (start_time_ind3, end_time_ind3) = time_data[2]
-    (start_time_ind4, end_time_ind4) = time_data[3]
-
     for ind, time_inds in enumerate(time_data):
       if ind in [0, 2]:
         if (time_inds[0] <= time_inds[1] and time_inds[1] - time_inds[0] > 12) or (time_inds[0] >= time_inds[1] and time_inds[1] - time_inds[0] + 288 > 12):
