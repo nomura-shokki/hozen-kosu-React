@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from rest_framework.response import Response
 import datetime
 import itertools
+from rest_framework import status
 from .main_utils import history_record
 
 
@@ -1470,6 +1471,39 @@ def work_default(day_list, year, month, member_obj, request):
 
 
 
+
+def parse_break_time(break_time_start, break_time_end, jst):
+  # 引数チェック: Noneや空文字列の場合
+  if not break_time_start or not break_time_end:
+    raise ValueError("未入力箇所があります")
+
+  try:
+    start_time = datetime.datetime.strptime(break_time_start, "%Y-%m-%dT%H:%M:%S.%fZ")
+    end_time = datetime.datetime.strptime(break_time_end, "%Y-%m-%dT%H:%M:%S.%fZ")
+    start_time = (
+        start_time.replace(tzinfo=datetime.timezone.utc)
+        .astimezone(jst)
+        .strftime("%H:%M")
+    )
+    end_time = (
+        end_time.replace(tzinfo=datetime.timezone.utc)
+        .astimezone(jst)
+        .strftime("%H:%M")
+    )
+    start_time_hour, start_time_min = time_index(start_time)
+    end_time_hour, end_time_min = time_index(end_time)
+    start_time_ind = int(int(start_time_hour) * 12 + int(start_time_min) / 5)
+    end_time_ind = int(int(end_time_hour) * 12 + int(end_time_min) / 5)
+  except ValueError:
+    raise ValueError("入力値の形式が不正です")
+
+  return start_time_ind, end_time_ind
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
 
 
 

@@ -2826,6 +2826,7 @@ from ..utils.kosu_utils import break_time_delete
 from ..utils.kosu_utils import break_time_write
 from ..utils.kosu_utils import detail_list_summarize
 from ..utils.kosu_utils import judgement_check
+from ..utils.kosu_utils import parse_break_time
 import datetime
 import itertools
 
@@ -3219,37 +3220,21 @@ class TodayBreakTime(APIView):
     day = request.session.get('day')
     post_data = request.data
 
-    def parse_break_time(break_time_start, break_time_end, jst):
-      # 引数チェック: Noneや空文字列の場合
-      if not break_time_start or not break_time_end:
-        return Response({'error': '未入力箇所があります'}, status=status.HTTP_400_BAD_REQUEST)
-
-      try:
-        start_time = datetime.datetime.strptime(break_time_start, "%Y-%m-%dT%H:%M:%S.%fZ")
-        end_time = datetime.datetime.strptime(break_time_end, "%Y-%m-%dT%H:%M:%S.%fZ")
-        start_time = start_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst).strftime("%H:%M")
-        end_time = end_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst).strftime("%H:%M")
-        start_time_hour, start_time_min = time_index(start_time)
-        end_time_hour, end_time_min = time_index(end_time)
-        start_time_ind = int(int(start_time_hour) * 12 + int(start_time_min) / 5)
-        end_time_ind = int(int(end_time_hour) * 12 + int(end_time_min) / 5)
-      except ValueError as e:
-        return Response({'error': '入力値の形式が不正です'}, status=status.HTTP_400_BAD_REQUEST)
-
-      return start_time_ind, end_time_ind
-
     # JSTタイムゾーンの作成
     jst = datetime.timezone(datetime.timedelta(hours=9))
 
     # breakTime1〜breakTime8を処理
     time_data = []
-    for i in range(1, 5):
-      start_ind, end_ind = parse_break_time(
-        post_data.get(f'breakTime{2 * i - 1}'), 
-        post_data.get(f'breakTime{2 * i}'), 
-        jst
-      )
-      time_data.append((start_ind, end_ind))
+    try:
+      for i in range(1, 5):
+        start_ind, end_ind = parse_break_time(
+          post_data.get(f'breakTime{2 * i - 1}'),
+          post_data.get(f'breakTime{2 * i}'),
+          jst
+        )
+        time_data.append((start_ind, end_ind))
+    except ValueError as e:
+      return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     # 取得後、必要な用途に応じてtime_dataを利用する
     (start_time_ind1, end_time_ind1) = time_data[0]
