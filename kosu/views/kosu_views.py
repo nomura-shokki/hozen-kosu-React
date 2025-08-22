@@ -3297,4 +3297,4 @@ class TodayBreakTime(APIView):
     kosu_obj.judgement = judgement_check(kosu_list, kosu_obj.work_time, kosu_obj.tyoku2, member_data, kosu_obj.over_time)
 
     kosu_obj.save()
-    return Response({'status': 'success', 'message': '休憩時間が更新されました。'})
+    return Response({'status': 'success', 'message': '休憩時間が更新されました'})
