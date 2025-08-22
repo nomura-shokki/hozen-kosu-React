@@ -3229,6 +3229,13 @@ class TodayBreakTime(APIView):
     day = request.session.get('day')
     post_data = request.data
 
+    try:
+      # ログインユーザーのデータ取得
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      # 人員情報取得できない場合エラー
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
     # 工数データ取得
     kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
     if kosu_query_set.count() > 1:
@@ -3241,7 +3248,10 @@ class TodayBreakTime(APIView):
         name=member.objects.get(employee_no=login_no), 
         work_day2=day, 
         def_ver2=def_ver, 
+        work_time='', 
+        tyoku2='', 
         time_work='#'*288, 
+        over_time=0, 
         )
     kosu_list = list(kosu_obj.time_work)
 
@@ -3284,6 +3294,7 @@ class TodayBreakTime(APIView):
     kosu_obj.breaktime_over1 = time_str_list[1]
     kosu_obj.breaktime_over2 = time_str_list[2]
     kosu_obj.breaktime_over3 = time_str_list[3]
+    kosu_obj.judgement = judgement_check(kosu_list, kosu_obj.work_time, kosu_obj.tyoku2, member_data, kosu_obj.over_time)
 
     kosu_obj.save()
     return Response({'status': 'success', 'message': '休憩時間が更新されました。'})

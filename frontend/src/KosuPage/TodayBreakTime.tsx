@@ -135,17 +135,17 @@ const TodayBreakTime: React.FC = () => {
   return (
     <>
       <Loading isLoading={loading} />
-      <div className={styles["member-new-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>当日休憩時間変更</h1>
-        <nav className={styles["member-nav"]}>
+      <div className={styles["today-brea-time-wrapper"]}>
+        <h1 className={styles["h1-collar"]}>
+          {sessionDay ? new Date(sessionDay).toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" }).replace(/\//g, "年").replace(/月/, "月") + "日" : ""}
+        </h1>
+        <h1 className={styles["h1-collar"]}>
+          休憩時間変更
+        </h1>
+        <nav className={styles["kosu-nav"]}>
           <Link to="/kosu-new">工数入力</Link>
         </nav>
-
-        {sessionDay && (
-          <div className={styles["session-day"]}>
-            <strong>変更日:</strong> {sessionDay}
-          </div>
-        )}
+        <p>指定した休憩時間に入っている工数は休憩時間に置き換わり消えます</p>
 
         {errorMessage && <div role="alert">{errorMessage}</div>}
 
