@@ -126,7 +126,7 @@ const BreakTime: React.FC = () => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/break_time/`, { withCredentials: true })
       .then((response) => {
-        const member_data: Member = response.data.kosu_data || {
+        const member_data: Member = response.data.member_data || {
           employee_no3: 0,
           break_time1: "#00000000",
           break_time1_over1: "#00000000",
@@ -320,7 +320,6 @@ const BreakTime: React.FC = () => {
     )
     .then(() => {
       alert("変更完了！");
-      navigate("/kosu-new");
     })
     .catch((error) => {
       console.error(error);
