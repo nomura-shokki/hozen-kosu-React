@@ -2944,6 +2944,7 @@ class KosuNew(APIView):
 
     return Response(response_data)
 
+
   # POST時の処理
   def post(self, request, *args, **kwargs):
     # セッション値取得
@@ -3251,9 +3252,12 @@ class TodayBreakTime(APIView):
         work_time='', 
         tyoku2='', 
         time_work='#'*288, 
+        detail_work='$'*287, 
+        judgement=False, 
         over_time=0, 
         )
     kosu_list = list(kosu_obj.time_work)
+    detail_list = kosu_obj.detail_work.split('$')
 
     # JSTタイムゾーンの作成
     jst = datetime.timezone(datetime.timedelta(hours=9))
@@ -3276,20 +3280,27 @@ class TodayBreakTime(APIView):
 
     for ind, time_inds in enumerate(time_data):
       if ind in [0, 2]:
-        if (time_inds[0] <= time_inds[1] and time_inds[1] - time_inds[0] > 12) or (time_inds[0] >= time_inds[1] and time_inds[1] - time_inds[0] + 288 > 12):
+        if (time_inds[0] < time_inds[1] and time_inds[1] - time_inds[0] > 12) or (time_inds[0] > time_inds[1] and time_inds[1] - time_inds[0] + 288 > 12):
           return Response({'error': '昼休憩及び残業休憩2は60分を越える時間を設定できません'}, status=status.HTTP_400_BAD_REQUEST)
       else:
-        if (time_inds[0] <= time_inds[1] and time_inds[1] - time_inds[0] > 3) or (time_inds[0] >= time_inds[1] and time_inds[1] - time_inds[0] + 288 > 3):
+        if (time_inds[0] < time_inds[1] and time_inds[1] - time_inds[0] > 3) or (time_inds[0] > time_inds[1] and time_inds[1] - time_inds[0] + 288 > 3):
           return Response({'error': '残業休憩1及び残業休憩3は15分を越える時間を設定できません'}, status=status.HTTP_400_BAD_REQUEST)
       if time_inds[0] < time_inds[1]:
-        for k in range(time_inds[0], time_inds[1]):
-          kosu_list[k] = '#'
+        if kosu_list[time_inds[1]] != '#':
+          for k in range(time_inds[0], time_inds[1]):
+            kosu_list[k] = '$'
+            detail_list[k] = ''
       else:
-        for k in range(time_inds[1], 288):
-          kosu_list[k] = '#'
-        for k in range(0, time_inds[0]):
-          kosu_list[k] = '#'
+        if kosu_list[time_inds[1]] != '#':
+          for k in range(time_inds[1], 288):
+            kosu_list[k] = '$'
+            detail_list[k] = ''
+          for k in range(0, time_inds[0]):
+            kosu_list[k] = '$'
+            detail_list[k] = ''
 
+    kosu_obj.time_work = ''.join(kosu_list)
+    kosu_obj.detail_work = detail_list_summarize(detail_list)
     kosu_obj.breaktime = time_str_list[0]
     kosu_obj.breaktime_over1 = time_str_list[1]
     kosu_obj.breaktime_over2 = time_str_list[2]
@@ -3298,3 +3309,39 @@ class TodayBreakTime(APIView):
 
     kosu_obj.save()
     return Response({'status': 'success', 'message': '休憩時間が更新されました'})
+
+
+
+# 休憩変更
+class BreakTime(APIView):
+  # GET処理
+  def get(self, request, *args, **kwargs):
+    # ユーザーの従業員番号、使用工数区分定義取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
+    # セッションない場合エラー出力
+    if not login_no:
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+      # ログインユーザーのデータ取得
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      # 人員情報取得できない場合エラー
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # シリアライザーによるシリアライズ処理
+    member_serializer = MemberSerializer(member_data, many=False)
+
+    # レスポンスデータの構築
+    response_data = {
+      'member_data': member_serializer.data,
+    }
+
+    return Response(response_data)
+
+
+

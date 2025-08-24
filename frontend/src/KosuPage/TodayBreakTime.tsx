@@ -121,6 +121,7 @@ const TodayBreakTime: React.FC = () => {
     )
     .then(() => {
       alert("変更完了！");
+      navigate("/kosu-new");
     })
     .catch((error) => {
       console.error(error);
@@ -137,15 +138,16 @@ const TodayBreakTime: React.FC = () => {
       <Loading isLoading={loading} />
       <div className={styles["today-brea-time-wrapper"]}>
         <h1 className={styles["h1-collar"]}>
-          {sessionDay ? new Date(sessionDay).toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" }).replace(/\//g, "年").replace(/月/, "月") + "日" : ""}
-        </h1>
-        <h1 className={styles["h1-collar"]}>
+          {sessionDay ? new Date(sessionDay).toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" }).replace(/\//g, "年").replace(/月/, "月") + "日" : ""}<br />
           休憩時間変更
         </h1>
         <nav className={styles["kosu-nav"]}>
           <Link to="/kosu-new">工数入力</Link>
         </nav>
-        <p>指定した休憩時間に入っている工数は休憩時間に置き換わり消えます</p>
+        <p>
+          指定した休憩時間に入っている工数は<br />
+          休憩時間に置き換わり消えます
+        </p>
 
         {errorMessage && <div role="alert">{errorMessage}</div>}
 
@@ -163,6 +165,7 @@ const TodayBreakTime: React.FC = () => {
           }}
         >
           <div className={styles["search-bar"]}>
+            <label>昼休憩:</label>
             <div className={styles["time-picker-wrapper"]}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <MobileTimePicker
@@ -192,6 +195,7 @@ const TodayBreakTime: React.FC = () => {
                 />
               </LocalizationProvider>
             </div>
+            <label>残業休憩1:</label>
             <div className={styles["time-picker-wrapper"]}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <MobileTimePicker
@@ -221,6 +225,7 @@ const TodayBreakTime: React.FC = () => {
                 />
               </LocalizationProvider>
             </div>
+            <label>残業休憩2:</label>
             <div className={styles["time-picker-wrapper"]}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <MobileTimePicker
@@ -250,6 +255,7 @@ const TodayBreakTime: React.FC = () => {
                 />
               </LocalizationProvider>
             </div>
+            <label>残業休憩3:</label>
             <div className={styles["time-picker-wrapper"]}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <MobileTimePicker
