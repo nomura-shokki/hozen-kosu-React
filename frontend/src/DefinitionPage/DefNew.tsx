@@ -101,11 +101,7 @@ const DefNew: React.FC = () => {
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, convertedData, { withCredentials: true })
       .then(() => {
         alert("登録完了！"); // 成功時の通知
-        // 初期状態にリセット
-        setFormData({
-          kosu_name: "",
-          kosu_definitions: Array(50).fill({ title: "", division1: "", division2: "" }),
-        });
+        navigate("/def-menu");
       })
       .catch((error) => {
         console.error(error);

@@ -138,7 +138,7 @@ const BreakTime: React.FC = () => {
           休憩時間変更
         </h1>
         <nav className={styles["kosu-nav"]}>
-          <Link to="/kosu-new">工数入力</Link>
+          <Link to="/kosu-menu">工数MENU</Link>
         </nav>
         <p>
           毎日の休憩時間が変更されます<br />
@@ -209,6 +209,7 @@ const BreakTime: React.FC = () => {
                 ))}
               </div>
             ))}
+            {errorMessage && <div role="alert">{errorMessage}</div>}
             <button type="submit" className="light_blue_button">登録</button>
           </div>
         </form>

@@ -596,42 +596,43 @@ class DefSearch(APIView):
 
 
 
-@api_view(['GET', 'POST'])
-def def_new(request):
-  if request.method == 'GET':
+class DefNew(APIView):
+  def get(self, request):
+    # ユーザーの従業員番号、使用工数区分定義取得
     login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
-    
-    member_data = member.objects.get(employee_no=login_no)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
     if not member_data.authority:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data)
 
-  if request.method == 'POST':
+
+  def post(self, request):
     data = request.data
 
     if not data.get('kosu_name'):
-      return Response(
-        {'error': '工数区分定義Ver名を入力してください'},
-        status=status.HTTP_400_BAD_REQUEST
-      )
+      return Response({'error': '工数区分定義Ver名を入力してください'}, status=status.HTTP_400_BAD_REQUEST)
 
     if kosu_division.objects.filter(kosu_name=data.get('kosu_name')).exists():
-      return Response(
-        {'error': '同一の工数区分定義Ver名が既に登録されています'},
-        status=status.HTTP_400_BAD_REQUEST
-      )
+      return Response({'error': '同一の工数区分定義Ver名が既に登録されています'}, status=status.HTTP_400_BAD_REQUEST)
 
     serializer = DefSerializer(data=data)
     if serializer.is_valid():
       serializer.save()
       return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-  else:
-    pass
 
 
 

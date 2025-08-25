@@ -3308,7 +3308,7 @@ class TodayBreakTime(APIView):
     kosu_obj.judgement = judgement_check(kosu_list, kosu_obj.work_time, kosu_obj.tyoku2, member_data, kosu_obj.over_time)
 
     kosu_obj.save()
-    return Response({'status': 'success', 'message': '休憩時間が更新されました'})
+    return Response({'status': 'success', 'message': f'{day}の休憩時間が更新されました'})
 
 
 
@@ -3344,4 +3344,75 @@ class BreakTime(APIView):
     return Response(response_data)
 
 
+# POST処理
+  def post(self, request, *args, **kwargs):
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+    post_data = request.data
 
+    # セッションない場合エラー出力
+    if not login_no:
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+      # ログインユーザーのデータ取得
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      # 人員情報取得できない場合エラー
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # JSTタイムゾーンの作成
+    jst = datetime.timezone(datetime.timedelta(hours=9))
+
+    # breakTime1〜breakTime48を処理
+    time_data = []
+    time_str_list = []
+    try:
+      for i in range(1, 25):
+        start_ind, end_ind, time_str = parse_break_time(
+          post_data.get(f'breakTime{2 * i - 1}'),
+          post_data.get(f'breakTime{2 * i}'),
+          jst
+        )
+        time_data.append((start_ind, end_ind))
+        time_str_list.append(time_str)
+    except ValueError as e:
+      return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    for ind, time_inds in enumerate(time_data):
+      if ind % 2 == 0:
+        if (time_inds[0] < time_inds[1] and time_inds[1] - time_inds[0] > 12) or (time_inds[0] > time_inds[1] and time_inds[1] - time_inds[0] + 288 > 12):
+          return Response({'error': '昼休憩及び残業休憩2は60分を越える時間を設定できません'}, status=status.HTTP_400_BAD_REQUEST)
+      else:
+        if (time_inds[0] < time_inds[1] and time_inds[1] - time_inds[0] > 3) or (time_inds[0] > time_inds[1] and time_inds[1] - time_inds[0] + 288 > 3):
+          return Response({'error': '残業休憩1及び残業休憩3は15分を越える時間を設定できません'}, status=status.HTTP_400_BAD_REQUEST)
+
+    member_data.break_time1 = time_str_list[0]
+    member_data.break_time1_over1 = time_str_list[1]
+    member_data.break_time1_over2 = time_str_list[2]
+    member_data.break_time1_over3 = time_str_list[3]
+    member_data.break_time2 = time_str_list[4]
+    member_data.break_time2_over1 = time_str_list[5]
+    member_data.break_time2_over2 = time_str_list[6]
+    member_data.break_time2_over3 = time_str_list[7]
+    member_data.break_time3 = time_str_list[8]
+    member_data.break_time3_over1 = time_str_list[9]
+    member_data.break_time3_over2 = time_str_list[10]
+    member_data.break_time3_over3 = time_str_list[11]
+    member_data.break_time4 = time_str_list[12]
+    member_data.break_time4_over1 = time_str_list[13]
+    member_data.break_time4_over2 = time_str_list[14]
+    member_data.break_time4_over3 = time_str_list[15]
+    member_data.break_time5 = time_str_list[16]
+    member_data.break_time5_over1 = time_str_list[17]
+    member_data.break_time5_over2 = time_str_list[18]
+    member_data.break_time5_over3 = time_str_list[19]
+    member_data.break_time6 = time_str_list[20]
+    member_data.break_time6_over1 = time_str_list[21]
+    member_data.break_time6_over2 = time_str_list[22]
+    member_data.break_time6_over3 = time_str_list[23]
+
+    member_data.save()
+    return Response({'status': 'success', 'message': '休憩時間が更新されました'})

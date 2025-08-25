@@ -120,7 +120,14 @@ const TodayBreakTime: React.FC = () => {
       { withCredentials: true }
     )
     .then(() => {
-      alert("変更完了！");
+      const formattedDate = sessionDay
+        ? new Date(sessionDay)
+            .toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" })
+            .replace(/\//g, "年")
+            .replace(/月/, "月") + "日"
+        : "日付未設定";
+
+      alert(`${formattedDate} 休憩時間変更完了！`);
       navigate("/kosu-new");
     })
     .catch((error) => {
