@@ -74,11 +74,9 @@
 
 .time-picker {
   flex: 1;
-}
-
-.time-picker input {
   font-size: 1rem;
   padding: 8px 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  background-color: #fff; 
 }

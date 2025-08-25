@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import React, { useState, useEffect, ChangeEvent, FormEvent, useCallback } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import Loading from "../components/Loading";
@@ -81,19 +81,15 @@ const KosuNew: React.FC = () => {
     if (time2) localStorage.setItem("time2", time2.toISOString());
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleError = (error: any, defaultMessage: string) => {
+  const handleError = useCallback((error: any, defaultMessage: string) => {
     if (error.response && error.response.data && error.response.data.error) {
       setErrorMessage(error.response.data.error);
     } else {
       setErrorMessage(defaultMessage);
     }
-  };
+  }, []);
 
-  const fetchData = () => {
+  const fetchData = useCallback(() => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, { withCredentials: true })
       .then((response) => {
@@ -137,7 +133,7 @@ const KosuNew: React.FC = () => {
         handleError(error, "データの取得で想定外のエラーが発生しました");
         setLoading(false);
       });
-  };
+  }, [handleError]); 
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -323,6 +319,10 @@ const KosuNew: React.FC = () => {
       setData({ ...data, [field]: (data[field] as number || 0) - 15 });
     }
   }; 
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   return (
     <>
