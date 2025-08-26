@@ -36,20 +36,26 @@ const KosuEdit: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { id } = useParams<{ id: string }>();
   const [defData, setDefData] = useState<DefData>({});
+  const [initialTimeWork, setInitialTimeWork] = useState<string | null>(null);
+  const [initialWorkDetail, setInitialWorkDetail] = useState<string | null>(null);
+  const [initialTyoku, setInitialTyoku] = useState<string | null>(null);
+  const [parsedData, setParsedData] = useState<{ time1: string; time2: string; work: string; detail: string }[]>([]);
 
   useEffect(() => {
     axios
       .get<KosuResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, { withCredentials: true })
       .then((response) => {
-        console.log("APIレスポンス:", response.data); // レスポンス内容を出力
         const { kosu_data } = response.data;
         setFormData(kosu_data);
         const def_data = response.data.def_data || {};
         setDefData(def_data);
+        setInitialTimeWork(kosu_data.time_work);
+        setInitialWorkDetail(kosu_data.detail_work);
+        setInitialTyoku(kosu_data.tyoku2);
         setLoading(false);
       })
       .catch((err) => {
-        console.error("APIエラー:", err); // APIエラーを出力
+        console.error("APIエラー:", err);
         if (err.response?.status === 401) {
           navigate("/login");
         } else {
@@ -58,6 +64,64 @@ const KosuEdit: React.FC = () => {
         setLoading(false);
       });
   }, [id, navigate]);
+
+  useEffect(() => {
+    const parseTimeWorkAndDetail = () => {
+      const result: { time1: string; time2: string; work: string; detail: string }[] = [];
+      let currentWork = "";
+      let currentDetail = "";
+      let startIndex = -1;
+  
+      const kosuTitleMapping = Object.keys(defData)
+        .filter((key) => key.startsWith("kosu_title_"))
+        .reduce((acc, key, index) => {
+          const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx";
+          acc[alphabet[index]] = defData[key] ?? null;
+          return acc;
+        }, {} as Record<string, string | null>);
+  
+      const splitDetails = (formData?.detail_work || "").split("$").map((detail) => detail || "");
+  
+      for (let i = 0; i <= (formData?.time_work || "").length; i++) {
+        const charWork = formData?.time_work?.[i] ?? "";
+        const mappedWork = charWork === "$" ? "休憩" : kosuTitleMapping[charWork];
+        const charDetail = splitDetails[Math.floor(i / ((formData?.time_work || "").length / splitDetails.length))] ?? "";
+  
+        if (charWork === "#" || charWork === undefined) {
+          if (currentWork || currentDetail) {
+            const startHour = Math.floor((startIndex * 5) / 60);
+            const startMinute = (startIndex * 5) % 60;
+            const endHour = Math.floor((i * 5) / 60);
+            const endMinute = (i * 5) % 60;
+
+            const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+            const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+            result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+          }
+          currentWork = "";
+          currentDetail = "";
+          startIndex = -1;
+        } else if (mappedWork !== currentWork || charDetail !== currentDetail) {
+          if (currentWork || currentDetail) {
+            const startHour = Math.floor((startIndex * 5) / 60);
+            const startMinute = (startIndex * 5) % 60;
+            const endHour = Math.floor((i * 5) / 60);
+            const endMinute = (i * 5) % 60;
+  
+            const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+            const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+            result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+          }
+          currentWork = mappedWork || charWork;
+          currentDetail = charDetail;
+          startIndex = i;
+        }
+      }
+      return result;
+    };
+  
+    setParsedData(parseTimeWorkAndDetail());
+  }, [formData?.time_work, formData?.detail_work, defData]);
 
   // エラー時の表示
   if (error) {
@@ -121,13 +185,7 @@ const KosuEdit: React.FC = () => {
     }
   };
 
-  const kosuTitleMapping = Object.keys(defData)
-    .filter((key) => key.startsWith("kosu_title_")) // `kosu_title_`で始まるキーのみを抽出
-    .reduce((acc, key, index) => {
-      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx"; // アルファベットを作業内容に対応付ける
-      acc[alphabet[index]] = defData[key] ?? null; // データが`undefined`の場合は`null`を格納
-      return acc; // 累積オブジェクトを返す
-    }, {} as Record<string, string | null>);
+  console.log(parsedData)
 
   return (
     <>

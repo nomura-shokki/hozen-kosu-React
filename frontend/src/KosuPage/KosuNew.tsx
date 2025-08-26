@@ -213,9 +213,15 @@ const KosuNew: React.FC = () => {
       return;
     }
     if (selectedTimes.time1 && selectedTimes.time2) {
-      const timeDifference = Math.abs(selectedTimes.time2.getTime() - selectedTimes.time1.getTime());
-      const hoursDifference = timeDifference / (1000 * 60 * 60);
-      if (hoursDifference > 21) {
+      const time1Hours = selectedTimes.time1.getHours();
+      const time1Minutes = selectedTimes.time1.getMinutes();
+      const time2Hours = selectedTimes.time2.getHours();
+      const time2Minutes = selectedTimes.time2.getMinutes();
+      const time1InMinutes = time1Hours * 60 + time1Minutes;
+      const time2InMinutes = time2Hours * 60 + time2Minutes;
+      const timeDifference = Math.abs(time2InMinutes - time1InMinutes);
+      const hoursDifference = timeDifference / 60;
+      if (time1InMinutes < time2InMinutes && hoursDifference > 21 || time1InMinutes > time2InMinutes && hoursDifference < 3) {
         setErrorMessage("作業時間が21時間を超えています。入力できません。");
         return;
       }
