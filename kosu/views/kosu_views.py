@@ -3046,10 +3046,10 @@ class KosuNew(APIView):
         break_next_day = locals()[f'break_next_day{break_num}']
 
         # 日を超えている場合の処理
-        if check == 1:
+        if break_next_day == 1:
           # 休憩時間内の工数データを削除
-          error_message, work_list, detail_list = break_time_delete(break_start, 288, work_list, detail_list, member_obj)
-          error_message, work_list, detail_list = break_time_delete(0, break_end, work_list, detail_list, member_obj)
+          error_message, work_list, detail_list = break_time_delete(break_end, 288, work_list, detail_list, member_obj)
+          error_message, work_list, detail_list = break_time_delete(0, break_start, work_list, detail_list, member_obj)
           if error_message:
             return Response({'error': error_message}, status=status.HTTP_400_BAD_REQUEST)
           # 休憩時間直後の時間に工数入力がある場合の処理
