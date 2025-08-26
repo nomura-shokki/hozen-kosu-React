@@ -203,10 +203,10 @@ const KosuList: React.FC = () => {
                       {item.judgement ? "OK" : "NG"}
                     </td>
                     <td>
-                      <Link to={`/member-update/${item.id}`} className={styles["a-collar"]}>編集</Link>
+                      <Link to={`/kosu-update/${item.id}`} className={styles["a-collar"]}>編集</Link>
                     </td>
                     <td>
-                      <Link to={`/member-delete/${item.id}`} className={styles["a-collar"]}>削除</Link>
+                      <Link to={`/kosu-delete/${item.id}`} className={styles["a-collar"]}>削除</Link>
                     </td>
                   </tr>
                 ))}

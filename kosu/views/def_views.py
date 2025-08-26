@@ -636,26 +636,34 @@ class DefNew(APIView):
 
 
 
-@api_view(['GET', 'PUT'])
-def def_update(request, pk):
-  try:
-    def_instance = kosu_division.objects.get(id=pk)
-  except kosu_division.DoesNotExist:
-    return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
-  
-  if request.method == 'GET':
+class DefUpdate(APIView):
+  def get_object(self, pk):
+    try:
+      return kosu_division.objects.get(id=pk)
+    except kosu_division.DoesNotExist:
+      return None
+
+  def get(self, request, pk):
+    def_instance = self.get_object(pk)
+    if not def_instance:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     member_data = member.objects.get(employee_no=login_no)
     if not member_data.authority:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
     serializer = DefSerializer(def_instance)
     return Response(serializer.data)
-  
-  elif request.method == 'PUT':
+
+  def put(self, request, pk):
+    def_instance = self.get_object(pk)
+    if not def_instance:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
     data = request.data
     serializer = DefSerializer(def_instance, data=data)
     if serializer.is_valid():
@@ -670,20 +678,31 @@ def def_update(request, pk):
 
 
 
-@api_view(['DELETE'])
-def def_delete(request, pk):
-  login_no = request.session.get('login_No')
-  if not login_no:
-    return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+class DefDelete(APIView):
+  def get_object(self, pk):
+    try:
+      return kosu_division.objects.get(id=pk)
+    except kosu_division.DoesNotExist:
+      return None
 
-  member_data = member.objects.get(employee_no=login_no)
-  if not member_data.authority:
-    return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+  def delete(self, request, pk):
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
-  try:
-    def_instance = kosu_division.objects.get(id=pk)
-  except kosu_division.DoesNotExist:
-    return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ログイン情報が正しくありません'}, status=status.HTTP_401_UNAUTHORIZED)
 
-  def_instance.delete()
-  return Response({'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+    if not member_data.authority:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    def_instance = self.get_object(pk)
+    if def_instance is None:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+    def_instance.delete()
+    return Response({'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+
+
+

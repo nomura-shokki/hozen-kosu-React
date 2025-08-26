@@ -21,7 +21,6 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
 
   // Reactのライフサイクルメソッドを使用してデータを解析する
   useEffect(() => {
-    // `timeWork`と`workDetail`を解析してパースされた結果を返す関数
     const parseTimeWorkAndDetail = () => {
       // 結果を格納する配列
       const result: { time: string; work: string; detail: string }[] = [];
@@ -41,7 +40,6 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
       // `$`で区切られた作業詳細リストを作成
       const splitDetails = workDetail.split("$").map((detail) => detail || ""); // `$`が空文字の場合にデフォルト値として空文字を設定
 
-      // `timeWork`を解析してセッションを判定
       for (let i = 0; i <= timeWork.length; i++) {
         const charWork = timeWork[i]; // 現在の`timeWork`内の文字を取得
         const mappedWork = charWork === "$" ? "休憩" : kosuTitleMapping[charWork]; // `$`の場合は特別な「休憩」として扱う

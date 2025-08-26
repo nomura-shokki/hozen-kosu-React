@@ -3416,3 +3416,85 @@ class BreakTime(APIView):
 
     member_data.save()
     return Response({'status': 'success', 'message': '休憩時間が更新されました'})
+
+
+
+class KosuUpdate(APIView):
+  def get_object(self, pk):
+    try:
+      return Business_Time_graph.objects.get(id=pk)
+    except Business_Time_graph.DoesNotExist:
+      return None
+
+  def get(self, request, pk):
+    kosu_instance = self.get_object(pk)
+    if not kosu_instance:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # セッション値取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # 工数区分定義確認
+    def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
+    if not def_query_set.exists():
+      return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+    elif def_query_set.count() > 1:
+      return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+    def_instance = def_query_set.first()
+
+    kosu_serializer = KosuSerializer(kosu_instance)
+    def_serializer = DefSerializer(def_instance)
+
+    response_data = {
+      'kosu_data': kosu_serializer.data,
+      'def_data': def_serializer.data,
+    }
+
+    return Response(response_data)
+
+
+  def put(self, request, pk):
+    kosu_instance = self.get_object(pk)
+    if not kosu_instance:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    data = request.data
+    serializer = KosuSerializer(kosu_instance, data=data)
+
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+class KosuDelete(APIView):
+  def get_object(self, pk):
+    try:
+      return Business_Time_graph.objects.get(id=pk)
+    except Business_Time_graph.DoesNotExist:
+      return None
+
+  # GET時の処理
+  def get(self, request, *args, **kwargs):
+    # セッション値取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+
+
+
+
+

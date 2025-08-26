@@ -33,7 +33,6 @@ interface DefData {
 const roundToNearestFiveMinutes = (date: Date, workDay: Date): Date => {
   const minutes = Math.floor(date.getMinutes() / 5) * 5;
   date.setMinutes(minutes, 0, 0);
-  date.setHours(date.getHours());
   date.setFullYear(workDay.getFullYear());
   date.setMonth(workDay.getMonth());
   date.setDate(workDay.getDate());

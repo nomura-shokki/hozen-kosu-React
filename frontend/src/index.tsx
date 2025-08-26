@@ -7,6 +7,7 @@ import MainMenu from './MainPage/MainMenu';
 import KosuMenu from './KosuPage/KosuMenu';
 import KosuNew from './KosuPage/KosuNew';
 import KosuList from './KosuPage/KosuList';
+import KosuEdit from './KosuPage/KosuEdit';
 import TodayBreakTime from './KosuPage/TodayBreakTime';
 import BreakTime from './KosuPage/BreakTime';
 import DefMenu from './DefinitionPage/DefMenu';
@@ -34,6 +35,7 @@ const App: React.FC = () => {
       "/kosu-menu": "工数Menu - 業務工数システム",
       "/kosu-new": "工数入力 - 業務工数システム",
       "/kosu-list": "工数一覧 - 業務工数システム",
+      "/kosu-update/:id": "工数編集 - 業務工数システム",
       "/today-break-time": "当日休憩時間変更 - 業務工数システム",
       "/break-time": "休憩時間変更 - 業務工数システム",
       "/def-menu": "工数区分定義Menu - 業務工数システム",
@@ -61,6 +63,7 @@ const App: React.FC = () => {
       <Route path="/kosu-menu" element={<KosuMenu />} />
       <Route path="/kosu-new" element={<KosuNew />} />
       <Route path="/kosu-list" element={<KosuList />} />
+      <Route path="/kosu-update/:id" element={<KosuEdit />} />
       <Route path="/today-break-time" element={<TodayBreakTime />} />
       <Route path="/break-time" element={<BreakTime />} />
       <Route path="/def-menu" element={<DefMenu />} />
