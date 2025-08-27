@@ -3441,6 +3441,14 @@ class KosuUpdate(APIView):
     if not def_ver:
       return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    # ログイン者データ確認
+    member_query_set = member.objects.filter(employee_no=login_no)
+    if not member_query_set.exists():
+      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+    elif member_query_set.count() > 1:
+      return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+    member_data = member_query_set.first()
+
     # 工数区分定義確認
     def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
     if not def_query_set.exists():
@@ -3451,10 +3459,13 @@ class KosuUpdate(APIView):
 
     kosu_serializer = KosuSerializer(kosu_instance)
     def_serializer = DefSerializer(def_instance)
+    member_serializer = MemberSerializer(member_data, many=False)
 
     response_data = {
       'kosu_data': kosu_serializer.data,
       'def_data': def_serializer.data,
+      'member_data': member_serializer.data,
+
     }
 
     return Response(response_data)

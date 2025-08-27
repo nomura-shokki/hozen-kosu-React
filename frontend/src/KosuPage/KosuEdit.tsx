@@ -23,9 +23,16 @@ interface DefData {
   [key: string]: string | undefined;
 }
 
+interface Member {
+  employee_no: number;
+  name: string;
+  shop: string;
+}
+
 interface KosuResponse {
   kosu_data: Kosu;
   def_data: DefData;
+  member_data: Member;
 }
 
 const KosuEdit: React.FC = () => {
@@ -36,6 +43,8 @@ const KosuEdit: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { id } = useParams<{ id: string }>();
   const [defData, setDefData] = useState<DefData>({});
+  const [memberName, setMemberName] = useState<string>("");
+  const [memberShop, setMemberShop] = useState<string>("");
   const [initialTimeWork, setInitialTimeWork] = useState<string | null>(null);
   const [initialWorkDetail, setInitialWorkDetail] = useState<string | null>(null);
   const [initialTyoku, setInitialTyoku] = useState<string | null>(null);
@@ -49,6 +58,13 @@ const KosuEdit: React.FC = () => {
         setFormData(kosu_data);
         const def_data = response.data.def_data || {};
         setDefData(def_data);
+        const member_data = response.data.member_data;
+        if (member_data?.name) {
+          setMemberName(member_data.name);
+        }
+        if (member_data?.shop) {
+          setMemberShop(member_data.shop);
+        }
         setInitialTimeWork(kosu_data.time_work);
         setInitialWorkDetail(kosu_data.detail_work);
         setInitialTyoku(kosu_data.tyoku2);
@@ -80,8 +96,38 @@ const KosuEdit: React.FC = () => {
           return acc;
         }, {} as Record<string, string | null>);
   
-      const splitDetails = (formData?.detail_work || "").split("$").map((detail) => detail || "");
-  
+      let splitDetails = (formData?.detail_work || "").split("$").map((detail) => detail || "");
+      let adjustedTimeWork = (formData?.time_work || "")
+
+      if (formData?.tyoku2 === "1" || formData?.tyoku2 === "5") {
+        adjustedTimeWork = Array.from(formData?.time_work || "")
+          .concat(Array.from(formData?.time_work || ""))
+          .slice(54, (formData?.time_work || "").length * 2 - 234)
+          .join("");
+
+        splitDetails = splitDetails
+          .concat(splitDetails)
+          .slice(54, splitDetails.length * 2 - 234);
+      } else if (formData?.tyoku2 === "2" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
+        adjustedTimeWork = Array.from(formData?.time_work || "")
+          .concat(Array.from(formData?.time_work || ""))
+          .slice(106, (formData?.time_work || "").length * 2 - 182)
+          .join("");
+
+        splitDetails = splitDetails
+          .concat(splitDetails)
+          .slice(106, splitDetails.length * 2 - 182);
+      } else if (formData?.tyoku2 === "2") {
+        adjustedTimeWork = Array.from(formData?.time_work || "")
+          .concat(Array.from(formData?.time_work || ""))
+          .slice(140, (formData?.time_work || "").length * 2 - 148)
+          .join("");
+
+        splitDetails = splitDetails
+          .concat(splitDetails)
+          .slice(140, splitDetails.length * 2 - 148);
+      }
+
       for (let i = 0; i <= (formData?.time_work || "").length; i++) {
         const charWork = formData?.time_work?.[i] ?? "";
         const mappedWork = charWork === "$" ? "休憩" : kosuTitleMapping[charWork];
