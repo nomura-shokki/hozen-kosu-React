@@ -170,6 +170,60 @@ const KosuEdit: React.FC = () => {
               const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
               const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
               result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+            } else if (formData?.tyoku2 === "2" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
+              const startHour = Math.floor((startIndex + 106) / 12) % 24;
+              const startMinute = (startIndex + 106) % 12 * 5;
+              const endHour = Math.floor((i + 106) / 12) % 24;
+              const endMinute = (i + 106) % 12 * 5;
+
+              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+            } else if (formData?.tyoku2 === "2") {
+              const startHour = Math.floor((startIndex + 140) / 12) % 24;
+              const startMinute = (startIndex + 140) % 12 * 5;
+              const endHour = Math.floor((i + 140) / 12) % 24;
+              const endMinute = (i + 140) % 12 * 5;
+
+              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+            } else if (formData?.tyoku2 === "3" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
+              const startHour = Math.floor((startIndex + 214) / 12) % 24;
+              const startMinute = (startIndex + 214) % 12 * 5;
+              const endHour = Math.floor((i + 214) / 12) % 24;
+              const endMinute = (i + 214) % 12 * 5;
+
+              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+            } else if (formData?.tyoku2 === "3") {
+              const startHour = Math.floor((startIndex + 242) / 12) % 24;
+              const startMinute = (startIndex + 242) % 12 * 5;
+              const endHour = Math.floor((i + 242) / 12) % 24;
+              const endMinute = (i + 242) % 12 * 5;
+
+              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+            } else if (formData?.tyoku2 === "4") {
+              const startHour = Math.floor((startIndex + 72) / 12) % 24;
+              const startMinute = (startIndex + 72) % 12 * 5;
+              const endHour = Math.floor((i + 72) / 12) % 24;
+              const endMinute = (i + 72) % 12 * 5;
+
+              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+            } else if (formData?.tyoku2 === "6") {
+              const startHour = Math.floor((startIndex + 182) / 12) % 24;
+              const startMinute = (startIndex + 182) % 12 * 5;
+              const endHour = Math.floor((i + 182) / 12) % 24;
+              const endMinute = (i + 182) % 12 * 5;
+
+              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
             } else {
               const startHour = Math.floor((startIndex * 5) / 60);
               const startMinute = (startIndex * 5) % 60;
@@ -186,11 +240,66 @@ const KosuEdit: React.FC = () => {
           startIndex = -1;
         } else if (mappedWork !== currentWork || charDetail !== currentDetail) {
           if (currentWork || currentDetail) {
+            console.log(startIndex)
             if (formData?.tyoku2 === "1" || formData?.tyoku2 === "5") {
               const startHour = Math.floor((startIndex + 54) / 12) % 24;
               const startMinute = (startIndex + 54) % 12 * 5;
               const endHour = Math.floor((i + 54) / 12) % 24;
               const endMinute = (i + 54) % 12 * 5;
+
+              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+            } else if (formData?.tyoku2 === "2" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
+              const startHour = Math.floor((startIndex + 106) / 12) % 24;
+              const startMinute = (startIndex + 106) % 12 * 5;
+              const endHour = Math.floor((i + 106) / 12) % 24;
+              const endMinute = (i + 106) % 12 * 5;
+
+              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+            } else if (formData?.tyoku2 === "2") {
+              const startHour = Math.floor((startIndex + 140) / 12) % 24;
+              const startMinute = (startIndex + 140) % 12 * 5;
+              const endHour = Math.floor((i + 140) / 12) % 24;
+              const endMinute = (i + 140) % 12 * 5;
+
+              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+            } else if (formData?.tyoku2 === "3" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
+              const startHour = Math.floor((startIndex + 214) / 12) % 24;
+              const startMinute = (startIndex + 214) % 12 * 5;
+              const endHour = Math.floor((i + 214) / 12) % 24;
+              const endMinute = (i + 214) % 12 * 5;
+
+              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+            } else if (formData?.tyoku2 === "3") {
+              const startHour = Math.floor((startIndex + 242) / 12) % 24;
+              const startMinute = (startIndex + 242) % 12 * 5;
+              const endHour = Math.floor((i + 242) / 12) % 24;
+              const endMinute = (i + 242) % 12 * 5;
+
+              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+            } else if (formData?.tyoku2 === "4") {
+              const startHour = Math.floor((startIndex + 72) / 12) % 24;
+              const startMinute = (startIndex + 72) % 12 * 5;
+              const endHour = Math.floor((i + 72) / 12) % 24;
+              const endMinute = (i + 72) % 12 * 5;
+              console.log(startIndex, startHour)
+              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+            } else if (formData?.tyoku2 === "6") {
+              const startHour = Math.floor((startIndex + 182) / 12) % 24;
+              const startMinute = (startIndex + 182) % 12 * 5;
+              const endHour = Math.floor((i + 182) / 12) % 24;
+              const endMinute = (i + 182) % 12 * 5;
 
               const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
               const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
