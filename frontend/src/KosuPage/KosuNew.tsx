@@ -285,7 +285,7 @@ const KosuNew: React.FC = () => {
       })
       .catch((error) => {
         console.error("更新エラー:", error);
-        handleError(error, "更新に失敗しました。再試行してください。"); // 共通関数を使用
+        handleError(error, "更新に失敗しました。再試行してください。");
       });
   };
 

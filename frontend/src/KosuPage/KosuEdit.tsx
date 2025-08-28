@@ -4,7 +4,10 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import TyokuSelect from "../components/TyokuSelect";
 import WorkSelect from "../components/WorkSelect";
 import Loading from "../components/Loading";
-import styles from "../styles/KosuPage/KosuEdit.module.css"; 
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { MobileTimePicker } from "@mui/x-date-pickers";
+import styles from "../styles/KosuPage/KosuEdit.module.css";
 
 interface Kosu {
   employee_no3: number;
@@ -45,6 +48,12 @@ const KosuEdit: React.FC = () => {
   const [defData, setDefData] = useState<DefData>({});
   const [memberShop, setMemberShop] = useState<string>("");
   const [parsedData, setParsedData] = useState<{ time1: string; time2: string; work: string; detail: string }[]>([]);
+  const [timeData, setTimeData] = useState<{
+    time1: Date | null;
+    time2: Date | null;
+    work: string;
+    detail: string;
+  }[]>([]);
 
   useEffect(() => {
     axios
@@ -72,249 +81,70 @@ const KosuEdit: React.FC = () => {
   }, [id, navigate]);
 
   useEffect(() => {
+    if (!formData) {
+      return;
+    }
+
+    const { time_work, detail_work, tyoku2 } = formData;
+    const timeWork = time_work;
+    const workDetail = detail_work;
+    const tyoku = tyoku2;
+
     const parseTimeWorkAndDetail = () => {
-      const result: { time1: string; time2: string; work: string; detail: string }[] = [];
-      let currentWork = "";
-      let currentDetail = "";
-      let startIndex = -1;
-  
       const kosuTitleMapping = Object.keys(defData)
         .filter((key) => key.startsWith("kosu_title_"))
         .reduce((acc, key, index) => {
-          const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx";
-          acc[alphabet[index]] = defData[key] ?? null;
+          acc["ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx"[index]] = defData[key] ?? null;
           return acc;
         }, {} as Record<string, string | null>);
-  
-      let splitDetails = (formData?.detail_work || "").split("$").map((detail) => detail || "");
-      let adjustedTimeWork = (formData?.time_work || "")
 
-      if (formData?.tyoku2 === "1" || formData?.tyoku2 === "5") {
-        adjustedTimeWork = Array.from(formData?.time_work || "")
-          .concat(Array.from(formData?.time_work || ""))
-          .slice(54, (formData?.time_work || "").length * 2 - 234)
-          .join("");
+      const adjustRange = (start: number, end: number) => ({
+        adjustedTimeWork: timeWork.repeat(2).slice(start, timeWork.length * 2 - end),
+        splitDetails: workDetail.split("$").concat(workDetail.split("$")).slice(start, workDetail.split("$").length * 2 - end)
+      });
 
-        splitDetails = splitDetails
-          .concat(splitDetails)
-          .slice(54, splitDetails.length * 2 - 234);
-      } else if (formData?.tyoku2 === "2" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
-        adjustedTimeWork = Array.from(formData?.time_work || "")
-          .concat(Array.from(formData?.time_work || ""))
-          .slice(106, (formData?.time_work || "").length * 2 - 182)
-          .join("");
+      const ranges: Record<string, { start: number; end: number }> = {
+        "1": { start: 54, end: 234 },
+        "2W_A": { start: 106, end: 182 },
+        "2": { start: 140, end: 148 },
+        "3W_A": { start: 214, end: 74 },
+        "3": { start: 242, end: 46 },
+        "4": { start: 72, end: 216 },
+        "6": { start: 182, end: 106 },
+      };
+      const rangeKey = tyoku + ((tyoku === "2" || tyoku === "3") && (["W1", "W2", "A1", "A2", "J", "組長以上(W,A)"].includes(memberShop)) ? "W_A" : "");
 
-        splitDetails = splitDetails
-          .concat(splitDetails)
-          .slice(106, splitDetails.length * 2 - 182);
-      } else if (formData?.tyoku2 === "2") {
-        adjustedTimeWork = Array.from(formData?.time_work || "")
-          .concat(Array.from(formData?.time_work || ""))
-          .slice(140, (formData?.time_work || "").length * 2 - 148)
-          .join("");
+      const { adjustedTimeWork, splitDetails } = ranges[rangeKey]
+        ? adjustRange(ranges[rangeKey].start, ranges[rangeKey].end)
+        : { adjustedTimeWork: timeWork, splitDetails: workDetail.split("$") };
 
-        splitDetails = splitDetails
-          .concat(splitDetails)
-          .slice(140, splitDetails.length * 2 - 148);
-      } else if (formData?.tyoku2 === "3" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
-        adjustedTimeWork = Array.from(formData?.time_work || "")
-          .concat(Array.from(formData?.time_work || ""))
-          .slice(214, (formData?.time_work || "").length * 2 - 74)
-          .join("");
+      const result: { time1: string; time2: string; work: string; detail: string }[] = [];
+      let currentWork = "", currentDetail = "", startIndex = -1;
 
-        splitDetails = splitDetails
-          .concat(splitDetails)
-          .slice(214, splitDetails.length * 2 - 74);
-      } else if (formData?.tyoku2 === "3") {
-        adjustedTimeWork = Array.from(formData?.time_work || "")
-          .concat(Array.from(formData?.time_work || ""))
-          .slice(242, (formData?.time_work || "").length * 2 - 46)
-          .join("");
+      const pushResult = (i: number, offset: number) => {
+        if (currentWork || currentDetail) {
+          const startHour = Math.floor((startIndex + offset) / 12) % 24;
+          const startMinute = ((startIndex + offset) % 12) * 5;
+          const endHour = Math.floor((i + offset) / 12) % 24;
+          const endMinute = ((i + offset) % 12) * 5;
+          const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
+          const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
+          result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
+        }
+      };
 
-        splitDetails = splitDetails
-          .concat(splitDetails)
-          .slice(242, splitDetails.length * 2 - 46);
-      } else if (formData?.tyoku2 === "4") {
-        adjustedTimeWork = Array.from(formData?.time_work || "")
-          .concat(Array.from(formData?.time_work || ""))
-          .slice(72, (formData?.time_work || "").length * 2 - 216)
-          .join("");
-
-        splitDetails = splitDetails
-          .concat(splitDetails)
-          .slice(72, splitDetails.length * 2 - 216);
-      } else if (formData?.tyoku2 === "6") {
-        adjustedTimeWork = Array.from(formData?.time_work || "")
-          .concat(Array.from(formData?.time_work || ""))
-          .slice(182, (formData?.time_work || "").length * 2 - 106)
-          .join("");
-
-        splitDetails = splitDetails
-          .concat(splitDetails)
-          .slice(182, splitDetails.length * 2 - 106);
-      }
-
-      for (let i = 0; i <= (formData?.time_work || "").length; i++) {
-        const charWork = formData?.time_work?.[i] ?? "";
+      for (let i = 0; i <= adjustedTimeWork.length; i++) {
+        const charWork = adjustedTimeWork[i];
         const mappedWork = charWork === "$" ? "休憩" : kosuTitleMapping[charWork];
-        const charDetail = splitDetails[Math.floor(i / ((formData?.time_work || "").length / splitDetails.length))] ?? "";
-  
+        const charDetail = splitDetails[Math.floor(i / (adjustedTimeWork.length / splitDetails.length))] ?? "";
+
         if (charWork === "#" || charWork === undefined) {
-          if (currentWork || currentDetail) {
-            if (formData?.tyoku2 === "1" || formData?.tyoku2 === "5") {
-              const startHour = Math.floor((startIndex + 54) / 12) % 24;
-              const startMinute = (startIndex + 54) % 12 * 5;
-              const endHour = Math.floor((i + 54) / 12) % 24;
-              const endMinute = (i + 54) % 12 * 5;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else if (formData?.tyoku2 === "2" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
-              const startHour = Math.floor((startIndex + 106) / 12) % 24;
-              const startMinute = (startIndex + 106) % 12 * 5;
-              const endHour = Math.floor((i + 106) / 12) % 24;
-              const endMinute = (i + 106) % 12 * 5;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else if (formData?.tyoku2 === "2") {
-              const startHour = Math.floor((startIndex + 140) / 12) % 24;
-              const startMinute = (startIndex + 140) % 12 * 5;
-              const endHour = Math.floor((i + 140) / 12) % 24;
-              const endMinute = (i + 140) % 12 * 5;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else if (formData?.tyoku2 === "3" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
-              const startHour = Math.floor((startIndex + 214) / 12) % 24;
-              const startMinute = (startIndex + 214) % 12 * 5;
-              const endHour = Math.floor((i + 214) / 12) % 24;
-              const endMinute = (i + 214) % 12 * 5;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else if (formData?.tyoku2 === "3") {
-              const startHour = Math.floor((startIndex + 242) / 12) % 24;
-              const startMinute = (startIndex + 242) % 12 * 5;
-              const endHour = Math.floor((i + 242) / 12) % 24;
-              const endMinute = (i + 242) % 12 * 5;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else if (formData?.tyoku2 === "4") {
-              const startHour = Math.floor((startIndex + 72) / 12) % 24;
-              const startMinute = (startIndex + 72) % 12 * 5;
-              const endHour = Math.floor((i + 72) / 12) % 24;
-              const endMinute = (i + 72) % 12 * 5;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else if (formData?.tyoku2 === "6") {
-              const startHour = Math.floor((startIndex + 182) / 12) % 24;
-              const startMinute = (startIndex + 182) % 12 * 5;
-              const endHour = Math.floor((i + 182) / 12) % 24;
-              const endMinute = (i + 182) % 12 * 5;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else {
-              const startHour = Math.floor((startIndex * 5) / 60);
-              const startMinute = (startIndex * 5) % 60;
-              const endHour = Math.floor((i * 5) / 60);
-              const endMinute = (i * 5) % 60;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            }
-          }
+          pushResult(i, ranges[rangeKey]?.start ?? 0);
           currentWork = "";
           currentDetail = "";
           startIndex = -1;
         } else if (mappedWork !== currentWork || charDetail !== currentDetail) {
-          if (currentWork || currentDetail) {
-            console.log(startIndex)
-            if (formData?.tyoku2 === "1" || formData?.tyoku2 === "5") {
-              const startHour = Math.floor((startIndex + 54) / 12) % 24;
-              const startMinute = (startIndex + 54) % 12 * 5;
-              const endHour = Math.floor((i + 54) / 12) % 24;
-              const endMinute = (i + 54) % 12 * 5;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else if (formData?.tyoku2 === "2" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
-              const startHour = Math.floor((startIndex + 106) / 12) % 24;
-              const startMinute = (startIndex + 106) % 12 * 5;
-              const endHour = Math.floor((i + 106) / 12) % 24;
-              const endMinute = (i + 106) % 12 * 5;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else if (formData?.tyoku2 === "2") {
-              const startHour = Math.floor((startIndex + 140) / 12) % 24;
-              const startMinute = (startIndex + 140) % 12 * 5;
-              const endHour = Math.floor((i + 140) / 12) % 24;
-              const endMinute = (i + 140) % 12 * 5;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else if (formData?.tyoku2 === "3" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
-              const startHour = Math.floor((startIndex + 214) / 12) % 24;
-              const startMinute = (startIndex + 214) % 12 * 5;
-              const endHour = Math.floor((i + 214) / 12) % 24;
-              const endMinute = (i + 214) % 12 * 5;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else if (formData?.tyoku2 === "3") {
-              const startHour = Math.floor((startIndex + 242) / 12) % 24;
-              const startMinute = (startIndex + 242) % 12 * 5;
-              const endHour = Math.floor((i + 242) / 12) % 24;
-              const endMinute = (i + 242) % 12 * 5;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else if (formData?.tyoku2 === "4") {
-              const startHour = Math.floor((startIndex + 72) / 12) % 24;
-              const startMinute = (startIndex + 72) % 12 * 5;
-              const endHour = Math.floor((i + 72) / 12) % 24;
-              const endMinute = (i + 72) % 12 * 5;
-              console.log(startIndex, startHour)
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else if (formData?.tyoku2 === "6") {
-              const startHour = Math.floor((startIndex + 182) / 12) % 24;
-              const startMinute = (startIndex + 182) % 12 * 5;
-              const endHour = Math.floor((i + 182) / 12) % 24;
-              const endMinute = (i + 182) % 12 * 5;
-
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            } else {
-              const startHour = Math.floor((startIndex * 5) / 60);
-              const startMinute = (startIndex * 5) % 60;
-              const endHour = Math.floor((i * 5) / 60);
-              const endMinute = (i * 5) % 60;
-    
-              const timeRange1 = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-              const timeRange2 = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-              result.push({ time1: timeRange1, time2: timeRange2, work: currentWork, detail: currentDetail });
-            }
-          }
+          pushResult(i, ranges[rangeKey]?.start ?? 0);
           currentWork = mappedWork || charWork;
           currentDetail = charDetail;
           startIndex = i;
@@ -322,9 +152,28 @@ const KosuEdit: React.FC = () => {
       }
       return result;
     };
-  
-    setParsedData(parseTimeWorkAndDetail());
-  }, [formData?.time_work, formData?.detail_work, defData]);
+
+    const parsedResults = parseTimeWorkAndDetail();
+
+    const newTimeData = parsedResults.map((item) => {
+      const baseDate = new Date();
+      const [startHour, startMinute] = item.time1.split(":").map(Number);
+      const [endHour, endMinute] = item.time2.split(":").map(Number);
+      
+      const time1 = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), startHour, startMinute);
+      const time2 = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), endHour, endMinute);
+
+      return {
+        time1: time1,
+        time2: time2,
+        work: item.work,
+        detail: item.detail,
+      };
+    });
+
+    setParsedData(parsedResults);
+    setTimeData(newTimeData);
+  }, [formData, defData, memberShop]);
 
   if (error) {
     return <div>Error: {error}</div>;
@@ -337,7 +186,7 @@ const KosuEdit: React.FC = () => {
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value, type } = event.target;
+    const { name, value } = event.target;
     setFormData((prev) => {
       if (!prev) return prev;
       return {
@@ -345,6 +194,23 @@ const KosuEdit: React.FC = () => {
         [name]: value,
       };
     });
+  };
+
+  const handleTimeChange = (
+    field: "time1" | "time2",
+    newTime: Date | null,
+    index: number
+  ) => {
+    if (!formData || !newTime) return;
+
+    const updatedTimeData = [...timeData];
+    updatedTimeData[index][field] = newTime;
+    setTimeData(updatedTimeData);
+
+    const updatedParsedData = [...parsedData];
+    const newTimeString = `${String(newTime.getHours()).padStart(2, "0")}:${String(newTime.getMinutes()).padStart(2, "0")}`;
+    updatedParsedData[index][field === "time1" ? "time1" : "time2"] = newTimeString;
+    setParsedData(updatedParsedData);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -375,18 +241,16 @@ const KosuEdit: React.FC = () => {
       });
     }
   };
-  
+
   const handleDecrement = (field: keyof Kosu) => {
     if (formData) {
       const currentValue = Number(formData[field]) || 0;
       setFormData({
         ...formData,
-        [field]: currentValue - 15, 
+        [field]: currentValue - 15,
       });
     }
   };
-
-  console.log(parsedData)
 
   return (
     <>
@@ -401,7 +265,7 @@ const KosuEdit: React.FC = () => {
           <div role="alert">{errorMessage}</div>
         )}
 
-        <form 
+        <form
           onSubmit={handleSubmit}
           onKeyDown={(e) => {
             if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
@@ -454,6 +318,42 @@ const KosuEdit: React.FC = () => {
                 +
               </button>
             </div>
+            {timeData.map((item, index) => (
+              <div key={index} className={styles["time-picker-wrapper"]}>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <MobileTimePicker
+                    className={styles["time-picker"]}
+                    value={item.time1}
+                    onChange={(newTime) => handleTimeChange("time1", newTime, index)}
+                    ampm={false}
+                    minutesStep={5}
+                    onAccept={() => {
+                      const rootElement = document.getElementById("root");
+                      if (rootElement) rootElement.removeAttribute("aria-hidden");
+                    }}
+                  />
+                </LocalizationProvider>
+                <span>〜</span>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <MobileTimePicker
+                    className={styles["time-picker"]}
+                    value={item.time2}
+                    onChange={(newTime) => handleTimeChange("time2", newTime, index)}
+                    ampm={false}
+                    minutesStep={5}
+                    onAccept={() => {
+                      const rootElement = document.getElementById("root");
+                      if (rootElement) rootElement.removeAttribute("aria-hidden");
+                    }}
+                  />
+                </LocalizationProvider>
+              </div>
+            ))}
+            {parsedData.map((item, index) => (
+              <div key={index}>
+                <p>{item.time1}{item.time2}{item.work}{item.detail}</p>
+              </div>
+            ))}
             <button type="submit" className="light_blue_button">更新</button>
           </div>
         </form>
