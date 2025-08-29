@@ -33,7 +33,7 @@ const DefSelect: React.FC<DefSelectProps> = ({
     .filter(({ label }) => label !== ""); // ラベルが空でないもののみ残す
 
   // オプションリストに固定値として「休憩」を追加。
-  defOptions.push({ value: "#", label: "休憩" });
+  defOptions.push({ value: "$", label: "休憩" });
 
   // JSXを返す部分。セレクトボックスの構造を定義。
   return (

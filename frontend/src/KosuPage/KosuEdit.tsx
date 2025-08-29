@@ -1,8 +1,9 @@
-import React, { useState, useEffect, FormEvent } from "react";
+import React, { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import TyokuSelect from "../components/TyokuSelect";
 import WorkSelect from "../components/WorkSelect";
+import DefSelect from "../components/DefSelect";
 import Loading from "../components/Loading";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -156,6 +157,18 @@ const KosuEdit: React.FC = () => {
     const parsedResults = parseTimeWorkAndDetail();
 
     const newTimeData = parsedResults.map((item) => {
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx";
+      const defOptions = Object.keys(defData)
+        .filter((key) => key.startsWith("kosu_title_"))
+        .map((key, index) => ({
+          value: alphabet[index],
+          label: defData[key] || "",
+        }))
+        .filter(({ label }) => label !== "");
+      defOptions.push({ value: "$", label: "休憩" });
+      const matchedOption = defOptions.find((option) => option.label === item.work);
+      const workValue = matchedOption ? matchedOption.value : "";
+
       const baseDate = new Date();
       const [startHour, startMinute] = item.time1.split(":").map(Number);
       const [endHour, endMinute] = item.time2.split(":").map(Number);
@@ -166,10 +179,12 @@ const KosuEdit: React.FC = () => {
       return {
         time1: time1,
         time2: time2,
-        work: item.work,
+        work: workValue,
         detail: item.detail,
       };
     });
+    console.log("newTimeData: ", newTimeData);
+
 
     setParsedData(parsedResults);
     setTimeData(newTimeData);
@@ -184,16 +199,29 @@ const KosuEdit: React.FC = () => {
   }
 
   const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+    index?: number, 
+    field?: string 
   ) => {
     const { name, value } = event.target;
-    setFormData((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
+  
+    if (!formData) return;
+  
+    if (index !== undefined && field) {
+      setTimeData((prevTimeData) => {
+        const updatedTimeData = [...prevTimeData];
+        updatedTimeData[index] = {
+          ...updatedTimeData[index],
+          [field]: value,
+        };
+        return updatedTimeData;
+      });
+    } else {
+      setFormData({
+        ...formData,
         [name]: value,
-      };
-    });
+      });
+    }
   };
 
   const handleTimeChange = (
@@ -216,8 +244,30 @@ const KosuEdit: React.FC = () => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx";
+
+    const reversedDefOptions = Object.keys(defData).reduce((acc, key, index) => {
+      if (key.startsWith("kosu_title_")) {
+        acc[alphabet[index]] = defData[key] || "";
+      }
+      return acc;
+    }, {} as Record<string, string>);
+
+    reversedDefOptions["$"] = "休憩";
+
+    const submittedData = timeData.map((item) => ({
+      ...item,
+      work: reversedDefOptions[item.work] || item.work, // アルファベットを逆変換して日本語に
+    }));
+
+    const updatedFormData = {
+      ...formData,
+      time_work: submittedData.map((item) => item.work).join(""),
+      detail_work: submittedData.map((item) => item.detail).join("$"),
+    };
+
     axios
-      .put(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, formData, { withCredentials: true })
+      .put(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, updatedFormData, { withCredentials: true })
       .then(() => {
         alert("データが更新されました！");
         navigate("/kosu-list");
@@ -347,6 +397,19 @@ const KosuEdit: React.FC = () => {
                     }}
                   />
                 </LocalizationProvider>
+                <DefSelect 
+                  name={`timeData_work_${index}`}
+                  value={item?.work || ""} 
+                  onChange={(e) => handleChange(e, index, "work")}
+                  defData={defData} 
+                />
+                <input
+                  type="text"
+                  id="detail_work"
+                  name="detail_work"
+                  value={item?.detail || ""}
+                  onChange={handleChange}
+                />
               </div>
             ))}
             {parsedData.map((item, index) => (
