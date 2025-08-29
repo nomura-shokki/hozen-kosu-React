@@ -127,7 +127,6 @@ form {
   gap: 10px; /* 要素間の間隔 */
   width: calc(100% - 40px);
   flex-wrap: nowrap; /* 折り返しを防ぐ */
-  overflow-x: auto; /* 要素がコンテナを超えた場合に横スクロールを許可 (必要に応じて追加) */
 }
 
 .time-picker-wrapper label {
