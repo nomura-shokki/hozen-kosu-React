@@ -1,4 +1,5 @@
 import React from "react";
+import styles from "../styles/components/TyokuSelect.module.css";
 
 interface TyokuSelectProps {
   value: string;
@@ -16,7 +17,7 @@ const tyokuOptions = [
 ];
 
 const TyokuSelect: React.FC<TyokuSelectProps> = ({ value, onChange }) => (
-  <select id="tyoku2" name="tyoku2" value={value} onChange={onChange}>
+  <select id="tyoku2" name="tyoku2" value={value} className={styles["form-width"]} onChange={onChange}>
     {tyokuOptions.map((option) => (
       <option key={option.value} value={option.value}>
         {option.label}

@@ -1,4 +1,5 @@
 import React from "react";
+import styles from "../styles/components/WorkSelect.module.css";
 
 interface WorkSelectProps {
   value: string;
@@ -16,7 +17,7 @@ const workOptions = [
 ];
 
 const WorkSelect: React.FC<WorkSelectProps> = ({ value, onChange }) => (
-  <select id="work_time" name="work_time" value={value} onChange={onChange}>
+  <select id="work_time" name="work_time" value={value} className={styles["form-width"]} onChange={onChange}>
     {workOptions.map((option) => (
       <option key={option.value} value={option.value}>
         {option.label}

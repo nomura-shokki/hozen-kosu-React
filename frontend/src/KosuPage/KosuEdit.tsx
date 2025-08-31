@@ -309,6 +309,7 @@ const KosuEdit: React.FC = () => {
         <h1 className={styles["h1-collar"]}>工数データ編集</h1>
         <nav className={styles["kosu-nav"]}>
           <Link to="/kosu-list">工数履歴</Link>
+          <Link to="/kosu-new">工数入力</Link>
         </nav>
 
         {errorMessage && (
@@ -335,39 +336,47 @@ const KosuEdit: React.FC = () => {
               id="work_day2"
               name="work_day2"
               value={formData.work_day2}
+              className={styles["form-width"]}
               onChange={handleChange}
             />
 
-            <label htmlFor="work_time">勤務・直:</label>
+            <label htmlFor="tyoku2">勤務・直・残業時間:</label>
             <div className={styles["work-tyoku-wrapper"]}>
-              <WorkSelect value={formData?.work_time || ''} onChange={handleChange} />
-              <TyokuSelect value={formData?.tyoku2 || ''} onChange={handleChange} />
-            </div>
-
-            <label htmlFor="over_time">残業時間:</label>
-            <div className={styles["over-time-wrapper"]}>
-              <button
-                type="button"
-                className={styles["custom-button"]}
-                onClick={() => handleDecrement("over_time")}
-              >
-                -
-              </button>
-              <input
-                type="number"
-                id="over_time"
-                name="over_time"
-                value={formData?.over_time || 0}
+              <WorkSelect 
+                value={formData?.work_time || ''}
                 onChange={handleChange}
               />
-              <button
-                type="button"
-                className={styles["custom-button"]}
-                onClick={() => handleIncrement("over_time")}
-              >
-                +
-              </button>
+              <TyokuSelect 
+                value={formData?.tyoku2 || ''} 
+                onChange={handleChange} 
+              />
+              <div className={styles["over-time-wrapper"]}>
+                <button
+                  type="button"
+                  className={styles["custom-button"]}
+                  onClick={() => handleDecrement("over_time")}
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  id="over_time"
+                  name="over_time"
+                  value={formData?.over_time || 0}
+                  className={styles["form-width2"]}
+                  onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  className={styles["custom-button"]}
+                  onClick={() => handleIncrement("over_time")}
+                >
+                  +
+                </button>
+              </div>
             </div>
+
+            <label htmlFor="detail_work">作業時間・作業内容・作業詳細:</label>
             {timeData.map((item, index) => (
               <div key={index} className={styles["time-picker-wrapper"]}>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -400,6 +409,7 @@ const KosuEdit: React.FC = () => {
                 <DefSelect 
                   name={`timeData_work_${index}`}
                   value={item?.work || ""} 
+                  className={styles["form-width"]}
                   onChange={(e) => handleChange(e, index, "work")}
                   defData={defData} 
                 />
@@ -408,13 +418,9 @@ const KosuEdit: React.FC = () => {
                   id="detail_work"
                   name="detail_work"
                   value={item?.detail || ""}
+                  className={styles["form-width"]}
                   onChange={handleChange}
                 />
-              </div>
-            ))}
-            {parsedData.map((item, index) => (
-              <div key={index}>
-                <p>{item.time1}{item.time2}{item.work}{item.detail}</p>
               </div>
             ))}
             <button type="submit" className="light_blue_button">更新</button>

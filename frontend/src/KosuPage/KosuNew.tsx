@@ -14,6 +14,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { MobileTimePicker } from "@mui/x-date-pickers";
 
 interface Kosu {
+  id: string
   employee_no3: number;
   work_day2: string;
   tyoku2: string;
@@ -336,6 +337,9 @@ const KosuNew: React.FC = () => {
         <h1 className={styles["h1-collar"]}>{memberName}の工数入力</h1>
         <nav className={styles["kosu-nav"]}>
           <Link to="/kosu-menu">工数MENU</Link>
+          {data && (
+            <Link  to={`/kosu-update/${data.id}`}>工数編集</Link>
+          )}
         </nav>
 
         {warningMessage && (
