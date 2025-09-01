@@ -14,6 +14,8 @@ SECRET_KEY=env('SECRET_KEY')
 
 DEBUG=env.bool('DEBUG')
 
+DEFAULT_CHARSET = 'utf-8'
+
 ALLOWED_HOSTS = [
     'hozen-kosu-another-c6e2gyeraydpdnhq.japaneast-01.azurewebsites.net',
     'localhost',
@@ -45,10 +47,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'kosu.middleware.clear_session_middleware.kosuClearMiddleware',
-    'kosu.middleware.clear_session_middleware.memberClearMiddleware',
-    'kosu.middleware.clear_session_middleware.teamClearMiddleware',
-    'kosu.middleware.clear_session_middleware.ClearMessagesOnPageChangeMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -60,6 +58,12 @@ CORS_ALLOW_ORIGINS = [
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.JSONParser',
+    ),
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
 }
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'

@@ -2952,6 +2952,7 @@ class KosuNew(APIView):
     def_ver = request.session.get('input_def')
 
     post_data = request.data
+    print(request.data)
     day = post_data.get('work_day2')
     tyoku = post_data.get('tyoku2')
     member_obj = member.objects.get(employee_no=login_no)
@@ -3472,15 +3473,16 @@ class KosuUpdate(APIView):
 
 
   def put(self, request, pk):
-    kosu_instance = self.get_object(pk)
-    if not kosu_instance:
-      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
-
-    data = request.data
-    serializer = KosuSerializer(kosu_instance, data=data)
-
-    serializer.save()
-    return Response(serializer.data, status=status.HTTP_200_OK)
+      kosu_instance = self.get_object(pk)
+      if not kosu_instance:
+          return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+      
+      print(request.data)
+      import logging
+      logger = logging.getLogger()
+      print("現在のロガー:", logger.handlers)
+      
+      return Response(status=status.HTTP_200_OK)
 
 
 

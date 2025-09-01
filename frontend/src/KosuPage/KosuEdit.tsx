@@ -187,8 +187,11 @@ const KosuEdit: React.FC = () => {
 
 
     setParsedData(parsedResults);
-    setTimeData(newTimeData);
-  }, [formData, defData, memberShop]);
+
+    if (timeData.length === 0) {
+      setTimeData(newTimeData);
+    }
+  }, [formData, defData]);
 
   if (error) {
     return <div>Error: {error}</div>;
@@ -242,28 +245,33 @@ const KosuEdit: React.FC = () => {
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
+    event.preventDefault(); // デフォルトのフォーム送信動作を防ぐ
+  
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx";
-
+  
+    // `defData`の逆引きオプション（アルファベットを日本語に戻すマッピング）
     const reversedDefOptions = Object.keys(defData).reduce((acc, key, index) => {
       if (key.startsWith("kosu_title_")) {
         acc[alphabet[index]] = defData[key] || "";
       }
       return acc;
     }, {} as Record<string, string>);
-
-    reversedDefOptions["$"] = "休憩";
-
-    const submittedData = timeData.map((item) => ({
-      ...item,
-      work: reversedDefOptions[item.work] || item.work, // アルファベットを逆変換して日本語に
-    }));
+  
+    reversedDefOptions["$"] = "休憩"; // "休憩"の固定値もマッピングに追加
+  
+    // `timeData`をループしてインデックス付きのキー名のオブジェクトとして再構築
+    const submittedData = timeData.reduce((acc, item, index) => {
+      acc[`time1_${index + 1}`] = item.time1?.toISOString() || ""; // ISO形式でタイムスタンプを文字列に
+      acc[`time2_${index + 1}`] = item.time2?.toISOString() || ""; // ISO形式でタイムスタンプを文字列に
+      acc[`timeData_work_${index + 1}`] = reversedDefOptions[item.work] || item.work; // "work"を逆マッピングしてラベルに
+      acc[`timeData_detail_${index + 1}`] = item.detail || ""; // detailの内容をそのまま使用
+  
+      return acc;
+    }, {} as Record<string, string>);
 
     const updatedFormData = {
       ...formData,
-      time_work: submittedData.map((item) => item.work).join(""),
-      detail_work: submittedData.map((item) => item.detail).join("$"),
+      ...submittedData,
     };
 
     axios
@@ -342,14 +350,8 @@ const KosuEdit: React.FC = () => {
 
             <label htmlFor="tyoku2">勤務・直・残業時間:</label>
             <div className={styles["work-tyoku-wrapper"]}>
-              <WorkSelect 
-                value={formData?.work_time || ''}
-                onChange={handleChange}
-              />
-              <TyokuSelect 
-                value={formData?.tyoku2 || ''} 
-                onChange={handleChange} 
-              />
+              <WorkSelect value={formData?.work_time || ''}onChange={handleChange} />
+              <TyokuSelect value={formData?.tyoku2 || ''} onChange={handleChange} />
               <div className={styles["over-time-wrapper"]}>
                 <button
                   type="button"
@@ -415,11 +417,11 @@ const KosuEdit: React.FC = () => {
                 />
                 <input
                   type="text"
-                  id="detail_work"
-                  name="detail_work"
+                  id={`detail_work_${index}`}
+                  name={`detail_work_${index}`}
                   value={item?.detail || ""}
                   className={styles["form-width"]}
-                  onChange={handleChange}
+                  onChange={(e) => handleChange(e, index, "detail")}
                 />
               </div>
             ))}
