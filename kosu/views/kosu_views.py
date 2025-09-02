@@ -2952,7 +2952,6 @@ class KosuNew(APIView):
     def_ver = request.session.get('input_def')
 
     post_data = request.data
-    print(request.data)
     day = post_data.get('work_day2')
     tyoku = post_data.get('tyoku2')
     member_obj = member.objects.get(employee_no=login_no)
@@ -3249,7 +3248,6 @@ class TodayBreakTime(APIView):
         employee_no3=login_no, 
         name=member.objects.get(employee_no=login_no), 
         work_day2=day, 
-        def_ver2=def_ver, 
         work_time='', 
         tyoku2='', 
         time_work='#'*288, 
@@ -3473,16 +3471,83 @@ class KosuUpdate(APIView):
 
 
   def put(self, request, pk):
-      kosu_instance = self.get_object(pk)
-      if not kosu_instance:
-          return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
-      
-      print(request.data)
-      import logging
-      logger = logging.getLogger()
-      print("現在のロガー:", logger.handlers)
-      
-      return Response(status=status.HTTP_200_OK)
+    print(request.data)
+    kosu_instance = self.get_object(pk)
+    def_ver = request.session.get('input_def')
+    login_no = request.session.get('login_No')
+    member_obj = member.objects.get(employee_no=login_no)
+
+    if not kosu_instance:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if kosu_instance.def_ver2:
+      if kosu_instance.def_ver2 != def_ver:
+        return Response({'error': '指定就業日を入力している工数定義区分と使用しようとしている工数定義区分が違います。'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    # フォームの数取得
+    keys = [key for key in request.data.keys() if key.startswith('time1_')]
+    numbers = [int(key[len('time1_'):]) for key in keys if key[len('time1_'):].isdigit()]
+    max_num = max(numbers) if numbers else None
+
+    # 空の作業内容リスト作成
+    work_list = list(itertools.repeat('#', 288))
+    detail_list = list(itertools.repeat('', 288))
+
+    # 工数書き込み
+    jst = datetime.timezone(datetime.timedelta(hours=9))
+    for n in range(max_num):
+      start_time = datetime.datetime.strptime(request.data.get(f'time1_{n + 1}'), "%Y-%m-%dT%H:%M:%S.%fZ")
+      end_time = datetime.datetime.strptime(request.data.get(f'time2_{n + 1}'), "%Y-%m-%dT%H:%M:%S.%fZ")
+      start_time = start_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
+      end_time = end_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
+      start_time = start_time.strftime("%H:%M")
+      end_time = end_time.strftime("%H:%M")
+      start_time_hour, start_time_min = time_index(start_time)
+      end_time_hour, end_time_min = time_index(end_time)
+      start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
+      end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
+
+      if start_time_ind < end_time_ind:
+        for i in range(start_time_ind, end_time_ind):
+          if work_list[i] == '#':
+            work_list[i] = request.data.get(f'timeData_work_{n + 1}', '#')
+            detail_list[i] = request.data.get(f'detail_work_{n + 1}', '')
+          else:
+            return Response({'error': '入力した作業時間に被りがあります。'},status=status.HTTP_400_BAD_REQUEST)
+
+      elif start_time_ind > end_time_ind:
+        for i in range(start_time_ind, 288):
+          if work_list[i] == '#':
+            work_list[i] = request.data.get(f'timeData_work_{n + 1}', '#')
+            detail_list[i] = request.data.get(f'detail_work_{n + 1}', '')
+          else:
+            return Response({'error': '入力した作業時間に被りがあります。'},status=status.HTTP_400_BAD_REQUEST)
+        for i in range(0, end_time_ind):
+          if work_list[i] == '#':
+            work_list[i] = request.data.get(f'timeData_work_{n + 1}', '#')
+            detail_list[i] = request.data.get(f'detail_work_{n + 1}', '')
+          else:
+            return Response({'error': '入力した作業時間に被りがあります。'},status=status.HTTP_400_BAD_REQUEST)
+
+    kosu_instance.time_work = ''.join(work_list)
+    kosu_instance.detail_work = detail_list_summarize(detail_list)
+    kosu_instance.judgement = judgement_check(work_list, detail_list, kosu_instance.tyoku2, member_obj, request.data.get('over_time', 0))
+    # kosu_instance.save()
+    return Response({'status': 'success', 'message': 'データが更新されました。'})
+
+
+
+
+
+
+
+
+
+
+
+
+    return Response(status=status.HTTP_200_OK)
 
 
 

@@ -245,7 +245,7 @@ const KosuEdit: React.FC = () => {
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // デフォルトのフォーム送信動作を防ぐ
+    event.preventDefault();
   
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx";
   
@@ -269,10 +269,42 @@ const KosuEdit: React.FC = () => {
       return acc;
     }, {} as Record<string, string>);
 
+    if (!formData) return;
+
     const updatedFormData = {
       ...formData,
       ...submittedData,
     };
+    if (!formData.work_time || !formData.tyoku2) {
+      setErrorMessage("入力必要項目が入力されていません。");
+      return;
+    }
+    if (
+      Object.keys(formData).some(
+        (key) =>
+          (key.startsWith("time1_") || key.startsWith("time2_")) &&
+          !(formData as any)[key]
+      )
+    ) {
+      setErrorMessage("すべての作業時間を入力してください。");
+      return;
+    }
+    if (formData.work_time !== "休出" && formData.over_time % 15 !== 0) {
+      setErrorMessage("残業の最小単位は15分です。確認してください。");
+      return;
+    }
+    if (formData.work_time === "休出" && formData.over_time % 5 !== 0) {
+      setErrorMessage("休出時の残業は(15n+5)分です。確認してください。");
+      return;
+    }
+    if (Object.keys(formData).some(key => key.startsWith("detail_work_") && (formData as any)[key]?.length > 100)) {
+      setErrorMessage("作業詳細は100文字以内にしてください。");
+      return;
+    }
+    if (Object.keys(formData).some(key => key.startsWith("detail_work_") && (formData as any)[key]?.includes("$"))) {
+      setErrorMessage("作業詳細に『$』は使用できません。");
+      return;
+    }
 
     axios
       .put(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, updatedFormData, { withCredentials: true })
@@ -308,6 +340,22 @@ const KosuEdit: React.FC = () => {
         [field]: currentValue - 15,
       });
     }
+  };
+
+  const addEmptyForm = () => {
+    const baseDate = new Date()
+    const time1 = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 0, 0);
+    const time2 = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 0, 0);
+  
+    setTimeData((prevTimeData) => [
+      ...prevTimeData,
+      {
+        time1: time1,
+        time2: time2,
+        work: '',
+        detail: '',
+      }
+    ]);
   };
 
   return (
@@ -378,7 +426,16 @@ const KosuEdit: React.FC = () => {
               </div>
             </div>
 
-            <label htmlFor="detail_work">作業時間・作業内容・作業詳細:</label>
+            <label htmlFor="detail_work">
+              作業時間・作業内容・作業詳細:
+              <button 
+                type="button" 
+                className="light_blue_button" 
+                onClick={addEmptyForm}
+              >
+                行追加
+              </button>
+            </label>
             {timeData.map((item, index) => (
               <div key={index} className={styles["time-picker-wrapper"]}>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>

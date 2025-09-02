@@ -180,11 +180,7 @@ LOGGING = {
             'filename': 'web_console.log',
             'maxBytes': 1024 * 1024 * 1,  # 最大ファイルサイズ (1MB)
             'backupCount': 1,
-        },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
+            'encoding': 'utf-8',
         },
     },
     'loggers': {
