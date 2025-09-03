@@ -76,6 +76,14 @@ form {
   box-sizing: border-box;
 }
 
+.day-wrapper {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: calc(100% - 40px);
+  box-sizing: border-box;
+}
+
 .work-tyoku-wrapper {
   display: flex;
   justify-content: space-between;

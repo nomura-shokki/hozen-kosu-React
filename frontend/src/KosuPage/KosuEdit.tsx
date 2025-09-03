@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent, ChangeEvent } from "react";
+import React, { useState, useEffect, FormEvent, ChangeEvent, useCallback } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import TyokuSelect from "../components/TyokuSelect";
@@ -55,6 +55,14 @@ const KosuEdit: React.FC = () => {
     work: string;
     detail: string;
   }[]>([]);
+
+  const handleError = useCallback((error: any, defaultMessage: string) => {
+    if (error.response && error.response.data && error.response.data.error) {
+      setErrorMessage(error.response.data.error);
+    } else {
+      setErrorMessage(defaultMessage);
+    }
+  }, []);
 
   useEffect(() => {
     axios
@@ -207,9 +215,9 @@ const KosuEdit: React.FC = () => {
     field?: string 
   ) => {
     const { name, value } = event.target;
-  
+
     if (!formData) return;
-  
+
     if (index !== undefined && field) {
       setTimeData((prevTimeData) => {
         const updatedTimeData = [...prevTimeData];
@@ -256,9 +264,9 @@ const KosuEdit: React.FC = () => {
       }
       return acc;
     }, {} as Record<string, string>);
-  
+
     reversedDefOptions["$"] = "休憩"; // "休憩"の固定値もマッピングに追加
-  
+
     // `timeData`をループしてインデックス付きのキー名のオブジェクトとして再構築
     const submittedData = timeData.reduce((acc, item, index) => {
       acc[`time1_${index + 1}`] = item.time1?.toISOString() || ""; // ISO形式でタイムスタンプを文字列に
@@ -313,12 +321,8 @@ const KosuEdit: React.FC = () => {
         navigate("/kosu-list");
       })
       .catch((error) => {
-        console.error(error);
-        if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.error);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
+        console.error("工数データ編集エラー:", error);
+        handleError(error, "工数データ編集で想定外のエラーが発生しました。");
       });
   };
 
@@ -342,6 +346,20 @@ const KosuEdit: React.FC = () => {
     }
   };
 
+  const handleSendDayUpdate = () => {
+    if (!formData) return;
+
+    axios
+      .put(`${process.env.REACT_APP_API_BASE_URL}/api/day_update/`, formData, { withCredentials: true })
+      .then(() => {
+        alert("日付編集を送信しました！");
+      })
+      .catch((error) => {
+        console.error("日付変更エラー:", error);
+        handleError(error, "日付変更で想定外のエラーが発生しました。");
+      });
+  };
+
   const addEmptyForm = () => {
     const baseDate = new Date()
     const time1 = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 0, 0);
@@ -356,6 +374,16 @@ const KosuEdit: React.FC = () => {
         detail: '',
       }
     ]);
+  };
+
+  const removeLastForm = () => {
+    if (timeData.length > 0) {
+      setTimeData((prevTimeData) => {
+        const updatedTimeData = [...prevTimeData];
+        updatedTimeData.pop();
+        return updatedTimeData;
+      });
+    }
   };
 
   return (
@@ -387,14 +415,23 @@ const KosuEdit: React.FC = () => {
                 {formData?.judgement ? "OK" : "NG"}
               </span>
             </label>
-            <input
-              type="date"
-              id="work_day2"
-              name="work_day2"
-              value={formData.work_day2}
-              className={styles["form-width"]}
-              onChange={handleChange}
-            />
+            <div className={styles["day-wrapper"]}>
+              <input
+                type="date"
+                id="work_day2"
+                name="work_day2"
+                value={formData.work_day2}
+                className={styles["form-width"]}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                onClick={handleSendDayUpdate}
+                className="light_blue_button"
+              >
+                日付編集
+              </button>
+            </div>
 
             <label htmlFor="tyoku2">勤務・直・残業時間:</label>
             <div className={styles["work-tyoku-wrapper"]}>
@@ -434,6 +471,13 @@ const KosuEdit: React.FC = () => {
                 onClick={addEmptyForm}
               >
                 行追加
+              </button>
+              <button 
+                type="button" 
+                className="light_blue_button" 
+                onClick={removeLastForm}
+              >
+                行削除
               </button>
             </label>
             {timeData.map((item, index) => (

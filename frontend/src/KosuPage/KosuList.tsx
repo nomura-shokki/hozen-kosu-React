@@ -25,6 +25,12 @@ const formatTyoku = (value: string | number): string => {
   }
 };
 
+const getDayOfWeek = (dateStr: string): string => {
+  const days = ["日", "月", "火", "水", "木", "金", "土"];
+  const date = new Date(dateStr);
+  return days[date.getDay()] || ""; // 日付が無効の場合は空文字を返す
+};
+
 const KosuList: React.FC = () => {
   const [data, setData] = useState<Kosu[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -197,7 +203,7 @@ const KosuList: React.FC = () => {
               <tbody>
                 {data.map((item) => (
                   <tr key={item.id}>
-                    <td>{item.work_day2}</td>
+                    <td>{item.work_day2} ({getDayOfWeek(item.work_day2)})</td>
                     <td>{formatTyoku(item.tyoku2)}</td>
                     <td className={item.judgement ? styles["status-ok"] : styles["status-ng"]}>
                       {item.judgement ? "OK" : "NG"}

@@ -3418,12 +3418,14 @@ class BreakTime(APIView):
 
 
 
+# 工数編集
 class KosuUpdate(APIView):
   def get_object(self, pk):
     try:
       return Business_Time_graph.objects.get(id=pk)
     except Business_Time_graph.DoesNotExist:
       return None
+
 
   def get(self, request, pk):
     kosu_instance = self.get_object(pk)
@@ -3449,12 +3451,20 @@ class KosuUpdate(APIView):
     member_data = member_query_set.first()
 
     # 工数区分定義確認
-    def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
-    if not def_query_set.exists():
-      return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
-    elif def_query_set.count() > 1:
-      return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
-    def_instance = def_query_set.first()
+    if kosu_instance.def_ver2:
+      def_query_set = kosu_division.objects.filter(kosu_name=kosu_instance.def_ver2)
+      if not def_query_set.exists():
+        return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+      elif def_query_set.count() > 1:
+        return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+      def_instance = def_query_set.first()
+    else:
+      def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
+      if not def_query_set.exists():
+        return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+      elif def_query_set.count() > 1:
+        return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+      def_instance = def_query_set.first()
 
     kosu_serializer = KosuSerializer(kosu_instance)
     def_serializer = DefSerializer(def_instance)
@@ -3464,14 +3474,12 @@ class KosuUpdate(APIView):
       'kosu_data': kosu_serializer.data,
       'def_data': def_serializer.data,
       'member_data': member_serializer.data,
-
     }
 
     return Response(response_data)
 
 
   def put(self, request, pk):
-    print(request.data)
     kosu_instance = self.get_object(pk)
     def_ver = request.session.get('input_def')
     login_no = request.session.get('login_No')
@@ -3483,7 +3491,6 @@ class KosuUpdate(APIView):
     if kosu_instance.def_ver2:
       if kosu_instance.def_ver2 != def_ver:
         return Response({'error': '指定就業日を入力している工数定義区分と使用しようとしている工数定義区分が違います。'}, status=status.HTTP_400_BAD_REQUEST)
-
 
     # フォームの数取得
     keys = [key for key in request.data.keys() if key.startswith('time1_')]
@@ -3530,27 +3537,44 @@ class KosuUpdate(APIView):
           else:
             return Response({'error': '入力した作業時間に被りがあります。'},status=status.HTTP_400_BAD_REQUEST)
 
+    kosu_instance.tyoku2 = request.data.get('tyoku2')
+    kosu_instance.work_time = request.data.get('work_time')
     kosu_instance.time_work = ''.join(work_list)
     kosu_instance.detail_work = detail_list_summarize(detail_list)
     kosu_instance.judgement = judgement_check(work_list, detail_list, kosu_instance.tyoku2, member_obj, request.data.get('over_time', 0))
-    # kosu_instance.save()
+    if not kosu_instance.def_ver2:
+      kosu_instance.def_ver2 = def_ver
+    kosu_instance.save()
     return Response({'status': 'success', 'message': 'データが更新されました。'})
 
 
 
+# 工数データ日付編集
+class DayUpdate(APIView):
+  def put(self, request, *args, **kwargs):
+    login_no = request.session.get('login_No')
+    day = request.data.get('work_day2')
+
+    if not day:
+      request.session['day'] = ""
+      return Response({'error': '就業日が未指定です。'},status=status.HTTP_400_BAD_REQUEST)
+    else:
+      request.session['day'] = str(day)
+
+    obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+    if obj_filter.exists():
+      return Response({'error': '変更日に既に工数データがあります。変更先の工数データを削除してから実行してください。'}, status=status.HTTP_400_BAD_REQUEST)
+
+    Business_Time_graph.objects.update_or_create(
+      id=request.data.get('id'), 
+      defaults = {'work_day2': day}
+      )
+
+    return Response({'status': 'success', 'message': '日付が変更されました。'})
 
 
 
-
-
-
-
-
-
-    return Response(status=status.HTTP_200_OK)
-
-
-
+# 工数削除
 class KosuDelete(APIView):
   def get_object(self, pk):
     try:
@@ -3558,18 +3582,20 @@ class KosuDelete(APIView):
     except Business_Time_graph.DoesNotExist:
       return None
 
-  # GET時の処理
-  def get(self, request, *args, **kwargs):
-    # セッション値取得
+  def delete(self, request, pk):
+    # セッションからログイン情報を取得
     login_no = request.session.get('login_No')
-    def_ver = request.session.get('input_def')
-
-    # セッション値なしエラー
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    # 削除対象のオブジェクトを取得
+    kosu_instance = self.get_object(pk)
+    if kosu_instance is None:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # レコードを削除
+    kosu_instance.delete()
+    return Response({'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
 
 
 

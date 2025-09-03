@@ -140,9 +140,8 @@ const KosuNew: React.FC = () => {
   ) => {
     const { name, value } = event.target;
     if (data) {
-      const updatedValue =
-        name === "over_time" ? parseInt(value, 10) || 0 : value;
-  
+      const updatedValue = name === "over_time" ? parseInt(value, 10) || 0 : value;
+
       setData({
         ...data,
         [name]: updatedValue,
@@ -156,7 +155,7 @@ const KosuNew: React.FC = () => {
             { withCredentials: true }
           )
           .then(() => {
-            if (value) fetchData();
+            fetchData();
           })
           .catch((error) => {
             console.error("エラーが発生しました:", error);
@@ -165,6 +164,52 @@ const KosuNew: React.FC = () => {
       }
     }
   };
+
+  useEffect(() => {
+    if (data && data.tyoku2) {
+      const workDay = data.work_day2 ? new Date(data.work_day2) : new Date();
+      if (data.tyoku2 === "1" || data.tyoku2 === "5") {
+        setSelectedTimes({
+          time1: new Date(workDay.setHours(6, 30, 0, 0)),
+          time2: new Date(workDay.setHours(6, 30, 0, 0)),
+        });
+      } else if (data.tyoku2 === "2") {
+        if (["W1", "W2", "A1", "A2", "J", "組長以上(W,A)"].includes(memberShop)) {
+          setSelectedTimes({
+            time1: new Date(workDay.setHours(11, 10, 0, 0)),
+            time2: new Date(workDay.setHours(11, 10, 0, 0)), 
+          });
+        } else {
+          setSelectedTimes({
+            time1: new Date(workDay.setHours(13, 40, 0, 0)),
+            time2: new Date(workDay.setHours(13, 40, 0, 0)),
+          });
+        }
+      } else if (data.tyoku2 === "3") {
+        if (["W1", "W2", "A1", "A2", "J", "組長以上(W,A)"].includes(memberShop)) {
+          setSelectedTimes({
+            time1: new Date(workDay.setHours(19, 50, 0, 0)),
+            time2: new Date(workDay.setHours(19, 50, 0, 0)),
+          });
+        } else {
+          setSelectedTimes({
+            time1: new Date(workDay.setHours(22, 10, 0, 0)),
+            time2: new Date(workDay.setHours(22, 10, 0, 0)),
+          });
+        }
+      } else if (data.tyoku2 === "4") {
+        setSelectedTimes({
+          time1: new Date(workDay.setHours(8, 0, 0, 0)),
+          time2: new Date(workDay.setHours(8, 0, 0, 0)),
+        });
+      } else if (data.tyoku2 === "6") {
+        setSelectedTimes({
+          time1: new Date(workDay.setHours(17, 10, 0, 0)),
+          time2: new Date(workDay.setHours(17, 10, 0, 0)),
+        });
+      }
+    }
+  }, [data?.tyoku2, memberShop]);
 
   const setTime2ToCurrentRounded = () => {
     if (data) {
