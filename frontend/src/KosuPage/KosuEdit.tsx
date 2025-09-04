@@ -4,6 +4,8 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import TyokuSelect from "../components/TyokuSelect";
 import WorkSelect from "../components/WorkSelect";
 import DefSelect from "../components/DefSelect";
+import KosuBarChart from "../components/KosuBarChart"; 
+import DefTable from "../components/DefTable";
 import Loading from "../components/Loading";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -48,13 +50,16 @@ const KosuEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [defData, setDefData] = useState<DefData>({});
   const [memberShop, setMemberShop] = useState<string>("");
-  const [parsedData, setParsedData] = useState<{ time1: string; time2: string; work: string; detail: string }[]>([]);
+  const [initialTimeWork, setInitialTimeWork] = useState<string | null>(null);
+  const [initialTyoku, setInitialTyoku] = useState<string | null>(null);
   const [timeData, setTimeData] = useState<{
     time1: Date | null;
     time2: Date | null;
     work: string;
     detail: string;
   }[]>([]);
+  // 初期状態をすべてtrue (非アクティブ)に設定
+  const [isDisabled, setIsDisabled] = useState<boolean[]>([]);
 
   const handleError = useCallback((error: any, defaultMessage: string) => {
     if (error.response && error.response.data && error.response.data.error) {
@@ -76,6 +81,8 @@ const KosuEdit: React.FC = () => {
         if (member_data?.shop) {
           setMemberShop(member_data.shop);
         }
+        setInitialTimeWork(kosu_data.time_work);
+        setInitialTyoku(kosu_data.tyoku2);
         setLoading(false);
       })
       .catch((err) => {
@@ -191,20 +198,20 @@ const KosuEdit: React.FC = () => {
         detail: item.detail,
       };
     });
-    console.log("newTimeData: ", newTimeData);
-
-
-    setParsedData(parsedResults);
 
     if (timeData.length === 0) {
       setTimeData(newTimeData);
+      // 初期状態は非アクティブなので、すべてtrueで初期化
+      setIsDisabled(newTimeData.map(() => true));
     }
   }, [formData, defData]);
 
+  if (loading) {
+    return <div><Loading isLoading={loading} /></div>;
+  }
   if (error) {
     return <div>Error: {error}</div>;
   }
-
   if (!formData) {
     return <div>データが見つかりません</div>;
   }
@@ -240,40 +247,33 @@ const KosuEdit: React.FC = () => {
     newTime: Date | null,
     index: number
   ) => {
-    if (!formData || !newTime) return;
-
+    if (!timeData[index]) {
+      console.error(`Index ${index} is out of bounds or undefined in timeData.`);
+      return;
+    }
+  
     const updatedTimeData = [...timeData];
     updatedTimeData[index][field] = newTime;
     setTimeData(updatedTimeData);
+  };
 
-    const updatedParsedData = [...parsedData];
-    const newTimeString = `${String(newTime.getHours()).padStart(2, "0")}:${String(newTime.getMinutes()).padStart(2, "0")}`;
-    updatedParsedData[index][field === "time1" ? "time1" : "time2"] = newTimeString;
-    setParsedData(updatedParsedData);
+  const handleCheckboxChange = (index: number) => {
+    setIsDisabled((prevIsDisabled) => {
+        const updatedDisabled = [...prevIsDisabled];
+        // ロジックを反転：現在の状態がfalseならtrueに、trueならfalseに
+        updatedDisabled[index] = !updatedDisabled[index];
+        return updatedDisabled;
+    });
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-  
-    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx";
-  
-    // `defData`の逆引きオプション（アルファベットを日本語に戻すマッピング）
-    const reversedDefOptions = Object.keys(defData).reduce((acc, key, index) => {
-      if (key.startsWith("kosu_title_")) {
-        acc[alphabet[index]] = defData[key] || "";
-      }
-      return acc;
-    }, {} as Record<string, string>);
 
-    reversedDefOptions["$"] = "休憩"; // "休憩"の固定値もマッピングに追加
-
-    // `timeData`をループしてインデックス付きのキー名のオブジェクトとして再構築
     const submittedData = timeData.reduce((acc, item, index) => {
-      acc[`time1_${index + 1}`] = item.time1?.toISOString() || ""; // ISO形式でタイムスタンプを文字列に
-      acc[`time2_${index + 1}`] = item.time2?.toISOString() || ""; // ISO形式でタイムスタンプを文字列に
-      acc[`timeData_work_${index + 1}`] = reversedDefOptions[item.work] || item.work; // "work"を逆マッピングしてラベルに
-      acc[`timeData_detail_${index + 1}`] = item.detail || ""; // detailの内容をそのまま使用
-  
+      acc[`time1_${index + 1}`] = item.time1?.toISOString() || "";
+      acc[`time2_${index + 1}`] = item.time2?.toISOString() || "";
+      acc[`timeData_work_${index + 1}`] = item.work;
+      acc[`timeData_detail_${index + 1}`] = item.detail || "";
       return acc;
     }, {} as Record<string, string>);
 
@@ -346,6 +346,33 @@ const KosuEdit: React.FC = () => {
     }
   };
 
+  const handleDeleteItem = (index: number) => {
+    const itemToDelete = timeData[index];
+  
+    if (!itemToDelete) {
+      console.error(`Index ${index} is out of bounds for deletion.`);
+      return;
+    }
+
+    const requestData = {
+      index,
+      ...itemToDelete
+    };
+  
+    axios
+      .post(`${process.env.REACT_APP_API_BASE_URL}/api/item_delete/`, requestData, { withCredentials: true })
+      .then(() => {
+        alert(`行 ${index + 1} が削除されました！`);
+        setTimeData((prevTimeData) =>
+          prevTimeData.filter((_, i) => i !== index)
+        );
+      })
+      .catch((error) => {
+        console.error("削除中にエラーが発生しました:", error);
+        setErrorMessage("削除リクエストでエラーが発生しました。");
+      });
+  };
+
   const handleSendDayUpdate = () => {
     if (!formData) return;
 
@@ -374,6 +401,8 @@ const KosuEdit: React.FC = () => {
         detail: '',
       }
     ]);
+    // 新しい行が追加されたら、その行は非アクティブに設定
+    setIsDisabled((prevIsDisabled) => [...prevIsDisabled, true]);
   };
 
   const removeLastForm = () => {
@@ -383,6 +412,8 @@ const KosuEdit: React.FC = () => {
         updatedTimeData.pop();
         return updatedTimeData;
       });
+      // 最後の行が削除されたら、isDisabledからも対応する要素を削除
+      setIsDisabled((prevIsDisabled) => prevIsDisabled.slice(0, -1));
     }
   };
 
@@ -463,7 +494,7 @@ const KosuEdit: React.FC = () => {
               </div>
             </div>
 
-            <label htmlFor="detail_work">
+            <label>
               作業時間・作業内容・作業詳細:
               <button 
                 type="button" 
@@ -481,9 +512,15 @@ const KosuEdit: React.FC = () => {
               </button>
             </label>
             {timeData.map((item, index) => (
-              <div key={index} className={styles["time-picker-wrapper"]}>
+              <div key={`time-picker-row-${index}`} className={styles["time-picker-wrapper"]}>
+                <input 
+                  type="checkbox"
+                  checked={!isDisabled[index]}
+                  onChange={() => handleCheckboxChange(index)} 
+                />
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                   <MobileTimePicker
+                    key={`time-picker-start-${index}`}
                     className={styles["time-picker"]}
                     value={item.time1}
                     onChange={(newTime) => handleTimeChange("time1", newTime, index)}
@@ -493,11 +530,13 @@ const KosuEdit: React.FC = () => {
                       const rootElement = document.getElementById("root");
                       if (rootElement) rootElement.removeAttribute("aria-hidden");
                     }}
+                    disabled={isDisabled[index]}
                   />
                 </LocalizationProvider>
                 <span>〜</span>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                   <MobileTimePicker
+                    key={`time-picker-end-${index}`} 
                     className={styles["time-picker"]}
                     value={item.time2}
                     onChange={(newTime) => handleTimeChange("time2", newTime, index)}
@@ -507,6 +546,7 @@ const KosuEdit: React.FC = () => {
                       const rootElement = document.getElementById("root");
                       if (rootElement) rootElement.removeAttribute("aria-hidden");
                     }}
+                    disabled={isDisabled[index]}
                   />
                 </LocalizationProvider>
                 <DefSelect 
@@ -515,6 +555,7 @@ const KosuEdit: React.FC = () => {
                   className={styles["form-width"]}
                   onChange={(e) => handleChange(e, index, "work")}
                   defData={defData} 
+                  disabled={isDisabled[index]}
                 />
                 <input
                   type="text"
@@ -523,12 +564,27 @@ const KosuEdit: React.FC = () => {
                   value={item?.detail || ""}
                   className={styles["form-width"]}
                   onChange={(e) => handleChange(e, index, "detail")}
+                  disabled={isDisabled[index]}
                 />
+                <button
+                  type="button"
+                  className="blue_button"
+                  onClick={() => handleDeleteItem(index)}
+                  disabled={isDisabled[index]}
+                >
+                  削除
+                </button>
               </div>
             ))}
             <button type="submit" className="light_blue_button">更新</button>
           </div>
         </form>
+        {initialTimeWork && (
+          <div className={styles["centeredContainer"]}>
+            <KosuBarChart initialTimeWork={initialTimeWork} tyoku={initialTyoku || ""} shop={memberShop || ""} />
+            <DefTable defData={defData} />
+          </div>
+        )}
       </div>
     </>
   );

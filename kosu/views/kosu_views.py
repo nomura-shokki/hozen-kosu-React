@@ -3224,9 +3224,9 @@ class TodayBreakTime(APIView):
     return Response(response_data)
 
 
+  # POST処理
   def post(self, request, *args, **kwargs):
     login_no = request.session.get('login_No')
-    def_ver = request.session.get('input_def')
     day = request.session.get('day')
     post_data = request.data
 
@@ -3571,6 +3571,69 @@ class DayUpdate(APIView):
       )
 
     return Response({'status': 'success', 'message': '日付が変更されました。'})
+
+
+
+# 工数データ項目削除
+class ItemDlete(APIView):
+  def post(self, request, *args, **kwargs):
+    login_no = request.session.get('login_No')
+    day = request.data.get('work_day2')
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # 工数データ取得
+    obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+    if obj_filter.exists():
+      obj_get = obj_filter.first()
+      if obj_get.time_work:
+        work_list = list(obj_get.time_work)
+        detail_list = obj_get.detail_work.split('$')
+      else:
+        return Response({'error': '工数データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    else:
+      return Response({'error': '工数データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # 項目番号から削除時間取得
+    n = request.data.get('index')
+    jst = datetime.timezone(datetime.timedelta(hours=9))
+    start_time = datetime.datetime.strptime(request.data.get(f'time1_{n}'), "%Y-%m-%dT%H:%M:%S.%fZ")
+    end_time = datetime.datetime.strptime(request.data.get(f'time2_{n}'), "%Y-%m-%dT%H:%M:%S.%fZ")
+    start_time = start_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
+    end_time = end_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
+    start_time = start_time.strftime("%H:%M")
+    end_time = end_time.strftime("%H:%M")
+    start_time_hour, start_time_min = time_index(start_time)
+    end_time_hour, end_time_min = time_index(end_time)
+    start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
+    end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
+
+    # 工数削除
+    if start_time_ind < end_time_ind:
+      for i in range(start_time_ind, end_time_ind):
+        work_list[i] = '#'
+        detail_list[i] = ''
+    elif start_time_ind > end_time_ind:
+      for i in range(start_time_ind, 288):
+        work_list[i] = '#'
+        detail_list[i] = ''
+      for i in range(0, end_time_ind):
+        work_list[i] = '#'
+        detail_list[i] = ''
+
+    # 工数データ更新
+    Business_Time_graph.objects.update_or_create(
+      employee_no3=login_no, 
+      work_day2=day, 
+      defaults = {
+        'time_work': ''.join(work_list), 
+        'detail_work': detail_list_summarize(detail_list), 
+      }
+    )
+
+    return Response({'status': 'success', 'message': '項目が削除されました。'})
 
 
 

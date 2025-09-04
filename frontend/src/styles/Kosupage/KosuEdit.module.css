@@ -174,3 +174,9 @@ form {
   color: #0af;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
+
+.centeredContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

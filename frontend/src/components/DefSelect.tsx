@@ -8,6 +8,7 @@ interface DefSelectProps {
   className?: string; // オプションで指定可能なCSSクラス名
   name?: string; // セレクトボックスのname属性
   id?: string; // セレクトボックスのid属性
+  disabled?: boolean; // この行を追加
 }
 
 // Reactの関数コンポーネントとしてDefSelectを定義。
@@ -18,6 +19,7 @@ const DefSelect: React.FC<DefSelectProps> = ({
   className = "form-select", // classNameのデフォルト値を設定
   name = "time_work", // name属性のデフォルト値を設定
   id = "time_work", // id属性のデフォルト値を設定
+  disabled = false, // この行を追加
 }) => {
   // A～Z、a～xまでの英字を格納した文字列。オプションのvalue値として利用。
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx";
@@ -43,6 +45,7 @@ const DefSelect: React.FC<DefSelectProps> = ({
       value={value} // 現在の選択値を設定
       onChange={onChange} // 値変更時にコールバックを実行
       className={className} // クラス名を適用
+      disabled={disabled} // この行を追加
     >
       {/* 初期状態のプレースホルダーオプション */}
       <option value="">選択してください</option>
