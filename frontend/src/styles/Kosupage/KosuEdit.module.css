@@ -180,3 +180,112 @@ form {
   flex-direction: column;
   align-items: center;
 }
+
+/*
+.toggle-switch クラス:
+- `position: relative;` 親要素に対して子要素（スライダー）を配置するための基準点を設定します。
+- `display: inline-block;` インライン要素のように振る舞いつつ、幅や高さを設定できるようにします。
+- `width: 75px;` スイッチ全体の幅を75ピクセルに設定します。
+- `height: 39px;` スイッチ全体の高さを39ピクセルに設定します。
+- `margin: 0 auto;` 左右のマージンを自動調整し、コンテナ内で水平方向の中央に配置します。
+*/
+.toggle-switch { 
+  position: relative; 
+  display: inline-block; 
+  min-width: 45px; 
+  height: 29px; 
+  margin: auto; 
+} 
+
+/*
+.toggle-switch input クラス:
+- `opacity: 0;` チェックボックス自体を完全に透明にして非表示にします。
+- `width: 0;` 幅をゼロに設定します。
+- `height: 0;` 高さをゼロに設定します。
+これにより、チェックボックスは画面上から見えなくなりますが、機能は保持されます。
+*/
+.toggle-switch input { 
+  opacity: 0; 
+  width: 0; 
+  height: 0; 
+} 
+
+/*
+.toggle-slider クラス:
+- `position: absolute;` 親要素（.toggle-switch）を基準にして絶対位置で配置します。
+- `cursor: pointer;` マウスカーソルをポインターに変え、クリック可能であることを示します。
+- `top: 0; left: 0; right: 0; bottom: 0;` 親要素全体に広がるように配置します。
+- `background-color: #ccc;` チェックされていない時の背景色を灰色に設定します。
+- `border-radius: 30px;` 角を丸くして、カプセル型にします。
+- `transition: 0.3s;` 背景色の変化を0.3秒かけて滑らかにします。
+*/
+.toggle-slider { 
+  position: absolute; 
+  cursor: pointer; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  bottom: 0; 
+  background-color: #ccc; 
+  border-radius: 30px; 
+  transition: 0.3s; 
+} 
+
+/*
+.toggle-slider::before 疑似要素:
+- `position: absolute;` 親要素（.toggle-slider）を基準に絶対位置で配置します。
+- `content: "";` 空のコンテンツを生成し、表示可能にします。
+- `height: 30px;` スイッチの丸いボタンの高さを30ピクセルに設定します。
+- `width: 30px;` スイッチの丸いボタンの幅を30ピクセルに設定します。
+- `left: 4.5px; bottom: 4.5px;` スライダー内の位置を調整します。
+- `background-color: white;` ボタンの色を白に設定します。
+- `border-radius: 50%;` 円形にします。
+- `transition: 0.3s;` 移動を0.3秒かけて滑らかにします。
+*/
+.toggle-slider::before { 
+  position: absolute; 
+  content: ""; 
+  height: 20px; 
+  width: 20px; 
+  left: 4.5px; 
+  bottom: 4.5px; 
+  background-color: white; 
+  border-radius: 50%; 
+  transition: 0.3s; 
+} 
+
+/*
+.toggle-switch input:checked + .toggle-slider クラス:
+- `input:checked` チェックボックスがチェックされた状態を指します。
+- `+ .toggle-slider` チェックされたチェックボックスの直後にある.toggle-sliderにスタイルを適用します。
+- `background-color: #ffd700;` チェックされた時の背景色を金色（#ffd700）に設定します。
+*/
+.toggle-switch input:checked + .toggle-slider { 
+  background-color: #0066ff; 
+} 
+
+/*
+.toggle-switch input:checked + .toggle-slider::before 疑似要素:
+- `transform: translateX(36px);` チェックされた時に、丸いボタンをX軸（横方向）に36ピクセル移動させます。
+*/
+.toggle-switch input:checked + .toggle-slider::before { 
+  transform: translateX(16px); 
+} 
+
+/*
+.switch-wrapper クラス:
+- `display: flex;` 子要素をフレックスボックスとして配置します。
+- `flex-direction: column;` 子要素を縦に並べます。
+- `gap: 4px;` 子要素間の隙間を4ピクセルに設定します。
+- `align-items: flex-start;` 子要素を左揃えにします。
+- `text-align: left;` テキストを左揃えにします。
+- `width: 100%;` 幅を親要素の100%に設定します。
+*/
+.switch-wrapper { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 4px; 
+  align-items: flex-start; 
+  text-align: left; 
+  width: 100%; 
+}

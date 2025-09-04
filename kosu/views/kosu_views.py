@@ -3435,6 +3435,7 @@ class KosuUpdate(APIView):
     # セッション値取得
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
+    request.session['day'] = str(kosu_instance.work_day2)
 
     # セッション値なしエラー
     if not login_no:
@@ -3483,7 +3484,16 @@ class KosuUpdate(APIView):
     kosu_instance = self.get_object(pk)
     def_ver = request.session.get('input_def')
     login_no = request.session.get('login_No')
+    day = request.session.get('day')
     member_obj = member.objects.get(employee_no=login_no)
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not day:
+      return Response({'error': '編集前の就業日データがありませんでした。IT担当者に連絡してください。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     if not kosu_instance:
       return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -3491,6 +3501,9 @@ class KosuUpdate(APIView):
     if kosu_instance.def_ver2:
       if kosu_instance.def_ver2 != def_ver:
         return Response({'error': '指定就業日を入力している工数定義区分と使用しようとしている工数定義区分が違います。'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if day != request.data.get('work_day2'):
+      return Response({'error': '更新ボタンで就業日の修正はできません。就業日更新で変更してください。'}, status=status.HTTP_400_BAD_REQUEST)
 
     # フォームの数取得
     keys = [key for key in request.data.keys() if key.startswith('time1_')]
@@ -3503,44 +3516,45 @@ class KosuUpdate(APIView):
 
     # 工数書き込み
     jst = datetime.timezone(datetime.timedelta(hours=9))
-    for n in range(max_num):
-      start_time = datetime.datetime.strptime(request.data.get(f'time1_{n + 1}'), "%Y-%m-%dT%H:%M:%S.%fZ")
-      end_time = datetime.datetime.strptime(request.data.get(f'time2_{n + 1}'), "%Y-%m-%dT%H:%M:%S.%fZ")
-      start_time = start_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
-      end_time = end_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
-      start_time = start_time.strftime("%H:%M")
-      end_time = end_time.strftime("%H:%M")
-      start_time_hour, start_time_min = time_index(start_time)
-      end_time_hour, end_time_min = time_index(end_time)
-      start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
-      end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
+    if max_num:
+      for n in range(max_num):
+        start_time = datetime.datetime.strptime(request.data.get(f'time1_{n + 1}'), "%Y-%m-%dT%H:%M:%S.%fZ")
+        end_time = datetime.datetime.strptime(request.data.get(f'time2_{n + 1}'), "%Y-%m-%dT%H:%M:%S.%fZ")
+        start_time = start_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
+        end_time = end_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
+        start_time = start_time.strftime("%H:%M")
+        end_time = end_time.strftime("%H:%M")
+        start_time_hour, start_time_min = time_index(start_time)
+        end_time_hour, end_time_min = time_index(end_time)
+        start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
+        end_time_ind = int(int(end_time_hour)*12 + int(end_time_min)/5)
 
-      if start_time_ind < end_time_ind:
-        for i in range(start_time_ind, end_time_ind):
-          if work_list[i] == '#':
-            work_list[i] = request.data.get(f'timeData_work_{n + 1}', '#')
-            detail_list[i] = request.data.get(f'detail_work_{n + 1}', '')
-          else:
-            return Response({'error': '入力した作業時間に被りがあります。'},status=status.HTTP_400_BAD_REQUEST)
+        if start_time_ind < end_time_ind:
+          for i in range(start_time_ind, end_time_ind):
+            if work_list[i] == '#':
+              work_list[i] = request.data.get(f'timeData_work_{n + 1}', '#')
+              detail_list[i] = request.data.get(f'detail_work_{n + 1}', '')
+            else:
+              return Response({'error': '入力した作業時間に被りがあります。'},status=status.HTTP_400_BAD_REQUEST)
 
-      elif start_time_ind > end_time_ind:
-        for i in range(start_time_ind, 288):
-          if work_list[i] == '#':
-            work_list[i] = request.data.get(f'timeData_work_{n + 1}', '#')
-            detail_list[i] = request.data.get(f'detail_work_{n + 1}', '')
-          else:
-            return Response({'error': '入力した作業時間に被りがあります。'},status=status.HTTP_400_BAD_REQUEST)
-        for i in range(0, end_time_ind):
-          if work_list[i] == '#':
-            work_list[i] = request.data.get(f'timeData_work_{n + 1}', '#')
-            detail_list[i] = request.data.get(f'detail_work_{n + 1}', '')
-          else:
-            return Response({'error': '入力した作業時間に被りがあります。'},status=status.HTTP_400_BAD_REQUEST)
+        elif start_time_ind > end_time_ind:
+          for i in range(start_time_ind, 288):
+            if work_list[i] == '#':
+              work_list[i] = request.data.get(f'timeData_work_{n + 1}', '#')
+              detail_list[i] = request.data.get(f'detail_work_{n + 1}', '')
+            else:
+              return Response({'error': '入力した作業時間に被りがあります。'},status=status.HTTP_400_BAD_REQUEST)
+          for i in range(0, end_time_ind):
+            if work_list[i] == '#':
+              work_list[i] = request.data.get(f'timeData_work_{n + 1}', '#')
+              detail_list[i] = request.data.get(f'detail_work_{n + 1}', '')
+            else:
+              return Response({'error': '入力した作業時間に被りがあります。'},status=status.HTTP_400_BAD_REQUEST)
+      kosu_instance.time_work = ''.join(work_list)
+      kosu_instance.detail_work = detail_list_summarize(detail_list)
 
     kosu_instance.tyoku2 = request.data.get('tyoku2')
     kosu_instance.work_time = request.data.get('work_time')
-    kosu_instance.time_work = ''.join(work_list)
-    kosu_instance.detail_work = detail_list_summarize(detail_list)
     kosu_instance.judgement = judgement_check(work_list, detail_list, kosu_instance.tyoku2, member_obj, request.data.get('over_time', 0))
     if not kosu_instance.def_ver2:
       kosu_instance.def_ver2 = def_ver

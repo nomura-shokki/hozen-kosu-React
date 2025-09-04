@@ -60,6 +60,7 @@ const KosuEdit: React.FC = () => {
   }[]>([]);
   // 初期状態をすべてtrue (非アクティブ)に設定
   const [isDisabled, setIsDisabled] = useState<boolean[]>([]);
+  const [isWorkTyokuDisabled, setIsWorkTyokuDisabled] = useState<boolean>(true);
 
   const handleError = useCallback((error: any, defaultMessage: string) => {
     if (error.response && error.response.data && error.response.data.error) {
@@ -260,10 +261,13 @@ const KosuEdit: React.FC = () => {
   const handleCheckboxChange = (index: number) => {
     setIsDisabled((prevIsDisabled) => {
         const updatedDisabled = [...prevIsDisabled];
-        // ロジックを反転：現在の状態がfalseならtrueに、trueならfalseに
         updatedDisabled[index] = !updatedDisabled[index];
         return updatedDisabled;
     });
+  };
+
+  const handleWorkTyokuCheckboxChange = () => {
+    setIsWorkTyokuDisabled((prev) => !prev);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -460,19 +464,28 @@ const KosuEdit: React.FC = () => {
                 onClick={handleSendDayUpdate}
                 className="light_blue_button"
               >
-                日付編集
+                就業日更新
               </button>
             </div>
 
             <label htmlFor="tyoku2">勤務・直・残業時間:</label>
             <div className={styles["work-tyoku-wrapper"]}>
-              <WorkSelect value={formData?.work_time || ''}onChange={handleChange} />
-              <TyokuSelect value={formData?.tyoku2 || ''} onChange={handleChange} />
+              <label className={styles["toggle-switch"]}>
+                <input 
+                  type="checkbox"
+                  checked={!isWorkTyokuDisabled}
+                  onChange={handleWorkTyokuCheckboxChange} 
+                />
+                <span className={styles["toggle-slider"]}></span>
+              </label>
+              <WorkSelect value={formData?.work_time || ''} onChange={handleChange} disabled={isWorkTyokuDisabled} />
+              <TyokuSelect value={formData?.tyoku2 || ''} onChange={handleChange} disabled={isWorkTyokuDisabled} />
               <div className={styles["over-time-wrapper"]}>
                 <button
                   type="button"
                   className={styles["custom-button"]}
                   onClick={() => handleDecrement("over_time")}
+                  disabled={isWorkTyokuDisabled}
                 >
                   -
                 </button>
@@ -483,11 +496,13 @@ const KosuEdit: React.FC = () => {
                   value={formData?.over_time || 0}
                   className={styles["form-width2"]}
                   onChange={handleChange}
+                  disabled={isWorkTyokuDisabled}
                 />
                 <button
                   type="button"
                   className={styles["custom-button"]}
                   onClick={() => handleIncrement("over_time")}
+                  disabled={isWorkTyokuDisabled}
                 >
                   +
                 </button>
@@ -513,11 +528,14 @@ const KosuEdit: React.FC = () => {
             </label>
             {timeData.map((item, index) => (
               <div key={`time-picker-row-${index}`} className={styles["time-picker-wrapper"]}>
-                <input 
-                  type="checkbox"
-                  checked={!isDisabled[index]}
-                  onChange={() => handleCheckboxChange(index)} 
-                />
+                <label className={styles["toggle-switch"]}>
+                  <input 
+                    type="checkbox"
+                    checked={!isDisabled[index]}
+                    onChange={() => handleCheckboxChange(index)} 
+                  />
+                  <span className={styles["toggle-slider"]}></span>
+                </label>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                   <MobileTimePicker
                     key={`time-picker-start-${index}`}

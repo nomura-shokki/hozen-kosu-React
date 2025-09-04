@@ -4,6 +4,7 @@ import styles from "../styles/components/TyokuSelect.module.css";
 interface TyokuSelectProps {
   value: string;
   onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  disabled?: boolean;
 }
 
 const tyokuOptions = [
@@ -16,8 +17,15 @@ const tyokuOptions = [
   { value: "6", label: "2直(連2)" },
 ];
 
-const TyokuSelect: React.FC<TyokuSelectProps> = ({ value, onChange }) => (
-  <select id="tyoku2" name="tyoku2" value={value} className={styles["form-width"]} onChange={onChange}>
+const TyokuSelect: React.FC<TyokuSelectProps> = ({ value, onChange, disabled }) => (
+  <select 
+    id="tyoku2" 
+    name="tyoku2" 
+    value={value} 
+    className={styles["form-width"]} 
+    onChange={onChange}
+    disabled={disabled}
+  >
     {tyokuOptions.map((option) => (
       <option key={option.value} value={option.value}>
         {option.label}

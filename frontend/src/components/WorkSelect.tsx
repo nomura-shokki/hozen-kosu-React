@@ -4,6 +4,7 @@ import styles from "../styles/components/WorkSelect.module.css";
 interface WorkSelectProps {
   value: string;
   onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  disabled?: boolean;
 }
 
 const workOptions = [
@@ -16,8 +17,15 @@ const workOptions = [
   { value: "早退・遅刻", label: "早退・遅刻" },
 ];
 
-const WorkSelect: React.FC<WorkSelectProps> = ({ value, onChange }) => (
-  <select id="work_time" name="work_time" value={value} className={styles["form-width"]} onChange={onChange}>
+const WorkSelect: React.FC<WorkSelectProps> = ({ value, onChange, disabled }) => (
+  <select 
+    id="work_time" 
+    name="work_time" 
+    value={value} 
+    className={styles["form-width"]} 
+    onChange={onChange}
+    disabled={disabled}
+  >
     {workOptions.map((option) => (
       <option key={option.value} value={option.value}>
         {option.label}
