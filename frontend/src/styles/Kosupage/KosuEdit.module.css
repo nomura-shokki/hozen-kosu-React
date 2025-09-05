@@ -99,6 +99,14 @@ form {
   border-radius: 4px;
 }
 
+.lavel-wrapper {
+  display: flex;
+  justify-content: start;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .over-time-wrapper {
   display: flex;
   align-items: center;

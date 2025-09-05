@@ -2908,6 +2908,12 @@ class KosuNew(APIView):
 
     # 工数データ確認
     kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+    kosu_query_set2 = Business_Time_graph.objects.filter(
+      employee_no3=login_no,
+      work_day2__year=2025,
+      work_day2__month=9
+    )
+    print(kosu_query_set2)
     if kosu_query_set.count() > 1:
       return Response({'error': '複数の工数データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     kosu_data = kosu_query_set.first()
@@ -3676,6 +3682,24 @@ class KosuDelete(APIView):
 
 
 
+class KosuCalendar(APIView):
+  def get(self, request):
+    events = [
+        {"title": "Event 1", "start": "2025-09-01", "end": "2025-09-10"},
+        {"title": "Event 2", "start": "2025-09-02"},
+    ]
 
+    login_no = request.session.get('login_No')
+    kosu_query_set = Business_Time_graph.objects.filter(
+        employee_no3=login_no,
+        work_day2__year=2025,
+        work_day2__month=9
+    )
 
+    kosu_serializer = KosuSerializer(kosu_query_set, many=True)
+    response_data = {
+      'kosu_data': kosu_serializer.data,
+    }
 
+    return Response(response_data)
+    #return JsonResponse({"events": events})

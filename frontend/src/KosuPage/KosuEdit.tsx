@@ -58,7 +58,6 @@ const KosuEdit: React.FC = () => {
     work: string;
     detail: string;
   }[]>([]);
-  // 初期状態をすべてtrue (非アクティブ)に設定
   const [isDisabled, setIsDisabled] = useState<boolean[]>([]);
   const [isWorkTyokuDisabled, setIsWorkTyokuDisabled] = useState<boolean>(true);
 
@@ -509,8 +508,10 @@ const KosuEdit: React.FC = () => {
               </div>
             </div>
 
-            <label>
-              作業時間・作業内容・作業詳細:
+            <div className={styles["lavel-wrapper"]}>
+              <label>
+                作業時間・作業内容・作業詳細:
+              </label>
               <button 
                 type="button" 
                 className="light_blue_button" 
@@ -525,7 +526,7 @@ const KosuEdit: React.FC = () => {
               >
                 行削除
               </button>
-            </label>
+            </div>
             {timeData.map((item, index) => (
               <div key={`time-picker-row-${index}`} className={styles["time-picker-wrapper"]}>
                 <label className={styles["toggle-switch"]}>

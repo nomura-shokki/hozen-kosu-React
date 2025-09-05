@@ -21,6 +21,7 @@ urlpatterns = [
   path('over_time/', kosu_views.OverTime.as_view(), name='over_time'),
   path('kosu_list/', kosu_views.KosuList.as_view(), name='kosu_list'), 
   path('kosu_update/<int:pk>/', kosu_views.KosuUpdate.as_view(), name='kosu_update'),
+  path('kosu_calendar/', kosu_views.KosuCalendar.as_view(), name='kosu_calendar'),
   path('day_update/', kosu_views.DayUpdate.as_view(), name='item_delete'),
   path('item_delete/', kosu_views.ItemDlete.as_view(), name='day_update'),
   path('kosu_delete/<int:pk>/', kosu_views.KosuDelete.as_view(), name='kosu_delete'),
