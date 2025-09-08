@@ -2849,8 +2849,6 @@ class KosuList(APIView):
     # アクセス権限取得
     try:
       member_data = member.objects.get(employee_no=login_no)
-      if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -2908,12 +2906,7 @@ class KosuNew(APIView):
 
     # 工数データ確認
     kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
-    kosu_query_set2 = Business_Time_graph.objects.filter(
-      employee_no3=login_no,
-      work_day2__year=2025,
-      work_day2__month=9
-    )
-    print(kosu_query_set2)
+
     if kosu_query_set.count() > 1:
       return Response({'error': '複数の工数データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     kosu_data = kosu_query_set.first()
@@ -3684,22 +3677,38 @@ class KosuDelete(APIView):
 
 class KosuCalendar(APIView):
   def get(self, request):
-    events = [
-        {"title": "Event 1", "start": "2025-09-01", "end": "2025-09-10"},
-        {"title": "Event 2", "start": "2025-09-02"},
-    ]
-
+    # セッション値取得
     login_no = request.session.get('login_No')
-    kosu_query_set = Business_Time_graph.objects.filter(
-        employee_no3=login_no,
-        work_day2__year=2025,
-        work_day2__month=9
-    )
+    def_ver = request.session.get('input_def')
+    year = request.session.get('year', datetime.date.today().year)
+    month = request.session.get('month', datetime.date.today().month)
 
-    kosu_serializer = KosuSerializer(kosu_query_set, many=True)
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # アクセス権限取得
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+      if not member_data.authority:
+        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # 工数履歴データの取得
+    Search_month = str(datetime.date(year, month , 1))
+    kosu_data = Business_Time_graph.objects.filter(employee_no3=login_no).order_by('-work_day2')
+    kosu_data = kosu_data.filter(work_day2__startswith=Search_month[:7])
+    # データ変換
+    kosu_serializer = KosuSerializer(kosu_data,  many=True)
+
+    # フロントへの送信データ
     response_data = {
+      'session_year': year,
+      'session_month': month,
       'kosu_data': kosu_serializer.data,
     }
 
     return Response(response_data)
-    #return JsonResponse({"events": events})
