@@ -3719,21 +3719,5 @@ class KosuCalendarChange(APIView):
   def post(self, request, *args, **kwargs):
     request.session['year'] = request.data.get('year')
     request.session['month'] = request.data.get('month')
-    year = request.session.get('year')
-    month = request.session.get('month')
-    login_no = request.session.get('login_No')
 
-    Search_month = str(datetime.date(year, month , 1))
-    kosu_data = Business_Time_graph.objects.filter(employee_no3=login_no).order_by('-work_day2')
-    kosu_data = kosu_data.filter(work_day2__startswith=Search_month[:7])
-    # データ変換
-    kosu_serializer = KosuSerializer(kosu_data,  many=True)
-
-    # フロントへの送信データ
-    response_data = {
-      'session_year': year,
-      'session_month': month,
-      'kosu_data': kosu_serializer.data,
-    }
-
-    return Response(response_data)
+    return Response({'status': 'success', 'message': 'カレンダーが更新されました。'})
