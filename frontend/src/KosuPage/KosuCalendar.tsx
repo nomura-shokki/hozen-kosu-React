@@ -3,6 +3,8 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "../components/Loading";
 import styles from "../styles/KosuPage/KosuCalendar.module.css";
+import WorkSelect from "../components/WorkSelect";
+import TyokuSelect from "../components/TyokuSelect";
 
 interface Kosu {
   id: number;
@@ -11,6 +13,7 @@ interface Kosu {
   work_day2: string;
   tyoku2: string;
   work_time: string;
+  time_work: string;
   judgement: boolean;
 }
 
@@ -97,12 +100,10 @@ const KosuCalendar: React.FC = () => {
 
     const calendarCells: (number | null)[] = [];
 
-    // 前月の空白セルを追加
     for (let i = 0; i < firstDayOfWeek; i++) {
       calendarCells.push(null);
     }
 
-    // 今月の日付を追加
     for (let i = 1; i <= totalDaysInMonth; i++) {
       calendarCells.push(i);
     }
@@ -121,29 +122,62 @@ const KosuCalendar: React.FC = () => {
     return rows;
   };
 
-  // tyoku2の値を日本語に変換する関数
-  const getTyoku2Text = (value: string): string => {
-    switch (value) {
-      case '1':
-        return '1直';
-      case '2':
-        return '2直';
-      case '3':
-        return '3直';
-      case '4':
-        return '常昼';
-      case '5':
-        return '連1直';
-      case '6':
-        return '連2直';
-      default:
-        return '';
+  const formatTimeWork = (timeWorkString: string) => {
+    const timeRanges: string[] = [];
+    let start = -1;
+    let inTimeBlock = false;
+
+    if (timeWorkString && timeWorkString.length === 288) {
+      for (let i = 0; i < timeWorkString.length; i++) {
+        if (timeWorkString[i] !== '#' && !inTimeBlock) {
+          start = i;
+          inTimeBlock = true;
+        } else if (timeWorkString[i] === '#' && inTimeBlock) {
+
+          const end = i - 1;
+          const startHour = Math.floor(start / 12);
+          const startMinute = (start % 12) * 5;
+          let endHour = Math.floor(end / 12);
+          let endMinute = (end % 12) * 5 + 5;
+
+          if (endMinute === 60) {
+            endHour++;
+            endMinute = 0;
+          }
+
+          const startTimeStr = `${String(startHour).padStart(1, '0')}:${String(startMinute).padStart(2, '0')}`;
+          const endTimeStr = `${String(endHour).padStart(1, '0')}:${String(endMinute).padStart(2, '0')}`;
+          timeRanges.push(`${startTimeStr}～${endTimeStr}`);
+          inTimeBlock = false;
+          start = -1;
+        }
+      }
+
+      if (inTimeBlock) {
+        const startHour = Math.floor(start / 12);
+        const startMinute = (start % 12) * 5;
+
+        const startTimeStr = `${String(startHour).padStart(1, '0')}:${String(startMinute).padStart(2, '0')}`;
+        const endTimeStr = '24:00';
+        timeRanges.push(`${startTimeStr}～${endTimeStr}`);
+      }
     }
+
+    // 常に4行表示するように調整
+    const paddedRanges = timeRanges.slice(0, 4);
+    while (paddedRanges.length < 4) {
+      paddedRanges.push("　");
+    }
+
+    return paddedRanges.map((range, index) => (
+      <div key={index}>{range}</div>
+    ));
   };
+
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {};
 
   const calendarRows = sessionYear && sessionMonth ? generateCalendar(sessionYear, sessionMonth) : [];
 
-  // エラー表示
   if (error) return <div>Error: {error}</div>;
 
   return (
@@ -163,9 +197,9 @@ const KosuCalendar: React.FC = () => {
         <div
           className={styles["table-wrapper"]}
           style={{
-            maxHeight: `${maxHeight}px`, // 最大高さ
-            overflowY: "auto", // 縦スクロールを有効化
-            width: `${tableWidth + 5}px`, // テーブル幅
+            maxHeight: `${maxHeight}px`,
+            overflowY: "auto",
+            width: `${tableWidth + 5}px`,
           }}
         >
           <table ref={tableRef}>
@@ -194,10 +228,13 @@ const KosuCalendar: React.FC = () => {
                             {day}
                             <div className={styles.workDataContainer}>
                               <div className={styles.workTimeCell}>
-                                {workDataForDay ? workDataForDay.work_time : ''}
+                                <WorkSelect id={`work_time-${day}`} value={workDataForDay?.work_time || ""} onChange={handleChange} />
                               </div>
                               <div className={styles.tyoku2Cell}>
-                                {workDataForDay ? getTyoku2Text(workDataForDay.tyoku2) : ''}
+                                <TyokuSelect id={`tyoku-${day}`} value={workDataForDay?.tyoku2 || ""} onChange={handleChange} />
+                              </div>
+                              <div className={styles.timeWorkCell}>
+                                {formatTimeWork(workDataForDay?.time_work || "")}
                               </div>
                             </div>
                           </div>

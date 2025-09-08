@@ -4,7 +4,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import TyokuSelect from "../components/TyokuSelect";
 import WorkSelect from "../components/WorkSelect";
 import DefSelect from "../components/DefSelect";
-import KosuBarChart from "../components/KosuBarChart"; 
+import KosuBarChart from "../components/KosuBarChart";
 import DefTable from "../components/DefTable";
 import Loading from "../components/Loading";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -187,7 +187,7 @@ const KosuEdit: React.FC = () => {
       const baseDate = new Date();
       const [startHour, startMinute] = item.time1.split(":").map(Number);
       const [endHour, endMinute] = item.time2.split(":").map(Number);
-      
+
       const time1 = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), startHour, startMinute);
       const time2 = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), endHour, endMinute);
 
@@ -201,10 +201,9 @@ const KosuEdit: React.FC = () => {
 
     if (timeData.length === 0) {
       setTimeData(newTimeData);
-      // 初期状態は非アクティブなので、すべてtrueで初期化
       setIsDisabled(newTimeData.map(() => true));
     }
-  }, [formData, defData]);
+  }, [formData, defData, timeData.length, memberShop]);
 
   if (loading) {
     return <div><Loading isLoading={loading} /></div>;
@@ -218,8 +217,8 @@ const KosuEdit: React.FC = () => {
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
-    index?: number, 
-    field?: string 
+    index?: number,
+    field?: string
   ) => {
     const { name, value } = event.target;
 
@@ -251,7 +250,7 @@ const KosuEdit: React.FC = () => {
       console.error(`Index ${index} is out of bounds or undefined in timeData.`);
       return;
     }
-  
+
     const updatedTimeData = [...timeData];
     updatedTimeData[index][field] = newTime;
     setTimeData(updatedTimeData);
@@ -259,9 +258,9 @@ const KosuEdit: React.FC = () => {
 
   const handleCheckboxChange = (index: number) => {
     setIsDisabled((prevIsDisabled) => {
-        const updatedDisabled = [...prevIsDisabled];
-        updatedDisabled[index] = !updatedDisabled[index];
-        return updatedDisabled;
+      const updatedDisabled = [...prevIsDisabled];
+      updatedDisabled[index] = !updatedDisabled[index];
+      return updatedDisabled;
     });
   };
 
@@ -351,7 +350,7 @@ const KosuEdit: React.FC = () => {
 
   const handleDeleteItem = (index: number) => {
     const itemToDelete = timeData[index];
-  
+
     if (!itemToDelete) {
       console.error(`Index ${index} is out of bounds for deletion.`);
       return;
@@ -361,7 +360,7 @@ const KosuEdit: React.FC = () => {
       index,
       ...itemToDelete
     };
-  
+
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/item_delete/`, requestData, { withCredentials: true })
       .then(() => {
@@ -394,7 +393,7 @@ const KosuEdit: React.FC = () => {
     const baseDate = new Date()
     const time1 = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 0, 0);
     const time2 = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 0, 0);
-  
+
     setTimeData((prevTimeData) => [
       ...prevTimeData,
       {
@@ -470,15 +469,15 @@ const KosuEdit: React.FC = () => {
             <label htmlFor="tyoku2">勤務・直・残業時間:</label>
             <div className={styles["work-tyoku-wrapper"]}>
               <label className={styles["toggle-switch"]}>
-                <input 
+                <input
                   type="checkbox"
                   checked={!isWorkTyokuDisabled}
-                  onChange={handleWorkTyokuCheckboxChange} 
+                  onChange={handleWorkTyokuCheckboxChange}
                 />
                 <span className={styles["toggle-slider"]}></span>
               </label>
-              <WorkSelect value={formData?.work_time || ''} onChange={handleChange} disabled={isWorkTyokuDisabled} />
-              <TyokuSelect value={formData?.tyoku2 || ''} onChange={handleChange} disabled={isWorkTyokuDisabled} />
+              <WorkSelect id="work_time" value={formData?.work_time || ''} onChange={handleChange} disabled={isWorkTyokuDisabled} />
+              <TyokuSelect id="tyoku2" value={formData?.tyoku2 || ''} onChange={handleChange} disabled={isWorkTyokuDisabled} />
               <div className={styles["over-time-wrapper"]}>
                 <button
                   type="button"
@@ -512,16 +511,16 @@ const KosuEdit: React.FC = () => {
               <label>
                 作業時間・作業内容・作業詳細:
               </label>
-              <button 
-                type="button" 
-                className="light_blue_button" 
+              <button
+                type="button"
+                className="light_blue_button"
                 onClick={addEmptyForm}
               >
                 行追加
               </button>
-              <button 
-                type="button" 
-                className="light_blue_button" 
+              <button
+                type="button"
+                className="light_blue_button"
                 onClick={removeLastForm}
               >
                 行削除
@@ -530,10 +529,10 @@ const KosuEdit: React.FC = () => {
             {timeData.map((item, index) => (
               <div key={`time-picker-row-${index}`} className={styles["time-picker-wrapper"]}>
                 <label className={styles["toggle-switch"]}>
-                  <input 
+                  <input
                     type="checkbox"
                     checked={!isDisabled[index]}
-                    onChange={() => handleCheckboxChange(index)} 
+                    onChange={() => handleCheckboxChange(index)}
                   />
                   <span className={styles["toggle-slider"]}></span>
                 </label>
@@ -555,7 +554,7 @@ const KosuEdit: React.FC = () => {
                 <span>〜</span>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                   <MobileTimePicker
-                    key={`time-picker-end-${index}`} 
+                    key={`time-picker-end-${index}`}
                     className={styles["time-picker"]}
                     value={item.time2}
                     onChange={(newTime) => handleTimeChange("time2", newTime, index)}
@@ -568,12 +567,13 @@ const KosuEdit: React.FC = () => {
                     disabled={isDisabled[index]}
                   />
                 </LocalizationProvider>
-                <DefSelect 
+                <DefSelect
+                  id={`def-select-${index}`}
                   name={`timeData_work_${index}`}
-                  value={item?.work || ""} 
+                  value={item?.work || ""}
                   className={styles["form-width"]}
                   onChange={(e) => handleChange(e, index, "work")}
-                  defData={defData} 
+                  defData={defData}
                   disabled={isDisabled[index]}
                 />
                 <input
