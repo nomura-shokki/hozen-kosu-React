@@ -42,12 +42,10 @@ const KosuCalendar: React.FC = () => {
     } catch (err) {
       // エラー処理
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) {
+        if (err.response?.status === 401 || err.response?.status === 404) {
           navigate("/login");
         } else if (err.response?.status === 403) {
           navigate("/");
-        } else if (err.response?.status === 404) {
-          navigate("/login");
         } else {
           setError(err.message); // その他のエラーを設定
         }
@@ -58,6 +56,31 @@ const KosuCalendar: React.FC = () => {
       setLoading(false);
     }
   }, [navigate]);
+
+  // 年と月をPOSTしてデータを再取得する関数
+  const postYearMonth = useCallback(async (year: number, month: number) => {
+    setLoading(true);
+    try {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_calendar_change/`, {
+        year: year,
+        month: month,
+      }, { withCredentials: true });
+      fetchData(); // POST成功後にデータを再取得
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401 || err.response?.status === 404) {
+          navigate("/login");
+        } else if (err.response?.status === 403) {
+          navigate("/");
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError("予期しないエラーが発生しました");
+      }
+      setLoading(false);
+    }
+  }, [fetchData, navigate]);
 
   // コンポーネントマウント時に fetchData を実行
   useEffect(() => {
@@ -133,7 +156,6 @@ const KosuCalendar: React.FC = () => {
           start = i;
           inTimeBlock = true;
         } else if (timeWorkString[i] === '#' && inTimeBlock) {
-
           const end = i - 1;
           const startHour = Math.floor(start / 12);
           const startMinute = (start % 12) * 5;
@@ -176,6 +198,26 @@ const KosuCalendar: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {};
 
+  // 年と月のフォーム変更ハンドラー
+  const handleYearMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    if (name === "year" && sessionMonth !== null) {
+      postYearMonth(Number(value), sessionMonth);
+    } else if (name === "month" && sessionYear !== null) {
+      postYearMonth(sessionYear, Number(value));
+    }
+  };
+
+  // 年の選択肢を生成
+  const getYears = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let i = currentYear - 5; i <= currentYear + 5; i++) {
+      years.push(i);
+    }
+    return years;
+  };
+
   const calendarRows = sessionYear && sessionMonth ? generateCalendar(sessionYear, sessionMonth) : [];
 
   if (error) return <div>Error: {error}</div>;
@@ -185,11 +227,32 @@ const KosuCalendar: React.FC = () => {
       <Loading isLoading={loading} />
       <div className={styles["kosu-calendar-wrapper"]}>
         <h1 className={styles["h1-collar"]}>勤務入力</h1>
-        {sessionYear && sessionMonth && (
-          <h2>
-            {sessionYear}年 {sessionMonth}月
-          </h2>
-        )}
+        <div className={styles["year-month-selector"]}>
+          <select
+            name="year"
+            value={sessionYear || ""}
+            onChange={handleYearMonthChange}
+            className={styles.select}
+          >
+            {getYears().map(year => (
+              <option key={year} value={year}>
+                {year}年
+              </option>
+            ))}
+          </select>
+          <select
+            name="month"
+            value={sessionMonth || ""}
+            onChange={handleYearMonthChange}
+            className={styles.select}
+          >
+            {[...Array(12)].map((_, i) => (
+              <option key={i + 1} value={i + 1}>
+                {i + 1}月
+              </option>
+            ))}
+          </select>
+        </div>
 
         <nav className={styles["kosu-nav"]}>
           <Link to="/kosu-menu">工数MENU</Link>
