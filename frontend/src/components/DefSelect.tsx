@@ -48,7 +48,7 @@ const DefSelect: React.FC<DefSelectProps> = ({
       disabled={disabled} // この行を追加
     >
       {/* 初期状態のプレースホルダーオプション */}
-      <option value="">選択してください</option>
+      <option value="">---</option>
       {/* 生成したオプションリストを展開 */}
       {defOptions.map(({ value, label }) => (
         <option key={value} value={value}>

@@ -3726,6 +3726,7 @@ class KosuCalendarChange(APIView):
 
 class KosuWorkWrite(APIView):
   def post(self, request, *args, **kwargs):
+    print(request.data)
     login_no = request.session.get('login_No')
     year = request.session.get('year', datetime.date.today().year)
     month = request.session.get('month', datetime.date.today().month)
@@ -3753,15 +3754,17 @@ class KosuWorkWrite(APIView):
     for d in range(day_end):
       obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=datetime.date(year, month, d + 1))
       obj = obj_filter.first() if obj_filter.exists() else None
+      day_key = f'{datetime.date(year, month, d + 1)}'
+      day_data = request.data.get(day_key)
       if obj_filter.exists():
-        if request.data.get(f'{datetime.date(year, month, 30)}')['work_time'] or request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2']:
+        if day_data and (day_data.get('work_time') or day_data.get('tyoku2')):
           Business_Time_graph.objects.update_or_create(
             employee_no3=login_no, 
             work_day2 = datetime.date(year, month, d + 1), 
             defaults = {
-              'work_time': request.data.get(f'{datetime.date(year, month, 30)}')['work_time'],
-              'tyoku2': request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'],
-              'judgement': judgement_check(list(obj.time_work), request.data.get(f'{datetime.date(year, month, 30)}')['work_time'], request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'], member_data, obj.over_time)
+              'work_time': day_data.get('work_time', ''),
+              'tyoku2': day_data.get('tyoku2', ''),
+              'judgement': judgement_check(list(obj.time_work), day_data.get('work_time', ''), day_data.get('tyoku2', ''), member_data, obj.over_time)
             }
           )
 
@@ -3770,24 +3773,34 @@ class KosuWorkWrite(APIView):
             obj.delete()
 
       else:
-        if request.data.get(f'{datetime.date(year, month, 30)}')['work_time'] or request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2']:
+        if day_data and (day_data.get('work_time') or day_data.get('tyoku2')):
           Business_Time_graph.objects.update_or_create(
             employee_no3=login_no, 
             work_day2 = datetime.date(year, month, d + 1), 
             defaults = {
               'name': member_data,
-              'work_time': request.data.get(f'{datetime.date(year, month, 30)}')['work_time'],
-              'tyoku2': request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'],
+              'work_time': day_data.get('work_time', ''),
+              'tyoku2': day_data.get('tyoku2', ''),
               'time_work': '#'*288,
               'detail_work': '$'*287,
               'over_time': 0,
-              'judgement': judgement_check(list('#'*288), request.data.get(f'{datetime.date(year, month, 30)}')['work_time'], request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'], member_data, 0)
+              'judgement': judgement_check(list('#'*288), day_data.get('work_time', ''), day_data.get('tyoku2', ''), member_data, 0)
             }
           )
 
-    print(request.data.get(f'{datetime.date(year, month, 30)}'))
-    print(request.data.get(f'{datetime.date(year, month, 30)}')['work_time'])
-
     return Response({'status': 'success', 'message': '勤務が更新されました。'})
+
+
+
+class KosuLink(APIView):
+  def post(self, request, *args, **kwargs):
+    request.session['day'] = request.data.get('day',str(datetime.date.today()))
+
+    return Response({'status': 'success', 'message': '日付セッションを更新しました。'})
+
+
+
+
+
 
 

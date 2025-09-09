@@ -476,7 +476,7 @@ const KosuEdit: React.FC = () => {
                 />
                 <span className={styles["toggle-slider"]}></span>
               </label>
-              <WorkSelect id="work_time" value={formData?.work_time || ''} onChange={handleChange} disabled={isWorkTyokuDisabled} />
+              <WorkSelect id="work_time" value={formData?.work_time || ''} onChange={handleChange} disabled={isWorkTyokuDisabled} mode='LIMIT' />
               <TyokuSelect id="tyoku2" value={formData?.tyoku2 || ''} onChange={handleChange} disabled={isWorkTyokuDisabled} />
               <div className={styles["over-time-wrapper"]}>
                 <button

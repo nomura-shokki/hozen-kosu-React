@@ -26,9 +26,11 @@ const KosuCalendar: React.FC = () => {
   const [tableWidth, setTableWidth] = useState<number>(0);
   const [sessionYear, setSessionYear] = useState<number | null>(null);
   const [sessionMonth, setSessionMonth] = useState<number | null>(null);
-  const [formData, setFormData] = useState<{ [key: string]: { work_time: string; tyoku2: string } }>({});
+  const [formData, setFormData] = useState<{ [key: string]: { work_time: string; tyoku2: string; week?: string } }>({});
   const tableRef = useRef<HTMLTableElement>(null);
   const navigate = useNavigate();
+
+  const weeks = ['日', '月', '火', '水', '木', '金', '土'];
 
   // データを取得する関数
   const fetchData = useCallback(async () => {
@@ -41,11 +43,15 @@ const KosuCalendar: React.FC = () => {
       setData(results);
       setSessionYear(response.data.session_year);
       setSessionMonth(response.data.session_month);
-      const initialFormData: { [key: string]: { work_time: string; tyoku2: string } } = {};
+      const initialFormData: { [key: string]: { work_time: string; tyoku2: string; week?: string } } = {};
       results.forEach((item: Kosu) => {
+        const dateObj = new Date(item.work_day2);
+        const week = weeks[dateObj.getDay()];
+
         initialFormData[item.work_day2] = {
           work_time: item.work_time,
           tyoku2: item.tyoku2,
+          week: week,
         };
       });
       setFormData(initialFormData);
@@ -113,6 +119,28 @@ const KosuCalendar: React.FC = () => {
       }
     } finally {
       setIsPosting(false);
+    }
+  };
+
+  // dayをクリックした際にPOSTする新しい関数
+  const handleDayClick = async (dayValue: string) => {
+    try {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_link/`, {
+        day: dayValue,
+      }, { withCredentials: true });
+      navigate("/kosu-new");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401 || err.response?.status === 404) {
+          navigate("/login");
+        } else if (err.response?.status === 403) {
+          navigate("/");
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError("予期しないエラーが発生しました");
+      }
     }
   };
 
@@ -231,11 +259,15 @@ const KosuCalendar: React.FC = () => {
   };
 
   const handleChange = (day: string, field: 'work_time' | 'tyoku2', value: string) => {
+    const dateObj = new Date(day);
+    const week = weeks[dateObj.getDay()];
+
     setFormData(prevFormData => ({
       ...prevFormData,
       [day]: {
         ...prevFormData[day],
         [field]: value,
+        week: week,
       },
     }));
   };
@@ -269,6 +301,10 @@ const KosuCalendar: React.FC = () => {
       <Loading isLoading={loading} />
       <div className={styles["kosu-calendar-wrapper"]}>
         <h1 className={styles["h1-collar"]}>勤務入力</h1>
+        <nav className={styles["kosu-nav"]}>
+          <Link to="/kosu-menu">工数MENU</Link>
+        </nav>
+
         <div className={styles["year-month-selector"]}>
           <select
             name="year"
@@ -299,13 +335,11 @@ const KosuCalendar: React.FC = () => {
             disabled={isPosting}
             className={styles.button}
           >
-            {isPosting ? '送信中...' : '確定'}
+            {isPosting ? '送信中...' : '勤務登録'}
           </button>
         </div>
 
-        <nav className={styles["kosu-nav"]}>
-          <Link to="/kosu-menu">工数MENU</Link>
-        </nav>
+        <p>※日付を押すと該当日の工数入力画面に遷移します。</p>
         <div
           className={styles["table-wrapper"]}
           style={{
@@ -317,13 +351,13 @@ const KosuCalendar: React.FC = () => {
           <table ref={tableRef}>
             <thead>
               <tr>
-                <th className={styles["th-collar"]}>日</th>
-                <th className={styles["th-collar"]}>月</th>
-                <th className={styles["th-collar"]}>火</th>
-                <th className={styles["th-collar"]}>水</th>
-                <th className={styles["th-collar"]}>木</th>
-                <th className={styles["th-collar"]}>金</th>
-                <th className={styles["th-collar"]}>土</th>
+                <th className={styles["th-collar3"]}>日</th>
+                <th className={styles["th-collar1"]}>月</th>
+                <th className={styles["th-collar1"]}>火</th>
+                <th className={styles["th-collar1"]}>水</th>
+                <th className={styles["th-collar1"]}>木</th>
+                <th className={styles["th-collar1"]}>金</th>
+                <th className={styles["th-collar2"]}>土</th>
               </tr>
             </thead>
             <tbody>
@@ -337,20 +371,23 @@ const KosuCalendar: React.FC = () => {
                       <td key={colIndex}>
                         {day !== null ? (
                           <div className={styles.dayCell}>
-                            {day}
+                            <div onClick={() => handleDayClick(formattedDay!)}>
+                                {day}
+                            </div>
                             <div className={styles.workDataContainer}>
                               <div className={styles.workTimeCell}>
-                                <WorkSelect 
-                                  id={`work_time-${day}`} 
-                                  value={dayData?.work_time || ""} 
-                                  onChange={(e) => handleChange(formattedDay!, 'work_time', e.target.value)} 
+                                <WorkSelect
+                                  id={`work_time-${day}`}
+                                  value={dayData?.work_time || ""}
+                                  onChange={(e) => handleChange(formattedDay!, 'work_time', e.target.value)}
+                                  mode='ALL'
                                 />
                               </div>
                               <div className={styles.tyoku2Cell}>
-                                <TyokuSelect 
-                                  id={`tyoku-${day}`} 
-                                  value={dayData?.tyoku2 || ""} 
-                                  onChange={(e) => handleChange(formattedDay!, 'tyoku2', e.target.value)} 
+                                <TyokuSelect
+                                  id={`tyoku-${day}`}
+                                  value={dayData?.tyoku2 || ""}
+                                  onChange={(e) => handleChange(formattedDay!, 'tyoku2', e.target.value)}
                                 />
                               </div>
                               <div className={styles.timeWorkCell}>
@@ -361,10 +398,10 @@ const KosuCalendar: React.FC = () => {
                         ) : (
                           <div className={styles.emptyCell}></div>
                         )}
-                  </td>
-                  );
-                })}
-              </tr>
+                      </td>
+                    );
+                  })}
+                </tr>
               ))}
             </tbody>
           </table>

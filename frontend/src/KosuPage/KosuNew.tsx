@@ -420,7 +420,7 @@ const KosuNew: React.FC = () => {
 
             <label htmlFor="work_time">勤務・直:</label>
             <div className={styles["work-tyoku-wrapper"]}>
-              <WorkSelect id="work_time" value={data?.work_time || ""} onChange={handleChange} />
+              <WorkSelect id="work_time" value={data?.work_time || ""} onChange={handleChange} mode='LIMIT' />
               <TyokuSelect id="tyoku2" value={data?.tyoku2 || ""} onChange={handleChange} />
             </div>
 
