@@ -3721,3 +3721,76 @@ class KosuCalendarChange(APIView):
     request.session['month'] = request.data.get('month')
 
     return Response({'status': 'success', 'message': 'カレンダーが更新されました。'})
+
+
+
+class KosuWorkWrite(APIView):
+  def post(self, request, *args, **kwargs):
+    login_no = request.session.get('login_No')
+    year = request.session.get('year', datetime.date.today().year)
+    month = request.session.get('month', datetime.date.today().month)
+
+    # ログイン者データ確認
+    member_query_set = member.objects.filter(employee_no=login_no)
+    if not member_query_set.exists():
+      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+    elif member_query_set.count() > 1:
+      return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+    member_data = member_query_set.first()
+
+    select_month = datetime.date(year, month, 1)
+    if month == 12:
+      month_end = 1
+      year_end = year + 1
+    else:
+      month_end = month + 1
+      year_end = year
+
+    select_month = datetime.date(year_end, month_end, 1)
+    month_day_end = select_month - datetime.timedelta(days = 1)
+    day_end = month_day_end.day
+
+    for d in range(day_end):
+      obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=datetime.date(year, month, d + 1))
+      obj = obj_filter.first() if obj_filter.exists() else None
+      if obj_filter.exists():
+        Business_Time_graph.objects.update_or_create(
+          employee_no3=login_no, 
+          work_day2 = datetime.date(year, month, d + 1), 
+          defaults = {
+            'work_time': request.data.get(f'{datetime.date(year, month, 30)}')['work_time'],
+            'tyoku2': request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'],
+            'judgement': judgement_check(list(obj.time_work), request.data.get(f'{datetime.date(year, month, 30)}')['work_time'], request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'], member_data, obj.over_time)
+          }
+        )
+      
+      else:
+        if request.data.get(f'{datetime.date(year, month, 30)}')['work_time'] or request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2']:
+          Business_Time_graph.objects.update_or_create(
+            employee_no3=login_no, 
+            work_day2 = datetime.date(year, month, d + 1), 
+            defaults = {
+              'name': member_data,
+              'work_time': request.data.get(f'{datetime.date(year, month, 30)}')['work_time'],
+              'tyoku2': request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'],
+              'time_work': '#'*288,
+              'detail_work': '$'*287,
+              'over_time': 0,
+              'judgement': judgement_check(list('#'*288), request.data.get(f'{datetime.date(year, month, 30)}')['work_time'], request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'], member_data, 0)
+            }
+          )
+
+
+
+
+
+
+
+
+
+    print(request.data.get(f'{datetime.date(year, month, 30)}'))
+    print(request.data.get(f'{datetime.date(year, month, 30)}')['work_time'])
+
+    return Response({'status': 'success', 'message': '勤務が更新されました。'})
+
+

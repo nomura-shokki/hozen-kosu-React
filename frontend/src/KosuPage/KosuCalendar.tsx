@@ -20,11 +20,13 @@ interface Kosu {
 const KosuCalendar: React.FC = () => {
   const [data, setData] = useState<Kosu[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isPosting, setIsPosting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
   const [tableWidth, setTableWidth] = useState<number>(0);
   const [sessionYear, setSessionYear] = useState<number | null>(null);
   const [sessionMonth, setSessionMonth] = useState<number | null>(null);
+  const [formData, setFormData] = useState<{ [key: string]: { work_time: string; tyoku2: string } }>({});
   const tableRef = useRef<HTMLTableElement>(null);
   const navigate = useNavigate();
 
@@ -39,6 +41,14 @@ const KosuCalendar: React.FC = () => {
       setData(results);
       setSessionYear(response.data.session_year);
       setSessionMonth(response.data.session_month);
+      const initialFormData: { [key: string]: { work_time: string; tyoku2: string } } = {};
+      results.forEach((item: Kosu) => {
+        initialFormData[item.work_day2] = {
+          work_time: item.work_time,
+          tyoku2: item.tyoku2,
+        };
+      });
+      setFormData(initialFormData);
     } catch (err) {
       // エラー処理
       if (axios.isAxiosError(err)) {
@@ -81,6 +91,30 @@ const KosuCalendar: React.FC = () => {
       setLoading(false);
     }
   }, [fetchData, navigate]);
+
+  // 新しいボタン用のPOSTリクエスト関数
+  const postWorkWrite = async () => {
+    setIsPosting(true);
+    try {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_work_write/`, formData, { withCredentials: true });
+      console.log("Post successful:", response.data);
+      fetchData(); // 成功時にデータを再取得
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401 || err.response?.status === 404) {
+          navigate("/login");
+        } else if (err.response?.status === 403) {
+          navigate("/");
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError("予期しないエラーが発生しました");
+      }
+    } finally {
+      setIsPosting(false);
+    }
+  };
 
   // コンポーネントマウント時に fetchData を実行
   useEffect(() => {
@@ -196,7 +230,15 @@ const KosuCalendar: React.FC = () => {
     ));
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {};
+  const handleChange = (day: string, field: 'work_time' | 'tyoku2', value: string) => {
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      [day]: {
+        ...prevFormData[day],
+        [field]: value,
+      },
+    }));
+  };
 
   // 年と月のフォーム変更ハンドラー
   const handleYearMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -252,6 +294,13 @@ const KosuCalendar: React.FC = () => {
               </option>
             ))}
           </select>
+          <button
+            onClick={postWorkWrite}
+            disabled={isPosting}
+            className={styles.button}
+          >
+            {isPosting ? '送信中...' : '確定'}
+          </button>
         </div>
 
         <nav className={styles["kosu-nav"]}>
@@ -282,7 +331,7 @@ const KosuCalendar: React.FC = () => {
                 <tr key={rowIndex}>
                   {row.map((day, colIndex) => {
                     const formattedDay = day !== null ? `${sessionYear}-${String(sessionMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}` : null;
-                    const workDataForDay = formattedDay ? data.find(item => item.work_day2 === formattedDay) : null;
+                    const dayData = formattedDay ? formData[formattedDay] || { work_time: "", tyoku2: "" } : null;
 
                     return (
                       <td key={colIndex}>
@@ -291,23 +340,31 @@ const KosuCalendar: React.FC = () => {
                             {day}
                             <div className={styles.workDataContainer}>
                               <div className={styles.workTimeCell}>
-                                <WorkSelect id={`work_time-${day}`} value={workDataForDay?.work_time || ""} onChange={handleChange} />
+                                <WorkSelect 
+                                  id={`work_time-${day}`} 
+                                  value={dayData?.work_time || ""} 
+                                  onChange={(e) => handleChange(formattedDay!, 'work_time', e.target.value)} 
+                                />
                               </div>
                               <div className={styles.tyoku2Cell}>
-                                <TyokuSelect id={`tyoku-${day}`} value={workDataForDay?.tyoku2 || ""} onChange={handleChange} />
+                                <TyokuSelect 
+                                  id={`tyoku-${day}`} 
+                                  value={dayData?.tyoku2 || ""} 
+                                  onChange={(e) => handleChange(formattedDay!, 'tyoku2', e.target.value)} 
+                                />
                               </div>
                               <div className={styles.timeWorkCell}>
-                                {formatTimeWork(workDataForDay?.time_work || "")}
+                                {formatTimeWork(dayData ? (data.find(item => item.work_day2 === formattedDay)?.time_work || "") : "")}
                               </div>
                             </div>
                           </div>
                         ) : (
                           <div className={styles.emptyCell}></div>
                         )}
-                      </td>
-                    );
-                  })}
-                </tr>
+                  </td>
+                  );
+                })}
+              </tr>
               ))}
             </tbody>
           </table>
