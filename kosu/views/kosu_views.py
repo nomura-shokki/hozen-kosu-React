@@ -3764,16 +3764,11 @@ class KosuWorkWrite(APIView):
               'judgement': judgement_check(list(obj.time_work), request.data.get(f'{datetime.date(year, month, 30)}')['work_time'], request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'], member_data, obj.over_time)
             }
           )
-        
 
+        else:
+          if obj.time_work == '#'*288 and obj.detail_work == '$'*287 and obj.over_time == 0:
+            obj.delete()
 
-
-
-
-
-
-        
-      
       else:
         if request.data.get(f'{datetime.date(year, month, 30)}')['work_time'] or request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2']:
           Business_Time_graph.objects.update_or_create(
@@ -3789,16 +3784,6 @@ class KosuWorkWrite(APIView):
               'judgement': judgement_check(list('#'*288), request.data.get(f'{datetime.date(year, month, 30)}')['work_time'], request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'], member_data, 0)
             }
           )
-
-
-
-
-
-
-
-
-
-
 
     print(request.data.get(f'{datetime.date(year, month, 30)}'))
     print(request.data.get(f'{datetime.date(year, month, 30)}')['work_time'])
