@@ -3754,15 +3754,25 @@ class KosuWorkWrite(APIView):
       obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=datetime.date(year, month, d + 1))
       obj = obj_filter.first() if obj_filter.exists() else None
       if obj_filter.exists():
-        Business_Time_graph.objects.update_or_create(
-          employee_no3=login_no, 
-          work_day2 = datetime.date(year, month, d + 1), 
-          defaults = {
-            'work_time': request.data.get(f'{datetime.date(year, month, 30)}')['work_time'],
-            'tyoku2': request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'],
-            'judgement': judgement_check(list(obj.time_work), request.data.get(f'{datetime.date(year, month, 30)}')['work_time'], request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'], member_data, obj.over_time)
-          }
-        )
+        if request.data.get(f'{datetime.date(year, month, 30)}')['work_time'] or request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2']:
+          Business_Time_graph.objects.update_or_create(
+            employee_no3=login_no, 
+            work_day2 = datetime.date(year, month, d + 1), 
+            defaults = {
+              'work_time': request.data.get(f'{datetime.date(year, month, 30)}')['work_time'],
+              'tyoku2': request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'],
+              'judgement': judgement_check(list(obj.time_work), request.data.get(f'{datetime.date(year, month, 30)}')['work_time'], request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'], member_data, obj.over_time)
+            }
+          )
+        
+
+
+
+
+
+
+
+        
       
       else:
         if request.data.get(f'{datetime.date(year, month, 30)}')['work_time'] or request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2']:
@@ -3779,6 +3789,8 @@ class KosuWorkWrite(APIView):
               'judgement': judgement_check(list('#'*288), request.data.get(f'{datetime.date(year, month, 30)}')['work_time'], request.data.get(f'{datetime.date(year, month, 30)}')['tyoku2'], member_data, 0)
             }
           )
+
+
 
 
 
