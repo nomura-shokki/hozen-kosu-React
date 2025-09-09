@@ -17,10 +17,13 @@ interface Kosu {
   judgement: boolean;
 }
 
+const weeks = ['日', '月', '火', '水', '木', '金', '土'];
+
 const KosuCalendar: React.FC = () => {
   const [data, setData] = useState<Kosu[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [isPosting, setIsPosting] = useState<boolean>(false);
+  const [isPostingWorkWrite, setIsPostingWorkWrite] = useState<boolean>(false);
+  const [isPostingWorkDefault, setIsPostingWorkDefault] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
   const [tableWidth, setTableWidth] = useState<number>(0);
@@ -29,8 +32,6 @@ const KosuCalendar: React.FC = () => {
   const [formData, setFormData] = useState<{ [key: string]: { work_time: string; tyoku2: string; week?: string } }>({});
   const tableRef = useRef<HTMLTableElement>(null);
   const navigate = useNavigate();
-
-  const weeks = ['日', '月', '火', '水', '木', '金', '土'];
 
   // データを取得する関数
   const fetchData = useCallback(async () => {
@@ -63,7 +64,7 @@ const KosuCalendar: React.FC = () => {
         } else if (err.response?.status === 403) {
           navigate("/");
         } else {
-          setError(err.message); // その他のエラーを設定
+          setError(err.message);
         }
       } else {
         setError("予期しないエラーが発生しました"); // 予期しないエラーの場合
@@ -81,7 +82,7 @@ const KosuCalendar: React.FC = () => {
         year: year,
         month: month,
       }, { withCredentials: true });
-      fetchData(); // POST成功後にデータを再取得
+      fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401 || err.response?.status === 404) {
@@ -98,9 +99,8 @@ const KosuCalendar: React.FC = () => {
     }
   }, [fetchData, navigate]);
 
-  // 新しいボタン用のPOSTリクエスト関数
   const postWorkWrite = async () => {
-    setIsPosting(true);
+    setIsPostingWorkWrite(true);
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_work_write/`, formData, { withCredentials: true });
       console.log("Post successful:", response.data);
@@ -118,9 +118,32 @@ const KosuCalendar: React.FC = () => {
         setError("予期しないエラーが発生しました");
       }
     } finally {
-      setIsPosting(false);
+      setIsPostingWorkWrite(false);
     }
   };
+
+  const postWorkDefault = async () => {
+    setIsPostingWorkDefault(true);
+    try {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/work_default/`, {}, { withCredentials: true });
+      fetchData();
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401 || err.response?.status === 404) {
+          navigate("/login");
+        } else if (err.response?.status === 403) {
+          navigate("/");
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError("予期しないエラーが発生しました");
+      }
+    } finally {
+      setIsPostingWorkDefault(false);
+    }
+  };
+
 
   // dayをクリックした際にPOSTする新しい関数
   const handleDayClick = async (dayValue: string) => {
@@ -332,10 +355,18 @@ const KosuCalendar: React.FC = () => {
           </select>
           <button
             onClick={postWorkWrite}
-            disabled={isPosting}
+            disabled={isPostingWorkWrite}
             className={styles.button}
           >
-            {isPosting ? '送信中...' : '勤務登録'}
+            {isPostingWorkWrite ? '送信中...' : '勤務登録'}
+          </button>
+          　　
+          <button
+            onClick={postWorkDefault}
+            disabled={isPostingWorkDefault}
+            className={styles.button}
+          >
+            勤務パターン登録
           </button>
         </div>
 

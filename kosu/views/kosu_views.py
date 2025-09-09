@@ -3726,7 +3726,6 @@ class KosuCalendarChange(APIView):
 
 class KosuWorkWrite(APIView):
   def post(self, request, *args, **kwargs):
-    print(request.data)
     login_no = request.session.get('login_No')
     year = request.session.get('year', datetime.date.today().year)
     month = request.session.get('month', datetime.date.today().month)
@@ -3800,6 +3799,10 @@ class KosuLink(APIView):
 
 
 
+class WorkDefault(APIView):
+  def post(self, request, *args, **kwargs):
+
+    return Response({'status': 'success', 'message': 'デフォルト勤務を設定しました。'})
 
 
 

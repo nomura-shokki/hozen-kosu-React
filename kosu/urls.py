@@ -24,6 +24,7 @@ urlpatterns = [
   path('kosu_calendar/', kosu_views.KosuCalendar.as_view(), name='kosu_calendar'),
   path('kosu_calendar_change/', kosu_views.KosuCalendarChange.as_view(), name='kosu_calendar_change'),
   path('kosu_work_write/', kosu_views.KosuWorkWrite.as_view(), name='kosu_work_write'),
+  path('work_default/', kosu_views.WorkDefault.as_view(), name='work_default'),
   path('kosu_link/', kosu_views.KosuLink.as_view(), name='kosu_link'),
   path('day_update/', kosu_views.DayUpdate.as_view(), name='item_delete'),
   path('item_delete/', kosu_views.ItemDlete.as_view(), name='day_update'),

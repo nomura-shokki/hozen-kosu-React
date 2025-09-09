@@ -59,7 +59,7 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
         : { adjustedTimeWork: timeWork, splitDetails: workDetail.split("$") };
 
       // パース結果を格納する配列
-      const result: { time: string; work: string; detail: string }[] = [];    
+      const result: { time: string; work: string; detail: string }[] = [];     
       // 現在の作業内容、詳細、開始インデックスを追跡する変数
       let currentWork = "", currentDetail = "", startIndex = -1;
 
@@ -103,7 +103,7 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
 
     // パース関数を実行し、ステートを更新
     setParsedData(parseTimeWorkAndDetail());
-  }, [timeWork, workDetail, updatedAt, defData, tyoku]); // 依存配列。これらの値が変わると再実行される
+  }, [timeWork, workDetail, updatedAt, defData, tyoku, shop]);
 
   // ウィンドウサイズ変更時に`maxHeight`を更新するエフェクト
   useEffect(() => {
