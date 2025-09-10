@@ -3228,6 +3228,9 @@ class TodayBreakTime(APIView):
     login_no = request.session.get('login_No')
     day = request.session.get('day')
     post_data = request.data
+    if not day:
+      day = str(datetime.date.today())
+      request.session['day'] = day
 
     try:
       # ログインユーザーのデータ取得
@@ -3568,6 +3571,9 @@ class DayUpdate(APIView):
     login_no = request.session.get('login_No')
     day = request.data.get('work_day2')
 
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not day:
       request.session['day'] = ""
       return Response({'error': '就業日が未指定です。'},status=status.HTTP_400_BAD_REQUEST)
@@ -3726,9 +3732,14 @@ class KosuCalendarChange(APIView):
 
 class KosuWorkWrite(APIView):
   def post(self, request, *args, **kwargs):
+    print(request.data)
     login_no = request.session.get('login_No')
     year = request.session.get('year', datetime.date.today().year)
     month = request.session.get('month', datetime.date.today().month)
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     member_query_set = member.objects.filter(employee_no=login_no)
@@ -3801,6 +3812,62 @@ class KosuLink(APIView):
 
 class WorkDefault(APIView):
   def post(self, request, *args, **kwargs):
+    login_no = request.session.get('login_No')
+    year = request.session.get('year', datetime.date.today().year)
+    month = request.session.get('month', datetime.date.today().month)
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # ログイン者データ確認
+    member_query_set = member.objects.filter(employee_no=login_no)
+    if not member_query_set.exists():
+      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+    elif member_query_set.count() > 1:
+      return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+    member_data = member_query_set.first()
+
+    select_month = datetime.date(year, month, 1)
+    if month == 12:
+      month_end = 1
+      year_end = year + 1
+    else:
+      month_end = month + 1
+      year_end = year
+
+    select_month = datetime.date(year_end, month_end, 1)
+    month_day_end = select_month - datetime.timedelta(days = 1)
+    day_end = month_day_end.day
+
+    for d in range(day_end):
+      day = datetime.date(year, month, d + 1)
+      obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+      obj = obj_filter.first() if obj_filter.exists() else None
+
+      if not obj_filter.exists(): 
+        Business_Time_graph.objects.update_or_create(
+          employee_no3=login_no, 
+          work_day2 = day, 
+          defaults = {
+            'name': member_data,
+            'work_time': '休日' if day.weekday() in [5, 6] else '出勤',
+            'time_work': '#'*288,
+            'detail_work': '$'*287,
+            'over_time': 0,
+            'judgement': True if day.weekday() in [5, 6] else False
+          }
+        )
+
+      elif not obj.work_time:
+        Business_Time_graph.objects.update_or_create(
+          employee_no3=login_no, 
+          work_day2 = day, 
+          defaults = {
+            'work_time': '休日' if day.weekday() in [5, 6] else '出勤',
+            'judgement': judgement_check(list(obj.time_work), '休日' if day.weekday() in [5, 6] else '出勤', obj.tyoku2, member_data, obj.over_time)
+          }
+        )
 
     return Response({'status': 'success', 'message': 'デフォルト勤務を設定しました。'})
 

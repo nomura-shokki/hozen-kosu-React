@@ -501,7 +501,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import MemberSerializer, DefSerializer
-from rest_framework.decorators import api_view
 from ..utils.main_utils import CustomPagination
 
 

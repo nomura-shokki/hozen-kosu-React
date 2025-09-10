@@ -17,8 +17,6 @@ interface Kosu {
   judgement: boolean;
 }
 
-const weeks = ['日', '月', '火', '水', '木', '金', '土'];
-
 const KosuCalendar: React.FC = () => {
   const [data, setData] = useState<Kosu[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -44,20 +42,15 @@ const KosuCalendar: React.FC = () => {
       setData(results);
       setSessionYear(response.data.session_year);
       setSessionMonth(response.data.session_month);
-      const initialFormData: { [key: string]: { work_time: string; tyoku2: string; week?: string } } = {};
+      const initialFormData: { [key: string]: { work_time: string; tyoku2: string } } = {}; // weekを削除
       results.forEach((item: Kosu) => {
-        const dateObj = new Date(item.work_day2);
-        const week = weeks[dateObj.getDay()];
-
         initialFormData[item.work_day2] = {
           work_time: item.work_time,
           tyoku2: item.tyoku2,
-          week: week,
         };
       });
       setFormData(initialFormData);
     } catch (err) {
-      // エラー処理
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401 || err.response?.status === 404) {
           navigate("/login");
@@ -67,12 +60,22 @@ const KosuCalendar: React.FC = () => {
           setError(err.message);
         }
       } else {
-        setError("予期しないエラーが発生しました"); // 予期しないエラーの場合
+        setError("予期しないエラーが発生しました");
       }
     } finally {
       setLoading(false);
     }
   }, [navigate]);
+
+  const handleChange = (day: string, field: 'work_time' | 'tyoku2', value: string) => {
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      [day]: {
+        ...prevFormData[day],
+        [field]: value,
+      },
+    }));
+  };
 
   // 年と月をPOSTしてデータを再取得する関数
   const postYearMonth = useCallback(async (year: number, month: number) => {
@@ -281,20 +284,6 @@ const KosuCalendar: React.FC = () => {
     ));
   };
 
-  const handleChange = (day: string, field: 'work_time' | 'tyoku2', value: string) => {
-    const dateObj = new Date(day);
-    const week = weeks[dateObj.getDay()];
-
-    setFormData(prevFormData => ({
-      ...prevFormData,
-      [day]: {
-        ...prevFormData[day],
-        [field]: value,
-        week: week,
-      },
-    }));
-  };
-
   // 年と月のフォーム変更ハンドラー
   const handleYearMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -396,10 +385,14 @@ const KosuCalendar: React.FC = () => {
                 <tr key={rowIndex}>
                   {row.map((day, colIndex) => {
                     const formattedDay = day !== null ? `${sessionYear}-${String(sessionMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}` : null;
-                    const dayData = formattedDay ? formData[formattedDay] || { work_time: "", tyoku2: "" } : null;
+                    const dayData = formattedDay ? data.find(item => item.work_day2 === formattedDay) : null;
+                    const formDataForDay = formattedDay ? formData[formattedDay] || { work_time: "", tyoku2: "" } : null;
 
                     return (
-                      <td key={colIndex}>
+                      <td 
+                        key={colIndex}
+                        style={{ backgroundColor: dayData?.judgement ? '#ADFF2F' : '' }}
+                      >
                         {day !== null ? (
                           <div className={styles.dayCell}>
                             <div onClick={() => handleDayClick(formattedDay!)}>
@@ -409,7 +402,7 @@ const KosuCalendar: React.FC = () => {
                               <div className={styles.workTimeCell}>
                                 <WorkSelect
                                   id={`work_time-${day}`}
-                                  value={dayData?.work_time || ""}
+                                  value={formDataForDay?.work_time || ""}
                                   onChange={(e) => handleChange(formattedDay!, 'work_time', e.target.value)}
                                   mode='ALL'
                                 />
@@ -417,21 +410,21 @@ const KosuCalendar: React.FC = () => {
                               <div className={styles.tyoku2Cell}>
                                 <TyokuSelect
                                   id={`tyoku-${day}`}
-                                  value={dayData?.tyoku2 || ""}
+                                  value={formDataForDay?.tyoku2 || ""}
                                   onChange={(e) => handleChange(formattedDay!, 'tyoku2', e.target.value)}
                                 />
                               </div>
                               <div className={styles.timeWorkCell}>
-                                {formatTimeWork(dayData ? (data.find(item => item.work_day2 === formattedDay)?.time_work || "") : "")}
+                                {formatTimeWork(dayData ? dayData.time_work : "")}
                               </div>
                             </div>
                           </div>
                         ) : (
                           <div className={styles.emptyCell}></div>
                         )}
-                      </td>
-                    );
-                  })}
+                    </td>
+                  );
+                })}
                 </tr>
               ))}
             </tbody>
