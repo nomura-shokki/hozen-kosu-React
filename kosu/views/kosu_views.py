@@ -3904,7 +3904,7 @@ class TyokuDefault(APIView):
     month_day_end = select_month - datetime.timedelta(days = 1)
     day_end = month_day_end.day
 
-
+    #../../img/RAV4.png
 
     return Response({'status': 'success', 'message': 'デフォルト直を設定しました。'})
 

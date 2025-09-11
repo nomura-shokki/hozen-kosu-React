@@ -109,3 +109,42 @@
   cursor: pointer; /* マウスカーソルをポインターに変更 */
   appearance: none; /* デフォルトの矢印を非表示にする */
 }
+
+/* KosuCalendar.module.css に追加 */
+.kosu-calendar-wrapper table td {
+  /* 背景画像の設定 */
+  background-image: url("../../img/RAV4.png");
+  /* 背景画像をリサイズして要素全体を覆う */
+  background-size: cover;
+  /* 背景画像を中央に配置 */
+  background-position: center;
+  /* 背景画像の繰り返しを防止 */
+  background-repeat: no-repeat;
+}
+
+/* 透過度を設定するセレクタを、contentが影響しないように工夫 */
+.kosu-calendar-wrapper table td > div:first-child {
+  position: relative;
+  z-index: 1; /* コンテンツが背景画像より前面に来るように設定 */
+}
+
+/* 透過背景のために擬似要素を使用 */
+.kosu-calendar-wrapper table td::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("../../img/RAV4.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.2; /* 80%透過 (不透明度20%) */
+  z-index: 0; /* 背景がコンテンツより背面に来るように設定 */
+}
+
+/* 擬似要素が正しく機能するように、tdにposition: relative;を追加 */
+.kosu-calendar-wrapper table td {
+  position: relative;
+}
