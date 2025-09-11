@@ -3873,4 +3873,55 @@ class WorkDefault(APIView):
 
 
 
+class TyokuDefault(APIView):
+  def post(self, request, *args, **kwargs):
+    print(request.data)
+    login_no = request.session.get('login_No')
+    year = request.session.get('year', datetime.date.today().year)
+    month = request.session.get('month', datetime.date.today().month)
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # ログイン者データ確認
+    member_query_set = member.objects.filter(employee_no=login_no)
+    if not member_query_set.exists():
+      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+    elif member_query_set.count() > 1:
+      return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+    member_data = member_query_set.first()
+
+    select_month = datetime.date(year, month, 1)
+    if month == 12:
+      month_end = 1
+      year_end = year + 1
+    else:
+      month_end = month + 1
+      year_end = year
+
+    select_month = datetime.date(year_end, month_end, 1)
+    month_day_end = select_month - datetime.timedelta(days = 1)
+    day_end = month_day_end.day
+
+
+
+    return Response({'status': 'success', 'message': 'デフォルト直を設定しました。'})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

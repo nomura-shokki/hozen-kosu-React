@@ -56,17 +56,56 @@
   }
 }
 
-.th-collar1{
-  background-color: #86fafa;
+.th-collar1 {
+  background-color: #d3ffff;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
-.th-collar2{
+.th-collar2 {
   background-color: #0af;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
-.th-collar3{
+.th-collar3 {
   background-color: #ff90f8;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.year-month-selector {
+  display: flex; /* 子要素を横並びに配置 */
+  gap: 10px; /* 要素間の隙間を10pxに設定 */
+  margin-bottom: 20px; /* 下部に余白を追加 */
+  align-items: center; /* 要素を垂直方向の中央に揃える */
+}
+
+/* select要素（年、月）のスタイル */
+.year-month-selector select {
+  padding: 8px 12px; /* 内側の余白 */
+  border-radius: 5px; /* 角を丸くする */
+  border: 1px solid #ccc; /* 境界線 */
+  background-color: #fff; /* 背景色 */
+  font-size: 2rem; /* フォントサイズ */
+  cursor: pointer; /* マウスカーソルをポインターに変更 */
+  appearance: none; /* デフォルトの矢印を非表示にする */
+}
+
+.year-month-selector select:hover {
+  border-color: #0af; /* ホバー時に境界線の色を変更 */
+}
+
+.button-wrapper {
+  display: flex; /* 子要素を横並びに配置 */
+  gap: 30px; /* 要素間の隙間を10pxに設定 */
+  margin-bottom: 20px; /* 下部に余白を追加 */
+  align-items: center; /* 要素を垂直方向の中央に揃える */
+}
+
+.work-tyoku select {
+  padding: 8px 12px; /* 内側の余白 */
+  border-radius: 5px; /* 角を丸くする */
+  border: 1px solid #ccc; /* 境界線 */
+  background-color: #fff; /* 背景色 */
+  font-size: 1rem; /* フォントサイズ */
+  cursor: pointer; /* マウスカーソルをポインターに変更 */
+  appearance: none; /* デフォルトの矢印を非表示にする */
 }

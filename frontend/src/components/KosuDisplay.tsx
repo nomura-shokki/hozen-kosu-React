@@ -44,9 +44,9 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
       const ranges: Record<string, { start: number; end: number }> = {
         "1": { start: 54, end: 234 },
         "2W_A": { start: 106, end: 182 },
-        "2": { start: 140, end: 148 },
+        "2": { start: 142, end: 146 },
         "3W_A": { start: 214, end: 74 },
-        "3": { start: 242, end: 46 },
+        "3": { start: 245, end: 43 },
         "4": { start: 72, end: 216 },
         "6": { start: 182, end: 106 },
       };

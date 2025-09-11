@@ -67,11 +67,11 @@ const KosuBarChart: React.FC<Props> = ({ initialTimeWork, tyoku, shop }) => {
       : tyoku === "2" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")
       ? [...originalLabels.slice(106), ...originalLabels.slice(0, 106)]
       : tyoku === "2"
-      ? [...originalLabels.slice(140), ...originalLabels.slice(0, 140)]
+      ? [...originalLabels.slice(142), ...originalLabels.slice(0, 142)]
       : tyoku === "3" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")
       ? [...originalLabels.slice(214), ...originalLabels.slice(0, 214)]
       : tyoku === "3"
-      ? [...originalLabels.slice(242), ...originalLabels.slice(0, 242)]
+      ? [...originalLabels.slice(245), ...originalLabels.slice(0, 245)]
       : tyoku === "4"
       ? [...originalLabels.slice(72), ...originalLabels.slice(0, 72)]
       : tyoku === "5"
@@ -86,11 +86,11 @@ const KosuBarChart: React.FC<Props> = ({ initialTimeWork, tyoku, shop }) => {
       : tyoku === "2" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")
       ? [...chartData.slice(106), ...chartData.slice(0, 106)]
       : tyoku === "2"
-      ? [...chartData.slice(140), ...chartData.slice(0, 140)]
+      ? [...chartData.slice(142), ...chartData.slice(0, 142)]
       : tyoku === "3" && (shop === "W1" || shop === "W2" || shop === "A1" || shop === "A2" || shop === "J" || shop === "組長以上(W,A)")
       ? [...chartData.slice(214), ...chartData.slice(0, 214)]
       : tyoku === "3"
-      ? [...chartData.slice(242), ...chartData.slice(0, 242)]
+      ? [...chartData.slice(245), ...chartData.slice(0, 245)]
       : tyoku === "4"
       ? [...chartData.slice(72), ...chartData.slice(0, 72)]
       : tyoku === "5"

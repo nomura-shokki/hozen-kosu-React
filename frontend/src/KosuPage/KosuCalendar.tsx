@@ -28,6 +28,7 @@ const KosuCalendar: React.FC = () => {
   const [sessionYear, setSessionYear] = useState<number | null>(null);
   const [sessionMonth, setSessionMonth] = useState<number | null>(null);
   const [formData, setFormData] = useState<{ [key: string]: { work_time: string; tyoku2: string; week?: string } }>({});
+  const [defaultTyokuValues, setDefaultTyokuValues] = useState<string[]>([]);
   const tableRef = useRef<HTMLTableElement>(null);
   const navigate = useNavigate();
 
@@ -50,6 +51,7 @@ const KosuCalendar: React.FC = () => {
         };
       });
       setFormData(initialFormData);
+      setDefaultTyokuValues([]);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401 || err.response?.status === 404) {
@@ -76,6 +78,14 @@ const KosuCalendar: React.FC = () => {
       },
     }));
   };
+  
+  const handleTyokuDefaultChange = (rowIndex: number, value: string) => {
+    setDefaultTyokuValues(prevValues => {
+      const newValues = [...prevValues];
+      newValues[rowIndex] = value;
+      return newValues;
+    });
+  };
 
   // 年と月をPOSTしてデータを再取得する関数
   const postYearMonth = useCallback(async (year: number, month: number) => {
@@ -98,6 +108,7 @@ const KosuCalendar: React.FC = () => {
       } else {
         setError("予期しないエラーが発生しました");
       }
+    } finally {
       setLoading(false);
     }
   }, [fetchData, navigate]);
@@ -144,6 +155,31 @@ const KosuCalendar: React.FC = () => {
       }
     } finally {
       setIsPostingWorkDefault(false);
+    }
+  };
+
+  const handleDefaultTyokuPost = async () => {
+    try {
+      // 修正: 配列をオブジェクトに変換
+      const postData: { [key: string]: string } = defaultTyokuValues.reduce((acc: { [key: string]: string }, tyoku, index) => {
+        acc[`default_tyoku${index + 1}`] = tyoku;
+        return acc;
+      }, {});
+  
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/tyoku_default/`, postData, { withCredentials: true });
+      fetchData(); // 成功時にデータを再取得
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401 || err.response?.status === 404) {
+          navigate("/login");
+        } else if (err.response?.status === 403) {
+          navigate("/");
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError("予期しないエラーが発生しました");
+      }
     }
   };
 
@@ -322,7 +358,6 @@ const KosuCalendar: React.FC = () => {
             name="year"
             value={sessionYear || ""}
             onChange={handleYearMonthChange}
-            className={styles.select}
           >
             {getYears().map(year => (
               <option key={year} value={year}>
@@ -334,7 +369,6 @@ const KosuCalendar: React.FC = () => {
             name="month"
             value={sessionMonth || ""}
             onChange={handleYearMonthChange}
-            className={styles.select}
           >
             {[...Array(12)].map((_, i) => (
               <option key={i + 1} value={i + 1}>
@@ -342,20 +376,29 @@ const KosuCalendar: React.FC = () => {
               </option>
             ))}
           </select>
+        </div>
+        <div className={styles["button-wrapper"]}>
           <button
             onClick={postWorkWrite}
             disabled={isPostingWorkWrite}
-            className={styles.button}
+            className="light_blue_button"
           >
             {isPostingWorkWrite ? '送信中...' : '勤務登録'}
           </button>
-          　　
+          
           <button
             onClick={postWorkDefault}
             disabled={isPostingWorkDefault}
-            className={styles.button}
+            className="light_blue_button"
           >
-            勤務パターン登録
+            標準勤務登録
+          </button>
+          
+          <button
+            onClick={handleDefaultTyokuPost}
+            className="light_blue_button"
+          >
+            直一括入力
           </button>
         </div>
 
@@ -378,6 +421,7 @@ const KosuCalendar: React.FC = () => {
                 <th className={styles["th-collar1"]}>木</th>
                 <th className={styles["th-collar1"]}>金</th>
                 <th className={styles["th-collar2"]}>土</th>
+                <th className={styles["th-collar1"]}>直一括</th>
               </tr>
             </thead>
             <tbody>
@@ -389,17 +433,17 @@ const KosuCalendar: React.FC = () => {
                     const formDataForDay = formattedDay ? formData[formattedDay] || { work_time: "", tyoku2: "" } : null;
 
                     return (
-                      <td 
+                      <td
                         key={colIndex}
                         style={{ backgroundColor: dayData?.judgement ? '#ADFF2F' : '' }}
                       >
                         {day !== null ? (
-                          <div className={styles.dayCell}>
+                          <div>
                             <div onClick={() => handleDayClick(formattedDay!)}>
                                 {day}
                             </div>
-                            <div className={styles.workDataContainer}>
-                              <div className={styles.workTimeCell}>
+                            <div>
+                              <div className={styles["work-tyoku"]}>
                                 <WorkSelect
                                   id={`work_time-${day}`}
                                   value={formDataForDay?.work_time || ""}
@@ -407,24 +451,33 @@ const KosuCalendar: React.FC = () => {
                                   mode='ALL'
                                 />
                               </div>
-                              <div className={styles.tyoku2Cell}>
+                              <div className={styles["work-tyoku"]}>
                                 <TyokuSelect
                                   id={`tyoku-${day}`}
                                   value={formDataForDay?.tyoku2 || ""}
                                   onChange={(e) => handleChange(formattedDay!, 'tyoku2', e.target.value)}
                                 />
                               </div>
-                              <div className={styles.timeWorkCell}>
+                              <div>
                                 {formatTimeWork(dayData ? dayData.time_work : "")}
                               </div>
                             </div>
                           </div>
                         ) : (
-                          <div className={styles.emptyCell}></div>
+                          <div></div>
                         )}
-                    </td>
-                  );
-                })}
+                      </td>
+                    );
+                  })}
+                  <td>
+                    <div className={styles["work-tyoku"]}>
+                      <TyokuSelect
+                        id={`tyoku-default-${rowIndex}`}
+                        value={defaultTyokuValues[rowIndex] || ""}
+                        onChange={(e) => handleTyokuDefaultChange(rowIndex, e.target.value)}
+                      />
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

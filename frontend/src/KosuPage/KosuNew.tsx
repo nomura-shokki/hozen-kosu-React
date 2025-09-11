@@ -181,8 +181,8 @@ const KosuNew: React.FC = () => {
           });
         } else {
           setSelectedTimes({
-            time1: new Date(workDay.setHours(13, 40, 0, 0)),
-            time2: new Date(workDay.setHours(13, 40, 0, 0)),
+            time1: new Date(workDay.setHours(13, 50, 0, 0)),
+            time2: new Date(workDay.setHours(13, 50, 0, 0)),
           });
         }
       } else if (data.tyoku2 === "3") {
@@ -193,8 +193,8 @@ const KosuNew: React.FC = () => {
           });
         } else {
           setSelectedTimes({
-            time1: new Date(workDay.setHours(22, 10, 0, 0)),
-            time2: new Date(workDay.setHours(22, 10, 0, 0)),
+            time1: new Date(workDay.setHours(22, 25, 0, 0)),
+            time2: new Date(workDay.setHours(22, 25, 0, 0)),
           });
         }
       } else if (data.tyoku2 === "4") {
