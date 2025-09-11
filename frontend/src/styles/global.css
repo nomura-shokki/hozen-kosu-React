@@ -128,14 +128,6 @@ th {
   font-weight: bold;
 }
 
-tr:nth-child(even) {
-  background-color: #f4f7f9;
-}
-
-tr:hover {
-  background-color: #e0e0e0;
-}
-
 .blue_button {
   background-color: #007bff;
   color: #fff;

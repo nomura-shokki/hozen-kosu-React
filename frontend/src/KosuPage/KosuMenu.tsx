@@ -53,6 +53,7 @@ const KosuMenu: React.FC = () => {
       <Link to="/kosu-list" className={styles["kosu-button2"]}>工数履歴</Link>
       <Link to="/break-time" className={styles["kosu-button3"]}>休憩変更</Link>
       <Link to="/kosu-calendar" className={styles["kosu-button4"]}>勤務入力</Link>
+      <Link to="/kosu-total" className={styles["kosu-button5"]}>工数集計</Link>
     </div>
   );
 };

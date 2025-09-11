@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from rest_framework.response import Response
 import datetime
 import itertools
+import calendar
 from rest_framework import status
 from .main_utils import history_record
 
@@ -1510,4 +1511,26 @@ def parse_break_time(break_time_start, break_time_end, jst):
 
 
 
+# 月週取得
+def get_week_of_month(target_date):
+  year = target_date.year
+  month = target_date.month
+  day = target_date.day
+
+  # 日曜始まりのカレンダーを取得
+  cal = calendar.Calendar(firstweekday=6)
+
+  # 月の週ごとの日付リストを取得
+  month_days = cal.monthdayscalendar(year, month)
+
+  # 週番号を探す
+  for week_index, week in enumerate(month_days):
+    if day in week:
+      return week_index + 1
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
 

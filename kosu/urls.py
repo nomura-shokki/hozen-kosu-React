@@ -32,6 +32,7 @@ urlpatterns = [
   path('kosu_delete/<int:pk>/', kosu_views.KosuDelete.as_view(), name='kosu_delete'),
   path('today_break_time/', kosu_views.TodayBreakTime.as_view(), name='today_break_time'), 
   path('break_time/', kosu_views.BreakTime.as_view(), name='break_time'),
+  path('kosu_total/', kosu_views.KosuTotal.as_view(), name='kosu_total'),
   path('def_menu/', main_views.DefMenu.as_view(), name='def_menu'),
   path('def_new/', def_views.DefNew.as_view(), name='def_new'), 
   path('def_list/', def_views.DefList.as_view(), name='def_list'), 

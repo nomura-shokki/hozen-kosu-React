@@ -12,6 +12,7 @@ import KosuDelete from './KosuPage/KosuDelete';
 import TodayBreakTime from './KosuPage/TodayBreakTime';
 import BreakTime from './KosuPage/BreakTime';
 import KosuCalendar from './KosuPage/KosuCalendar';
+import KosuTotal from './KosuPage/KosuTotal';
 import DefMenu from './DefinitionPage/DefMenu';
 import DefSearch from './DefinitionPage/DefSearch';
 import DefNew from './DefinitionPage/DefNew';
@@ -42,6 +43,7 @@ const App: React.FC = () => {
       "/today-break-time": "当日休憩時間変更 - 業務工数システム",
       "/break-time": "休憩時間変更 - 業務工数システム",
       "/kosu-calendar": "勤務入力 - 業務工数システム",
+      "/kosu-total": "工数集計 - 業務工数システム",
       "/def-menu": "工数区分定義Menu - 業務工数システム",
       "/def-search": "工数区分定義切り替え - 業務工数システム",
       "/def-new": "工数区分定義登録 - 業務工数システム",
@@ -72,6 +74,7 @@ const App: React.FC = () => {
       <Route path="/today-break-time" element={<TodayBreakTime />} />
       <Route path="/break-time" element={<BreakTime />} />
       <Route path="/kosu-calendar" element={<KosuCalendar />} />
+      <Route path="/kosu-total" element={<KosuTotal />} />
       <Route path="/def-menu" element={<DefMenu />} />
       <Route path="/def-search" element={<DefSearch />} />
       <Route path="/def-new" element={<DefNew />} />

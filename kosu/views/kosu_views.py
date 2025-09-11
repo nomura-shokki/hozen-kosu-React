@@ -2827,8 +2827,10 @@ from ..utils.kosu_utils import break_time_write
 from ..utils.kosu_utils import detail_list_summarize
 from ..utils.kosu_utils import judgement_check
 from ..utils.kosu_utils import parse_break_time
+from ..utils.kosu_utils import get_week_of_month
 import datetime
 import itertools
+import calendar
 
 
 
@@ -3732,7 +3734,6 @@ class KosuCalendarChange(APIView):
 
 class KosuWorkWrite(APIView):
   def post(self, request, *args, **kwargs):
-    print(request.data)
     login_no = request.session.get('login_No')
     year = request.session.get('year', datetime.date.today().year)
     month = request.session.get('month', datetime.date.today().month)
@@ -3875,7 +3876,6 @@ class WorkDefault(APIView):
 
 class TyokuDefault(APIView):
   def post(self, request, *args, **kwargs):
-    print(request.data)
     login_no = request.session.get('login_No')
     year = request.session.get('year', datetime.date.today().year)
     month = request.session.get('month', datetime.date.today().month)
@@ -3904,13 +3904,103 @@ class TyokuDefault(APIView):
     month_day_end = select_month - datetime.timedelta(days = 1)
     day_end = month_day_end.day
 
-    #../../img/RAV4.png
+    for d in range(day_end):
+      day = datetime.date(year, month, d + 1)
+      obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+
+      if day.weekday() < 5:
+        obj = obj_filter.first() if obj_filter.exists() else None
+        week_data = request.data.get(f'default_tyoku{get_week_of_month(day)}', None)
+        if week_data and not obj:
+          Business_Time_graph.objects.update_or_create(
+            employee_no3=login_no,
+            work_day2 = day,
+            defaults = {
+              'name': member_data,
+              'tyoku2': week_data,
+              'time_work': '#'*288,
+              'detail_work': '$'*287,
+              'over_time': 0,
+              'judgement': False
+            }
+          )
+        elif week_data and not obj.tyoku2:
+          Business_Time_graph.objects.update_or_create(
+            employee_no3=login_no,
+            work_day2 = day,
+            defaults = {
+              'tyoku2': week_data,
+              'judgement': judgement_check(list(obj.time_work), obj.work_time, week_data, member_data, obj.over_time)
+            }
+          )
 
     return Response({'status': 'success', 'message': 'デフォルト直を設定しました。'})
 
 
 
+class KosuTotal(APIView):
+  # GET時の処理
+  def get(self, request, *args, **kwargs):
+    # セッション値取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
 
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # 就業日記憶
+    day = request.session.get('day')
+    if not day:
+      day = str(datetime.date.today())
+      request.session['day'] = day
+
+    # ログイン者データ確認
+    member_query_set = member.objects.filter(employee_no=login_no)
+    if not member_query_set.exists():
+      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+    elif member_query_set.count() > 1:
+      return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+    member_data = member_query_set.first()
+
+    # 工数データ確認
+    kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+
+    if kosu_query_set.count() > 1:
+      return Response({'error': '複数の工数データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+    kosu_data = kosu_query_set.first()
+
+    # 工数区分定義確認
+    def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
+    if not def_query_set.exists():
+      return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+    elif def_query_set.count() > 1:
+      return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+    def_data = def_query_set.first()
+
+    # 工数区分定義が最新Verか確認
+    def_new_obj = kosu_division.objects.order_by('-id').first()
+    warning_message = None
+    if def_new_obj and def_new_obj.kosu_name != def_ver:
+      warning_message = f"警告: 設定されている工数区分定義は最新の工数区分定義ではありません。任意に過去の工数入力する以外の場合は工数区分定義を最新のものにして工数入力を実施してください。"
+
+    # データ変換
+    member_serializer = MemberSerializer(member_data, many=False)
+    kosu_serializer = KosuSerializer(kosu_data, many=False)
+    def_serializer = DefSerializer(def_data, many=False)
+
+    # フロントへの送信データ
+    response_data = {
+      'member_data': member_serializer.data,
+      'kosu_data': kosu_serializer.data,
+      'def_data': def_serializer.data,
+      'session_day': day,
+      'session_def': def_ver,
+    }
+
+    return Response(response_data)
 
 
 

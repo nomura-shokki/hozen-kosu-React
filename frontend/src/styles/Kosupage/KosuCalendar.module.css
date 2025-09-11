@@ -109,3 +109,22 @@
   cursor: pointer; /* マウスカーソルをポインターに変更 */
   appearance: none; /* デフォルトの矢印を非表示にする */
 }
+
+.table-wrapper table tbody {
+  position: relative; /* 疑似要素の配置基準点 */
+}
+
+.table-wrapper table tbody::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-image: url("../../img/RAV4.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.2; /* 80%透明にするには20%の不透明度を設定 */
+  z-index: -1; /* コンテンツの下に配置 */
+}
