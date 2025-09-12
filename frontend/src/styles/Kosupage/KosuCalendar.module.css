@@ -26,26 +26,26 @@
 
 .kosu-calendar-wrapper {
   animation: fadeInUp 1s ease-out;
-  display: flex; /* 子要素をフレックスレイアウトにする */
-  flex-direction: column; /* 縦方向に要素を並べる */
+  display: flex;
+  flex-direction: column;
   justify-content: top;
-  align-items: center; /* 横方向の中央に配置 */
-  height: 100vh; /* 画面の高さいっぱいにする */
+  align-items: center;
+  height: 100vh;
   width: 100%;
-  margin: 0 auto; /* 横方向の中央寄せ */
+  margin: 0 auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .table-wrapper {
   width: 100%;
-  max-height: 400px; /* 明確な高さ制限を設定 */
+  max-height: 400px;
   max-width: 100vw;
-  overflow-x: auto; /* 横スクロールを許可する */
-  overflow-y: auto; /* 縦スクロールを許可する */
-  border: 1px solid #ccc; /* 境界線を追加してスクロール領域を明確にする */
-  box-sizing: border-box; /* パディングやボーダーを含めてサイズを計算 */
-  -webkit-overflow-scrolling: touch; /* iOSでスムーズスクロールを有効化 */
-  margin: 0 auto; /* デフォルトでは中央揃えにする */
+  overflow-x: auto;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 auto;
 }
 
 @media (max-width: 768px) {
@@ -72,46 +72,45 @@
 }
 
 .year-month-selector {
-  display: flex; /* 子要素を横並びに配置 */
-  gap: 10px; /* 要素間の隙間を10pxに設定 */
-  margin-bottom: 20px; /* 下部に余白を追加 */
-  align-items: center; /* 要素を垂直方向の中央に揃える */
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center; 
 }
 
-/* select要素（年、月）のスタイル */
 .year-month-selector select {
-  padding: 8px 12px; /* 内側の余白 */
-  border-radius: 5px; /* 角を丸くする */
-  border: 1px solid #ccc; /* 境界線 */
-  background-color: #fff; /* 背景色 */
-  font-size: 2rem; /* フォントサイズ */
-  cursor: pointer; /* マウスカーソルをポインターに変更 */
-  appearance: none; /* デフォルトの矢印を非表示にする */
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+  appearance: none;
 }
 
 .year-month-selector select:hover {
-  border-color: #0af; /* ホバー時に境界線の色を変更 */
+  border-color: #0af;
 }
 
 .button-wrapper {
-  display: flex; /* 子要素を横並びに配置 */
-  gap: 30px; /* 要素間の隙間を10pxに設定 */
-  margin-bottom: 20px; /* 下部に余白を追加 */
-  align-items: center; /* 要素を垂直方向の中央に揃える */
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+  align-items: center;
 }
 
 .work-tyoku select {
-  padding: 8px 12px; /* 内側の余白 */
-  border-radius: 5px; /* 角を丸くする */
-  border: 1px solid #ccc; /* 境界線 */
-  background-color: #fff; /* 背景色 */
-  font-size: 1rem; /* フォントサイズ */
-  cursor: pointer; /* マウスカーソルをポインターに変更 */
-  appearance: none; /* デフォルトの矢印を非表示にする */
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  appearance: none;
 }
 
 .table-wrapper table tbody {
-  position: relative; /* 疑似要素の配置基準点 */
+  position: relative;
 }
 
 .table-wrapper table tbody::before {
@@ -122,9 +121,9 @@
   bottom: 0;
   left: 0;
   background-image: url("../../img/RAV4.png");
-  background-size: cover;
+  background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.2; /* 80%透明にするには20%の不透明度を設定 */
-  z-index: -1; /* コンテンツの下に配置 */
+  opacity: 0.2;
+  z-index: -1;
 }
