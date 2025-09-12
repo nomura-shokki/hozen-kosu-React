@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEvent, FormEvent, useCallback } from "react";
+import React, { useState, useEffect, ChangeEvent, FormEvent, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import Loading from "../components/Loading";
@@ -77,6 +77,9 @@ const KosuNew: React.FC = () => {
       return cachedTime2 ? new Date(cachedTime2) : roundToNearestFiveMinutes(new Date(), workDay);
     })(),
   });
+
+  // `tyoku2` の以前の値を追跡するための ref
+  const prevTyokuRef = useRef<string | null>(null);
 
   // 時刻ピッカーの変更を処理する関数。
   const handleTimeChange = (
@@ -352,6 +355,39 @@ const KosuNew: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // `data.tyoku2` が変更された場合に時刻を更新する `useEffect`
+  useEffect(() => {
+    const prevTyoku = prevTyokuRef.current;
+    if (data?.tyoku2 && data.tyoku2 !== prevTyoku) {
+      if (data.tyoku2 === "1" || data.tyoku2 === "5") {
+        const newTime = new Date();
+        newTime.setHours(6, 30, 0, 0);
+        setSelectedTimes({
+          time1: newTime,
+          time2: newTime,
+        });
+        updateCachedTimes(newTime, newTime);
+      } else if (data.tyoku2 === "4") {
+        const newTime = new Date();
+        newTime.setHours(8, 0, 0, 0);
+        setSelectedTimes({
+          time1: newTime,
+          time2: newTime,
+        });
+        updateCachedTimes(newTime, newTime);
+      } else if (data.tyoku2 === "6") {
+        const newTime = new Date();
+        newTime.setHours(17, 10, 0, 0);
+        setSelectedTimes({
+          time1: newTime,
+          time2: newTime,
+        });
+        updateCachedTimes(newTime, newTime);
+      }
+    }
+    prevTyokuRef.current = data?.tyoku2 || null;
+  }, [data?.tyoku2]);
 
   return (
     // JSXのレンダリング部分
