@@ -50,8 +50,7 @@ const KosuTotal: React.FC = () => {
         `${process.env.REACT_APP_API_BASE_URL}/api/kosu_total/`,
         { withCredentials: true }
       );
-      setKosuData(response.data);
-      console.log(response.data)
+      setKosuData(response.data.kosu_data);
       setLoading(false);
     } catch (err) {
       if (axios.isAxiosError(err)) {

@@ -368,6 +368,38 @@ const KosuNew: React.FC = () => {
           time2: newTime,
         });
         updateCachedTimes(newTime, newTime);
+      } else if (data.tyoku2 === "2" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
+        const newTime = new Date();
+        newTime.setHours(11, 10, 0, 0);
+        setSelectedTimes({
+          time1: newTime,
+          time2: newTime,
+        });
+        updateCachedTimes(newTime, newTime);
+      } else if (data.tyoku2 === "2") {
+        const newTime = new Date();
+        newTime.setHours(13, 50, 0, 0);
+        setSelectedTimes({
+          time1: newTime,
+          time2: newTime,
+        });
+        updateCachedTimes(newTime, newTime);
+      } else if (data.tyoku2 === "3" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
+        const newTime = new Date();
+        newTime.setHours(19, 50, 0, 0);
+        setSelectedTimes({
+          time1: newTime,
+          time2: newTime,
+        });
+        updateCachedTimes(newTime, newTime);
+      } else if (data.tyoku2 === "3") {
+        const newTime = new Date();
+        newTime.setHours(22, 25, 0, 0);
+        setSelectedTimes({
+          time1: newTime,
+          time2: newTime,
+        });
+        updateCachedTimes(newTime, newTime);
       } else if (data.tyoku2 === "4") {
         const newTime = new Date();
         newTime.setHours(8, 0, 0, 0);
