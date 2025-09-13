@@ -13,7 +13,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { MobileTimePicker } from "@mui/x-date-pickers";
 
-// Kosuデータの型定義
+// 工数データの型定義
 interface Kosu {
   id: string;
   employee_no3: number;
@@ -28,13 +28,12 @@ interface Kosu {
   break_change: boolean;
 }
 
-// Defデータの型定義
+// 工数区分定義データの型定義
 interface DefData {
   [key: string]: string | undefined;
 }
 
-// 時刻を最も近い5分単位に丸めるヘルパー関数。
-// workDayは、丸めた時刻にその日の日付を適用するために使用される。
+// 時刻を最も近い5分単位に丸める関数。
 const roundToNearestFiveMinutes = (date: Date, workDay: Date): Date => {
   const minutes = Math.floor(date.getMinutes() / 5) * 5;
   date.setMinutes(minutes, 0, 0);
@@ -44,9 +43,8 @@ const roundToNearestFiveMinutes = (date: Date, workDay: Date): Date => {
   return date;
 };
 
-// KosuNewコンポーネントの定義。新しい工数データを入力・送信するページ。
 const KosuNew: React.FC = () => {
-  // 状態管理のためのuseStateフック
+  // 状態管理
   const [data, setData] = useState<Kosu | null>(null); // 工数データ
   const [defData, setDefData] = useState<DefData>({}); // 工数区分定義データ
   const [loading, setLoading] = useState(true); // ローディング状態
@@ -358,71 +356,41 @@ const KosuNew: React.FC = () => {
 
   // `data.tyoku2` が変更された場合に時刻を更新する `useEffect`
   useEffect(() => {
-    const prevTyoku = prevTyokuRef.current;
-    if (data?.tyoku2 && data.tyoku2 !== prevTyoku) {
+    if (prevTyokuRef.current !== null && data?.tyoku2 && data.tyoku2 !== prevTyokuRef.current) {
+      const workDay = data ? new Date(data.work_day2) : new Date();
+      let newTime = new Date(workDay);
+
       if (data.tyoku2 === "1" || data.tyoku2 === "5") {
-        const newTime = new Date();
         newTime.setHours(6, 30, 0, 0);
-        setSelectedTimes({
-          time1: newTime,
-          time2: newTime,
-        });
-        updateCachedTimes(newTime, newTime);
       } else if (data.tyoku2 === "2" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
-        const newTime = new Date();
         newTime.setHours(11, 10, 0, 0);
-        setSelectedTimes({
-          time1: newTime,
-          time2: newTime,
-        });
-        updateCachedTimes(newTime, newTime);
       } else if (data.tyoku2 === "2") {
-        const newTime = new Date();
         newTime.setHours(13, 50, 0, 0);
-        setSelectedTimes({
-          time1: newTime,
-          time2: newTime,
-        });
-        updateCachedTimes(newTime, newTime);
       } else if (data.tyoku2 === "3" && (memberShop === "W1" || memberShop === "W2" || memberShop === "A1" || memberShop === "A2" || memberShop === "J" || memberShop === "組長以上(W,A)")) {
-        const newTime = new Date();
         newTime.setHours(19, 50, 0, 0);
-        setSelectedTimes({
-          time1: newTime,
-          time2: newTime,
-        });
-        updateCachedTimes(newTime, newTime);
       } else if (data.tyoku2 === "3") {
-        const newTime = new Date();
         newTime.setHours(22, 25, 0, 0);
-        setSelectedTimes({
-          time1: newTime,
-          time2: newTime,
-        });
-        updateCachedTimes(newTime, newTime);
       } else if (data.tyoku2 === "4") {
-        const newTime = new Date();
         newTime.setHours(8, 0, 0, 0);
-        setSelectedTimes({
-          time1: newTime,
-          time2: newTime,
-        });
-        updateCachedTimes(newTime, newTime);
       } else if (data.tyoku2 === "6") {
-        const newTime = new Date();
         newTime.setHours(17, 10, 0, 0);
-        setSelectedTimes({
-          time1: newTime,
-          time2: newTime,
-        });
-        updateCachedTimes(newTime, newTime);
+      } else {
+        prevTyokuRef.current = data.tyoku2;
+        return;
       }
+
+      setSelectedTimes({
+        time1: newTime,
+        time2: newTime,
+      });
+      updateCachedTimes(newTime, newTime);
     }
-    prevTyokuRef.current = data?.tyoku2 || null;
-  }, [data?.tyoku2]);
+    if (data?.tyoku2) {
+      prevTyokuRef.current = data.tyoku2;
+    }
+  }, [data?.tyoku2, memberShop, data?.work_day2]);
 
   return (
-    // JSXのレンダリング部分
     <>
       <Loading isLoading={loading} />
       <div className={styles["kosu-new-wrapper"]}>
@@ -444,7 +412,7 @@ const KosuNew: React.FC = () => {
 
         <form
           onSubmit={handleSubmit}
-          // Enterキーでのフォーム送信を防止する。
+
           onKeyDown={(e) => {
             if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
               e.preventDefault();
@@ -592,7 +560,6 @@ const KosuNew: React.FC = () => {
             <button type="submit" className="light_blue_button">更新</button>
           </div>
         </form>
-        {/* 初期の作業内容がある場合にのみ、追加コンポーネントを表示 */}
         {initialTimeWork && (
           <div className={styles["centeredContainer"]}>
             <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""} defData={defData} tyoku={initialTyoku || ""} shop={memberShop || ""} />

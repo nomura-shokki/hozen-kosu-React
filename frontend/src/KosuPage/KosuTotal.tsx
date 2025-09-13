@@ -12,6 +12,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels"; // 👈️ 追加
 import styles from "../styles/KosuPage/KosuTotal.module.css";
 
 ChartJS.register(
@@ -20,12 +21,19 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ChartDataLabels // 👈️ 追加
 );
 
 interface KosuData {
   time_work: string;
+}
+
+interface ApiResponseData {
+  member_data: object;
+  kosu_data: KosuData;
   def_data: { [key: string]: string };
+  session_day: string;
 }
 
 const generateColorPalette = (): string[] => {
@@ -38,7 +46,7 @@ const generateColorPalette = (): string[] => {
 };
 
 const KosuTotal: React.FC = () => {
-  const [kosuData, setKosuData] = useState<KosuData | null>(null);
+  const [apiData, setApiData] = useState<ApiResponseData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -50,7 +58,7 @@ const KosuTotal: React.FC = () => {
         `${process.env.REACT_APP_API_BASE_URL}/api/kosu_total/`,
         { withCredentials: true }
       );
-      setKosuData(response.data.kosu_data);
+      setApiData(response.data);
       setLoading(false);
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -72,8 +80,10 @@ const KosuTotal: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
-  const processDataForChart = (data: KosuData) => {
-    const { time_work, def_data } = data;
+  const processDataForChart = (data: ApiResponseData) => {
+    const { kosu_data, def_data, session_day } = data;
+    const { time_work } = kosu_data;
+
     const labels = [];
     const chartData = [];
     const backgroundColors = [];
@@ -83,7 +93,7 @@ const KosuTotal: React.FC = () => {
     const colorPalette = generateColorPalette();
 
     // Fix starts here: Check if time_work is a valid string before processing
-    if (typeof time_work !== 'string' || !time_work) {
+    if (typeof time_work !== "string" || !time_work) {
       return {
         labels: [],
         datasets: [
@@ -95,7 +105,6 @@ const KosuTotal: React.FC = () => {
         ],
       };
     }
-    // Fix ends here
 
     for (let i = 1; i <= 50; i++) {
       const titleKey = `kosu_title_${i}`;
@@ -131,17 +140,28 @@ const KosuTotal: React.FC = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "top" as const,
+        display: false,
       },
       title: {
-        display: true,
-        text: "工数集計グラフ",
+        display: false,
+      },
+      datalabels: {
+        anchor: "end" as "end",
+        align: "start" as "start",
+        formatter: (value: number) => {
+          return value > 0 ? value.toString() : "";
+        },
+        font: {
+          weight: 'bold'
+        } as const,
       },
     },
     scales: {
       x: {
         ticks: {
           autoSkip: false,
+          maxRotation: 90,
+          minRotation: 90,
         },
       },
       y: {
@@ -162,11 +182,11 @@ const KosuTotal: React.FC = () => {
     return <div className={styles.error}>{error}</div>;
   }
 
-  if (!kosuData) {
+  if (!apiData) {
     return <div className={styles.noData}>データがありません。</div>;
   }
 
-  const chartData = processDataForChart(kosuData);
+  const chartData = processDataForChart(apiData);
 
   return (
     <div className={styles["kosu-total-wrapper"]}>

@@ -150,6 +150,9 @@ const KosuBarChart: React.FC<Props> = ({ initialTimeWork, tyoku, shop }) => {
       title: {
         display: false,
       },
+      datalabels: {
+        display: false,
+      },
     },
     scales: {
       y: {
