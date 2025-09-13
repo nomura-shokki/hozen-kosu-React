@@ -1,29 +1,47 @@
-.table-wrapper {
-  width: 100%;
-  max-height: 400px; /* 明確な高さ制限を設定 */
-  max-width: 100vw;
-  overflow-x: auto; /* 横スクロールを許可する */
-  overflow-y: auto; /* 縦スクロールを許可する */
-  border: 1px solid #ccc; /* 境界線を追加してスクロール領域を明確にする */
-  box-sizing: border-box; /* パディングやボーダーを含めてサイズを計算 */
-  -webkit-overflow-scrolling: touch; /* iOSでスムーズスクロールを有効化 */
-  margin: 20px auto; /* デフォルトでは中央揃えにする */
-}
-
-/* 画面幅が768px以下の場合に左揃えに変更 */
-@media (max-width: 768px) {
-  .table-wrapper {
-    margin: 0; /* 左揃えにするため中央配置を解除 */
-    justify-content: flex-start; /* コンテンツを左寄せに */
-    padding-left: 10px; /* 少し余白を追加して視認性を向上 */
-  }
-}
-
 .color-dot {
   vertical-align: middle;
 }
 
-.th-collar{
-  background-color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+.chartDataList {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 1rem;
+  margin: 10px;
+  padding: 1.5rem;
+  width:  calc(100% - 20px);
+  max-width: 450px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: fadeInUp 0.8s ease-in-out 0.2s backwards;
+}
+
+.dataListItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* ラベルと値を左右に配置 */
+  padding: 1rem;
+  background-color: #f7fcff; /* 明るい背景色 */
+  border: 1px solid #c0e6ff; /* 明るい水色のボーダー */
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.dataListItem:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.itemLabel {
+  font-weight: 600;
+  color: #333;
+  flex-grow: 1;
+}
+
+/* 画面幅が768px以下の場合に適用されるスタイル */
+@media (max-width: 768px) {
+  .itemLabel {
+    font-size: 0.8rem; /* リスト内のテキストを小さくする */
+  }
 }

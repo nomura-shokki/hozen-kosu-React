@@ -28,17 +28,105 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem;
   min-height: 100vh;
   animation: fadeIn 1s ease-in-out;
+  padding: 1rem;
+}
+
+.kosu-total-form {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1.5rem; /* 間隔を広げる */
+  margin-bottom: 2.5rem; /* グラフとの間隔を広げる */
+  align-items: center;
+  justify-content: center; /* 折り返した項目を中央に配置 */
+}
+
+.kosu-total-form label {
+  color: #555;
+  font-weight: 600;
+}
+
+.kosu-total-form input,
+.kosu-total-form select {
+  background-color: #fff;
+  border: 1px solid #c0e6ff; /* 明るい水色のボーダー */
+  color: #333;
+  border-radius: 8px;
+  padding: 0.6rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .chart-container {
   width: 100%;
-  min-width: 900px;
-  min-height: 500px;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  max-width: 1200px;
+  height: 60vh;
+  padding: 10px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   animation: fadeInUp 0.8s ease-in-out;
+  overflow-x: auto;
+}
+
+.chartDataList {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 1rem;
+  margin: 10px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 600px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: fadeInUp 0.8s ease-in-out 0.2s backwards;
+}
+
+.dataListItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* ラベルと値を左右に配置 */
+  padding: 1rem;
+  background-color: #f7fcff; /* 明るい背景色 */
+  border: 1px solid #c0e6ff; /* 明るい水色のボーダー */
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.dataListItem:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.colorBox {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 1rem;
+}
+
+.itemLabel {
+  font-weight: 600;
+  color: #333;
+  flex-grow: 1;
+}
+
+.itemValue {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 画面幅が768px以下の場合に適用されるスタイル */
+@media (max-width: 768px) {
+  .itemLabel,
+  .itemValue {
+    font-size: 0.8rem; /* リスト内のテキストを小さくする */
+  }
+  .colorBox {
+    width: 15px;
+    height: 15px;
+  }
 }

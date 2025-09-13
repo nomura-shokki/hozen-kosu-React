@@ -124,7 +124,7 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
   }, [parsedData]); // `parsedData`が変更されたら再実行
 
   return (
-    <div className={styles["table-wrapper"]} style={{ maxHeight: `${maxHeight}px`, overflowY: "auto", width: `${tableWidth + 5}px` }}>
+    <div className={styles["table-wrapper"]} style={{ maxHeight: `${maxHeight}px`, overflowY: "auto", width: `${tableWidth + 15}px` }}>
       <table ref={tableRef}>
         <thead>
           <tr>

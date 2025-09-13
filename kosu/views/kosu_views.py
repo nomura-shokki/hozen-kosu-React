@@ -3940,6 +3940,7 @@ class KosuTotal(APIView):
   def get(self, request, *args, **kwargs):
     # セッション値取得
     login_no = request.session.get('login_No')
+    def_ver_session = request.session.get('input_def')
 
     # セッション値なしエラー
     if not login_no:
@@ -3965,10 +3966,15 @@ class KosuTotal(APIView):
     if kosu_query_set.count() > 1:
       return Response({'error': '複数の工数データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     kosu_data = kosu_query_set.first()
-    def_ver = kosu_data.def_ver2
+    if kosu_data is None:
+      kosu_data = Business_Time_graph()
+      kosu_data.employee_no3 = login_no
+      kosu_data.work_day2 = day
+      kosu_data.def_ver2 = def_ver_session
+      kosu_data.time_work = '#'*288
 
     # 工数区分定義確認
-    def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
+    def_query_set = kosu_division.objects.filter(kosu_name=kosu_data.def_ver2 if kosu_data.def_ver2 else def_ver_session)
     if not def_query_set.exists():
       return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
     elif def_query_set.count() > 1:
@@ -3977,7 +3983,7 @@ class KosuTotal(APIView):
 
     # データ変換
     member_serializer = MemberSerializer(member_data, many=False)
-    kosu_serializer = KosuSerializer(kosu_data, many=False)
+    kosu_serializer = KosuSerializer(kosu_data)
     def_serializer = DefSerializer(def_data, many=False)
 
     # フロントへの送信データ
@@ -3992,16 +3998,18 @@ class KosuTotal(APIView):
 
 
   # POST処理
-  def post(self, request, *args, **kwargs):
+  def post(self, request):
+    print(request.data)
     # セッション値取得
     login_no = request.session.get('login_No')
+    def_ver_session = request.session.get('input_def')
 
     # セッション値なしエラー
     if not login_no:
       return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 就業日記憶
-    day = request.session.get('day')
+    day = request.data.get('date')
     if not day:
       day = str(datetime.date.today())
       request.session['day'] = day
@@ -4015,15 +4023,30 @@ class KosuTotal(APIView):
     member_data = member_query_set.first()
 
     # 工数データ確認
-    kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+    if request.data.get('period') == '日間':
+      kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+      kosu_data = kosu_query_set.first()
+      if kosu_data is None:
+        kosu_data = Business_Time_graph()
+        kosu_data.employee_no3 = login_no
+        kosu_data.work_day2 = day
+        kosu_data.def_ver2 = def_ver_session
+        kosu_data.time_work = '#'*288
+    elif request.data.get('period') == '月間':
+      kosu_data = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2__month=day.month, work_day2__year=day.year)
+      if kosu_data.first() is None:
+        kosu_data = Business_Time_graph()
+        kosu_data.employee_no3 = login_no
+        kosu_data.work_day2 = day
+        kosu_data.def_ver2 = def_ver_session
+        kosu_data.time_work = '#'*288
 
-    if kosu_query_set.count() > 1:
-      return Response({'error': '複数の工数データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
-    kosu_data = kosu_query_set.first()
-    def_ver = kosu_data.def_ver2
+
+
+
 
     # 工数区分定義確認
-    def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
+    def_query_set = kosu_division.objects.filter(kosu_name=kosu_data.def_ver2 if kosu_data.def_ver2 else def_ver_session)
     if not def_query_set.exists():
       return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
     elif def_query_set.count() > 1:
@@ -4032,7 +4055,7 @@ class KosuTotal(APIView):
 
     # データ変換
     member_serializer = MemberSerializer(member_data, many=False)
-    kosu_serializer = KosuSerializer(kosu_data, many=False)
+    kosu_serializer = KosuSerializer(kosu_data)
     def_serializer = DefSerializer(def_data, many=False)
 
     # フロントへの送信データ

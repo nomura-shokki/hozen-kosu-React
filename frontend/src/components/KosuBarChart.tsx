@@ -1,5 +1,6 @@
 import React from "react";
 import { Bar } from "react-chartjs-2";
+import styles from "../styles/components/KosuBarChart.module.css";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -174,7 +175,11 @@ const KosuBarChart: React.FC<Props> = ({ initialTimeWork, tyoku, shop }) => {
     },
   } as const;
 
-  return <Bar data={data} options={options} />;
+  return (
+    <div className={styles["chart-container"]}>
+      <Bar data={data} options={options} />
+    </div>
+  );
 };
 
 export default KosuBarChart;

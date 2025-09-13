@@ -53,41 +53,22 @@ const DefTable: React.FC<DefDataProps> = ({ defData }) => {
   }, [titles]);
 
   return (
-    <div
-      className={styles["table-wrapper"]}
-      style={{
-        maxHeight: `${maxHeight}px`,
-        overflowY: "auto",
-        width: `${tableWidth + 20}px`,
-      }}
-    >
-      <table ref={tableRef}>
-        <thead>
-          <tr>
-            <th className={styles["th-collar"]}>工数タイトル</th>
-            <th className={styles["th-collar"]}>色</th>
-          </tr>
-        </thead>
-        <tbody>
-          {titles.map((item, index) => (
-            <tr key={index}>
-              <td>{item.title}</td>
-              <td>
-                <span
-                  className={styles["color-dot"]}
-                  style={{
-                    backgroundColor: item.color,
-                    display: "inline-block",
-                    borderRadius: "50%",
-                    width: "14px",
-                    height: "14px",
-                  }}
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className={styles.chartDataList}>
+      {titles.map((item, index) => (
+        <div key={index} className={styles.dataListItem}>
+          <span className={styles.itemLabel}>{item.title}</span>
+          <span
+            className={styles["color-dot"]}
+            style={{
+              backgroundColor: item.color,
+              display: "inline-block",
+              borderRadius: "50%",
+              width: "14px",
+              height: "14px",
+            }}
+          />
+        </div>
+      ))}
     </div>
   );
 };
