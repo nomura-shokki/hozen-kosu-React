@@ -1909,6 +1909,7 @@ class KosuTotalView(FormView):
 
 
 
+
 #--------------------------------------------------------------------------------------------------------
 
 
@@ -4013,6 +4014,7 @@ class KosuTotal(APIView):
     if not day:
       day = str(datetime.date.today())
       request.session['day'] = day
+    day_object = datetime.datetime.strptime(day, '%Y-%m-%d')
 
     # ログイン者データ確認
     member_query_set = member.objects.filter(employee_no=login_no)
@@ -4024,29 +4026,41 @@ class KosuTotal(APIView):
 
     # 工数データ確認
     if request.data.get('period') == '日間':
-      kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+      kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day_object)
       kosu_data = kosu_query_set.first()
-      if kosu_data is None:
+      if kosu_query_set.first() is None:
         kosu_data = Business_Time_graph()
         kosu_data.employee_no3 = login_no
-        kosu_data.work_day2 = day
+        kosu_data.work_day2 = day_object
         kosu_data.def_ver2 = def_ver_session
         kosu_data.time_work = '#'*288
     elif request.data.get('period') == '月間':
-      kosu_data = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2__month=day.month, work_day2__year=day.year)
+      kosu_data = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2__month=day_object.month, work_day2__year=day_object.year)
       if kosu_data.first() is None:
         kosu_data = Business_Time_graph()
         kosu_data.employee_no3 = login_no
-        kosu_data.work_day2 = day
+        kosu_data.work_day2 = day_object
+        kosu_data.def_ver2 = def_ver_session
+        kosu_data.time_work = '#'*288
+    elif request.data.get('period') == '年間':
+      kosu_data = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2__year=day_object.year)
+      if kosu_data.first() is None:
+        kosu_data = Business_Time_graph()
+        kosu_data.employee_no3 = login_no
+        kosu_data.work_day2 = day_object
         kosu_data.def_ver2 = def_ver_session
         kosu_data.time_work = '#'*288
 
-
-
-
-
     # 工数区分定義確認
-    def_query_set = kosu_division.objects.filter(kosu_name=kosu_data.def_ver2 if kosu_data.def_ver2 else def_ver_session)
+    if isinstance(kosu_data, Business_Time_graph):
+      def_ver_to_filter = kosu_data.def_ver2 if kosu_data.def_ver2 else def_ver_session
+    else:
+      first_kosu_with_def = kosu_data.exclude(def_ver2__isnull=True).exclude(def_ver2__exact='').order_by('id').first()
+      if first_kosu_with_def:
+        def_ver_to_filter = first_kosu_with_def.def_ver2
+      else:
+        def_ver_to_filter = def_ver_session
+    def_query_set = kosu_division.objects.filter(kosu_name=def_ver_to_filter)
     if not def_query_set.exists():
       return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
     elif def_query_set.count() > 1:
@@ -4055,8 +4069,11 @@ class KosuTotal(APIView):
 
     # データ変換
     member_serializer = MemberSerializer(member_data, many=False)
-    kosu_serializer = KosuSerializer(kosu_data)
     def_serializer = DefSerializer(def_data, many=False)
+    if isinstance(kosu_data, Business_Time_graph):
+      kosu_serializer = KosuSerializer(kosu_data)
+    else:
+      kosu_serializer = KosuSerializer(kosu_data, many=True)
 
     # フロントへの送信データ
     response_data = {
