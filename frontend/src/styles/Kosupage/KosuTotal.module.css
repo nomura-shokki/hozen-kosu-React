@@ -35,33 +35,53 @@
 
 .kosu-total-form {
   display: flex;
-  flex-direction: row;
   flex-wrap: wrap;
-  gap: 1.5rem; /* 間隔を広げる */
-  margin-bottom: 2.5rem; /* グラフとの間隔を広げる */
-  align-items: center;
-  justify-content: center; /* 折り返した項目を中央に配置 */
+  justify-content: center; /* フォーム全体を水平方向の中央に配置 */
+  align-items: flex-start; /* 縦並びの際に上から配置を開始 */
+  gap: 1.5rem; /* アイテム間の間隔 */
+  margin-bottom: 2.5rem;
+}
+
+@media (max-width: 768px) {
+  .kosu-total-form {
+    flex-direction: column; /* アイテムを縦に積み重ねる */
+    align-items: center; /* フォーム全体を中央に配置 */
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column; /* ラベルと入力欄を縦に並べる */
+  align-items: flex-start; /* グループ内のアイテムを左揃えにする */
+  width: 100%; /* 親コンテナの幅いっぱいに広げる */
+  max-width: 300px;
 }
 
 .kosu-total-form label {
   color: #555;
   font-weight: 600;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+  width: 100%;
+  text-align: left;
 }
 
 .kosu-total-form input,
 .kosu-total-form select {
   background-color: #fff;
-  border: 1px solid #c0e6ff; /* 明るい水色のボーダー */
-  color: #333;
-  border-radius: 8px;
-  padding: 0.6rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  text-align: center;
+  width: 100%;
 }
 
 .chart-container {
   width: 100%;
   max-width: 1200px;
-  height: 60vh;
+  min-width: 750px;
+  height: 40vh;
   padding: 10px;
   background-color: #ffffff;
   border-radius: 16px;
@@ -121,6 +141,9 @@
 
 /* 画面幅が768px以下の場合に適用されるスタイル */
 @media (max-width: 768px) {
+  .chart-container {
+    min-width: 250px;
+  }
   .itemLabel,
   .itemValue {
     font-size: 0.8rem; /* リスト内のテキストを小さくする */

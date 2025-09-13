@@ -100,13 +100,13 @@
 }
 
 .work-tyoku select {
-  padding: 8px 12px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
   background-color: #fff;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
   font-size: 1rem;
-  cursor: pointer;
-  appearance: none;
+  text-align: center;
+  width: 100%;
 }
 
 .table-wrapper table tbody {

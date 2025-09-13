@@ -142,29 +142,38 @@ const KosuTotal: React.FC = () => {
 
   const processDataForChart = (data: ApiResponseData): ChartDataWithElements => {
     const { kosu_data, def_data } = data;
-    const { time_work } = kosu_data;
-  
+    let aggregatedTimeWork = "";
+
+    // kosu_dataが配列か単一のオブジェクトかを確認
+    if (Array.isArray(kosu_data)) {
+      // 配列の場合は、time_workをすべて連結
+      aggregatedTimeWork = kosu_data.map(item => item.time_work).join("");
+    } else {
+      // 単一のオブジェクトの場合は、そのtime_workを使用
+      aggregatedTimeWork = kosu_data.time_work || "";
+    }
+
     const labels: string[] = [];
     const chartData: number[] = [];
     const backgroundColors: string[] = [];
     
     const chartElements: { label: string, value: number, backgroundColor: string }[] = [];
 
-    const charMap =
+    const charMap = 
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx".split("");
     const colorPalette = generateColorPalette();
 
-    if (typeof time_work !== "string" || !time_work) {
-      return {
+    if (!aggregatedTimeWork) {
+      return { 
         labels: [],
-        datasets: [
-          {
+        datasets: [ 
+          { 
             label: "作業時間（分）",
             data: [],
             backgroundColor: [],
           },
         ],
-        chartElements: [], // 空の配列を返す
+        chartElements: [],
       };
     }
 
@@ -177,7 +186,7 @@ const KosuTotal: React.FC = () => {
       }
 
       const char = charMap[i - 1];
-      const count = (time_work.match(new RegExp(char, "g")) || []).length;
+      const count = (aggregatedTimeWork.match(new RegExp(char, "g")) || []).length;
       const value = count * 5;
 
       chartElements.push({
@@ -226,10 +235,14 @@ const KosuTotal: React.FC = () => {
         formatter: (value: number) => {
           return value > 0 ? value.toString() : "";
         },
-        // データラベルのフォントサイズを動的に設定
+        // ここから追加・修正
+        color: '#ffffff', // ラベルの文字色を白に設定
+        textStrokeColor: '#000000', // ラベルの輪郭色を黒に設定
+        textStrokeWidth: 2, // 輪郭の太さを設定
+        // ここまで
         font: (context: any) => {
           const chartWidth = context.chart.width;
-          let fontSize = 12; // デフォルトサイズ
+          let fontSize = 12;
           if (chartWidth < 600) {
             fontSize = 10;
           }
@@ -238,7 +251,6 @@ const KosuTotal: React.FC = () => {
           }
           return {
             size: fontSize,
-            weight: 'bold' as const,
           };
         }
       },
@@ -249,10 +261,9 @@ const KosuTotal: React.FC = () => {
           autoSkip: false,
           maxRotation: 90,
           minRotation: 90,
-          // X軸ラベルのフォントサイズを動的に設定
           font: (context: any) => {
             const chartWidth = context.chart.width;
-            let fontSize = 12; // デフォルトサイズ
+            let fontSize = 12;
             if (chartWidth < 600) {
               fontSize = 10;
             }
@@ -308,35 +319,41 @@ const KosuTotal: React.FC = () => {
         <Link to="/kosu-menu">工数MENU</Link>
       </nav>
       <div className={styles["kosu-total-form"]}>
-        <label htmlFor="date-picker">日付:</label>
-        <input
-          type="date"
-          id="date-picker"
-          value={selectedDate}
-          onChange={handleDateChange}
-          className={styles["date-picker-input"]}
-        />
-        <label htmlFor="period-select">期間:</label>
-        <select
-          id="period-select"
-          value={selectedPeriod}
-          onChange={handlePeriodChange}
-          className={styles["period-select"]}
-        >
-          <option value="日間">日間</option>
-          <option value="月間">月間</option>
-          <option value="年間">年間</option>
-        </select>
-        <label htmlFor="order-select">並び順:</label>
-        <select
-          id="order-select"
-          value={selectedOrder}
-          onChange={handleOrderChange}
-          className={styles["order-select"]}
-        >
-          <option value="標準">標準</option>
-          <option value="多い順">多い順</option>
-        </select>
+        <div className={styles["form-group"]}>
+          <label htmlFor="date-picker">日付:</label>
+          <input
+            type="date"
+            id="date-picker"
+            value={selectedDate}
+            onChange={handleDateChange}
+            className={styles["date-picker-input"]}
+          />
+        </div>
+        <div className={styles["form-group"]}>
+          <label htmlFor="period-select">期間:</label>
+          <select
+            id="period-select"
+            value={selectedPeriod}
+            onChange={handlePeriodChange}
+            className={styles["period-select"]}
+          >
+            <option value="日間">日間</option>
+            <option value="月間">月間</option>
+            <option value="年間">年間</option>
+          </select>
+        </div>
+        <div className={styles["form-group"]}>
+          <label htmlFor="order-select">並び順:</label>
+          <select
+            id="order-select"
+            value={selectedOrder}
+            onChange={handleOrderChange}
+            className={styles["order-select"]}
+          >
+            <option value="標準">標準</option>
+            <option value="多い順">多い順</option>
+          </select>
+        </div>
       </div>
       <div className={styles["chart-container"]}>
         <Bar data={chartData} options={options} />
