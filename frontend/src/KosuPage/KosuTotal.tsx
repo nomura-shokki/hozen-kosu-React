@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import ChartDataLabels from "chartjs-plugin-datalabels"; // 👈️ 追加
+import ChartDataLabels from "chartjs-plugin-datalabels";
 import styles from "../styles/KosuPage/KosuTotal.module.css";
 
 ChartJS.register(
@@ -22,7 +22,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  ChartDataLabels // 👈️ 追加
+  ChartDataLabels
 );
 
 interface KosuData {
@@ -55,7 +55,7 @@ const KosuTotal: React.FC = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_API_BASE_URL}/api/kosu_total/`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/kosu_total2/`,
         { withCredentials: true }
       );
       setApiData(response.data);
@@ -92,7 +92,6 @@ const KosuTotal: React.FC = () => {
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split("");
     const colorPalette = generateColorPalette();
 
-    // Fix starts here: Check if time_work is a valid string before processing
     if (typeof time_work !== "string" || !time_work) {
       return {
         labels: [],
