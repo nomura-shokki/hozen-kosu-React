@@ -25,6 +25,8 @@ import MemberNew from './MemberPage/MemberNew';
 import MemberList from './MemberPage/MemberList';
 import MemberEdit from './MemberPage/MemberEdit';
 import MemberDelete from './MemberPage/MemberDelete';
+import TeamMenu from './TeamPage/TeamMenu';
+import TeamNew from './TeamPage/TeamNew';
 
 
 
@@ -56,6 +58,8 @@ const App: React.FC = () => {
       "/member-list": "人員一覧 - 業務工数システム",
       "/member-update/:employee_no": "人員編集 - 業務工数システム",
       "/member-delete/:employee_no": "人員削除 - 業務工数システム",
+      "/team-menu": "班員Menu - 業務工数システム",
+      "/team-new": "班員登録 - 業務工数システム",
     };
 
     // URLに基づいてタイトルを設定
@@ -87,6 +91,8 @@ const App: React.FC = () => {
       <Route path="/member-list" element={<MemberList />} />
       <Route path="/member-update/:employee_no" element={<MemberEdit />} />
       <Route path="/member-delete/:employee_no" element={<MemberDelete />} />
+      <Route path="/team-menu" element={<TeamMenu />} />
+      <Route path="/team-new" element={<TeamNew />} />
     </Routes>
   );
 };

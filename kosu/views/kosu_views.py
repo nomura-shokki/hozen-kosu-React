@@ -3699,7 +3699,7 @@ class KosuCalendar(APIView):
     kosu_data = Business_Time_graph.objects.filter(employee_no3=login_no).order_by('-work_day2')
     kosu_data = kosu_data.filter(work_day2__startswith=Search_month[:7])
     # データ変換
-    kosu_serializer = KosuSerializer(kosu_data,  many=True)
+    kosu_serializer = KosuSerializer(kosu_data, many=True)
 
     # フロントへの送信データ
     response_data = {
@@ -4084,15 +4084,4 @@ class KosuTotal(APIView):
     }
 
     return Response(response_data)
-
-
-
-
-
-
-
-
-
-
-
 

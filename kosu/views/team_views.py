@@ -1060,3 +1060,91 @@ class ClassList(FormView):
 #--------------------------------------------------------------------------------------------------------
 
 
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from ..models import member, administrator_data, team_member
+from .serializers import TeamSerializer, MemberSerializer
+
+
+
+class TeamNew(APIView):
+  def get(self, request):
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '該当するデータが見つかりません'}, status=404)
+
+    if not member_data.authority:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+    team_filter = team_member.objects.filter(employee_no5=login_no)
+    if team_filter.count() > 1:
+      return Response({'error': '複数の班員データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+    team_data = team_filter.first()
+    # チームメンバーの従業員番号をリストにまとめる
+    member_numbers = [
+        team_data.member1, team_data.member2, team_data.member3,
+        team_data.member4, team_data.member5, team_data.member6,
+        team_data.member7, team_data.member8, team_data.member9,
+        team_data.member10, team_data.member11, team_data.member12,
+        team_data.member13, team_data.member14, team_data.member15
+    ]
+    valid_member_numbers = [
+        num for num in member_numbers if num is not None and num != ''
+    ]
+    team_member_choices = member.objects.filter(employee_no__in=valid_member_numbers)
+
+    member_serializer = MemberSerializer(member_data, many=False)
+    team_serializer = TeamSerializer(team_data, many=False)
+    team_member_default = MemberSerializer(team_member_choices, many=True)
+
+    member_all = member.objects.all().order_by('employee_no')
+    member_select = MemberSerializer(member_all, many=True)
+
+    # 送信データ
+    response_data = {
+      'member_data': member_serializer.data,
+      'team_data': team_serializer.data,
+      'member_default': team_member_default.data,
+      'member_select': member_select.data,
+    }
+    return Response(response_data)
+
+
+  def post(self, request):
+    data = request.data
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+
+    team_data, created = team_member.objects.get_or_create(
+      employee_no5=login_no,
+      defaults={
+        'employee_no5': login_no,
+      }
+    )
+
+    # 更新可能フィールド定義
+    updatable_fields = [
+      'member1', 'member2','member3', 'member4', 'member5', 'member6', 
+      'member7', 'member8', 'member9', 'member10', 'member11', 'member12', 
+      'member13', 'member14', 'member15','follow',
+    ]
+
+    # 項目毎にデータを上書き
+    for field in updatable_fields:
+      if field in data:
+        setattr(team_data, field, data[field])
+    team_data.save()
+    return Response({'status': 'success', 'message': 'データが更新されました。'})
+
+
+
+

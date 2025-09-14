@@ -12,30 +12,6 @@ interface Member {
   shop: string;
   authority: boolean;
   administrator: boolean;
-  break_time1: string;
-  break_time1_over1: string;
-  break_time1_over2: string;
-  break_time1_over3: string;
-  break_time2: string;
-  break_time2_over1: string;
-  break_time2_over2: string;
-  break_time2_over3: string;
-  break_time3: string;
-  break_time3_over1: string;
-  break_time3_over2: string;
-  break_time3_over3: string;
-  break_time4: string;
-  break_time4_over1: string;
-  break_time4_over2: string;
-  break_time4_over3: string;
-  break_time5: string;
-  break_time5_over1: string;
-  break_time5_over2: string;
-  break_time5_over3: string;
-  break_time6: string;
-  break_time6_over1: string;
-  break_time6_over2: string;
-  break_time6_over3: string;
   pop_up1: string;
   pop_up_id1: string;
   pop_up2: string;
@@ -58,9 +34,7 @@ const MemberMenu: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/main_menu/`, {
-        withCredentials: true, // クッキーをリクエストに含める設定
-      })
+      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/main_menu/`, {withCredentials: true})
       .then((response) => {
         setData(response.data);
         setLoading(false);
@@ -78,16 +52,7 @@ const MemberMenu: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      // Django セッションを削除するリクエスト送信
-      await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/logout/`, // セッション削除用のバックエンドエンドポイント
-        {},
-        {
-          withCredentials: true, // クッキーを送信する設定
-        }
-      );
-
-      // React Router を使用して `/login` に遷移
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/logout/`, {}, {withCredentials: true});
       navigate("/login");
     } catch (error) {
       console.error("ログアウト中にエラーが発生しました。", error);
@@ -110,7 +75,10 @@ const MemberMenu: React.FC = () => {
       <Link to="/kosu-menu" className={styles["kosu-menu-button"]}>工数MENU</Link>
       <Link to="/def-menu" className={styles["def-menu-button"]}>工数定義区分MENU</Link>
       {data.length > 0 && data[0].authority && (
-        <Link to="/member-menu" className={styles["member-menu-button"]}>人員MENU</Link>
+        <>
+          <Link to="/member-menu" className={styles["member-menu-button"]}>人員MENU</Link>
+          <Link to="/team-menu" className={styles["team-menu-button"]}>班員MENU</Link>
+        </>
       )}
       <button onClick={handleLogout} className="blue_button">
         ログアウト

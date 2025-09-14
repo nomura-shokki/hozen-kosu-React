@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import styles from "../styles/MemberPage/MemberMenu.module.css";
+import styles from "../styles/TeamPage/TeamMenu.module.css";
 
-const MemberMenu: React.FC = () => {
+const TeamMenu: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/api/member_menu/`, {withCredentials: true})
+      .get(`${process.env.REACT_APP_API_BASE_URL}/api/team_menu/`, {withCredentials: true})
       .then(() => {
         setLoading(false);
       })
@@ -40,14 +40,13 @@ const MemberMenu: React.FC = () => {
 
   return (
     <div className={styles["menu-wrapper"]}>
-      <h1 className={styles["h1-collar"]}>人員MENU</h1>
-      <nav className={styles["member-nav"]}>
+      <h1 className={styles["h1-collar"]}>班員MENU</h1>
+      <nav className={styles["team-nav"]}>
         <Link to="/">メインMENU</Link>
       </nav>
-      <Link to="/member-new" className={styles["member-button1"]}>人員登録</Link>
-      <Link to="/member-list" className={styles["member-button2"]}>人員一覧</Link>
+      <Link to="/team-new" className={styles["team-button1"]}>班員登録</Link>
     </div>
   );
 };
 
-export default MemberMenu;
+export default TeamMenu;

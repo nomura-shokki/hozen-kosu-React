@@ -1169,3 +1169,32 @@ class KosuMenu(APIView):
     # シリアライザーを通してデータをJSON形式で返す
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+# 人員Menu動作
+class TeamMenu(APIView):
+  def get(self, request):
+    # セッションから必要なデータを取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+      # ログインしているユーザーのデータを取得
+      member_data = member.objects.get(employee_no=login_no)
+      if not member_data.authority:
+        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # シリアライザーを通してデータをJSON形式で返す
+    serializer = MemberSerializer([member_data], many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+

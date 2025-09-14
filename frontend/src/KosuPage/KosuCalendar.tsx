@@ -255,12 +255,19 @@ const KosuCalendar: React.FC = () => {
       calendarCells.push(i);
     }
 
+    const remainingCells = 7 - (calendarCells.length % 7);
+    if (remainingCells < 7) {
+      for (let i = 0; i < remainingCells; i++) {
+        calendarCells.push(null);
+      }
+    }
+
     const rows: (number | null)[][] = [];
     let currentRow: (number | null)[] = [];
 
     calendarCells.forEach((cell, index) => {
       currentRow.push(cell);
-      if (currentRow.length === 7 || index === calendarCells.length - 1) {
+      if (currentRow.length === 7) {
         rows.push(currentRow);
         currentRow = [];
       }
@@ -408,7 +415,7 @@ const KosuCalendar: React.FC = () => {
           style={{
             maxHeight: `${maxHeight}px`,
             overflowY: "auto",
-            width: `${tableWidth + 5}px`,
+            width: `${tableWidth + 20}px`,
           }}
         >
           <table ref={tableRef}>
