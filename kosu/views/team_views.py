@@ -981,8 +981,6 @@ class ClassList(FormView):
 
     # 月の最終日取得
     last_day_of_month = calendar.monthrange(year, month)[1]
-    print(year)
-    print(month)
     # 従業員情報設定
     for member_obj in member_obj_filter:
       No_list.append(member_obj.employee_no)

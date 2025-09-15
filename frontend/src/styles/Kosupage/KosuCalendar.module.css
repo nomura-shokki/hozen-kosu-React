@@ -36,6 +36,10 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.kosu-calendar-wrapper p {
+  white-space: nowrap; /* テキストを強制的に1行に表示し、折り返さない */
+}
+
 .table-wrapper {
   width: 100%;
   max-height: 400px;
@@ -46,14 +50,6 @@
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
   margin: 0 auto;
-}
-
-@media (max-width: 768px) {
-  .table-wrapper {
-    margin: 0;
-    justify-content: flex-start;
-    padding-left: 10px;
-  }
 }
 
 .th-collar1 {
@@ -94,8 +90,8 @@
 
 .button-wrapper {
   display: flex;
-  gap: 30px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 10px;
   align-items: center;
 }
 
@@ -126,4 +122,24 @@
   background-repeat: no-repeat;
   opacity: 0.2;
   z-index: -1;
+}
+
+@media (max-width: 768px) {
+  .table-wrapper {
+    margin: 0;
+    justify-content: flex-start;
+  }
+
+  .table-wrapper table {
+    transform: scale(0.6);
+    transform-origin: top left;
+  }
+
+  .kosu-calendar-wrapper p {
+    font-size: 0.8em;
+  }
+
+  .button-wrapper {
+    transform: scale(0.8);
+  }
 }

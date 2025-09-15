@@ -210,6 +210,28 @@ th {
   text-decoration: none; 
 }
 
+.orange_button {
+  background-color: #f50;
+  color: #fff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  writing-mode: horizontal-tb;
+  white-space: nowrap;
+  width: auto;
+  max-width: 100%;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.orange_button:hover {
+  background-color: #f10;
+  text-decoration: none; 
+}
+
 div[role="alert"] {
   background-color: #f8d7da;
   color: #721c24;

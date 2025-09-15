@@ -30,6 +30,7 @@ const KosuCalendar: React.FC = () => {
   const [sessionMonth, setSessionMonth] = useState<number | null>(null);
   const [formData, setFormData] = useState<{ [key: string]: { work_time: string; tyoku2: string; week?: string } }>({});
   const [defaultTyokuValues, setDefaultTyokuValues] = useState<string[]>([]);
+  const [totalOverTime, setTotalOverTime] = useState<number>(0);
   const tableRef = useRef<HTMLTableElement>(null);
   const navigate = useNavigate();
 
@@ -69,6 +70,15 @@ const KosuCalendar: React.FC = () => {
       setLoading(false);
     }
   }, [navigate]);
+
+  // dataが変更されたときに合計残業時間を計算
+  useEffect(() => {
+    const totalMinutes = data.reduce((sum, item) => {
+      // over_timeが有効な数値であることを確認して加算
+      return sum + (item.over_time ? Number(item.over_time) : 0);
+    }, 0);
+    setTotalOverTime(totalMinutes);
+  }, [data]);
 
   const handleChange = (day: string, field: 'work_time' | 'tyoku2', value: string) => {
     setFormData(prevFormData => ({
@@ -408,6 +418,10 @@ const KosuCalendar: React.FC = () => {
           >
             直一括入力
           </button>
+        </div>
+
+        <div className={styles["total-overtime"]}>
+          <h2>合計残業時間: {(totalOverTime / 60).toFixed(2)}H</h2>
         </div>
 
         <p>※日付を押すと該当日の工数入力画面に遷移します。</p>

@@ -179,7 +179,7 @@ const TeamNew: React.FC = () => {
           
           {renderMemberSelects()}
           
-          <button type="submit" className="yellow_button">
+          <button type="submit" className="orange_button">
             登録
           </button>
         </div>

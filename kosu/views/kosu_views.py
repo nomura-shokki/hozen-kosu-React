@@ -3097,7 +3097,7 @@ class KosuNew(APIView):
     kosu_data.breaktime_over1 = breaktime_over1
     kosu_data.breaktime_over2 = breaktime_over2
     kosu_data.breaktime_over3 = breaktime_over3
-    print(work_list)
+
     # 工数データ更新
     kosu_data.save()
     return Response({'status': 'success', 'message': 'データが更新されました。'})
@@ -3411,7 +3411,7 @@ class BreakTime(APIView):
 
 
 
-# 工数編集
+# 工数編集(一括)
 class KosuUpdate(APIView):
   # 指定IDの工数データ取得
   def get_object(self, pk):
@@ -3420,13 +3420,15 @@ class KosuUpdate(APIView):
     except Business_Time_graph.DoesNotExist:
       return None
 
+
   # GET処理
   def get(self, request, pk):
+    # 工数データ取得
     kosu_instance = self.get_object(pk)
     if not kosu_instance:
       return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    # セッション値取得
+    # セッション値、日付取得
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
     request.session['day'] = str(kosu_instance.work_day2)
@@ -3461,10 +3463,12 @@ class KosuUpdate(APIView):
         return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
       def_instance = def_query_set.first()
 
+    # データ変換
     kosu_serializer = KosuSerializer(kosu_instance)
     def_serializer = DefSerializer(def_instance)
     member_serializer = MemberSerializer(member_data, many=False)
 
+    # 送信データ
     response_data = {
       'kosu_data': kosu_serializer.data,
       'def_data': def_serializer.data,
@@ -3474,8 +3478,14 @@ class KosuUpdate(APIView):
     return Response(response_data)
 
 
+  # PUT処理
   def put(self, request, pk):
+    # 工数データ取得
     kosu_instance = self.get_object(pk)
+    if not kosu_instance:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # セッション値、日付、ログイン者データ取得
     def_ver = request.session.get('input_def')
     login_no = request.session.get('login_No')
     day = request.session.get('day')
@@ -3489,13 +3499,11 @@ class KosuUpdate(APIView):
     if not day:
       return Response({'error': '編集前の就業日データがありませんでした。IT担当者に連絡してください。'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    if not kosu_instance:
-      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
-
+    # 工数区分定義設定エラー
     if kosu_instance.def_ver2:
       if kosu_instance.def_ver2 != def_ver:
         return Response({'error': '指定就業日を入力している工数定義区分と使用しようとしている工数定義区分が違います。'}, status=status.HTTP_400_BAD_REQUEST)
-
+    # 日付更新エラー
     if day != request.data.get('work_day2'):
       return Response({'error': '更新ボタンで就業日の修正はできません。就業日更新で変更してください。'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -3557,37 +3565,44 @@ class KosuUpdate(APIView):
 
 
 
-
+# 工数編集(就業日変更)
 class DayUpdate(APIView):
+  # PUT処理
   def put(self, request):
+    # セッション値、日付取得
     login_no = request.session.get('login_No')
     day = request.data.get('work_day2')
 
     # セッション値なしエラー
     if not login_no:
       return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 日付取得
     if not day:
       request.session['day'] = ""
       return Response({'error': '就業日が未指定です。'},status=status.HTTP_400_BAD_REQUEST)
     else:
       request.session['day'] = str(day)
 
+    # 工数データ確認
     obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+    # 変更日に工数データがある場合、エラー
     if obj_filter.exists():
       return Response({'error': '変更日に既に工数データがあります。変更先の工数データを削除してから実行してください。'}, status=status.HTTP_400_BAD_REQUEST)
 
+    # 工数データ日付更新
     Business_Time_graph.objects.update_or_create(
       id=request.data.get('id'), 
       defaults = {'work_day2': day}
       )
-
     return Response({'status': 'success', 'message': '日付が変更されました。'})
 
 
 
-
+# 工数編集(項目削除)
 class ItemDlete(APIView):
+  # POST処理
   def post(self, request):
+    # セッション値、日付取得
     login_no = request.session.get('login_No')
     day = request.data.get('work_day2')
 
@@ -3595,15 +3610,20 @@ class ItemDlete(APIView):
     if not login_no:
       return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    # 工数データ取得
+    # 工数データ確認
     obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
+    # 工数データがある場合
     if obj_filter.exists():
+      # 工数データ取得
       obj_get = obj_filter.first()
+      # 作業内容がある場合、作業内容、作業詳細取得
       if obj_get.time_work:
         work_list = list(obj_get.time_work)
         detail_list = obj_get.detail_work.split('$')
+      # 作業内容がない場合エ、エラー
       else:
         return Response({'error': '工数データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 工数データがない場合、エラー
     else:
       return Response({'error': '工数データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -3643,12 +3663,11 @@ class ItemDlete(APIView):
         'detail_work': detail_list_summarize(detail_list), 
       }
     )
-
     return Response({'status': 'success', 'message': '項目が削除されました。'})
 
 
 
-
+# 工数削除
 class KosuDelete(APIView):
   def get_object(self, pk):
     try:
@@ -3670,6 +3689,7 @@ class KosuDelete(APIView):
     # レコードを削除
     kosu_instance.delete()
     return Response({'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+
 
 
 
@@ -3864,7 +3884,7 @@ class WorkDefault(APIView):
 
 
 
-# 直一括入力
+
 class TyokuDefault(APIView):
   # POST処理
   def post(self, request, *args, **kwargs):
@@ -4001,7 +4021,6 @@ class KosuTotal(APIView):
 
   # POST処理
   def post(self, request):
-    print(request.data)
     # セッション値取得
     login_no = request.session.get('login_No')
     def_ver_session = request.session.get('input_def')
