@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React from "react";
 import styles from "../styles/components/DefTable.module.css";
 
 interface DefDataProps {
@@ -23,34 +23,6 @@ const DefTable: React.FC<DefDataProps> = ({ defData }) => {
       title: defData[key]!,
       color: colorPalette[index],
     }));
-
-  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight); // テーブルの最大高さ
-  const [tableWidth, setTableWidth] = useState<number>(0); // テーブルの幅
-  const tableRef = useRef<HTMLTableElement>(null); // テーブル要素の参照
-
-  // ウィンドウサイズ変更時に最大高さを更新
-  useEffect(() => {
-    const updateMaxHeight = () => {
-      setMaxHeight(window.innerHeight);
-    };
-
-    updateMaxHeight();
-    window.addEventListener("resize", updateMaxHeight);
-    return () => window.removeEventListener("resize", updateMaxHeight);
-  }, []);
-
-  // テーブルの幅を更新
-  useEffect(() => {
-    const updateTableWidth = () => {
-      if (tableRef.current) {
-        setTableWidth(tableRef.current.offsetWidth);
-      }
-    };
-
-    updateTableWidth();
-    window.addEventListener("resize", updateTableWidth);
-    return () => window.removeEventListener("resize", updateTableWidth);
-  }, [titles]);
 
   return (
     <div className={styles.chartDataList}>

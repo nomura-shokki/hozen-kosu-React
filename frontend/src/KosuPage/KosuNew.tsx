@@ -125,6 +125,7 @@ const KosuNew: React.FC = () => {
         setData({
           ...kosu_data,
           work_day2: sessionDay,
+          time_work: "",
           detail_work: "",
         });
         const def_data = response.data.def_data || {};
@@ -388,7 +389,7 @@ const KosuNew: React.FC = () => {
     if (data?.tyoku2) {
       prevTyokuRef.current = data.tyoku2;
     }
-  }, [data?.tyoku2, memberShop, data?.work_day2]);
+  }, [data?.tyoku2, memberShop, data?.work_day2, data]);
 
   return (
     <>

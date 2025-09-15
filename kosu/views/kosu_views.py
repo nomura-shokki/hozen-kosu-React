@@ -2831,7 +2831,6 @@ from ..utils.kosu_utils import parse_break_time
 from ..utils.kosu_utils import get_week_of_month
 import datetime
 import itertools
-import calendar
 
 
 
@@ -2882,7 +2881,7 @@ class KosuList(APIView):
 # 工数入力
 class KosuNew(APIView):
   # GET処理
-  def get(self, request, *args, **kwargs):
+  def get(self, request):
     # セッション値取得
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
@@ -2947,7 +2946,7 @@ class KosuNew(APIView):
 
 
   # POST処理
-  def post(self, request, *args, **kwargs):
+  def post(self, request):
     # セッション値取得
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
@@ -3098,6 +3097,7 @@ class KosuNew(APIView):
     kosu_data.breaktime_over1 = breaktime_over1
     kosu_data.breaktime_over2 = breaktime_over2
     kosu_data.breaktime_over3 = breaktime_over3
+    print(work_list)
     # 工数データ更新
     kosu_data.save()
     return Response({'status': 'success', 'message': 'データが更新されました。'})
@@ -3307,7 +3307,7 @@ class TodayBreakTime(APIView):
 # 休憩変更
 class BreakTime(APIView):
   # GET処理
-  def get(self, request, *args, **kwargs):
+  def get(self, request):
     # ユーザーの従業員番号、使用工数区分定義取得
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
@@ -3337,7 +3337,7 @@ class BreakTime(APIView):
 
 
 # POST処理
-  def post(self, request, *args, **kwargs):
+  def post(self, request):
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
     post_data = request.data
@@ -3413,13 +3413,14 @@ class BreakTime(APIView):
 
 # 工数編集
 class KosuUpdate(APIView):
+  # 指定IDの工数データ取得
   def get_object(self, pk):
     try:
       return Business_Time_graph.objects.get(id=pk)
     except Business_Time_graph.DoesNotExist:
       return None
 
-
+  # GET処理
   def get(self, request, pk):
     kosu_instance = self.get_object(pk)
     if not kosu_instance:
@@ -3556,9 +3557,9 @@ class KosuUpdate(APIView):
 
 
 
-# 工数データ日付編集
+
 class DayUpdate(APIView):
-  def put(self, request, *args, **kwargs):
+  def put(self, request):
     login_no = request.session.get('login_No')
     day = request.data.get('work_day2')
 
@@ -3584,9 +3585,9 @@ class DayUpdate(APIView):
 
 
 
-# 工数データ項目削除
+
 class ItemDlete(APIView):
-  def post(self, request, *args, **kwargs):
+  def post(self, request):
     login_no = request.session.get('login_No')
     day = request.data.get('work_day2')
 
@@ -3647,7 +3648,7 @@ class ItemDlete(APIView):
 
 
 
-# 工数削除
+
 class KosuDelete(APIView):
   def get_object(self, pk):
     try:
@@ -3713,7 +3714,7 @@ class KosuCalendar(APIView):
 
 
 class KosuCalendarChange(APIView):
-  def post(self, request, *args, **kwargs):
+  def post(self, request):
     request.session['year'] = request.data.get('year')
     request.session['month'] = request.data.get('month')
 

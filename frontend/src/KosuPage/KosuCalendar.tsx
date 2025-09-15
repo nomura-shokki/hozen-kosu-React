@@ -15,6 +15,7 @@ interface Kosu {
   work_time: string;
   time_work: string;
   judgement: boolean;
+  over_time: string;
 }
 
 const KosuCalendar: React.FC = () => {
@@ -139,7 +140,7 @@ const KosuCalendar: React.FC = () => {
   const postWorkDefault = async () => {
     setIsPostingWorkDefault(true);
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/work_default/`, {}, { withCredentials: true });
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/work_default/`, {}, { withCredentials: true });
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -447,7 +448,7 @@ const KosuCalendar: React.FC = () => {
                         {day !== null ? (
                           <div>
                             <div onClick={() => handleDayClick(formattedDay!)}>
-                                {day}
+                              {day}
                             </div>
                             <div>
                               <div className={styles["work-tyoku"]}>
@@ -468,6 +469,11 @@ const KosuCalendar: React.FC = () => {
                               <div>
                                 {formatTimeWork(dayData ? dayData.time_work : "")}
                               </div>
+                              {dayData?.over_time && Number(dayData.over_time) > 0 ? (
+                                <div>
+                                  残業:{(Number(dayData.over_time) / 60).toFixed(2)}H
+                                </div>
+                              ) : null}
                             </div>
                           </div>
                         ) : (
