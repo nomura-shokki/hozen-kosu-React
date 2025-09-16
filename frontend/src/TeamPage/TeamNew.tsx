@@ -53,6 +53,7 @@ const TeamNew: React.FC = () => {
 
   const [teamMemberOptions, setTeamMemberOptions] = useState<{ employee_no: number; name: string; shop: string }[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loggedInShop, setLoggedInShop] = useState<string | null>(null); // 新しい状態変数
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,6 +71,8 @@ const TeamNew: React.FC = () => {
         setTeamMemberOptions(memberSelectData);
 
         const loggedInEmployeeNo = response.data.member_data.employee_no;
+        const loggedInShop = response.data.member_data.shop;
+        setLoggedInShop(loggedInShop);
         const teamDefaultData = response.data.member_default;
         const teamFollow = response.data.team_data.follow;
 
@@ -150,10 +153,13 @@ const TeamNew: React.FC = () => {
 
     for (let i = 1; i <= 15; i++) {
       const memberName = `member${i}` as keyof FormData;
+      const memberId = `member-select-${i}`;
+
       selects.push(
         <React.Fragment key={i}>
-          <label htmlFor={memberName}>メンバー{i}:</label>
+          <label htmlFor={memberId}>メンバー{i}:</label>
           <TeamMemberSelect
+            id={memberId}
             name={memberName}
             value={formData[memberName] as string}
             onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
@@ -165,6 +171,9 @@ const TeamNew: React.FC = () => {
     return selects;
   };
 
+  // フィルターを表示する対象のショップを定義
+  const shopsWithFilter = ["組長以上(P,R,T,その他)", "組長以上(W,A)"];
+
   return (
     <div className={styles["team-new-wrapper"]}>
       <h1 className={styles["h1-collar"]}>班員登録</h1>
@@ -173,25 +182,29 @@ const TeamNew: React.FC = () => {
       </nav>
 
       {errorMessage && <div role="alert">{errorMessage}</div>}
-      <div className={styles["paling"]}>
-        <div className={styles["search-bar"]}>
-          <div className={styles["shop-label-wrapper"]}>
-            <label>ショップ絞り込み:</label>
-          </div>
-          <div className={styles["shop-select-container"]}>
-            <ShopSelect
-              name="shop1"
-              value={formData.shop1}
-              onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
-            />
-            <ShopSelect
-              name="shop2"
-              value={formData.shop2}
-              onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
-            />
+      {loggedInShop && shopsWithFilter.includes(loggedInShop) && (
+        <div className={styles["paling"]}>
+          <div className={styles["search-bar"]}>
+            <div className={styles["shop-label-wrapper"]}>
+              <label>ショップ絞り込み:</label>
+            </div>
+            <div className={styles["shop-select-container"]}>
+              <ShopSelect
+                id="shop-select-1"
+                name="shop1"
+                value={formData.shop1}
+                onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
+              />
+              <ShopSelect
+                id="shop-select-2"
+                name="shop2"
+                value={formData.shop2}
+                onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -201,14 +214,15 @@ const TeamNew: React.FC = () => {
             (e.target as HTMLInputElement).blur();
           }
         }}
+        className={styles["form-width"]}
       >
         <div className={styles["search-bar"]}>
           <div className={styles["switch-wrapper"]}>
-            <label htmlFor="follow">フォローON/OFF:</label>
+            <label htmlFor="follow-checkbox">フォローON/OFF:</label>
             <label className={styles["toggle-switch"]}>
               <input
                 type="checkbox"
-                id="follow"
+                id="follow-checkbox"
                 name="follow"
                 checked={formData.follow}
                 onChange={handleChange}

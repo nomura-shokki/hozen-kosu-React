@@ -9,6 +9,11 @@
   }
 }
 
+.form-width {
+  max-width: 450px;
+  min-width: 350px;
+}
+
 .h1-collar {
   color: #ff5500;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
