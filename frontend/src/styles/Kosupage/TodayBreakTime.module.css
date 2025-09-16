@@ -40,6 +40,10 @@
     margin: 0;
     justify-content: flex-start;
   }
+
+  .kosu-nav a {
+    font-size: 0.8rem;
+  }
 }
 
 .search-bar {

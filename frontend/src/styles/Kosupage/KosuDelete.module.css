@@ -64,6 +64,10 @@
     justify-content: flex-start;
     padding-left: 10px;
   }
+
+  .kosu-nav a {
+    font-size: 0.8rem;
+  }
 }
 
 .th-collar{

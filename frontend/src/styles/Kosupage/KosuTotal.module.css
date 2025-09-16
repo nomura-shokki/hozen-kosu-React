@@ -47,6 +47,10 @@
     flex-direction: column; /* アイテムを縦に積み重ねる */
     align-items: center; /* フォーム全体を中央に配置 */
   }
+
+  .kosu-nav a {
+    font-size: 0.8rem;
+  }
 }
 
 .form-group {

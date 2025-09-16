@@ -67,3 +67,9 @@
 .defver-wrapper p {
   margin-bottom: 10px;
 }
+
+@media (max-width: 768px) {
+  .def-nav a {
+    font-size: 0.8rem;
+  }
+}

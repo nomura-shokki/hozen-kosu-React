@@ -414,7 +414,6 @@ const KosuNew: React.FC = () => {
 
         <form
           onSubmit={handleSubmit}
-
           onKeyDown={(e) => {
             if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
               e.preventDefault();
@@ -423,7 +422,7 @@ const KosuNew: React.FC = () => {
           }}
         >
           <div className={styles["search-bar"]}>
-            <label htmlFor="work_day2">就業日:
+            <label htmlFor="work_day2">就業日：
               <span style={{ color: data?.judgement ? "blue" : "red", marginLeft: "8px" }}>
                 {data?.judgement ? "OK" : "NG"}
               </span>
@@ -436,7 +435,7 @@ const KosuNew: React.FC = () => {
               onChange={handleChange}
             />
 
-            <label htmlFor="work_time">勤務・直:</label>
+            <label htmlFor="work_time">勤務・直：</label>
             <div className={styles["work-tyoku-wrapper"]}>
               <WorkSelect id="work_time" value={data?.work_time || ""} onChange={handleChange} mode='LIMIT' />
               <TyokuSelect id="tyoku2" value={data?.tyoku2 || ""} onChange={handleChange} />
@@ -444,13 +443,13 @@ const KosuNew: React.FC = () => {
 
             <label htmlFor="time_work">
               作業内容：
-              <Link to="/def-search" className="green_button">
+              <Link to="/def-search" className={`green_button ${styles["font-min"]}`}>
                 工数区分定義確認
               </Link>
             </label>
             <DefSelect id="time_work" value={data?.time_work || ""} onChange={handleChange} defData={defData} />
 
-            <label htmlFor="detail_work">作業詳細:</label>
+            <label htmlFor="detail_work">作業詳細：</label>
             <input
               type="text"
               id="detail_work"
@@ -460,8 +459,8 @@ const KosuNew: React.FC = () => {
             />
 
             <label>
-              作業時間:
-              <button type="button" onClick={setTime2ToCurrentRounded} className="light_blue_button">
+              作業時間：
+              <button type="button" onClick={setTime2ToCurrentRounded} className={`light_blue_button ${styles["font-min"]}`}>
                 現在時刻
               </button>
             </label>
@@ -505,7 +504,7 @@ const KosuNew: React.FC = () => {
               </div>
             </div>
 
-            <label htmlFor="over_time">残業時間:</label>
+            <label htmlFor="over_time">残業時間：</label>
             <div className={styles["over-time-wrapper"]}>
               <button
                 type="button"
@@ -531,7 +530,7 @@ const KosuNew: React.FC = () => {
               <button
                 type="button"
                 onClick={handleSendOverTime}
-                className="light_blue_button"
+                className={`light_blue_button ${styles["font-min"]}`}
               >
                 残業のみ登録
               </button>
@@ -539,7 +538,7 @@ const KosuNew: React.FC = () => {
 
             <div className={styles["switch-wrapper"]}>
               <label htmlFor="break_change">休憩変更：
-                <Link to="/today-break-time" className="light_blue_button">
+                <Link to="/today-break-time" className={`light_blue_button ${styles["font-min"]}`}>
                   休憩登録
                 </Link>
               </label>

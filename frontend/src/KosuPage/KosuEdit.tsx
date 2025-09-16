@@ -435,6 +435,7 @@ const KosuEdit: React.FC = () => {
 
         <form
           onSubmit={handleSubmit}
+          className={styles["form-edit"]}
           onKeyDown={(e) => {
             if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
               e.preventDefault();

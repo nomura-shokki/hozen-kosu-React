@@ -25,14 +25,6 @@
   margin: 0 auto;
 }
 
-/* 画面幅が768px以下の場合に左揃えに変更 */
-@media (max-width: 768px) {
-  .def-edit-wrapper {
-    margin: 0; /* 左揃えにするため中央配置を解除 */
-    justify-content: flex-start; /* コンテンツを左寄せに */
-  }
-}
-
 .search-bar {
   display: flex; /* Flexboxで子要素を柔軟に配置 */
   flex-direction: column; /* 子要素を縦方向に並べる */
@@ -113,5 +105,14 @@
   .search-bar select {
     width: calc(100% - 20px);
     max-width: 250px;
+  }
+
+  .def-edit-wrapper {
+    margin: 0; /* 左揃えにするため中央配置を解除 */
+    justify-content: flex-start; /* コンテンツを左寄せに */
+  }
+
+  .def-nav a {
+    font-size: 0.8rem;
   }
 }

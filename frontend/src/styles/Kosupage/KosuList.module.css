@@ -186,7 +186,6 @@
   color: #555;
 }
 
-/* レスポンシブ対応 */
 @media (max-width: 768px) {
   .pagination {
     gap: 10px; /* 狭くなったときにボタン間の距離を縮小 */
@@ -204,5 +203,9 @@
   .search-bar {
     flex-direction: column; /* 小さい画面ではフォームを縦に並べる */
     gap: 10px;
+  }
+
+  .kosu-nav a {
+    font-size: 0.8rem;
   }
 }

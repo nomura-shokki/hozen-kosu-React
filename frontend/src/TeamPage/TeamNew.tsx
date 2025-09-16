@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/TeamPage/TeamNew.module.css";
 import TeamMemberSelect from "../components/TeamMemberSelect";
+import ShopSelect from "../components/ShopSelect";
 
 // フォームで取り扱うデータ型を定義
 interface FormData {
@@ -22,6 +23,8 @@ interface FormData {
   member13: string;
   member14: string;
   member15: string;
+  shop1: string;
+  shop2: string;
   follow: boolean;
 }
 
@@ -43,10 +46,12 @@ const TeamNew: React.FC = () => {
     member13: "",
     member14: "",
     member15: "",
+    shop1: "",
+    shop2: "",
     follow: false,
   });
 
-  const [teamMemberOptions, setTeamMemberOptions] = useState<{ employee_no: number; name: string }[]>([]);
+  const [teamMemberOptions, setTeamMemberOptions] = useState<{ employee_no: number; name: string; shop: string }[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -54,26 +59,28 @@ const TeamNew: React.FC = () => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/team_new/`, { withCredentials: true })
       .then((response) => {
-        // member_selectをTeamMemberSelectコンポーネントの選択肢として使用
-        const memberSelectData = response.data.member_select.map(
-          (member: { employee_no: number; name: string }) => ({
-            employee_no: member.employee_no,
-            name: member.name,
-          })
-        ) ?? [];
-        console.log(memberSelectData);
+        const memberSelectData =
+          response.data.member_select.map(
+            (member: { employee_no: number; name: string; shop: string }) => ({
+              employee_no: member.employee_no,
+              name: member.name,
+              shop: member.shop,
+            })
+          ) ?? [];
         setTeamMemberOptions(memberSelectData);
 
         const loggedInEmployeeNo = response.data.member_data.employee_no;
         const teamDefaultData = response.data.member_default;
-        const teamFollow = response.data.team_data.follow; // 追加: team_data.followを取得
+        const teamFollow = response.data.team_data.follow;
 
-        // 既存のメンバーの初期値を設定
-        const initialFormData: any = { ...formData, employee_no5: loggedInEmployeeNo, follow: teamFollow }; // 変更: followの初期値を設定
+        const initialFormData: any = { ...formData, employee_no5: loggedInEmployeeNo, follow: teamFollow };
         teamDefaultData.forEach((member: { employee_no: number }, index: number) => {
           const memberKey = `member${index + 1}` as keyof FormData;
           initialFormData[memberKey] = String(member.employee_no);
         });
+
+        initialFormData.shop1 = "";
+        initialFormData.shop2 = "";
 
         setFormData(initialFormData);
       })
@@ -89,7 +96,6 @@ const TeamNew: React.FC = () => {
       });
   }, [navigate]);
 
-  // 入力項目が変更されたときの処理
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = event.target;
 
@@ -107,7 +113,6 @@ const TeamNew: React.FC = () => {
     }
   };
 
-  // フォーム送信時の処理
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
@@ -135,6 +140,14 @@ const TeamNew: React.FC = () => {
   // メンバー選択コンポーネントの動的生成
   const renderMemberSelects = () => {
     const selects = [];
+    // 選択されたshop1とshop2の値を取得
+    const selectedShops = [formData.shop1, formData.shop2].filter(Boolean);
+
+    // フィルタリングされたメンバーオプションを作成
+    const filteredMemberOptions = teamMemberOptions.filter((member) =>
+      selectedShops.length === 0 || selectedShops.includes(member.shop)
+    );
+
     for (let i = 1; i <= 15; i++) {
       const memberName = `member${i}` as keyof FormData;
       selects.push(
@@ -144,7 +157,7 @@ const TeamNew: React.FC = () => {
             name={memberName}
             value={formData[memberName] as string}
             onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
-            options={teamMemberOptions}
+            options={filteredMemberOptions}
           />
         </React.Fragment>
       );
@@ -160,8 +173,35 @@ const TeamNew: React.FC = () => {
       </nav>
 
       {errorMessage && <div role="alert">{errorMessage}</div>}
+      <div className={styles["paling"]}>
+        <div className={styles["search-bar"]}>
+          <div className={styles["shop-label-wrapper"]}>
+            <label>ショップ絞り込み:</label>
+          </div>
+          <div className={styles["shop-select-container"]}>
+            <ShopSelect
+              name="shop1"
+              value={formData.shop1}
+              onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
+            />
+            <ShopSelect
+              name="shop2"
+              value={formData.shop2}
+              onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
+            />
+          </div>
+        </div>
+      </div>
 
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
+            e.preventDefault();
+            (e.target as HTMLInputElement).blur();
+          }
+        }}
+      >
         <div className={styles["search-bar"]}>
           <div className={styles["switch-wrapper"]}>
             <label htmlFor="follow">フォローON/OFF:</label>
@@ -176,9 +216,9 @@ const TeamNew: React.FC = () => {
               <span className={styles["toggle-slider"]}></span>
             </label>
           </div>
-          
+
           {renderMemberSelects()}
-          
+
           <button type="submit" className="orange_button">
             登録
           </button>

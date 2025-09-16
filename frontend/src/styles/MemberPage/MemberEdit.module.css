@@ -25,14 +25,6 @@
   margin: 0 auto;
 }
 
-@media (max-width: 768px) {
-  .member-new-wrapper {
-    margin: 0;
-    justify-content: flex-start;
-    padding-left: 10px;
-  }
-}
-
 .search-bar {
   display: flex;
   flex-direction: column;
@@ -141,5 +133,15 @@
   .search-bar select {
     width: calc(100% - 40px);
     max-width: 250px;
+  }
+
+  .member-new-wrapper {
+    margin: 0;
+    justify-content: flex-start;
+    padding-left: 10px;
+  }
+
+  .member-nav a {
+    font-size: 0.8rem;
   }
 }

@@ -85,15 +85,6 @@
   margin: 0 auto; /* デフォルトでは中央揃えにする */
 }
 
-/* 画面幅が768px以下の場合に左揃えに変更 */
-@media (max-width: 768px) {
-  .table-wrapper {
-    margin: 0; /* 左揃えにするため中央配置を解除 */
-    justify-content: flex-start; /* コンテンツを左寄せに */
-    padding-left: 10px; /* 少し余白を追加して視認性を向上 */
-  }
-}
-
 .th-collar{
   background-color: #ffd700;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
@@ -183,12 +174,22 @@
   }
 
   .pagination button {
-    width: 50px; /* ボタンサイズを縮小 */
+    width: 50px;
     height: 40px;
   }
 
   .search-bar {
-    flex-direction: column; /* 小さい画面ではフォームを縦に並べる */
+    flex-direction: column;
     gap: 10px;
+  }
+
+  .table-wrapper {
+    margin: 0;
+    justify-content: flex-start;
+    padding-left: 10px;
+  }
+
+  .member-nav a {
+    font-size: 0.8rem;
   }
 }

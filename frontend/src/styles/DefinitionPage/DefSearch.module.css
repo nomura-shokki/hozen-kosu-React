@@ -96,3 +96,9 @@
   text-align: left; /* 左揃え */
   margin: 0 10px 20px 10px; /* 左側の余白が加算されるため適切に調整 */
 }
+
+@media (max-width: 768px) {
+  .def-nav a {
+    font-size: 0.8rem;
+  }
+}

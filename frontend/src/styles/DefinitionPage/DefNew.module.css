@@ -29,7 +29,11 @@
 @media (max-width: 768px) {
   .def-new-wrapper {
     margin: 0; /* 左揃えにするため中央配置を解除 */
-    justify-content: flex-start; /* コンテンツを左寄せに */
+    justify-content: flex-start;
+  }
+
+  .def-nav a {
+    font-size: 0.8rem;
   }
 }
 

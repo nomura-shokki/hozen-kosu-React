@@ -3737,19 +3737,22 @@ class KosuCalendar(APIView):
 
 
 
-# 勤務入力カレンダー変更
+# 勤務入力(カレンダー変更)
 class KosuCalendarChange(APIView):
   # POST処理
   def post(self, request):
-    # POST値をセッションに登録
+    # セッション値取得
     request.session['year'] = request.data.get('year')
     request.session['month'] = request.data.get('month')
     return Response({'status': 'success', 'message': 'カレンダーが更新されました。'})
 
 
 
+# 勤務入力(個別変更)
 class KosuWorkWrite(APIView):
+  # POST処理
   def post(self, request, *args, **kwargs):
+    # セッション値取得
     login_no = request.session.get('login_No')
     year = request.session.get('year', datetime.date.today().year)
     month = request.session.get('month', datetime.date.today().month)
@@ -3766,6 +3769,7 @@ class KosuWorkWrite(APIView):
       return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     member_data = member_query_set.first()
 
+    # 指定月の最終日取得
     select_month = datetime.date(year, month, 1)
     if month == 12:
       month_end = 1
@@ -3773,11 +3777,11 @@ class KosuWorkWrite(APIView):
     else:
       month_end = month + 1
       year_end = year
-
     select_month = datetime.date(year_end, month_end, 1)
     month_day_end = select_month - datetime.timedelta(days = 1)
     day_end = month_day_end.day
 
+    # 勤務、直書き込み
     for d in range(day_end):
       obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=datetime.date(year, month, d + 1))
       obj = obj_filter.first() if obj_filter.exists() else None

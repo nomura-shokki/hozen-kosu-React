@@ -56,6 +56,10 @@
     justify-content: flex-start; /* コンテンツを左寄せに */
     padding-left: 10px; /* 少し余白を追加して視認性を向上 */
   }
+
+  .def-nav a {
+    font-size: 0.8rem;
+  }
 }
 
 .th-collar{

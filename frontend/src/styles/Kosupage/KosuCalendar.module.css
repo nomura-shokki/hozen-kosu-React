@@ -142,4 +142,8 @@
   .button-wrapper {
     transform: scale(0.8);
   }
+
+  .kosu-nav a {
+    font-size: 0.8rem;
+  }
 }
