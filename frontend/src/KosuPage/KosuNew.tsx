@@ -398,6 +398,7 @@ const KosuNew: React.FC = () => {
         <h1 className={styles["h1-collar"]}>{memberName}の工数入力</h1>
         <nav className={styles["kosu-nav"]}>
           <Link to="/kosu-menu">工数MENU</Link>
+          <Link to="/">メインMENU</Link>
           {data && (
             <Link to={`/kosu-update/${data.id}`}>工数編集</Link>
           )}
@@ -423,7 +424,6 @@ const KosuNew: React.FC = () => {
         >
           <div className={styles["search-bar"]}>
             <label htmlFor="work_day2">就業日:
-              {/* 工数データが承認済みか否かを表示 */}
               <span style={{ color: data?.judgement ? "blue" : "red", marginLeft: "8px" }}>
                 {data?.judgement ? "OK" : "NG"}
               </span>

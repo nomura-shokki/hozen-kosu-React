@@ -3669,15 +3669,19 @@ class ItemDlete(APIView):
 
 # 工数削除
 class KosuDelete(APIView):
+  # 指定IDの工数データ取得
   def get_object(self, pk):
     try:
       return Business_Time_graph.objects.get(id=pk)
     except Business_Time_graph.DoesNotExist:
       return None
 
+
+  # DELETE処理
   def delete(self, request, pk):
-    # セッションからログイン情報を取得
+    # セッション値取得
     login_no = request.session.get('login_No')
+    # セッション値なしエラー
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -3692,8 +3696,9 @@ class KosuDelete(APIView):
 
 
 
-
+# 勤務入力
 class KosuCalendar(APIView):
+  # GET処理
   def get(self, request):
     # セッション値取得
     login_no = request.session.get('login_No')
@@ -3722,22 +3727,23 @@ class KosuCalendar(APIView):
     # データ変換
     kosu_serializer = KosuSerializer(kosu_data, many=True)
 
-    # フロントへの送信データ
+    # 送信データ
     response_data = {
       'session_year': year,
       'session_month': month,
       'kosu_data': kosu_serializer.data,
     }
-
     return Response(response_data)
 
 
 
+# 勤務入力カレンダー変更
 class KosuCalendarChange(APIView):
+  # POST処理
   def post(self, request):
+    # POST値をセッションに登録
     request.session['year'] = request.data.get('year')
     request.session['month'] = request.data.get('month')
-
     return Response({'status': 'success', 'message': 'カレンダーが更新されました。'})
 
 
