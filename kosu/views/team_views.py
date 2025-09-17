@@ -1198,7 +1198,7 @@ class TeamList(APIView):
     filter_flag = request.query_params.get('filter', 'false') == 'true'
 
     # 工数履歴データの取得
-    kosus = Business_Time_graph.objects.filter(employee_no3__in=valid_member_numbers).order_by('-work_day2')
+    kosus = Business_Time_graph.objects.select_related('name').filter(employee_no3__in=valid_member_numbers).order_by('-work_day2')
 
     # 工数履歴データ絞り込み
     if search_day and filter_flag:

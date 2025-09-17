@@ -42,11 +42,12 @@
   justify-content: center;
   align-items: center;
   gap: 15px;
-  margin: 20px 0;
+  margin: 10px 0;
   flex-wrap: wrap;
 }
 
-.search-bar input {
+.search-bar input,
+.search-bar select {
   padding: 8px 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -54,7 +55,8 @@
   min-width: 180px;
 }
 
-.search-bar input:focus {
+.search-bar input:focus,
+.search-bar select:focus {
   border-color: #f50;
   outline: none;
   box-shadow: 0 0 3px #555;
