@@ -53,7 +53,7 @@ const TeamNew: React.FC = () => {
 
   const [teamMemberOptions, setTeamMemberOptions] = useState<{ employee_no: number; name: string; shop: string }[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [loggedInShop, setLoggedInShop] = useState<string | null>(null); // 新しい状態変数
+  const [loggedInShop, setLoggedInShop] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {

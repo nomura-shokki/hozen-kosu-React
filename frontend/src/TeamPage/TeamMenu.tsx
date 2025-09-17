@@ -45,6 +45,7 @@ const TeamMenu: React.FC = () => {
         <Link to="/">メインMENU</Link>
       </nav>
       <Link to="/team-new" className={styles["team-button1"]}>班員登録</Link>
+      <Link to="/team-list" className={styles["team-button2"]}>班員工数履歴</Link>
     </div>
   );
 };

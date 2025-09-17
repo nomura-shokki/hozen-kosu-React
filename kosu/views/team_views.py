@@ -1064,8 +1064,9 @@ class ClassList(FormView):
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from ..utils.main_utils import CustomPagination
 from ..models import member, administrator_data, team_member
-from .serializers import TeamSerializer, MemberSerializer
+from .serializers import TeamSerializer, MemberSerializer, KosuSerializer
 
 
 
@@ -1086,7 +1087,7 @@ class TeamNew(APIView):
     if team_filter.count() > 1:
       return Response({'error': '複数の班員データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     team_data = team_filter.first()
-    # チームメンバーの従業員番号をリストにまとめる
+    # 班員の従業員番号をリストにまとめる
     member_numbers = [
         team_data.member1, team_data.member2, team_data.member3,
         team_data.member4, team_data.member5, team_data.member6,
@@ -1145,6 +1146,81 @@ class TeamNew(APIView):
         setattr(team_data, field, data[field])
     team_data.save()
     return Response({'status': 'success', 'message': 'データが更新されました。'})
+
+
+
+class TeamList(APIView):
+  def get(self, request):
+    # セッション値取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+      # ログインユーザーのデータ取得
+      member_data = member.objects.get(employee_no=login_no)
+      # 権限がない場合はMenu画面へ
+      if not member_data.authority:
+        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+    except member.DoesNotExist:
+      # 人員情報取得できない場合エラー
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # 班員情報取得
+    try:
+      team_data = team_member.objects.get(employee_no5=login_no)
+    except team_member.DoesNotExist:
+      # 人員情報取得できない場合エラー
+      return Response({'status': 'error', 'message': '班員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # 班員の従業員番号をリストにまとめる
+    member_numbers = [
+        team_data.member1, team_data.member2, team_data.member3,
+        team_data.member4, team_data.member5, team_data.member6,
+        team_data.member7, team_data.member8, team_data.member9,
+        team_data.member10, team_data.member11, team_data.member12,
+        team_data.member13, team_data.member14, team_data.member15
+    ]
+    valid_member_numbers = [
+        num for num in member_numbers if num is not None and num != ''
+    ]
+    # 班員の人員情報取得
+    team_member_choices = member.objects.filter(employee_no__in=valid_member_numbers)
+
+    # 検索パラメータの取得
+    search_day = request.query_params.get('day')
+    mode = request.query_params.get('mode', 'day')
+    filter_flag = request.query_params.get('filter', 'false') == 'true'
+
+    # 工数履歴データの取得
+    kosus = Business_Time_graph.objects.filter(employee_no3__in=valid_member_numbers).order_by('-work_day2')
+
+    # 工数履歴データ絞り込み
+    if search_day and filter_flag:
+      if mode == 'month':
+        kosus = kosus.filter(work_day2__startswith=search_day[:7])
+      else:
+        kosus = kosus.filter(work_day2=search_day)
+
+    # ページネーション
+    paginator = CustomPagination()
+    result_page = paginator.paginate_queryset(kosus, request)
+    serializer = KosuSerializer(result_page, many=True)
+
+    # データ変換
+    team_member_select = MemberSerializer(team_member_choices, many=True)
+    return Response({
+      'pagination_data': paginator.get_paginated_response(serializer.data).data,
+      'team_member_select': team_member_select.data,
+    })
+
+
+
 
 
 

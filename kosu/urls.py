@@ -47,6 +47,7 @@ urlpatterns = [
   path('member_delete/<int:pk>/', member_views.MemberDelete.as_view(), name='member_delete'),
   path('team_menu/', main_views.TeamMenu.as_view(), name='team_menu'),
   path('team_new/', team_views.TeamNew.as_view(), name='team_new'),
+  path('team_list/', team_views.TeamList.as_view(), name='team_list'),
 
 
 
