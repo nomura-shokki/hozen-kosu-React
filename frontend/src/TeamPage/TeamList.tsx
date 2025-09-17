@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, ChangeEvent } from "react";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Loading from "../components/Loading";
@@ -12,6 +12,11 @@ interface Kosu {
   work_day2: string;
   tyoku2: string;
   judgement: boolean;
+}
+
+interface TeamMember {
+  employee_no: number;
+  name: string;
 }
 
 const formatTyoku = (value: string | number): string => {
@@ -34,6 +39,7 @@ const getDayOfWeek = (dateStr: string): string => {
 
 const TeamList: React.FC = () => {
   const [data, setData] = useState<Kosu[]>([]);
+  const [originalData, setOriginalData] = useState<Kosu[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchDay, setSearchDay] = useState<string>("");
@@ -42,6 +48,8 @@ const TeamList: React.FC = () => {
   const [totalPages, setTotalPages] = useState<number>(0);
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
   const [tableWidth, setTableWidth] = useState<number>(0);
+  const [teamMemberOptions, setTeamMemberOptions] = useState<TeamMember[]>([]);
+  const [selectedMember, setSelectedMember] = useState<string>("");
   const tableRef = useRef<HTMLTableElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
@@ -64,9 +72,11 @@ const TeamList: React.FC = () => {
 
       const paginationData = response.data?.pagination_data || {};
       const results = paginationData.results || [];
-      const count = paginationData.count || 0;
       const pageSize = response.data.page_size || 20;
+
       setData(results);
+      setOriginalData(results);
+      setTeamMemberOptions(response.data?.team_member_select || []);
       setTotalPages(Math.ceil(paginationData.count / pageSize));
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -90,11 +100,23 @@ const TeamList: React.FC = () => {
     setSearchDay("");
     setSearchByMonth(false);
     setCurrentPage(1);
+    setSelectedMember("");
   }, [location.pathname]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (selectedMember) {
+      const filteredData = originalData.filter(
+        (item) => item.employee_no3.toString() === selectedMember
+      );
+      setData(filteredData);
+    } else {
+      setData(originalData);
+    }
+  }, [selectedMember, originalData]);
 
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);
@@ -120,6 +142,10 @@ const TeamList: React.FC = () => {
 
   const handleLastPage = () => {
     setCurrentPage(totalPages);
+  };
+
+  const handleMemberChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedMember(event.target.value);
   };
 
   useEffect(() => {
@@ -182,6 +208,16 @@ const TeamList: React.FC = () => {
               指定日
             </button>
           </div>
+        </div>
+        <div className={styles["search-bar"]}>
+          <label htmlFor="team-member-select">メンバー選択：</label>
+          <TeamMemberSelect
+            id="team-member-select"
+            name="team-member-select"
+            value={selectedMember}
+            onChange={handleMemberChange}
+            options={teamMemberOptions}
+          />
         </div>
         {data.length === 0 ? (
           <p>No data found.</p>
