@@ -15,17 +15,17 @@
 }
 
 .h1-collar {
-  color: #ff5500;
+  color: #f50;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
 .team-nav a {
-  color: #ff5500;
+  color: #f50;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
 .team-nav a:hover {
-  color: #ff1100;
+  color: #f10;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 

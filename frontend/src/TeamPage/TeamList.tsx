@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Loading from "../components/Loading";
+import TeamMemberSelect from "../components/TeamMemberSelect";
 import styles from "../styles/TeamPage/TeamList.module.css";
 
 interface Kosu {
@@ -61,10 +62,12 @@ const TeamList: React.FC = () => {
         withCredentials: true,
       });
 
-      const results = response.data.results.pagination_data || [];
+      const paginationData = response.data?.pagination_data || {};
+      const results = paginationData.results || [];
+      const count = paginationData.count || 0;
       const pageSize = response.data.page_size || 20;
       setData(results);
-      setTotalPages(Math.ceil(response.data.count / pageSize));
+      setTotalPages(Math.ceil(paginationData.count / pageSize));
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {
@@ -75,6 +78,7 @@ const TeamList: React.FC = () => {
           setError(err.message);
         }
       } else {
+        console.error("予期しないエラー:", err);
         setError("予期しないエラーが発生しました");
       }
     } finally {
@@ -148,7 +152,7 @@ const TeamList: React.FC = () => {
     <>
       <Loading isLoading={loading} />
       <div className={styles["team-list-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>工数履歴</h1>
+        <h1 className={styles["h1-collar"]}>班員工数履歴</h1>
         <nav className={styles["team-nav"]}>
           <Link to="/team-menu">班員MENU</Link>
         </nav>
@@ -167,13 +171,13 @@ const TeamList: React.FC = () => {
           <div className={styles["button-group"]}>
             <button
               onClick={() => handleSearch(true)}
-              className="light_blue_button"
+              className="orange_button"
             >
               指定月
             </button>
             <button
               onClick={() => handleSearch(false)}
-              className="light_blue_button"
+              className="orange_button"
             >
               指定日
             </button>
