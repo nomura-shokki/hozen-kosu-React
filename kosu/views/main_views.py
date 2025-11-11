@@ -1097,7 +1097,7 @@ class Menu(APIView):
       return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
     # データ変換
-    serializer = MemberSerializer([member_data], many=True)
+    serializer = MemberSerializer(member_data, many=False)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -1125,7 +1125,7 @@ class MemberMenu(APIView):
       return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
     # データ変換
-    serializer = MemberSerializer([member_data], many=True)
+    serializer = MemberSerializer(member_data, many=False)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -1151,7 +1151,7 @@ class DefMenu(APIView):
       return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
     # データ変換
-    serializer = MemberSerializer([member_data], many=True)
+    serializer = MemberSerializer(member_data, many=False)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -1177,7 +1177,7 @@ class KosuMenu(APIView):
       return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
     # データ変換
-    serializer = MemberSerializer([member_data], many=True)
+    serializer = MemberSerializer(member_data, many=False)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -1245,7 +1245,7 @@ class TeamMenu(APIView):
               break
 
     # データ変換
-    serializer = MemberSerializer([member_data], many=True)
+    serializer = MemberSerializer(member_data, many=False)
 
     response_data = {
       'follow_message_list': follow_message_list,
@@ -1278,5 +1278,5 @@ class InquirMenu(APIView):
       return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
     # データ変換
-    serializer = MemberSerializer([member_data], many=True)
+    serializer = MemberSerializer(member_data, many=False)
     return Response(serializer.data, status=status.HTTP_200_OK)

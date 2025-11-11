@@ -55,6 +55,7 @@ urlpatterns = [
   path('team_view/', team_views.TeamView.as_view(), name='team_view'),
   path('team_shop_select/', team_views.TeamShopSelect.as_view(), name='team_shop_select/'),
   path('inquir_menu/', main_views.InquirMenu.as_view(), name='inquir_menu'),
+  path('inquir_new/', inquiry_views.InquirNew.as_view(), name='inquir_new'),
   path('inquir_list/', inquiry_views.InquirList.as_view(), name='inquir_list'),
 
 

@@ -642,7 +642,6 @@ from ..utils.main_utils import CustomPagination
 
 
 
-# 人員一覧動作
 class InquirList(APIView):
   # GET時の動作
   def get(self, request):
@@ -693,3 +692,41 @@ class InquirList(APIView):
       'member_data': member_serializer.data,
     }
     return Response(response_data)
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+class InquirNew(APIView):
+  # GET時の動作
+  def get(self, request):
+    # セッションからデータ取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
+    # 未ログインや定義が未定義の場合はログイン画面へ
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # ログイン者データ確認
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+      if not member_data.authority:
+        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = MemberSerializer([member_data], many=True)
+    return Response(serializer.data)
+
+
+

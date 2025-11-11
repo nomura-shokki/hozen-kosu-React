@@ -14,14 +14,14 @@ interface Member {
 }
 
 const DefMenu: React.FC = () => {
-  const [data, setData] = useState<Member[]>([]);
+  const [data, setData] = useState<Member | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     axios
-      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/def_menu/`, {
+      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/def_menu/`, {
         withCredentials: true,
       })
       .then((response) => {
@@ -53,7 +53,7 @@ const DefMenu: React.FC = () => {
         <Link to="/">メインMENU</Link>
       </nav>
       <Link to="/def-search" className={styles["def-button1"]}>工数区分定義確認</Link>
-      {data.length > 0 && data[0].administrator && (
+      {data?.administrator && (
         <>
           <Link to="/def-new" className={styles["def-button2"]}>工数区分定義登録</Link>
           <Link to="/def-list" className={styles["def-button3"]}>工数区分定義一覧</Link>

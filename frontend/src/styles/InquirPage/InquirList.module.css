@@ -26,12 +26,12 @@
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
-.member-nav a {
+.inquir-nav a {
   color: #ff69b4;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
-.member-nav a:hover {
+.inquir-nav a:hover {
   color: #ff1493;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
@@ -189,7 +189,7 @@
     padding-left: 10px;
   }
 
-  .member-nav a {
+  .inquir-nav a {
     font-size: 0.8rem;
   }
 }

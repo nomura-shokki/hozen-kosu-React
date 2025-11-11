@@ -12,29 +12,17 @@ interface Member {
   shop: string;
   authority: boolean;
   administrator: boolean;
-  pop_up1: string;
-  pop_up_id1: string;
-  pop_up2: string;
-  pop_up_id2: string;
-  pop_up3: string;
-  pop_up_id3: string;
-  pop_up4: string;
-  pop_up_id4: string;
-  pop_up5: string;
-  pop_up_id5: string;
-  break_check: boolean;
-  def_prediction: boolean;
 }
 
 const MainMenu: React.FC = () => {
-  const [data, setData] = useState<Member[]>([]);
+  const [data, setData] = useState<Member | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     axios
-      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/main_menu/`, {withCredentials: true})
+      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/main_menu/`, {withCredentials: true})
       .then((response) => {
         setData(response.data);
         setLoading(false);
@@ -70,11 +58,11 @@ const MainMenu: React.FC = () => {
   return (
     <div className={styles["menu-wrapper"]}>
       <img src={logo} alt="Menuロゴ" className={styles["Menu-logo"]} />
-      <p>こんにちは {data.length > 0 ? data[0].name : ""}さん</p>
+      <p>こんにちは {data ? data.name : ""}さん</p>
       <p>　</p>
       <Link to="/kosu-menu" className={styles["kosu-menu-button"]}>工数MENU</Link>
       <Link to="/def-menu" className={styles["def-menu-button"]}>工数定義区分MENU</Link>
-      {data.length > 0 && data[0].authority && (
+      {data?.authority && (
         <>
           <Link to="/member-menu" className={styles["member-menu-button"]}>人員MENU</Link>
           <Link to="/team-menu" className={styles["team-menu-button"]}>班員MENU</Link>

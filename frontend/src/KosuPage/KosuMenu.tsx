@@ -17,7 +17,7 @@ const KosuMenu: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<Member[]>(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_menu/`, {
+      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_menu/`, {
         withCredentials: true,
       })
       .then(() => {
