@@ -155,13 +155,6 @@
   box-sizing: border-box;
 }
 
-@media (max-width: 768px) {
-  .paling {
-    width: auto;
-    min-width: unset; 
-  }
-}
-
 .switch-wrapper label {
   margin-left: 20px;
 }
@@ -180,6 +173,11 @@
 
   .team-nav a {
     font-size: 0.8rem;
+  }
+
+  .paling {
+    width: auto;
+    min-width: unset; 
   }
 }
 

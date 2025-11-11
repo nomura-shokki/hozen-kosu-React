@@ -71,7 +71,7 @@ h1 {
 
 h2 {
   font-size: var(--heading2);
-  margin-bottom: 1rem;
+  margin-bottom: 0.2rem;
   text-align: center;
 }
 
@@ -126,6 +126,7 @@ td {
 th {
   color: white;
   font-weight: bold;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
 .blue_button {
@@ -227,6 +228,28 @@ th {
 }
 .orange_button:hover {
   background-color: #f10;
+  text-decoration: none; 
+}
+
+.pink_button {
+  background-color: #ff8bc5;
+  color: #fff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  writing-mode: horizontal-tb;
+  white-space: nowrap;
+  width: auto;
+  max-width: 100%;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.pink_button:hover {
+  background-color: #ff1493;
   text-decoration: none; 
 }
 

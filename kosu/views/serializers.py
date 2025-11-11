@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import member, Business_Time_graph, kosu_division, team_member
+from ..models import member, Business_Time_graph, kosu_division, team_member, inquiry_data
 
 
 
@@ -27,5 +27,12 @@ class KosuSerializer(serializers.ModelSerializer):
 class TeamSerializer(serializers.ModelSerializer):
   class Meta:
     model = team_member
+    fields = '__all__'
+
+
+
+class InquirSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = inquiry_data
     fields = '__all__'
 

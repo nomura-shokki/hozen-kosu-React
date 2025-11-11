@@ -48,6 +48,14 @@ urlpatterns = [
   path('team_menu/', main_views.TeamMenu.as_view(), name='team_menu'),
   path('team_new/', team_views.TeamNew.as_view(), name='team_new'),
   path('team_list/', team_views.TeamList.as_view(), name='team_list'),
+  path('team_detail/<int:pk>/', team_views.TeamDetail.as_view(), name='team_detail'),
+  path('team_calendar/', team_views.TeamCalendar.as_view(), name='team_calendar'),
+  path('team_calendar_week_jump/', team_views.TeamCalendarWeekJump.as_view(), name='team_calendar_week_jump'),
+  path('team_overtime/', team_views.TeamOverTime.as_view(), name='team_overtime'),
+  path('team_view/', team_views.TeamView.as_view(), name='team_view'),
+  path('team_shop_select/', team_views.TeamShopSelect.as_view(), name='team_shop_select/'),
+  path('inquir_menu/', main_views.InquirMenu.as_view(), name='inquir_menu'),
+  path('inquir_list/', inquiry_views.InquirList.as_view(), name='inquir_list'),
 
 
 
@@ -80,7 +88,6 @@ urlpatterns = [
   path('team_graph', team_views.TeamGraphView.as_view(), name='team_graph'), # 班員工数一覧画面(グラフ表示)
   path('team_kosu/<int:num>', team_views.TeamKosuListView.as_view(), name='team_kosu'), # 班員工数データ一覧画面
   path('team_detail/<int:num>', team_views.TeamDetailView.as_view(), name='team_detail'), # 班員工数詳細画面
-  path('team_calendar', team_views.TeamCalendarView.as_view(), name='team_calendar'), # 班員工数一覧画面(カレンダー表示)
   path('team_over_time', team_views.TeamOverTimeView.as_view(), name='team_over_time'), # 班員残業管理画面
   path('class_list', team_views.ClassList.as_view(), name='class_list'), # ショップ単位工数入力状態可否画面
   path('kosu_def', def_views.KosuDefView.as_view(), name='kosu_def'), # 工数気分定義内容確認画面

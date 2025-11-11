@@ -444,7 +444,7 @@ def judgement_check(kosu_def, work, tyoku, member_obj, over_work):
     judgement = True
 
   # 休出時、工数合計と残業に整合性がある場合の処理
-  if work == '休出' and kosu_total == int(over_work):
+  if work == '休出' and kosu_total == int(over_work) and int(over_work) != 0:
     # 工数入力OK_NGをOKに切り替え
     judgement = True
 

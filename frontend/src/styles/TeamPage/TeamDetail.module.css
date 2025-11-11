@@ -1,0 +1,43 @@
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.team-detail-wrapper {
+  animation: fadeInUp 1s ease-out;
+  display: flex; /* 子要素をフレックスレイアウトにする */
+  flex-direction: column; /* 縦方向に要素を並べる */
+  justify-content: top;
+  align-items: center; /* 横方向の中央に配置 */
+  height: 100vh; /* 画面の高さいっぱいにする */
+  width: 100%;
+  margin: 0 auto; /* 横方向の中央寄せ */
+  -webkit-overflow-scrolling: touch;
+}
+
+.h1-collar {
+  color: #f50;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.team-nav a {
+  color: #f50;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.team-nav a:hover {
+  color: #f10;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.centeredContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

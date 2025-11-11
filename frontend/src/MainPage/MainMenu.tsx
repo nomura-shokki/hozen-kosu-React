@@ -26,7 +26,7 @@ interface Member {
   def_prediction: boolean;
 }
 
-const MemberMenu: React.FC = () => {
+const MainMenu: React.FC = () => {
   const [data, setData] = useState<Member[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +80,7 @@ const MemberMenu: React.FC = () => {
           <Link to="/team-menu" className={styles["team-menu-button"]}>班員MENU</Link>
         </>
       )}
+      <Link to="/inquir-menu" className={styles["inquir-menu-button"]}>問い合わせMENU</Link>
       <button onClick={handleLogout} className="blue_button">
         ログアウト
       </button>
@@ -87,4 +88,4 @@ const MemberMenu: React.FC = () => {
   );
 };
 
-export default MemberMenu;
+export default MainMenu;

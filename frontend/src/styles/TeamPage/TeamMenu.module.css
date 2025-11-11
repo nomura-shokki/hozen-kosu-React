@@ -36,11 +36,15 @@
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
+.follow-messages {
+  margin-bottom: 15px;
+}
+
 .team-button1 {
   display: inline-block;
   width: 100%;
   max-width: 400px;
-  background-color: #ff7700;
+  background-color: #ffbb00;
   color: #fff; 
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
   padding: 10px;
@@ -58,6 +62,42 @@
   display: inline-block;
   width: 100%;
   max-width: 400px;
+  background-color: #ff9900;
+  color: #fff; 
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: 2rem;
+  text-align: center;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 15px;
+  text-decoration: none;
+}
+
+.team-button3 {
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+  background-color: #ff7700;
+  color: #fff; 
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: 2rem;
+  text-align: center;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 15px;
+  text-decoration: none;
+}
+
+.team-button4 {
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
   background-color: #ff5500;
   color: #fff; 
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
@@ -72,8 +112,29 @@
   text-decoration: none;
 }
 
+.team-button5 {
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+  background-color: #ff3300;
+  color: #fff; 
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: 2rem;
+  text-align: center;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 15px;
+  text-decoration: none;
+}
+
 .team-button1:hover,
-.team-button2:hover {
+.team-button2:hover,
+.team-button3:hover,
+.team-button4:hover,
+.team-button5:hover {
   background-color: #ff1100;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   text-decoration: underline;

@@ -3047,8 +3047,8 @@ class KosuNew(APIView):
         # 日を超えている場合の処理
         if break_next_day == 1:
           # 休憩時間内の工数データを削除
-          error_message, work_list, detail_list = break_time_delete(break_end, 288, work_list, detail_list, member_obj)
-          error_message, work_list, detail_list = break_time_delete(0, break_start, work_list, detail_list, member_obj)
+          error_message, work_list, detail_list = break_time_delete(break_start, 288, work_list, detail_list, member_obj)
+          error_message, work_list, detail_list = break_time_delete(0, break_end, work_list, detail_list, member_obj)
           if error_message:
             return Response({'error': error_message}, status=status.HTTP_400_BAD_REQUEST)
           # 休憩時間直後の時間に工数入力がある場合の処理
@@ -3628,10 +3628,9 @@ class ItemDlete(APIView):
       return Response({'error': '工数データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 項目番号から削除時間取得
-    n = request.data.get('index')
     jst = datetime.timezone(datetime.timedelta(hours=9))
-    start_time = datetime.datetime.strptime(request.data.get(f'time1_{n}'), "%Y-%m-%dT%H:%M:%S.%fZ")
-    end_time = datetime.datetime.strptime(request.data.get(f'time2_{n}'), "%Y-%m-%dT%H:%M:%S.%fZ")
+    start_time = datetime.datetime.strptime(request.data.get(f'time1'), "%Y-%m-%dT%H:%M:%S.%fZ")
+    end_time = datetime.datetime.strptime(request.data.get(f'time2'), "%Y-%m-%dT%H:%M:%S.%fZ")
     start_time = start_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
     end_time = end_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
     start_time = start_time.strftime("%H:%M")
@@ -3702,15 +3701,12 @@ class KosuCalendar(APIView):
   def get(self, request):
     # セッション値取得
     login_no = request.session.get('login_No')
-    def_ver = request.session.get('input_def')
     year = request.session.get('year', datetime.date.today().year)
     month = request.session.get('month', datetime.date.today().month)
 
     # セッション値なしエラー
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # アクセス権限取得
     try:
@@ -3823,16 +3819,21 @@ class KosuWorkWrite(APIView):
 
 
 
+# 勤務入力(工数編集へジャンプ)
 class KosuLink(APIView):
-  def post(self, request, *args, **kwargs):
+  # POST処理
+  def post(self, request):
+    # 表示日更新
     request.session['day'] = request.data.get('day',str(datetime.date.today()))
-
     return Response({'status': 'success', 'message': '日付セッションを更新しました。'})
 
 
 
+# デフォルト勤務書き込み
 class WorkDefault(APIView):
-  def post(self, request, *args, **kwargs):
+  # POST処理
+  def post(self, request):
+    # セッション値取得
     login_no = request.session.get('login_No')
     year = request.session.get('year', datetime.date.today().year)
     month = request.session.get('month', datetime.date.today().month)
@@ -3849,6 +3850,7 @@ class WorkDefault(APIView):
       return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     member_data = member_query_set.first()
 
+    # 選択月の最終日取得
     select_month = datetime.date(year, month, 1)
     if month == 12:
       month_end = 1
@@ -3856,16 +3858,18 @@ class WorkDefault(APIView):
     else:
       month_end = month + 1
       year_end = year
-
     select_month = datetime.date(year_end, month_end, 1)
     month_day_end = select_month - datetime.timedelta(days = 1)
     day_end = month_day_end.day
 
+    # 直、勤務書き込み
     for d in range(day_end):
+      # 工数データ取得しデータがあるか確認
       day = datetime.date(year, month, d + 1)
       obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
       obj = obj_filter.first() if obj_filter.exists() else None
 
+      # 該当日に工数データがない場合、工数データ作成
       if not obj_filter.exists(): 
         Business_Time_graph.objects.update_or_create(
           employee_no3=login_no, 
@@ -3879,7 +3883,7 @@ class WorkDefault(APIView):
             'judgement': True if day.weekday() in [5, 6] else False
           }
         )
-
+      # 該当日に工数データはあり勤務形態のデータがない場合、勤務形態書き込み
       elif not obj.work_time:
         Business_Time_graph.objects.update_or_create(
           employee_no3=login_no, 
@@ -3894,7 +3898,7 @@ class WorkDefault(APIView):
 
 
 
-
+# デフォルト直書き込み
 class TyokuDefault(APIView):
   # POST処理
   def post(self, request, *args, **kwargs):
@@ -3939,7 +3943,7 @@ class TyokuDefault(APIView):
         obj = obj_filter.first() if obj_filter.exists() else None
         # 該当日の対応週の直データ取得
         week_data = request.data.get(f'default_tyoku{get_week_of_month(day)}', None)
-        # 工数データがない場合
+        # 該当日に工数データがない場合、工数データ作成
         if week_data and not obj:
           Business_Time_graph.objects.update_or_create(
             employee_no3=login_no,
@@ -3953,7 +3957,7 @@ class TyokuDefault(APIView):
               'judgement': False
             }
           )
-        # 工数データがある場合
+        # 該当日に工数データはあり直のデータがない場合、直書き込み
         elif week_data and not obj.tyoku2:
           Business_Time_graph.objects.update_or_create(
             employee_no3=login_no,
@@ -3967,9 +3971,10 @@ class TyokuDefault(APIView):
 
 
 
+# 工数集計
 class KosuTotal(APIView):
   # GET処理
-  def get(self, request, *args, **kwargs):
+  def get(self, request):
     # セッション値取得
     login_no = request.session.get('login_No')
     def_ver_session = request.session.get('input_def')
@@ -3978,7 +3983,7 @@ class KosuTotal(APIView):
     if not login_no:
       return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    # 就業日記憶
+    # 就業日取得
     day = request.session.get('day')
     if not day:
       day = str(datetime.date.today())
@@ -3994,9 +3999,10 @@ class KosuTotal(APIView):
 
     # 工数データ確認
     kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
-
     if kosu_query_set.count() > 1:
       return Response({'error': '複数の工数データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 工数データ取得
     kosu_data = kosu_query_set.first()
     if kosu_data is None:
       kosu_data = Business_Time_graph()
@@ -4018,14 +4024,13 @@ class KosuTotal(APIView):
     kosu_serializer = KosuSerializer(kosu_data)
     def_serializer = DefSerializer(def_data, many=False)
 
-    # フロントへの送信データ
+    # 送信データ
     response_data = {
       'member_data': member_serializer.data,
       'kosu_data': kosu_serializer.data,
       'def_data': def_serializer.data,
       'session_day': day,
     }
-
     return Response(response_data)
 
 
@@ -4039,7 +4044,7 @@ class KosuTotal(APIView):
     if not login_no:
       return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    # 就業日記憶
+    # 就業日取得
     day = request.data.get('date')
     if not day:
       day = str(datetime.date.today())
@@ -4105,13 +4110,11 @@ class KosuTotal(APIView):
     else:
       kosu_serializer = KosuSerializer(kosu_data, many=True)
 
-    # フロントへの送信データ
+    # 送信データ
     response_data = {
       'member_data': member_serializer.data,
       'kosu_data': kosu_serializer.data,
       'def_data': def_serializer.data,
       'session_day': day,
     }
-
     return Response(response_data)
-

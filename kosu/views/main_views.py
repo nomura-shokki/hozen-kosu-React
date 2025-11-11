@@ -1022,28 +1022,30 @@ import json
 
 
 
+# Reactメインページ呼び出し
 def react_view(request):
   return render(request, 'index.html')
 
 
 
+# Web App Manifestファイル生成
 def manifest(request):
   data = {
-    "name": "My App",
-    "short_name": "App",
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#000000"
+    "name": "業務工数システム", # アプリ名称
+    "short_name": "業務工数", # 短い名称
+    "start_url": "/", # アプリ起動時に最初に開くURL
+    "display": "standalone", # 表示モード設定(ブラウザUI非表示)
+    "background_color": "#ffffff", # 起動画面の背景色
+    "theme_color": "#000000" # アプリUI要素のテーマカラー
   }
   return JsonResponse(data)
 
 
 
-# ログイン動作
+# ログイン
 class Login(APIView):
   # POST時の動作
-  def post(self, request, *args, **kwargs):
+  def post(self, request):
     try:
       data = json.loads(request.body)
     except json.JSONDecodeError:
@@ -1066,7 +1068,7 @@ class Login(APIView):
 
 
 
-# ログアウト動作
+# ログアウト
 class Logout(APIView):
   def post(self,request):
     request.session.flush()
@@ -1074,127 +1076,207 @@ class Logout(APIView):
 
 
 
-# メインMenu動作
+# メインMenu
 class Menu(APIView):
+  # GET処理
   def get(self, request):
-    # セッションから必要なデータを取得
+    # セッション値取得
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
+    # セッション値なしエラー
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    # ログイン者データ確認
     try:
-      # ログインしているユーザーのデータを取得
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
-    # シリアライザーを通してデータをJSON形式で返す
+    # データ変換
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
-# 人員Menu動作
+# 人員Menu
 class MemberMenu(APIView):
+  # GET処理
   def get(self, request):
-    # セッションから必要なデータを取得
+    # セッション値取得
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
+    # セッション値なしエラー
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    # ログイン者データ確認
     try:
-      # ログインしているユーザーのデータを取得
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.authority:
         return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
-    # シリアライザーを通してデータをJSON形式で返す
+    # データ変換
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
-# 工数区分定義Menu動作
+# 工数区分定義Menu
 class DefMenu(APIView):
+  # GET処理
   def get(self, request):
-    # セッションから必要なデータを取得
+    # セッション値取得
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
+    # セッション値なしエラー
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    # ログイン者データ確認
     try:
-      # ログインしているユーザーのデータを取得
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
-    # シリアライザーを通してデータをJSON形式で返す
+    # データ変換
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
-# 工数Menu動作
+# 工数入力Menu
 class KosuMenu(APIView):
+  # GET処理
   def get(self, request):
-    # セッションから必要なデータを取得
+    # セッション値取得
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
+    # セッション値なしエラー
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    # ログイン者データ確認
     try:
-      # ログインしているユーザーのデータを取得
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
-    # シリアライザーを通してデータをJSON形式で返す
+    # データ変換
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
-# 人員Menu動作
+# 班員Menu
 class TeamMenu(APIView):
+  # GET処理
   def get(self, request):
-    # セッションから必要なデータを取得
+    # セッション値取得
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
+    # セッション値なしエラー
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    # ログイン者データ確認
     try:
-      # ログインしているユーザーのデータを取得
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.authority:
         return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
-    # シリアライザーを通してデータをJSON形式で返す
+    # 班員フォローメッセージ作成
+    follow_message_list = []
+    # 班員データあるか確認
+    team_filter = team_member.objects.filter(employee_no5=login_no)
+    team_get = team_filter.first() if team_filter.exists() else None
+
+    # 班員フォロー有効の場合、班員リスト作成
+    if team_filter.exists() and team_get.follow:
+      member_numbers = [
+        team_get.member1, team_get.member2, team_get.member3,
+        team_get.member4, team_get.member5, team_get.member6,
+        team_get.member7, team_get.member8, team_get.member9,
+        team_get.member10, team_get.member11, team_get.member12,
+        team_get.member13, team_get.member14, team_get.member15
+      ]
+      valid_member_numbers = [
+        num for num in member_numbers if num is not None and num != ''
+      ]
+
+      # 過去7日分の日付リスト作成
+      today = datetime.date.today()
+      day_list = [today - datetime.timedelta(days=d) for d in range(1, 8)]
+
+      # 班員ごとに工数未入力確認
+      for m in valid_member_numbers:
+        follow_message = ''
+        if member.objects.filter(employee_no=m).exists():
+          member_name = member.objects.get(employee_no=m).name
+          for d in day_list:
+            if Business_Time_graph.objects.filter(employee_no3=m, work_day2=d).exists():
+              kosu_get = Business_Time_graph.objects.get(employee_no3=m, work_day2=d)
+              if not kosu_get.judgement:
+                follow_message = f'{member_name}氏の工数未入力があります。'
+                follow_message_list.append(follow_message)
+                break
+            else:
+              follow_message = f'{member_name}氏の工数未入力があります。'
+              follow_message_list.append(follow_message)
+              break
+
+    # データ変換
+    serializer = MemberSerializer([member_data], many=True)
+
+    response_data = {
+      'follow_message_list': follow_message_list,
+      'member_data': serializer.data,
+    }
+    return Response(response_data)
+
+
+
+# 問い合わせMenu
+class InquirMenu(APIView):
+  # GET処理
+  def get(self, request):
+    # セッション値取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # ログイン者データ確認
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+      if not member_data.authority:
+        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # データ変換
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-

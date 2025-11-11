@@ -28,6 +28,12 @@ import MemberDelete from './MemberPage/MemberDelete';
 import TeamMenu from './TeamPage/TeamMenu';
 import TeamNew from './TeamPage/TeamNew';
 import TeamList from './TeamPage/TeamList';
+import TeamDetail from './TeamPage/TeamDetail';
+import TeamCalendar from './TeamPage/TeamCalendar';
+import TeamOverTime from './TeamPage/TeamOverTime';
+import TeamView from './TeamPage/TeamView';
+import InquirMenu from './InquirPage/InquirMenu';
+import InquirList from './InquirPage/InquirList';
 
 
 
@@ -62,6 +68,12 @@ const App: React.FC = () => {
       "/team-menu": "班員Menu - 業務工数システム",
       "/team-new": "班員登録 - 業務工数システム",
       "/team-list": "班員工数履歴 - 業務工数システム",
+      "/team-detail/:id": "班員工数履歴詳細 - 業務工数システム",
+      "/team-calendar": "班員工数入力状況 - 業務工数システム",
+      "/team-overtime": "班員残業 - 業務工数システム",
+      "/team-view": "ショップ単位工数入力状況 - 業務工数システム",
+      "/inquir-menu": "問い合わせMenu - 業務工数システム",
+      "/inquir-list": "問い合わせ履歴 - 業務工数システム",
     };
 
     // URLに基づいてタイトルを設定
@@ -96,6 +108,12 @@ const App: React.FC = () => {
       <Route path="/team-menu" element={<TeamMenu />} />
       <Route path="/team-new" element={<TeamNew />} />
       <Route path="/team-list" element={<TeamList />} />
+      <Route path="/team-detail/:id" element={<TeamDetail />} />
+      <Route path="/team-calendar" element={<TeamCalendar />} />
+      <Route path="/team-overtime" element={<TeamOverTime />} />
+      <Route path="/team-view" element={<TeamView />} />
+      <Route path="/inquir-menu" element={<InquirMenu />} />
+      <Route path="/inquir-list" element={<InquirList />} />
     </Routes>
   );
 };

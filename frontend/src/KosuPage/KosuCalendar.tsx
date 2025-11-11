@@ -424,6 +424,7 @@ const KosuCalendar: React.FC = () => {
           <h2>合計残業時間: {(totalOverTime / 60).toFixed(2)}H</h2>
         </div>
 
+        <p>工数入力OKの日は緑に塗りつぶされます。</p>
         <p>※日付を押すと該当日の工数入力画面に遷移します。</p>
         <div
           className={styles["table-wrapper"]}
@@ -487,7 +488,7 @@ const KosuCalendar: React.FC = () => {
                                 <div>
                                   残業:{(Number(dayData.over_time) / 60).toFixed(2)}H
                                 </div>
-                              ) : null}
+                              ) : "　"}
                             </div>
                           </div>
                         ) : (

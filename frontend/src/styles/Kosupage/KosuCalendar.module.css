@@ -1,149 +1,174 @@
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(50px);
+    from {
+      opacity: 0; /* アニメーション開始時、要素を完全に透明にする */
+      transform: translateY(50px); /* アニメーション開始時、要素をY軸方向に50px下に移動させる */
+    }
+    to {
+      opacity: 1; /* アニメーション終了時、要素を完全に不透明にする */
+      transform: translateY(0); /* アニメーション終了時、要素を元の位置に戻す */
+    }
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  /* --- 見出し(h1)のスタイル --- */
+  .h1-collar {
+    color: #0ff; /* 文字色をシアンに設定 */
+    /* 文字に影を追加し、わずかに立体感を出す */
+    text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
   }
-}
-
-.h1-collar {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-}
-
-.kosu-nav a {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-}
-
-.kosu-nav a:hover {
-  color: #0af;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-}
-
-.kosu-calendar-wrapper {
-  animation: fadeInUp 1s ease-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: top;
-  align-items: center;
-  height: 100vh;
-  width: 100%;
-  margin: 0 auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.kosu-calendar-wrapper p {
-  white-space: nowrap; /* テキストを強制的に1行に表示し、折り返さない */
-}
-
-.table-wrapper {
-  width: 100%;
-  max-height: 400px;
-  max-width: 100vw;
-  overflow-x: auto;
-  overflow-y: auto;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-  -webkit-overflow-scrolling: touch;
-  margin: 0 auto;
-}
-
-.th-collar1 {
-  background-color: #d3ffff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-}
-
-.th-collar2 {
-  background-color: #0af;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-}
-
-.th-collar3 {
-  background-color: #ff90f8;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-}
-
-.year-month-selector {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  align-items: center; 
-}
-
-.year-month-selector select {
-  padding: 8px 12px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  background-color: #fff;
-  font-size: 2rem;
-  cursor: pointer;
-  appearance: none;
-}
-
-.year-month-selector select:hover {
-  border-color: #0af;
-}
-
-.button-wrapper {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-  align-items: center;
-}
-
-.work-tyoku select {
-  background-color: #fff;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1rem;
-  text-align: center;
-  width: 100%;
-}
-
-.table-wrapper table tbody {
-  position: relative;
-}
-
-.table-wrapper table tbody::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-image: url("../../img/RAV4.png");
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  opacity: 0.2;
-  z-index: -1;
-}
-
-@media (max-width: 768px) {
-  .table-wrapper {
-    margin: 0;
-    justify-content: flex-start;
-  }
-
-  .table-wrapper table {
-    transform: scale(0.6);
-    transform-origin: top left;
-  }
-
-  .kosu-calendar-wrapper p {
-    font-size: 0.8em;
-  }
-
-  .button-wrapper {
-    transform: scale(0.8);
-  }
-
+  
+  /* --- ナビゲーションリンクのスタイル (通常時) --- */
   .kosu-nav a {
-    font-size: 0.8rem;
+    color: #0ff; /* リンクの文字色をシアンに設定 */
+    /* 文字に影を追加し、わずかに立体感を出す */
+    text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
   }
-}
+  
+  /* --- ナビゲーションリンクのスタイル (ホバー時) --- */
+  .kosu-nav a:hover {
+    color: #0af; /* ホバー時に文字色を濃いめのシアンに変更 */
+    /* 文字の影は維持 */
+    text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  }
+  
+  /* --- カレンダー全体を囲むラッパーのスタイル --- */
+  .kosu-calendar-wrapper {
+    animation: fadeInUp 1s ease-out; /* 定義したfadeInUpアニメーションを適用 (1秒かけて滑らかに表示) */
+    display: flex; /* Flexboxコンテナとして設定 */
+    flex-direction: column; /* 子要素を縦方向に配置 */
+    justify-content: top; /* 縦方向の配置を上寄せにする (topは非推奨だがここではそのまま) */
+    align-items: center; /* 横方向の配置を中央揃えにする */
+    height: 100vh; /* ビューポートの高さ全体に設定 */
+    width: 100%; /* 幅を親要素の100%に設定 */
+    margin: 0 auto; /* 中央寄せ (width: 100%のため実質的な効果は薄い) */
+    -webkit-overflow-scrolling: touch; /* iOSでの滑らかなスクロールを有効にする */
+  }
+  
+  /* --- カレンダーラッパー内の段落テキストのスタイル --- */
+  .kosu-calendar-wrapper p {
+    white-space: nowrap; /* テキストを強制的に1行に表示し、折り返さない */
+  }
+  
+  /* --- テーブルを囲むラッパーのスタイル (スクロール可能な領域) --- */
+  .table-wrapper {
+    width: 100%; /* 幅を親要素の100%に設定 */
+    max-height: 400px; /* 最大高さを400pxに制限 */
+    max-width: 100vw; /* 最大幅をビューポートの幅に設定 */
+    overflow-x: auto; /* 横方向にはみ出した場合にスクロールバーを表示 */
+    overflow-y: auto; /* 縦方向にはみ出した場合にスクロールバーを表示 */
+    border: 1px solid #ccc; /* 枠線を灰色で設定 */
+    box-sizing: border-box; /* paddingとborderをwidth/heightに含める */
+    -webkit-overflow-scrolling: touch; /* iOSでの滑らかなスクロールを有効にする */
+    margin: 0 auto; /* 中央寄せ */
+  }
+  
+  /* --- テーブルヘッダー (th) の背景色1 --- */
+  .th-collar1 {
+    background-color: #d3ffff; /* 薄い水色に設定 */
+    /* 文字に影を追加 */
+    text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  }
+  
+  /* --- テーブルヘッダー (th) の背景色2 --- */
+  .th-collar2 {
+    background-color: #0af; /* 濃いシアンに設定 */
+    /* 文字に影を追加 */
+    text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  }
+  
+  /* --- テーブルヘッダー (th) の背景色3 --- */
+  .th-collar3 {
+    background-color: #ff90f8; /* 明るいピンク/紫に設定 */
+    /* 文字に影を追加 */
+    text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  }
+  
+  /* --- 年月選択部分のスタイル --- */
+  .year-month-selector {
+    display: flex; /* Flexboxコンテナとして設定 */
+    gap: 10px; /* 要素間のスペースを10pxに設定 */
+    margin-bottom: 20px; /* 下部に20pxの余白 */
+    align-items: center; /* 縦方向の配置を中央揃えにする */
+  }
+  
+  /* --- 年月選択ドロップダウン (select) のスタイル --- */
+  .year-month-selector select {
+    padding: 8px 12px; /* 内側の余白 */
+    border-radius: 5px; /* 角を丸くする */
+    border: 1px solid #ccc; /* 枠線を灰色で設定 */
+    background-color: #fff; /* 背景色を白に設定 */
+    font-size: 2rem; /* 文字サイズを大きく設定 */
+    cursor: pointer; /* マウスカーソルをポインターに変更 */
+    appearance: none; /* OS標準のドロップダウンの見た目を無効化 */
+  }
+  
+  /* --- 年月選択ドロップダウン (select) のホバー時スタイル --- */
+  .year-month-selector select:hover {
+    border-color: #0af; /* ホバー時に枠線の色を濃いシアンに変更 */
+  }
+  
+  /* --- ボタンを囲むラッパーのスタイル --- */
+  .button-wrapper {
+    display: flex; /* Flexboxコンテナとして設定 */
+    gap: 10px; /* 要素間のスペースを10pxに設定 */
+    margin-bottom: 10px; /* 下部に10pxの余白 */
+    align-items: center; /* 縦方向の配置を中央揃えにする */
+  }
+  
+  /* --- 勤務帯 (tyoku) 選択ドロップダウンのスタイル --- */
+  .work-tyoku select {
+    background-color: #fff; /* 背景色を白に設定 */
+    padding: 8px 10px; /* 内側の余白 */
+    border: 1px solid #ccc; /* 枠線を灰色で設定 */
+    border-radius: 4px; /* 角を丸くする */
+    font-size: 1rem; /* 標準の文字サイズ */
+    text-align: center; /* テキストを中央揃えにする */
+    width: 100%; /* 幅を親要素の100%に設定 */
+  }
+  
+  /* --- テーブル本体 (tbody) のスタイル (背景画像のための設定) --- */
+  .table-wrapper table tbody {
+    position: relative; /* 疑似要素の配置基準点とする */
+  }
+  
+  /* --- テーブル本体 (tbody) への背景画像の追加 (疑似要素) --- */
+  .table-wrapper table tbody::before {
+    content: ""; /* 疑似要素の内容は空 */
+    position: absolute; /* 親要素 (tbody) を基準に絶対配置 */
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0; /* tbody全体を覆う */
+    background-image: url("../../img/RAV4.png"); /* 背景画像を指定 */
+    background-size: contain; /* 画像全体が表示されるように調整 */
+    background-position: center; /* 画像を中央に配置 */
+    background-repeat: no-repeat; /* 画像の繰り返しをしない */
+    opacity: 0.2; /* 透明度を20%に設定 */
+    z-index: -1; /* 他のコンテンツの下に配置 */
+  }
+  
+  /*
+  --- メディアクエリ: 画面幅が768px以下の場合に適用されるスタイル (主にスマートフォン対応) ---
+  */
+  @media (max-width: 768px) {
+    .table-wrapper {
+      margin: 0; /* 中央寄せを解除し、マージンを0に設定 */
+      justify-content: flex-start; /* 横方向の配置を左寄せにする (flexコンテナでないためこの設定は無効だが、元のコードを保持) */
+    }
+  
+    .table-wrapper table {
+      transform: scale(0.6); /* テーブル全体を60%に縮小 */
+      transform-origin: top left; /* 縮小の基準点を左上に設定 */
+    }
+  
+    .kosu-calendar-wrapper p {
+      font-size: 0.8em; /* 段落テキストの文字サイズを小さくする */
+    }
+  
+    .button-wrapper {
+      transform: scale(0.8); /* ボタンラッパー全体を80%に縮小 */
+    }
+  
+    .kosu-nav a {
+      font-size: 0.8rem; /* ナビゲーションリンクの文字サイズを小さくする */
+    }
+  }

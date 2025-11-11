@@ -1,7 +1,5 @@
 from django.shortcuts import get_object_or_404
-from ..models import member
-from ..models import Business_Time_graph
-from ..models import kosu_division
+from ..models import member, Business_Time_graph
 from .kosu_utils import kosu_sort
 from .kosu_utils import create_kosu
 from .kosu_utils import kosu_division_dictionary
@@ -90,7 +88,6 @@ def excel_function(employee_no_data, wb, request):
 
 
 
-
 #--------------------------------------------------------------------------------------------------------
 
 
@@ -148,6 +145,8 @@ def day_get(request):
     today = datetime.datetime.strptime(request.session['display_day'], '%Y-%m-%d')
 
   return today
+
+
 
 
 

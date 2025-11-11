@@ -67,12 +67,12 @@ const MemberList: React.FC = () => {
   // コンポーネントの初回マウント時にデータを取得。また、fetchDataに依存。
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [currentPage]);
 
   // 検索条件を適用してデータを再取得
   const handleSearch = () => {
     if (currentPage !== 1) {
-      setCurrentPage(1); // 現在ページをリセットして1ページ目を表示
+      setCurrentPage(1);
     } else {
       fetchData(); // ページをリセットせずデータを取得
     }
@@ -152,7 +152,6 @@ const MemberList: React.FC = () => {
           </label>
           <label>
             ショップ：
-            {/* コンポーネント化されたショップフィルター */}
             <ShopSelect
               name="shopFilter"
               value={searchShop}

@@ -9,10 +9,11 @@ interface KosuDisplayProps {
   defData: { [key: string]: string | undefined }; // 作業コードとタイトルのマッピングデータ
   tyoku: string; // 勤務シフト（例: "1", "2" など）
   shop: string; // 部署・ショップ情報（特定のシフトの調整に使用）
+  headerColor?: string;
 }
 
 // Reactの関数コンポーネント定義
-const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updatedAt, defData, tyoku, shop }) => {
+const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updatedAt, defData, tyoku, shop, headerColor }) => {
   // パースされたデータを格納するステート
   const [parsedData, setParsedData] = useState<{ time: string; work: string; detail: string }[]>([]);
   // テーブルの大きさ測定
@@ -123,14 +124,16 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
     return () => window.removeEventListener("resize", updateTableWidth); // クリーンアップ関数
   }, [parsedData]); // `parsedData`が変更されたら再実行
 
+  const headerStyle = { backgroundColor: headerColor }
+
   return (
     <div className={styles["table-wrapper"]} style={{ maxHeight: `${maxHeight}px`, overflowY: "auto", width: `${tableWidth + 15}px` }}>
       <table ref={tableRef}>
         <thead>
           <tr>
-            <th className={styles["th-collar"]}>作業時間</th>
-            <th className={styles["th-collar"]}>作業内容</th>
-            <th className={styles["th-collar"]}>作業詳細</th>
+            <th style={headerStyle}>作業時間</th>
+            <th style={headerStyle}>作業内容</th>
+            <th style={headerStyle}>作業詳細</th>
           </tr>
         </thead>
         <tbody>

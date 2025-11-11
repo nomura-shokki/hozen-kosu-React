@@ -627,3 +627,69 @@ class InquiryEditView(View):
 
 #--------------------------------------------------------------------------------------------------------
 
+
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from ..models import member, inquiry_data
+from .serializers import MemberSerializer, InquirSerializer
+from ..utils.main_utils import CustomPagination
+
+
+
+
+
+# 人員一覧動作
+class InquirList(APIView):
+  # GET時の動作
+  def get(self, request):
+    # セッションからデータ取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
+    # 未ログインや定義が未定義の場合はログイン画面へ
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+    if not def_ver:
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # ログイン者データ確認
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+      if not member_data.authority:
+        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # クエリパラメータで絞り込み条件を取得
+    item = request.query_params.get('item')
+    member_id = request.query_params.get('member_id')
+    print(request.query_params)
+    # 問い合わせデータ全取得
+    inquirs = inquiry_data.objects.select_related('name').all().order_by('id')
+
+    # 絞り込みある場合はフィルタリング
+    if member_id:
+      inquirs = inquirs.filter(employee_no2__icontains=member_id)
+    if item:
+      inquirs = inquirs.filter(content_choice=item)
+
+    # 班員の人員情報取得
+    inquir_member = list(inquiry_data.objects.values_list('employee_no2', flat=True).order_by('employee_no2').distinct())
+    member_filter = member.objects.filter(employee_no__in=inquir_member)
+
+    # ページネーション処理
+    paginator = CustomPagination()
+    result_page = paginator.paginate_queryset(inquirs, request)
+    inquir_serializer = InquirSerializer(result_page, many=True)
+    member_serializer = MemberSerializer(member_filter, many=True)
+
+    # 送信データ
+    response_data = {
+      'inquir_data': paginator.get_paginated_response(inquir_serializer.data).data,
+      'member_data': member_serializer.data,
+    }
+    return Response(response_data)

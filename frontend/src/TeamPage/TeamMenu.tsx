@@ -3,15 +3,22 @@ import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import styles from "../styles/TeamPage/TeamMenu.module.css";
 
+interface TeamMenuData {
+  follow_message_list: string[];
+  member_data: object;
+}
+
 const TeamMenu: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [teamMenuData, setTeamMenuData] = useState<TeamMenuData | null>(null); 
   const navigate = useNavigate();
 
   useEffect(() => {
     axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/api/team_menu/`, {withCredentials: true})
-      .then(() => {
+      .get<TeamMenuData>(`${process.env.REACT_APP_API_BASE_URL}/api/team_menu/`, {withCredentials: true})
+      .then((response) => {
+        setTeamMenuData(response.data); 
         setLoading(false);
       })
       .catch((err) => {
@@ -38,14 +45,29 @@ const TeamMenu: React.FC = () => {
     return <div>Error: {error}</div>;
   }
 
+  const followMessages = teamMenuData?.follow_message_list || [];
+
   return (
     <div className={styles["menu-wrapper"]}>
       <h1 className={styles["h1-collar"]}>班員MENU</h1>
       <nav className={styles["team-nav"]}>
         <Link to="/">メインMENU</Link>
       </nav>
+
+      {followMessages.length > 0 && (
+        <div className={styles["follow-messages"]}>
+          <h2>お知らせ</h2>
+          {followMessages.map((message, index) => (
+            <p key={index} className={styles["follow-message-item"]}>{message}</p>
+          ))}
+        </div>
+      )}
+
       <Link to="/team-new" className={styles["team-button1"]}>班員登録</Link>
       <Link to="/team-list" className={styles["team-button2"]}>班員工数履歴</Link>
+      <Link to="/team-calendar" className={styles["team-button3"]}>班員工数入力状況</Link>
+      <Link to="/team-overtime" className={styles["team-button4"]}>班員残業</Link>
+      <Link to="/team-view" className={styles["team-button5"]}>工数入力状況(全体)</Link>
     </div>
   );
 };

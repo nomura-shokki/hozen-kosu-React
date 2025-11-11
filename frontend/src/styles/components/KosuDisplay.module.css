@@ -22,8 +22,3 @@
     padding-left: 10px; /* 少し余白を追加して視認性を向上 */
   }
 }
-
-.th-collar{
-  background-color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-}

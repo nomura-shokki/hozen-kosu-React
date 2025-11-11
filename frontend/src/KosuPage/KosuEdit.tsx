@@ -358,7 +358,8 @@ const KosuEdit: React.FC = () => {
 
     const requestData = {
       index,
-      ...itemToDelete
+      ...itemToDelete,
+      work_day2: formData.work_day2, 
     };
 
     axios

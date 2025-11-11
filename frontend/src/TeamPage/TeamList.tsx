@@ -45,7 +45,6 @@ const getDayOfWeek = (dateStr: string): string => {
 const TeamList: React.FC = () => {
   // 状態管理フック
   const [data, setData] = useState<Kosu[]>([]); // 表示する工数データ
-  const [originalData, setOriginalData] = useState<Kosu[]>([]); // フィルタリング前の全工数データ（メンバー選択フィルタリング用）
   const [loading, setLoading] = useState<boolean>(true); // データ読み込み中の状態
   const [error, setError] = useState<string | null>(null); // エラーメッセージ
   const [searchDay, setSearchDay] = useState<string>(""); // 日付入力値
@@ -66,8 +65,9 @@ const TeamList: React.FC = () => {
   const navigate = useNavigate();
 
   // --- APIからデータを取得するための関数 ---
-  // `useCallback`を使って、`currentPage`, `Maps`, `searchByMonth`, `searchDay`が変わったときにのみ関数を再生成します。
+  // `useCallback`を使って、`currentPage`, `Maps`, `searchByMonth`, `searchDay`, `selectedMember`が変わったときにのみ関数を再生成します。
   // これにより、不要な再レンダリングを防ぎ、パフォーマンスを向上させます。
+  // 修正: `selectedMember`を依存配列に追加
   const fetchData = useCallback(async (targetMode: boolean | null = null) => {
     setLoading(true);
     try {
@@ -81,6 +81,10 @@ const TeamList: React.FC = () => {
             day: searchDay,
             mode: targetMode !== null ? (targetMode ? "month" : "day") : (searchByMonth ? "month" : "day"),
             filter: "true",
+          }),
+          // 修正: メンバー選択の値をパラメータとして追加
+          ...(selectedMember && {
+            member_id: selectedMember,
           }),
         },
         withCredentials: true, // クッキーを送信するために必要
@@ -107,7 +111,6 @@ const TeamList: React.FC = () => {
 
       // 状態を更新
       setData(transformedData); // 現在表示するデータ
-      setOriginalData(transformedData); // フィルタリング前の元データ
       setTeamMemberOptions(memberOptions); // メンバー選択肢
       setTotalPages(Math.ceil(paginationData.count / pageSize)); // 総ページ数を計算
     } catch (err) {
@@ -132,7 +135,8 @@ const TeamList: React.FC = () => {
       // ローディング状態を解除
       setLoading(false);
     }
-  }, [currentPage, navigate, searchByMonth, searchDay]);
+    // 修正: `selectedMember`を依存配列に追加
+  }, [currentPage, navigate, searchByMonth, searchDay, selectedMember]);
 
   // --- 副作用のためのuseEffectフック ---
 
@@ -152,19 +156,32 @@ const TeamList: React.FC = () => {
   }, [fetchData]);
 
   // 選択されたメンバーに応じてデータをフィルタリング
+  // 修正: バックエンドでフィルタリングするため、このローカルフィルタリングのロジックは不要になりました。
+  // ただし、オリジナルコードには残っていたので、データ変換処理を維持するために`setOriginalData`を削除して`setData`の更新のみに変更します。
+  /*
   useEffect(() => {
-    if (selectedMember) {
-      // `selectedMember`が選択されている場合、`originalData`から該当メンバーのデータのみを抽出
-      const filteredData = originalData.filter(
-        (item) => item.employee_no3.toString() === selectedMember
-      );
-      setData(filteredData);
-    } else {
-      // 選択されていない場合は、元の全データを表示
-      setData(originalData);
-    }
-    // `selectedMember`または`originalData`が変わるたびに実行されます。
+    // 修正: バックエンドでフィルタリングを行うため、このuseEffectは削除または変更します。
+    // 今回はselectedMemberが変更されたらページを1に戻す動作に変更します。
+    // if (selectedMember) {
+    //   // `selectedMember`が選択されている場合、`originalData`から該当メンバーのデータのみを抽出
+    //   const filteredData = originalData.filter(
+    //     (item) => item.employee_no3.toString() === selectedMember
+    //   );
+    //   setData(filteredData);
+    // } else {
+    //   // 選択されていない場合は、元の全データを表示
+    //   setData(originalData);
+    // }
+    // `selectedMember`が変わるたびに実行されます。
   }, [selectedMember, originalData]);
+  */
+  // メンバー選択時にページをリセットし、APIを再呼び出し
+  useEffect(() => {
+    // メンバーが選択・解除されたら、ページを1に戻してfetchDataをトリガー
+    setCurrentPage(1);
+    // fetchDataはselectedMemberに依存しているので、自動的に再実行されます。
+  }, [selectedMember]);
+
 
   // 画面リサイズ時にテーブルの最大高さを更新
   useEffect(() => {
@@ -230,8 +247,10 @@ const TeamList: React.FC = () => {
   };
 
   // メンバー選択プルダウンの変更ハンドラー
+  // 修正: メンバー変更時にcurrentPageを1にリセットします。fetchDataはselectedMemberを依存に持つため、自動的に再実行されます。
   const handleMemberChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setSelectedMember(event.target.value);
+    setCurrentPage(1); // メンバー選択が変わったとき、ページネーションをリセット
   };
 
   // エラーが発生した場合の表示
@@ -319,8 +338,7 @@ const TeamList: React.FC = () => {
                       {item.judgement ? "OK" : "NG"}
                     </td>
                     <td>
-                      {/* 詳細ページへのリンク */}
-                      <Link to={`/kosu-update/${item.id}`} className={styles["a-collar"]}>詳細</Link>
+                      <Link to={`/team-detail/${item.id}`} className={styles["a-collar"]}>詳細</Link>
                     </td>
                   </tr>
                 ))}
