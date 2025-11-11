@@ -1,6 +1,7 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import axios from "axios"; // HTTPクライアント
 import { Link, useNavigate } from "react-router-dom"; // 画面遷移に使用
+import ItemSelect from "../components/ItemSelect";
 import styles from "../styles/InquirPage/InquirNew.module.css"; // CSSモジュール
 
 // フォームで取り扱うデータ型を定義
@@ -18,6 +19,7 @@ const MemberNew: React.FC = () => {
 
   // エラーメッセージ表示用の状態
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [searchItemInput, setSearchItemInput] = useState<string>("");
 
   // ページ遷移用のフック
   const navigate = useNavigate();
@@ -86,11 +88,12 @@ const MemberNew: React.FC = () => {
         }}
       >
         <div className={styles["search-bar"]}>
-          <label htmlFor="shop">ショップ:</label>
-          <ShopSelect
-            name="shop"
-            value={formData.shop}
-            onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
+          <label htmlFor="ItemSelect">内容:</label>
+          <ItemSelect
+            id="ItemSelect"
+            name="ItemSelect"
+            value={searchItemInput}
+            onChange={(e) => setSearchItemInput(e.target.value)}
           />
           <button type="submit" className="yellow_button">登録</button>
         </div>

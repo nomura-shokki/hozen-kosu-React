@@ -116,8 +116,7 @@ const TeamList: React.FC = () => {
     setSelectedMemberInput("");
     setSearchMemberId("");
     setSearchItemInput("");
-    setSearchItem(""); // ★追加: searchItemもリセット
-    // `location.pathname`を依存配列に入れることで、URLパスが変わるたびにこのエフェクトが実行されます。
+    setSearchItem("");
   }, [location.pathname]);
 
   // `fetchData`が変更されたときにデータを取得
