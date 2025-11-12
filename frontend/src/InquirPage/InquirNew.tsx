@@ -19,7 +19,9 @@ const MemberNew: React.FC = () => {
 
   // エラーメッセージ表示用の状態
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [searchItemInput, setSearchItemInput] = useState<string>("");
+  // NOTE: searchItemInput は formData.content_choice で代用できるため削除も可能ですが、
+  // 変更しないという指示のため、ItemSelectのonChangeでformDataを更新するように修正します。
+  const [searchItemInput, setSearchItemInput] = useState<string>(""); 
 
   // ページ遷移用のフック
   const navigate = useNavigate();
@@ -40,11 +42,32 @@ const MemberNew: React.FC = () => {
       });
   }, [navigate]);
 
+  // フォーム入力値の変更ハンドラー
+  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = event.target;
+    // name属性に基づいてformDataを更新
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+  
+  // ItemSelect（内容）の変更ハンドラー
+  const handleContentChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setFormData((prevData) => ({
+      ...prevData,
+      content_choice: value, // content_choiceを更新
+    }));
+    setSearchItemInput(value); // 既存のsearchItemInputも更新（念のため）
+  };
+
   // フォーム送信時の処理
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null); // エラーリセット
 
+    // content_choice（内容）と inquiry（作業詳細）を含む formData を送信
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_new/`, formData, { withCredentials: true })
       .then((response) => {
@@ -55,12 +78,15 @@ const MemberNew: React.FC = () => {
           content_choice: "",
           inquiry: "",
         });
+        setSearchItemInput(""); // ItemSelect の表示もリセット
       })
       .catch((error) => {
         console.error(error);
         // サーバーが返すエラーメッセージを表示
         if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.error);
+          // エラーメッセージがオブジェクト形式の場合、より適切な処理が必要になることもありますが、
+          // シンプルなエラーメッセージを想定します。
+          setErrorMessage(error.response.data.error || "登録中にエラーが発生しました。");
         } else {
           setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
         }
@@ -91,9 +117,17 @@ const MemberNew: React.FC = () => {
           <label htmlFor="ItemSelect">内容:</label>
           <ItemSelect
             id="ItemSelect"
-            name="ItemSelect"
-            value={searchItemInput}
-            onChange={(e) => setSearchItemInput(e.target.value)}
+            name="content_choice" // FormDataのキーと一致させる
+            value={formData.content_choice} // formDataの値を使用
+            onChange={handleContentChange} // ItemSelect専用の変更ハンドラーを使用
+          />
+          <label htmlFor="inquiry">作業詳細：</label>
+          <input
+            type="text"
+            id="inquiry"
+            name="inquiry" // FormDataのキーと一致させる
+            value={formData.inquiry} // formDataの値を使用
+            onChange={handleChange} // 汎用的な変更ハンドラーを使用
           />
           <button type="submit" className="yellow_button">登録</button>
         </div>

@@ -33,6 +33,7 @@ import TeamCalendar from './TeamPage/TeamCalendar';
 import TeamOverTime from './TeamPage/TeamOverTime';
 import TeamView from './TeamPage/TeamView';
 import InquirMenu from './InquirPage/InquirMenu';
+import InquirNew from './InquirPage/InquirNew';
 import InquirList from './InquirPage/InquirList';
 
 
@@ -73,6 +74,7 @@ const App: React.FC = () => {
       "/team-overtime": "班員残業 - 業務工数システム",
       "/team-view": "ショップ単位工数入力状況 - 業務工数システム",
       "/inquir-menu": "問い合わせMenu - 業務工数システム",
+      "/inquir-new": "問い合わせ - 業務工数システム",
       "/inquir-list": "問い合わせ履歴 - 業務工数システム",
     };
 
@@ -113,6 +115,7 @@ const App: React.FC = () => {
       <Route path="/team-overtime" element={<TeamOverTime />} />
       <Route path="/team-view" element={<TeamView />} />
       <Route path="/inquir-menu" element={<InquirMenu />} />
+      <Route path="/inquir-new" element={<InquirNew />} />
       <Route path="/inquir-list" element={<InquirList />} />
     </Routes>
   );

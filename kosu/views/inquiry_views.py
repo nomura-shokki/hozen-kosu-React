@@ -666,7 +666,7 @@ class InquirList(APIView):
     # クエリパラメータで絞り込み条件を取得
     item = request.query_params.get('item')
     member_id = request.query_params.get('member_id')
-    print(request.query_params)
+
     # 問い合わせデータ全取得
     inquirs = inquiry_data.objects.select_related('name').all().order_by('id')
 
