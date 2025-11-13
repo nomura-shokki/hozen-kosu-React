@@ -95,7 +95,7 @@ const MemberNew: React.FC = () => {
 
   return (
     <div className={styles["inquir-new-wrapper"]}>
-      <h1 className={styles["h1-collar"]}>人員登録</h1>
+      <h1 className={styles["h1-collar"]}>問い合わせ</h1>
       <nav className={styles["inpuir-nav"]}>
         <Link to="/inquir-menu">問い合わせMENU</Link>
       </nav>
