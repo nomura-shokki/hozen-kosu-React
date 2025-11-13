@@ -486,7 +486,7 @@ from ..utils.main_utils import CustomPagination
 
 
 
-# 人員一覧動作
+# 人員一覧
 class MemberList(APIView):
   # GET時の動作
   def get(self, request):
@@ -532,7 +532,7 @@ class MemberList(APIView):
 
 
 
-# 人員データ新規登録動作
+# 人員データ新規登録
 class MemberNew(APIView):
   def get(self, request):
     login_no = request.session.get('login_No')

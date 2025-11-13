@@ -129,7 +129,7 @@ const MemberNew: React.FC = () => {
             value={formData.inquiry} // formDataの値を使用
             onChange={handleChange} // 汎用的な変更ハンドラーを使用
           />
-          <button type="submit" className="yellow_button">登録</button>
+          <button type="submit" className="pink_button">登録</button>
         </div>
       </form>
     </div>
