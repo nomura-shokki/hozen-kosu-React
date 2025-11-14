@@ -3123,7 +3123,7 @@ class SetDay(APIView):
 # 残業登録
 class OverTime(APIView):
   # POST処理
-  def post(self, request, *args, **kwargs):
+  def post(self, request):
     # セッション値取得
     login_no = request.session.get('login_No')
     # POST値取得

@@ -694,23 +694,6 @@ class InquirList(APIView):
     return Response(response_data)
 
 
-  def post(self, request):
-    data = request.data
-
-    data.update({
-        'break_time1': '#11401240',
-      })
-
-    serializer = MemberSerializer(data=data)
-    if serializer.is_valid():
-      serializer.save()
-      return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
 
 
 
@@ -745,5 +728,33 @@ class InquirNew(APIView):
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data)
 
+
+  def post(self, request):
+    login_no = request.session.get('login_No')
+
+    # ログイン者データ確認
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    data = request.data
+
+    # 更新可能なフィールドを定義
+    updatable_fields = ['over_time']
+
+    # 工数データの取得または新規作成
+    new_history = Operation_history(employee_no4=request.session['login_No'],
+                                    name=member.objects.get(employee_no = request.session['login_No']),
+                                    post_page='工数入力画面：工数区分定義予測変更',
+                                    operation_models='member',
+                                    operation_detail=edit_comment,
+                                    status='OK',)
+
+    for field in updatable_fields:
+      if field in data:
+        setattr(kosu_data, field, data[field])
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

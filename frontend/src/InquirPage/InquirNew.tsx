@@ -10,7 +10,7 @@ interface FormData {
   inquiry: string;
 }
 
-const MemberNew: React.FC = () => {
+const InquirNew: React.FC = () => {
   // 初期フォーム値と状態管理
   const [formData, setFormData] = useState<FormData>({
     content_choice: "",
@@ -136,4 +136,4 @@ const MemberNew: React.FC = () => {
   );
 };
 
-export default MemberNew;
+export default InquirNew;
