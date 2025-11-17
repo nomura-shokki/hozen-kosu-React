@@ -52,7 +52,8 @@
 }
 
 .search-bar input,
-.search-bar select {
+.search-bar select,
+.search-bar textarea {
   padding: 8px 10px;
   margin: 0 auto;
   border: 1px solid #ccc;
@@ -63,3 +64,6 @@
   box-sizing: border-box;
 }
 
+.search-bar textarea { 
+  min-height: 100px; /* <- 複数行表示のための最小高さを設定 */
+}

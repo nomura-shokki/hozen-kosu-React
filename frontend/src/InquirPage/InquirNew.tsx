@@ -70,7 +70,7 @@ const InquirNew: React.FC = () => {
     // content_choice（内容）と inquiry（作業詳細）を含む formData を送信
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_new/`, formData, { withCredentials: true })
-      .then((response) => {
+      .then(() => {
         alert("登録完了！");
 
         // フォームをリセット
@@ -84,8 +84,6 @@ const InquirNew: React.FC = () => {
         console.error(error);
         // サーバーが返すエラーメッセージを表示
         if (error.response && error.response.data) {
-          // エラーメッセージがオブジェクト形式の場合、より適切な処理が必要になることもありますが、
-          // シンプルなエラーメッセージを想定します。
           setErrorMessage(error.response.data.error || "登録中にエラーが発生しました。");
         } else {
           setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
@@ -96,7 +94,7 @@ const InquirNew: React.FC = () => {
   return (
     <div className={styles["inquir-new-wrapper"]}>
       <h1 className={styles["h1-collar"]}>問い合わせ</h1>
-      <nav className={styles["inpuir-nav"]}>
+      <nav className={styles["inquir-nav"]}>
         <Link to="/inquir-menu">問い合わせMENU</Link>
       </nav>
 
@@ -114,20 +112,20 @@ const InquirNew: React.FC = () => {
         }}
       >
         <div className={styles["search-bar"]}>
-          <label htmlFor="ItemSelect">内容:</label>
+          <label htmlFor="ItemSelect">内容選択:</label>
           <ItemSelect
             id="ItemSelect"
-            name="content_choice" // FormDataのキーと一致させる
-            value={formData.content_choice} // formDataの値を使用
-            onChange={handleContentChange} // ItemSelect専用の変更ハンドラーを使用
+            name="content_choice"
+            value={formData.content_choice}
+            onChange={handleContentChange}
           />
           <label htmlFor="inquiry">作業詳細：</label>
-          <input
-            type="text"
+          <textarea
             id="inquiry"
-            name="inquiry" // FormDataのキーと一致させる
-            value={formData.inquiry} // formDataの値を使用
-            onChange={handleChange} // 汎用的な変更ハンドラーを使用
+            name="inquiry"
+            value={formData.inquiry}
+            onChange={handleChange}
+            rows={5}
           />
           <button type="submit" className="pink_button">登録</button>
         </div>

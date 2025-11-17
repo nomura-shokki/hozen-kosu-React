@@ -695,27 +695,15 @@ class InquirList(APIView):
 
 
 
-
-
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
 class InquirNew(APIView):
   # GET時の動作
   def get(self, request):
     # セッションからデータ取得
     login_no = request.session.get('login_No')
-    def_ver = request.session.get('input_def')
 
     # 未ログインや定義が未定義の場合はログイン画面へ
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     try:
@@ -741,20 +729,62 @@ class InquirNew(APIView):
     data = request.data
 
     # 更新可能なフィールドを定義
-    updatable_fields = ['over_time']
+    updatable_fields = ['content_choice', 'inquiry']
 
-    # 工数データの取得または新規作成
-    new_history = Operation_history(employee_no4=request.session['login_No'],
-                                    name=member.objects.get(employee_no = request.session['login_No']),
-                                    post_page='工数入力画面：工数区分定義予測変更',
-                                    operation_models='member',
-                                    operation_detail=edit_comment,
-                                    status='OK',)
+    # 問い合わせデータの新規作成
+    new_inquiry = inquiry_data(employee_no2=request.session['login_No'], 
+                              name=member_data,
+                              answer='',
+                              )
 
     for field in updatable_fields:
       if field in data:
-        setattr(kosu_data, field, data[field])
+        setattr(new_inquiry, field, data[field])
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # 問い合わせデータ更新
+    new_inquiry.save()
+    return Response({'status': 'success', 'message': 'データが更新されました。'})
 
+
+
+class InquirDetail(APIView):
+  # 指定IDの問い合わせデータ取得
+  def get_object(self, pk):
+    try:
+      return inquiry_data.objects.get(id=pk)
+    except inquiry_data.DoesNotExist:
+      return None
+
+
+  # GET時の動作
+  def get(self, request, pk):
+    # 問い合わせデータ取得
+    inquir_instance = self.get_object(pk)
+    if not inquir_instance:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # セッションからデータ取得
+    login_no = request.session.get('login_No')
+
+    # 未ログインや定義が未定義の場合はログイン画面へ
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # ログイン者データ確認
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # データ変換
+    inquir_serializer = InquirSerializer(inquir_instance)
+    member_serializer = MemberSerializer(member_data, many=False)
+
+    # 送信データ
+    response_data = {
+      'inquir_data': inquir_serializer.data,
+      'member_data': member_serializer.data,
+    }
+
+    return Response(response_data)
 
