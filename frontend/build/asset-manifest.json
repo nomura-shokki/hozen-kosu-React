@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/static/css/main.50c0ab53.css",
-    "main.js": "/static/js/main.0cf21052.js",
+    "main.js": "/static/js/main.be69ac56.js",
     "static/media/helmet.png": "/static/media/helmet.462d124ed1bceb531f16.png",
     "static/media/TitleRogo.png": "/static/media/TitleRogo.d7b1774377247ae1705a.png",
     "static/media/MenuRogo.png": "/static/media/MenuRogo.2e91fb25ca18866bdfd1.png",
     "static/media/RAV4.png": "/static/media/RAV4.047daf7929190690cea1.png",
     "index.html": "/index.html",
     "main.50c0ab53.css.map": "/static/css/main.50c0ab53.css.map",
-    "main.0cf21052.js.map": "/static/js/main.0cf21052.js.map"
+    "main.be69ac56.js.map": "/static/js/main.be69ac56.js.map"
   },
   "entrypoints": [
     "static/css/main.50c0ab53.css",
-    "static/js/main.0cf21052.js"
+    "static/js/main.be69ac56.js"
   ]
 }
