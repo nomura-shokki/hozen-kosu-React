@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../components/Loading";
@@ -49,9 +49,9 @@ interface Member {
 }
 
 // APIからのレスポンスデータの型定義
-interface KosuResponse {
+interface Response {
   inquir_data: Inquir; // 工数データ本体
-  member_data: Member; // メンバー情報
+  login_data: Member; // メンバー情報
   inquir_member_data: Member; // 質問者のメンバー情報
 }
 
@@ -65,17 +65,18 @@ const InquirDetail: React.FC = () => {
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight); // テーブル最大高さ
   const [tableWidth, setTableWidth] = useState<number>(0); // テーブル幅
   const [memberData, setMemberData] = useState<Member | null>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // データ取得のためのuseEffect
   useEffect(() => {
     // APIエンドポイントにGETリクエストを送信し、工数データと関連データを取得
     axios
-      .get<KosuResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_detail/${id}/`, { withCredentials: true })
+      .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_detail/${id}/`, { withCredentials: true })
       .then((response) => {
         const { inquir_data } = response.data;
         setFormData(inquir_data); // フォームデータをセット
-        const member_data = response.data.member_data;
-        setMemberData(member_data);
+        const login_data = response.data.login_data;
+        setMemberData(login_data);
         setLoading(false); // ローディング終了
       })
       .catch((err) => {
@@ -89,6 +90,35 @@ const InquirDetail: React.FC = () => {
         setLoading(false); // ローディング終了
       });
   }, [id, navigate]); // 依存配列: idとnavigateが変更されたときのみ実行
+
+  // 画面リサイズ時にテーブルの最大高さを更新
+  useEffect(() => {
+    const updateMaxHeight = () => {
+      // ヘッダーや検索バーの高さを取得し、画面の高さから引いてテーブルの最大高さを計算します。
+      const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0;
+      const headerHeight = (document.querySelector(`.${styles["h1-collar"]}`) as HTMLElement)?.offsetHeight || 0;
+      setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 120); // オフセット調整
+    };
+
+    updateMaxHeight();
+    // リサイズイベントリスナーを追加
+    window.addEventListener("resize", updateMaxHeight);
+    // クリーンアップ関数を返し、コンポーネントがアンマウントされる際にイベントリスナーを削除します。
+    return () => window.removeEventListener("resize", updateMaxHeight);
+  }, []);
+
+  // 画面リサイズ時にテーブルの幅を更新
+  useEffect(() => {
+    const updateTableWidth = () => {
+      if (tableRef.current) {
+        setTableWidth(tableRef.current.offsetWidth);
+      }
+    };
+
+    updateTableWidth();
+    window.addEventListener("resize", updateTableWidth);
+    return () => window.removeEventListener("resize", updateTableWidth);
+  }, []);
 
   // ローディング中またはエラー、データがない場合の表示
   if (loading) {
@@ -122,8 +152,20 @@ const InquirDetail: React.FC = () => {
           <table ref={tableRef}>
             <thead>
               <tr>
-                <th className={styles["th-collar"]}>問い合わせ者</th>
-                <td>{FormData ? FormData.employee_no : ""}:：{FormData ? FormData.name : ""}</td>
+                <th className={styles["th-collar"]}>
+                  問い合わせ者
+                </th>
+                <td>
+                  {formData ? formData.employee_no2 : ""}：{memberData ? memberData.name : ""}
+                </td>
+              </tr>
+              <tr>
+                <th className={styles["th-collar"]}>
+                  内容
+                </th>
+                <td>
+                  {formData ? formData.content_choice : ""}
+                </td>
               </tr>
             </thead>
           </table>

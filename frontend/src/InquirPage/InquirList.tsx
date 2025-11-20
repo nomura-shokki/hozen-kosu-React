@@ -62,7 +62,6 @@ const TeamList: React.FC = () => {
       });
 
       // レスポンスからデータとページネーション情報を取得
-      console.log("API Response:", response.data); // デバッグ用ログ
       const paginationData = response.data?.inquir_data || {};
       const results = paginationData.results || [];
       const pageSize = response.data.page_size || 20;

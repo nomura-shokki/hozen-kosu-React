@@ -668,7 +668,7 @@ class InquirList(APIView):
     member_id = request.query_params.get('member_id')
 
     # 問い合わせデータ全取得
-    inquirs = inquiry_data.objects.select_related('name').all().order_by('id')
+    inquirs = inquiry_data.objects.select_related('name').all().order_by('-id')
 
     # 絞り込みある場合はフィルタリング
     if member_id:
@@ -784,13 +784,13 @@ class InquirDetail(APIView):
 
     # データ変換
     inquir_serializer = InquirSerializer(inquir_instance)
-    member_serializer = MemberSerializer(member_data, many=False)
+    login_serializer = MemberSerializer(member_data, many=False)
     inquir_member_serializer = MemberSerializer(inquir_member, many=False)
 
     # 送信データ
     response_data = {
       'inquir_data': inquir_serializer.data,
-      'member_data': member_serializer.data,
+      'login_data': login_serializer.data,
       'inquir_member_data': inquir_member_serializer.data,
     }
 
