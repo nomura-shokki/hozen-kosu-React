@@ -91,7 +91,7 @@ const DefSearch: React.FC = () => {
 
       <form>
         <div className={styles["search-bar"]}>
-          <label htmlFor="division-select">定義を確認したい工数区分を選択:</label>
+          <label htmlFor="division-select">定義確認する工数区分選択:</label>
           <select
             id="division-select"
             name="division-select"

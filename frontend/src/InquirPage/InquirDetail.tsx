@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../components/Loading";
@@ -61,11 +61,8 @@ const InquirDetail: React.FC = () => {
   const [formData, setFormData] = useState<Inquir | null>(null); // 編集対象
   const [loading, setLoading] = useState<boolean>(true); // ローディング状態
   const [error, setError] = useState<string | null>(null); // フェッチ時のエラーメッセージ
-  const { id } = useParams<{ id: string }>(); // URLパラメータから工数データのIDを取得
-  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight); // テーブル最大高さ
-  const [tableWidth, setTableWidth] = useState<number>(0); // テーブル幅
+  const { id } = useParams<{ id: string }>(); // URLパラメータからデータのIDを取得
   const [memberData, setMemberData] = useState<Member | null>(null);
-  const tableRef = useRef<HTMLTableElement>(null);
 
   // データ取得のためのuseEffect
   useEffect(() => {
@@ -91,35 +88,6 @@ const InquirDetail: React.FC = () => {
       });
   }, [id, navigate]); // 依存配列: idとnavigateが変更されたときのみ実行
 
-  // 画面リサイズ時にテーブルの最大高さを更新
-  useEffect(() => {
-    const updateMaxHeight = () => {
-      // ヘッダーや検索バーの高さを取得し、画面の高さから引いてテーブルの最大高さを計算します。
-      const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0;
-      const headerHeight = (document.querySelector(`.${styles["h1-collar"]}`) as HTMLElement)?.offsetHeight || 0;
-      setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 120); // オフセット調整
-    };
-
-    updateMaxHeight();
-    // リサイズイベントリスナーを追加
-    window.addEventListener("resize", updateMaxHeight);
-    // クリーンアップ関数を返し、コンポーネントがアンマウントされる際にイベントリスナーを削除します。
-    return () => window.removeEventListener("resize", updateMaxHeight);
-  }, []);
-
-  // 画面リサイズ時にテーブルの幅を更新
-  useEffect(() => {
-    const updateTableWidth = () => {
-      if (tableRef.current) {
-        setTableWidth(tableRef.current.offsetWidth);
-      }
-    };
-
-    updateTableWidth();
-    window.addEventListener("resize", updateTableWidth);
-    return () => window.removeEventListener("resize", updateTableWidth);
-  }, []);
-
   // ローディング中またはエラー、データがない場合の表示
   if (loading) {
     return <div><Loading isLoading={loading} /></div>;
@@ -141,37 +109,17 @@ const InquirDetail: React.FC = () => {
           <Link to="/inquir-list">問い合わせ履歴</Link>
         </nav>
 
-        <div
-          className={styles["table-wrapper"]}
-          style={{
-            maxHeight: `${maxHeight}px`,
-            overflowY: "auto",
-            width: tableWidth > 0 ? `${tableWidth + 20}px` : "100%", 
-          }}
-        >
-          <table ref={tableRef}>
-            <thead>
-              <tr>
-                <th className={styles["th-collar"]}>
-                  問い合わせ者
-                </th>
-                <td>
-                  {formData ? formData.employee_no2 : ""}：{memberData ? memberData.name : ""}
-                </td>
-              </tr>
-              <tr>
-                <th className={styles["th-collar"]}>
-                  内容
-                </th>
-                <td>
-                  {formData ? formData.content_choice : ""}
-                </td>
-              </tr>
-            </thead>
-          </table>
+        <div className={styles["inquir-content"]}>
+          <h2>問い合わせ者:</h2> 
+          <p>{formData ? formData.employee_no2 : ""}：{memberData ? memberData.name : ""}</p>
+          <h2>内容:</h2>
+          <p>{formData ? formData.content_choice : ""}</p>
+          <h2>問い合わせ:</h2>
+          <p>{formData ? formData.inquiry : ""}</p>
+          <h2>回答:</h2>
+          <p>{formData ? formData.answer : ""}</p>
         </div>
-
-
+        <Link to={`/inquir-edit/${id}`} className={styles["pink_button"]}>編集</Link>
       </div>
     </>
   );

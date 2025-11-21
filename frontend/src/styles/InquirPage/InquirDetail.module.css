@@ -1,0 +1,70 @@
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.inquir-new-wrapper {
+  animation: fadeInUp 1s ease-out;
+  display: flex; /* 子要素をフレックスレイアウトにする */
+  flex-direction: column; /* 縦方向に要素を並べる */
+  justify-content: top;
+  align-items: center; /* 横方向の中央に配置 */
+  height: 100vh; /* 画面の高さいっぱいにする */
+  width: 100%;
+  margin: 0 auto; /* 横方向の中央寄せ */
+  -webkit-overflow-scrolling: touch;
+}
+
+.h1-collar {
+  color: #ff69b4;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.inquir-nav a {
+  color: #ff69b4;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.inquir-nav a:hover {
+  color: #ff1493;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.inquir-content {
+  display: flex; /* フレックスボックスを有効化 */
+  flex-direction: column; /* 縦並びにする */
+  justify-content: flex-start; /* 上方向に揃える（未使用であれば削除してもOK） */
+  align-items: flex-start; /* 左揃えにする */
+  max-width: calc(100vw - 30px);
+  padding: 10px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  margin: 15px;
+  box-sizing: border-box; /* パディングやボーダーを含めたサイズを計算 */
+  -webkit-overflow-scrolling: touch; /* モバイル向けスムーズスクロール */
+  scroll-behavior: auto; /* スクロール位置のアニメーションを無効化（必要に応じて） */
+  background-color: #fff;
+  border-radius: 4px;
+}
+
+.inquir-content h2 {
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-align: left;
+  margin: 0;
+}
+
+.inquir-content p {
+  white-space: pre-wrap; /* pre から pre-wrap に変更 */
+  overflow-wrap: break-word; /* normal から break-word に変更 */
+  text-align: left; /* 左揃え */
+  margin: 0 10px 20px 10px; /* 左側の余白が加算されるため適切に調整 */
+  width: 100%; 
+  box-sizing: border-box;
+}

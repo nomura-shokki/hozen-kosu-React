@@ -73,14 +73,17 @@
   flex-direction: column; /* 縦並びにする */
   justify-content: flex-start; /* 上方向に揃える（未使用であれば削除してもOK） */
   align-items: flex-start; /* 左揃えにする */
-  max-width: calc(100vw - 30px);; /* 親要素内での最大幅 */
-  overflow-x: auto; /* 横スクロールを有効に */
-  overflow-y: auto; /* 縦スクロールを有効に */
+  max-width: calc(100vw - 30px);
+  padding: 10px;
+  overflow-x: auto;
+  overflow-y: auto;
   border: 1px solid #ccc;
   margin: 15px;
   box-sizing: border-box; /* パディングやボーダーを含めたサイズを計算 */
   -webkit-overflow-scrolling: touch; /* モバイル向けスムーズスクロール */
   scroll-behavior: auto; /* スクロール位置のアニメーションを無効化（必要に応じて） */
+  background-color: #fff;
+  border-radius: 4px;
 }
 
 .definition-content h2 {
