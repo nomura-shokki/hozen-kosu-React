@@ -207,7 +207,7 @@ const TeamList: React.FC = () => {
           <Link to="/inquir-menu">問い合わせMENU</Link>
         </nav>
         <div className={styles["search-bar"]}>
-          <label htmlFor="team-member-select">質問者</label>
+          <label htmlFor="team-member-select"></label>
           <TeamMemberSelect
             id="team-member-select"
             name="team-member-select"
@@ -215,7 +215,7 @@ const TeamList: React.FC = () => {
             onChange={handleMemberChange}
             options={MemberOptions}
           />
-          <label htmlFor="ItemSelect">内容</label>
+          <label htmlFor="ItemSelect"></label>
           <ItemSelect
             id="ItemSelect"
             name="ItemSelect"

@@ -11,7 +11,7 @@ interface TeamMemberSelectProps {
 const TeamMemberSelect: React.FC<TeamMemberSelectProps> = ({ id, name, value, onChange, options }) => {
   return (
     <select id={id} name={name} value={value} onChange={onChange}>
-      <option value="">-- 班員選択 --</option>
+      <option value="">-- 人員選択 --</option>
       {options.map((option) => (
         <option key={option.employee_no} value={option.employee_no}>
           {option.employee_no} - {option.name}

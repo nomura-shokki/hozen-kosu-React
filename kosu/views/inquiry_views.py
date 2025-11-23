@@ -785,6 +785,14 @@ class InquirDetail(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': '質問者の人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
+    # 次・前のデータの取得
+    next_record_obj = inquiry_data.objects.filter(id__gt=pk).order_by('id').first()
+    next_record_id = next_record_obj.id if next_record_obj else None
+
+    # 前のレコード
+    before_record_obj = inquiry_data.objects.filter(id__lt=pk).order_by('-id').first()
+    before_record_id = before_record_obj.id if before_record_obj else None
+
     # データ変換
     inquir_serializer = InquirSerializer(inquir_instance)
     login_serializer = MemberSerializer(member_data, many=False)
@@ -797,6 +805,8 @@ class InquirDetail(APIView):
       'login_data': login_serializer.data,
       'inquir_member_data': inquir_member_serializer.data,
       'member_data': member_serializer.data,
+      'next_id': next_record_id,
+      'before_id': before_record_id,
     }
 
     return Response(response_data)

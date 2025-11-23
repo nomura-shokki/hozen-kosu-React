@@ -10,7 +10,7 @@ interface ItemSelectProps {
 
 // value と label を分けた選択肢リスト
 const shopOptions = [
-  { value: "", label: "---" },
+  { value: "", label: "-- 内容選択 --" },
   { value: "要望", label: "要望" },
   { value: "不具合", label: "不具合" },
   { value: "問い合わせ", label: "問い合わせ" },

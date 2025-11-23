@@ -19,9 +19,6 @@ const InquirNew: React.FC = () => {
 
   // エラーメッセージ表示用の状態
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  // NOTE: searchItemInput は formData.content_choice で代用できるため削除も可能ですが、
-  // 変更しないという指示のため、ItemSelectのonChangeでformDataを更新するように修正します。
-  const [searchItemInput, setSearchItemInput] = useState<string>(""); 
 
   // ページ遷移用のフック
   const navigate = useNavigate();
@@ -59,7 +56,6 @@ const InquirNew: React.FC = () => {
       ...prevData,
       content_choice: value, // content_choiceを更新
     }));
-    setSearchItemInput(value); // 既存のsearchItemInputも更新（念のため）
   };
 
   // フォーム送信時の処理
@@ -78,7 +74,6 @@ const InquirNew: React.FC = () => {
           content_choice: "",
           inquiry: "",
         });
-        setSearchItemInput(""); // ItemSelect の表示もリセット
       })
       .catch((error) => {
         console.error(error);
