@@ -776,6 +776,9 @@ class InquirDetail(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
+    inquir_member_list = list(inquiry_data.objects.values_list('employee_no2', flat=True).order_by('employee_no2').distinct())
+    member_filter = member.objects.filter(employee_no__in=inquir_member_list)
+
     # 質問者データ確認
     try:
       inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
@@ -786,12 +789,14 @@ class InquirDetail(APIView):
     inquir_serializer = InquirSerializer(inquir_instance)
     login_serializer = MemberSerializer(member_data, many=False)
     inquir_member_serializer = MemberSerializer(inquir_member, many=False)
+    member_serializer = MemberSerializer(member_filter, many=True)
 
     # 送信データ
     response_data = {
       'inquir_data': inquir_serializer.data,
       'login_data': login_serializer.data,
       'inquir_member_data': inquir_member_serializer.data,
+      'member_data': member_serializer.data,
     }
 
     return Response(response_data)

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../components/Loading";
@@ -53,40 +53,73 @@ interface Response {
   inquir_data: Inquir; // 工数データ本体
   login_data: Member; // メンバー情報
   inquir_member_data: Member; // 質問者のメンバー情報
+  member_data: Member;
 }
 
 // KosuEditコンポーネントの定義
 const InquirDetail: React.FC = () => {
   const navigate = useNavigate(); // 画面遷移のためのフック
+  const [data, setData] = useState<Inquir[]>([]);
   const [formData, setFormData] = useState<Inquir | null>(null); // 編集対象
   const [loading, setLoading] = useState<boolean>(true); // ローディング状態
   const [error, setError] = useState<string | null>(null); // フェッチ時のエラーメッセージ
   const { id } = useParams<{ id: string }>(); // URLパラメータからデータのIDを取得
   const [memberData, setMemberData] = useState<Member | null>(null);
 
-  // データ取得のためのuseEffect
-  useEffect(() => {
-    // APIエンドポイントにGETリクエストを送信し、工数データと関連データを取得
-    axios
-      .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_detail/${id}/`, { withCredentials: true })
-      .then((response) => {
-        const { inquir_data } = response.data;
-        setFormData(inquir_data); // フォームデータをセット
-        const login_data = response.data.login_data;
-        setMemberData(login_data);
-        setLoading(false); // ローディング終了
-      })
-      .catch((err) => {
-        console.error("APIエラー:", err);
-        // 認証エラー (401) の場合はログイン画面へ遷移
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else {
-          setError(err.message); // その他のエラーをセット
-        }
-        setLoading(false); // ローディング終了
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      // APIエンドポイントにGETリクエストを送信
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_detail/${id}/`, {withCredentials: true,});
+      const paginationData = response.data?.inquir_data || {};
+      const results = paginationData.results || [];
+      const memberOptions = response.data?.member_data || [];
+
+      // 1. メンバーIDを名前に変換するためのマップを作成
+      const memberNameMap: { [key: number]: string } = {};
+      memberOptions.forEach((member: Member) => {
+        memberNameMap[member.employee_no] = member.name;
       });
-  }, [id, navigate]); // 依存配列: idとnavigateが変更されたときのみ実行
+
+      // 2. 取得したデータ（results）のnameを従業員番号から名前に変換
+      const transformedData = results.map((item: Inquir) => ({
+        ...item,
+        // item.employee_no3をキーとしてmemberNameMapから名前を取得
+        name: memberNameMap[item.employee_no2] || `Unknown (${item.employee_no2})`,
+      }));
+
+      const { inquir_data } = response.data;
+      setFormData(inquir_data); // フォームデータをセット
+      const login_data = response.data.login_data;
+      setMemberData(login_data);
+      setLoading(false); // ローディング終了
+    } catch (err) {
+      // エラーハンドリング
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          // 認証エラー（トークン切れなど）の場合はログインページへ遷移
+          navigate("/login");
+        } else if (err.response?.status === 403) {
+          // 権限エラーの場合はトップページへ遷移
+          navigate("/");
+        } else {
+          // その他のAPIエラー
+          setError(err.message);
+        }
+      } else {
+        // Axios以外の予期せぬエラー
+        console.error("予期しないエラー:", err);
+        setError("予期しないエラーが発生しました");
+      }
+    } finally {
+      // ローディング状態を解除
+      setLoading(false);
+    }
+  }, [id, navigate]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // ローディング中またはエラー、データがない場合の表示
   if (loading) {
@@ -111,15 +144,17 @@ const InquirDetail: React.FC = () => {
 
         <div className={styles["inquir-content"]}>
           <h2>問い合わせ者:</h2> 
-          <p>{formData ? formData.employee_no2 : ""}：{memberData ? memberData.name : ""}</p>
+          <p>{formData ? formData.employee_no2 : ""}：{formData ? formData.name : ""}</p>
           <h2>内容:</h2>
           <p>{formData ? formData.content_choice : ""}</p>
           <h2>問い合わせ:</h2>
           <p>{formData ? formData.inquiry : ""}</p>
           <h2>回答:</h2>
           <p>{formData ? formData.answer : ""}</p>
+          {memberData?.administrator && (
+            <Link to={`/inquir-edit/${id}`} className="pink_button">編集</Link>
+          )}
         </div>
-        <Link to={`/inquir-edit/${id}`} className={styles["pink_button"]}>編集</Link>
       </div>
     </>
   );

@@ -39,7 +39,7 @@
 .inquir-content {
   display: flex; /* フレックスボックスを有効化 */
   flex-direction: column; /* 縦並びにする */
-  justify-content: flex-start; /* 上方向に揃える（未使用であれば削除してもOK） */
+  justify-content: flex-start;
   align-items: flex-start; /* 左揃えにする */
   max-width: calc(100vw - 30px);
   padding: 10px;
@@ -64,7 +64,8 @@
   white-space: pre-wrap; /* pre から pre-wrap に変更 */
   overflow-wrap: break-word; /* normal から break-word に変更 */
   text-align: left; /* 左揃え */
-  margin: 0 10px 20px 10px; /* 左側の余白が加算されるため適切に調整 */
+  margin: 0 0 20px 0; /* 左右のmarginを0にする */
+  padding: 0 10px; /* 左右に10pxのパディングを追加 */
   width: 100%; 
   box-sizing: border-box;
 }
