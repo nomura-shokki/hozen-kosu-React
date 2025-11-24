@@ -811,3 +811,54 @@ class InquirDetail(APIView):
 
     return Response(response_data)
 
+
+
+class InquirUpdate(APIView):
+  # 指定IDの問い合わせデータ取得
+  def get_object(self, pk):
+    try:
+      return inquiry_data.objects.get(id=pk)
+    except inquiry_data.DoesNotExist:
+      return None
+
+
+  # GET時の動作
+  def get(self, request, pk):
+    # 問い合わせデータ取得
+    inquir_instance = self.get_object(pk)
+    if not inquir_instance:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # セッションからデータ取得
+    login_no = request.session.get('login_No')
+
+    # 未ログインや定義が未定義の場合はログイン画面へ
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # ログイン者データ確認
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # 質問者データ確認
+    try:
+      inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '質問者の人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # データ変換
+    inquir_serializer = InquirSerializer(inquir_instance)
+    login_serializer = MemberSerializer(member_data, many=False)
+    inquir_member_serializer = MemberSerializer(inquir_member, many=False)
+
+    # 送信データ
+    response_data = {
+      'inquir_data': inquir_serializer.data,
+      'login_data': login_serializer.data,
+      'inquir_member_data': inquir_member_serializer.data,
+    }
+
+    return Response(response_data)
+

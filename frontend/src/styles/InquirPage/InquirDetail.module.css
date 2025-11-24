@@ -69,3 +69,13 @@
   width: 100%; 
   box-sizing: border-box;
 }
+
+.pagination-buttons {
+  display: flex; /* Flexboxを有効にする */
+  justify-content: center; /* 子要素を主軸（横方向）の中央に配置 */
+  align-items: center; /* 子要素を交差軸（縦方向）の中央に配置 (ボタンの高さが異なる場合など) */
+  width: 100%; /* 親要素（inquir-detail-wrapper）の幅いっぱいに広げる */
+  gap: 20px; /* ボタン間のスペースを開ける */
+  margin-top: 10px; /* 上部に少しマージンを追加 */
+  margin-bottom: 20px; /* 下部にもマージンを追加 */
+}

@@ -36,6 +36,7 @@ import InquirMenu from './InquirPage/InquirMenu';
 import InquirNew from './InquirPage/InquirNew';
 import InquirList from './InquirPage/InquirList';
 import InquirDetail from './InquirPage/InquirDetail';
+import InquirUpdate from './InquirPage/InquirUpdate';
 
 
 
@@ -78,6 +79,7 @@ const App: React.FC = () => {
       "/inquir-new": "問い合わせ - 業務工数システム",
       "/inquir-list": "問い合わせ履歴 - 業務工数システム",
       "/inquir-detail/:id": "問い合わせ内容 - 業務工数システム",
+      "/inquir-update/:id": "問い合わせ編集 - 業務工数システム",
     };
 
     // URLに基づいてタイトルを設定
@@ -120,6 +122,7 @@ const App: React.FC = () => {
       <Route path="/inquir-new" element={<InquirNew />} />
       <Route path="/inquir-list" element={<InquirList />} />
       <Route path="/inquir-detail/:id" element={<InquirDetail />} />
+      <Route path="/inquir-update/:id" element={<InquirUpdate />} />
     </Routes>
   );
 };

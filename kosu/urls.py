@@ -58,6 +58,7 @@ urlpatterns = [
   path('inquir_new/', inquiry_views.InquirNew.as_view(), name='inquir_new'),
   path('inquir_list/', inquiry_views.InquirList.as_view(), name='inquir_list'),
   path('inquir_detail/<int:pk>/', inquiry_views.InquirDetail.as_view(), name='inquir_detail'),
+  path('inquir_update/<int:pk>/', inquiry_views.InquirUpdate.as_view(), name='inquir_update'),
 
 
 
