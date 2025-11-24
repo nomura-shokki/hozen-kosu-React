@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../components/Loading";
-import styles from "../styles/InquirPage/InquirDetail.module.css";
+import ItemSelect from "../components/ItemSelect";
+import styles from "../styles/InquirPage/InquirUpdate.module.css";
 
 // 型定義
 interface Inquir {
@@ -20,68 +21,98 @@ interface Member {
   shop: string;
   authority: boolean;
   administrator: boolean;
-  // ... その他のブレイクタイム関連のプロパティ
 }
 
 // APIからのレスポンスデータの型定義を更新
 interface Response {
   inquir_data: Inquir; // 問い合わせデータ本体
   login_data: Member; // ログインユーザーのメンバー情報
-  inquir_member_data: Member; // 質問者のメンバー情報 (今回は使用しないが、APIレスポンスに含まれる可能性)
-  member_data: Member[]; // <--- メンバー一覧データが配列であることを想定
+  inquir_member_data: Member; // 質問者のメンバー情報
 }
 
 // KosuEditコンポーネントの定義
-const InquirDetail: React.FC = () => {
+const InquirUpdate: React.FC = () => {
   const navigate = useNavigate();
-  // 問い合わせデータは単一のオブジェクトなので、useState<Inquir | null>で十分
-  // const [data, setData] = useState<Inquir[]>([]); <--- この行は不要です
   const [formData, setFormData] = useState<Inquir | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  // URLパラメータのIDは string | undefined なので、型を再定義
-  const params = useParams<{ id: string }>();
-  const currentId = params.id; // 現在のIDを明確にする
+  const { id } = useParams<{ id: string }>();
   const [memberData, setMemberData] = useState<Member | null>(null);
-
-  // IDが変わったときに再実行されるように、currentIdを依存配列に追加
-  const fetchData = useCallback(async (idToFetch: string | undefined = currentId) => {    
-    setLoading(true);
-    try {
-      // APIエンドポイントにGETリクエストを送信
-      const response = await axios.get<Response>( // <--- Response型を指定
-        `${process.env.REACT_APP_API_BASE_URL}/api/inquir_detail/${idToFetch}/`, // ★★★ idToFetch を使用 ★★★
-        { withCredentials: true }
-      );
-      
-      // ★★★ 取得するデータに next_id, before_id を追加 ★★★
-      const { inquir_data, login_data, inquir_member_data } = response.data;
-
-      setFormData(inquir_data); // フォームデータをセット（変換後の名前付き）
-      setMemberData(login_data); // ログインユーザー情報をセット
-      
-    } catch (err) {
-      // エラーハンドリング（省略なし）
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-      } else {
-        console.error("予期しないエラー:", err);
-        setError("予期しないエラーが発生しました");
-      }
-    } finally {
-      setLoading(false); // ローディング状態を解除
-    }
-  }, [currentId, navigate]); // currentIdを依存配列に追加
+  const [inquirMemberData, setInquirMemberData] = useState<Member | null>(null);
 
   useEffect(() => {
-    fetchData(); // currentIdが変更されたら自動的に再実行
-  }, [fetchData]);
+    axios
+      .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true })
+      .then((response) => {
+        const { inquir_data, login_data, inquir_member_data } = response.data;
+        setFormData(inquir_data); // フォームデータをセット（変換後の名前付き）
+        setMemberData(login_data); // ログインユーザー情報をセット
+        setInquirMemberData(inquir_member_data);
+        setLoading(false); // ローディング終了
+      })
+      .catch((err) => {
+        console.error("APIエラー:", err);
+        // 認証エラー (401) の場合はログイン画面へ遷移
+        if (err.response?.status === 401) {
+          navigate("/login");
+        } else {
+          setError(err.message); // その他のエラーをセット
+        }
+        setLoading(false); // ローディング終了
+      });
+  }, [id, navigate]); // 依存配列: idとnavigateが変更されたときのみ実行
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = event.target;
+    // name属性に基づいてformDataを更新
+    setFormData((prevData) => {
+      // prevDataがnullの場合は更新をスキップまたは初期値で返す
+      if (!prevData) return null;
+      return {
+        ...prevData,
+        [name]: value,
+      } as Inquir;
+    });
+  };
+
+  const handleContentChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setFormData((prevData) => {
+      // prevDataがnullの場合は更新をスキップまたは初期値で返す
+      if (!prevData) return null;
+      return {
+        ...prevData,
+        content_choice: value, // content_choiceを更新
+      } as Inquir; // 明示的にInquir型としてアサーション
+    });
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+
+    // formDataがnullでないことを確認
+    if (!formData) {
+      setError("フォームデータがありません。");
+      return;
+    }
+
+    axios
+      .put(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, formData, { withCredentials: true })
+      .then(() => {
+        alert("登録完了！");
+        navigate("/inquir-list"); 
+      })
+      .catch((error) => {
+        console.error(error);
+        // サーバーが返すエラーメッセージを表示
+        if (error.response && error.response.data) {
+          setError(error.response.data.error || "登録中にエラーが発生しました。");
+        } else {
+          setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+        }
+      });
+  };
 
   // ローディング中またはエラー、データがない場合の表示
   if (loading) {
@@ -91,6 +122,7 @@ const InquirDetail: React.FC = () => {
     return <div>Error: {error}</div>;
   }
   if (!formData) {
+    // データの取得が完了したが、なぜかformDataがnullの場合
     return <div>データが見つかりません</div>;
   }
 
@@ -104,18 +136,49 @@ const InquirDetail: React.FC = () => {
           <Link to="/inquir-list">問い合わせ履歴</Link>
         </nav>
 
-        <div className={styles["inquir-content"]}>
-          <h2>内容:</h2>
-          <p>{formData.content_choice}</p>
-          <h2>問い合わせ:</h2>
-          <p>{formData.inquiry}</p>
-          <h2>回答:</h2>
-          <p>{formData.answer}</p>
-
-        </div>
+        <form
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
+              e.preventDefault();
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+        >
+          <div className={styles["search-bar"]}>
+            <label htmlFor="ItemSelect">内容選択:</label>
+            <ItemSelect
+              id="ItemSelect"
+              name="content_choice"
+              value={formData.content_choice}
+              onChange={handleContentChange}
+            />
+            <label htmlFor="inquiry">問い合わせ：</label>
+            <textarea
+              id="inquiry"
+              name="inquiry"
+              value={formData.inquiry}
+              onChange={handleChange}
+              rows={5}
+            />
+            {memberData?.administrator && (
+              <>
+                <label htmlFor="answer">回答：</label>
+                <textarea
+                  id="answer"
+                  name="answer"
+                  value={formData.answer}
+                  onChange={handleChange}
+                  rows={5}
+                />
+              </>
+            )}
+            <button type="submit" className="pink_button">編集</button>
+          </div>
+        </form>
       </div>
     </>
   );
 };
 
-export default InquirDetail;
+export default InquirUpdate;

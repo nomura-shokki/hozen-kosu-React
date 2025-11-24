@@ -98,7 +98,6 @@ form {
   margin: 10px auto;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   box-sizing: border-box;
 }
 

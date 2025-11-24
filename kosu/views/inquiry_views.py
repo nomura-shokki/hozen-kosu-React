@@ -776,9 +776,6 @@ class InquirDetail(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
-    inquir_member_list = list(inquiry_data.objects.values_list('employee_no2', flat=True).order_by('employee_no2').distinct())
-    member_filter = member.objects.filter(employee_no__in=inquir_member_list)
-
     # 質問者データ確認
     try:
       inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
@@ -797,14 +794,12 @@ class InquirDetail(APIView):
     inquir_serializer = InquirSerializer(inquir_instance)
     login_serializer = MemberSerializer(member_data, many=False)
     inquir_member_serializer = MemberSerializer(inquir_member, many=False)
-    member_serializer = MemberSerializer(member_filter, many=True)
 
     # 送信データ
     response_data = {
       'inquir_data': inquir_serializer.data,
       'login_data': login_serializer.data,
       'inquir_member_data': inquir_member_serializer.data,
-      'member_data': member_serializer.data,
       'next_id': next_record_id,
       'before_id': before_record_id,
     }
@@ -861,4 +856,31 @@ class InquirUpdate(APIView):
     }
 
     return Response(response_data)
+
+
+  def put(self, request, pk):
+    # 問い合わせデータ取得
+    inquir_instance = self.get_object(pk)
+    if not inquir_instance:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # クライアントから送られてきたデータをシリアライズ
+    data = request.data
+    serializer = InquirSerializer(inquir_instance, data=data)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+
+
+
+
+
 

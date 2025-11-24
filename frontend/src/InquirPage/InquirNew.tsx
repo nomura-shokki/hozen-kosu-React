@@ -114,7 +114,7 @@ const InquirNew: React.FC = () => {
             value={formData.content_choice}
             onChange={handleContentChange}
           />
-          <label htmlFor="inquiry">作業詳細：</label>
+          <label htmlFor="inquiry">問い合わせ：</label>
           <textarea
             id="inquiry"
             name="inquiry"
