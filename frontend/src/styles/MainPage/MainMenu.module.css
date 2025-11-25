@@ -153,3 +153,9 @@
   margin-bottom: 40px;
   object-fit: contain;
 }
+
+.a-collar{
+  color: rgb(255, 0, 0);
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  font-weight: bold;
+}

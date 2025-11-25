@@ -743,6 +743,27 @@ class InquirNew(APIView):
 
     # 問い合わせデータ更新
     new_inquiry.save()
+
+    try:
+      admin_data = administrator_data.objects.order_by("id").last()
+    except administrator_data.DoesNotExist:
+      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    inquiry_data_id = inquiry_data.objects.order_by('id').last()
+    # ポップアップ書き込み処理
+    for i in range(1, 6):
+      pop_up_field = f'pop_up{i}'
+      pop_up_id_field = f'pop_up_id{i}'
+      if getattr(admin_data, pop_up_field) in ["", None]:
+        administrator_data.objects.update_or_create(
+          id=admin_data.id,
+          defaults={
+            pop_up_id_field: inquiry_data_id.id,
+            pop_up_field: f'{member_data.name}さんからの新しい問い合わせがあります。'
+          }
+        )
+        break
+
     return Response({'status': 'success', 'message': 'データが更新されました。'})
 
 
@@ -837,22 +858,14 @@ class InquirUpdate(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
-    # 質問者データ確認
-    try:
-      inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '質問者の人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
-
     # データ変換
     inquir_serializer = InquirSerializer(inquir_instance)
     login_serializer = MemberSerializer(member_data, many=False)
-    inquir_member_serializer = MemberSerializer(inquir_member, many=False)
 
     # 送信データ
     response_data = {
       'inquir_data': inquir_serializer.data,
       'login_data': login_serializer.data,
-      'inquir_member_data': inquir_member_serializer.data,
     }
 
     return Response(response_data)
@@ -863,8 +876,7 @@ class InquirUpdate(APIView):
     inquir_instance = self.get_object(pk)
     if not inquir_instance:
       return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
-    
-    # クライアントから送られてきたデータをシリアライズ
+
     data = request.data
     serializer = InquirSerializer(inquir_instance, data=data)
     if serializer.is_valid():
@@ -873,7 +885,15 @@ class InquirUpdate(APIView):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+  def delete(self, request, pk):
+    # 問い合わせデータ取得
+    inquir_instance = self.get_object(pk)
+    if inquir_instance is None:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    # レコードを削除
+    inquir_instance.delete()
+    return Response({'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
 
 
 

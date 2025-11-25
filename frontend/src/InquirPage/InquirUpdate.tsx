@@ -14,7 +14,7 @@ interface Inquir {
   answer: string;
 }
 
-// メンバー情報の型定義 (一部省略)
+// メンバー情報の型定義
 interface Member {
   employee_no: number;
   name: string;
@@ -38,16 +38,14 @@ const InquirUpdate: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { id } = useParams<{ id: string }>();
   const [memberData, setMemberData] = useState<Member | null>(null);
-  const [inquirMemberData, setInquirMemberData] = useState<Member | null>(null);
 
   useEffect(() => {
     axios
       .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true })
       .then((response) => {
-        const { inquir_data, login_data, inquir_member_data } = response.data;
+        const { inquir_data, login_data } = response.data;
         setFormData(inquir_data); // フォームデータをセット（変換後の名前付き）
         setMemberData(login_data); // ログインユーザー情報をセット
-        setInquirMemberData(inquir_member_data);
         setLoading(false); // ローディング終了
       })
       .catch((err) => {
@@ -105,12 +103,33 @@ const InquirUpdate: React.FC = () => {
       })
       .catch((error) => {
         console.error(error);
-        // サーバーが返すエラーメッセージを表示
-        if (error.response && error.response.data) {
-          setError(error.response.data.error || "登録中にエラーが発生しました。");
+        if (error.response && error.response.data && typeof error.response.data === 'string') {
+          // 500エラーでHTMLが返された場合など
+          alert("削除時に不明なサーバーエラーが発生しました。IT担当者に連絡してください。");
+        } else if (error.response && error.response.data) {
+          const errorMessage = error.response.data.detail || error.response.data.error || "削除時にエラーが発生しました。";
+          alert(errorMessage);
         } else {
-          setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+          alert("ネットワークエラーまたは不明なエラーが発生しました。");
         }
+      });
+  };
+
+  const handleDelete = () => {
+    const confirmed = window.confirm("削除すると戻せません。削除しますか？");
+    if (!confirmed) {
+      return;
+    }
+
+    axios
+      .delete(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true })
+      .then(() => {
+        alert("削除が完了しました");
+        navigate("/inquir-list");
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("削除時にエラーが発生しました");
       });
   };
 
@@ -173,7 +192,10 @@ const InquirUpdate: React.FC = () => {
                 />
               </>
             )}
-            <button type="submit" className="pink_button">編集</button>
+            <div className={styles["pagination-buttons"]}>
+              <button type="submit" className="pink_button">編集</button>
+              <button type="button" onClick={handleDelete} className="pink_button">削除</button>
+            </div>
           </div>
         </form>
       </div>

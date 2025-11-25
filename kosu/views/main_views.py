@@ -1013,11 +1013,12 @@ def get_logs(request):
 
 
 
+from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, Operation_history
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
-from .serializers import MemberSerializer
+from .serializers import MemberSerializer, AdministratorSerializer
 import json
 
 
@@ -1096,9 +1097,20 @@ class Menu(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
+    try:
+      admin_data = administrator_data.objects.order_by("id").last()
+    except administrator_data.DoesNotExist:
+      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+
     # データ変換
-    serializer = MemberSerializer(member_data, many=False)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    login_serializer = MemberSerializer(member_data, many=False)
+    admin_serializer = AdministratorSerializer(admin_data, many=False)
+
+    response_data = {
+      'login_data': login_serializer.data,
+      'admin_data': admin_serializer.data,
+    }
+    return Response(response_data, status=status.HTTP_200_OK)
 
 
 
