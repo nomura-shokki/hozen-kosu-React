@@ -159,3 +159,22 @@
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
   font-weight: bold;
 }
+
+.alert-area {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 10px 0;
+}
+
+@media (max-width: 768px) {
+  .alert-area {
+    max-width: 100%;
+    margin: 0;
+    align-self: flex-start;
+    text-align: left;
+    padding-left: 0; 
+    padding-right: 0;
+  }
+}

@@ -93,41 +93,43 @@ const MainMenu: React.FC = () => {
     <div className={styles["menu-wrapper"]}>
       <img src={logo} alt="Menuロゴ" className={styles["Menu-logo"]} />
       <p>こんにちは {data ? data.name : ""}さん</p>
-      {adminData && (adminData.administrator_employee_no1 == data?.employee_no || adminData.administrator_employee_no2 == data?.employee_no || adminData.administrator_employee_no3 == data?.employee_no) && (
-        <>
-          {adminData?.pop_up_id1 && (
-            <p><Link to={`/inquir-detail/${adminData?.pop_up_id1}`} className={styles["a-collar"]}>{adminData?.pop_up1}</Link></p>
-          )}
-          {adminData?.pop_up_id2 && (
-            <p><Link to={`/inquir-detail/${adminData?.pop_up_id2}`} className={styles["a-collar"]}>{adminData?.pop_up2}</Link></p>
-          )}
-          {adminData?.pop_up_id3 && (
-            <p><Link to={`/inquir-detail/${adminData?.pop_up_id3}`} className={styles["a-collar"]}>{adminData?.pop_up3}</Link></p>
-          )}
-          {adminData?.pop_up_id4 && (
-            <p><Link to={`/inquir-detail/${adminData?.pop_up_id4}`} className={styles["a-collar"]}>{adminData?.pop_up4}</Link></p>
-          )}
-          {adminData?.pop_up_id5 && (
-            <p><Link to={`/inquir-detail/${adminData?.pop_up_id5}`} className={styles["a-collar"]}>{adminData?.pop_up5}</Link></p>
-          )}
-        </>
-      )}
+      <div className={styles["alert-area"]}>
+        {adminData && (adminData.administrator_employee_no1 == data?.employee_no || adminData.administrator_employee_no2 == data?.employee_no || adminData.administrator_employee_no3 == data?.employee_no) && (
+          <>
+            {adminData?.pop_up_id1 && (
+              <p><Link to={`/inquir-detail/${adminData?.pop_up_id1}`} className={styles["a-collar"]}>{adminData?.pop_up1}</Link></p>
+            )}
+            {adminData?.pop_up_id2 && (
+              <p><Link to={`/inquir-detail/${adminData?.pop_up_id2}`} className={styles["a-collar"]}>{adminData?.pop_up2}</Link></p>
+            )}
+            {adminData?.pop_up_id3 && (
+              <p><Link to={`/inquir-detail/${adminData?.pop_up_id3}`} className={styles["a-collar"]}>{adminData?.pop_up3}</Link></p>
+            )}
+            {adminData?.pop_up_id4 && (
+              <p><Link to={`/inquir-detail/${adminData?.pop_up_id4}`} className={styles["a-collar"]}>{adminData?.pop_up4}</Link></p>
+            )}
+            {adminData?.pop_up_id5 && (
+              <p><Link to={`/inquir-detail/${adminData?.pop_up_id5}`} className={styles["a-collar"]}>{adminData?.pop_up5}</Link></p>
+            )}
+          </>
+        )}
 
-      {data?.pop_up_id1 && (
-        <p><Link to={`/inquir-detail/${data.pop_up_id1}`} className={styles["a-collar"]}>{data ? data.pop_up1 : ""}</Link></p>
-      )}
-      {data?.pop_up_id2 && (
-        <p><Link to={`/inquir-detail/${data.pop_up_id2}`} className={styles["a-collar"]}>{data ? data.pop_up2 : ""}</Link></p>
-      )}
-      {data?.pop_up_id3 && (
-        <p><Link to={`/inquir-detail/${data.pop_up_id3}`} className={styles["a-collar"]}>{data ? data.pop_up3 : ""}</Link></p>
-      )}
-      {data?.pop_up_id4 && (
-        <p><Link to={`/inquir-detail/${data.pop_up_id4}`} className={styles["a-collar"]}>{data ? data.pop_up4 : ""}</Link></p>
-      )}
-      {data?.pop_up_id5 && (
-        <p><Link to={`/inquir-detail/${data.pop_up_id5}`} className={styles["a-collar"]}>{data ? data.pop_up5 : ""}</Link></p>
-      )}
+        {data?.pop_up_id1 && (
+          <p><Link to={`/inquir-detail/${data.pop_up_id1}`} className={styles["a-collar"]}>{data ? data.pop_up1 : ""}</Link></p>
+        )}
+        {data?.pop_up_id2 && (
+          <p><Link to={`/inquir-detail/${data.pop_up_id2}`} className={styles["a-collar"]}>{data ? data.pop_up2 : ""}</Link></p>
+        )}
+        {data?.pop_up_id3 && (
+          <p><Link to={`/inquir-detail/${data.pop_up_id3}`} className={styles["a-collar"]}>{data ? data.pop_up3 : ""}</Link></p>
+        )}
+        {data?.pop_up_id4 && (
+          <p><Link to={`/inquir-detail/${data.pop_up_id4}`} className={styles["a-collar"]}>{data ? data.pop_up4 : ""}</Link></p>
+        )}
+        {data?.pop_up_id5 && (
+          <p><Link to={`/inquir-detail/${data.pop_up_id5}`} className={styles["a-collar"]}>{data ? data.pop_up5 : ""}</Link></p>
+        )}
+      </div>
       <p>　</p>
       <Link to="/kosu-menu" className={styles["kosu-menu-button"]}>工数MENU</Link>
       <Link to="/def-menu" className={styles["def-menu-button"]}>工数定義区分MENU</Link>
