@@ -1087,9 +1087,9 @@ class Menu(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
     # ログイン者データ確認
     try:
@@ -1097,10 +1097,11 @@ class Menu(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
+    # 設定データ確認
     try:
       admin_data = administrator_data.objects.order_by("id").last()
     except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
     # データ変換
     login_serializer = MemberSerializer(member_data, many=False)
@@ -1124,9 +1125,9 @@ class MemberMenu(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
     # ログイン者データ確認
     try:
@@ -1152,9 +1153,9 @@ class DefMenu(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
     # ログイン者データ確認
     try:
@@ -1178,9 +1179,9 @@ class KosuMenu(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
     # ログイン者データ確認
     try:
@@ -1200,13 +1201,10 @@ class TeamMenu(APIView):
   def get(self, request):
     # セッション値取得
     login_no = request.session.get('login_No')
-    def_ver = request.session.get('input_def')
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
     # ログイン者データ確認
     try:
@@ -1273,13 +1271,10 @@ class InquirMenu(APIView):
   def get(self, request):
     # セッション値取得
     login_no = request.session.get('login_No')
-    def_ver = request.session.get('input_def')
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
     # ログイン者データ確認
     try:
@@ -1292,3 +1287,41 @@ class InquirMenu(APIView):
     # データ変換
     serializer = MemberSerializer(member_data, many=False)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+# 管理者Menu
+class AdministratorMenu(APIView):
+  # GET処理
+  def get(self, request):
+    # セッション値取得
+    login_no = request.session.get('login_No')
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # ログイン者データ確認
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+      if not member_data.administrator:
+        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # 設定データ確認
+    try:
+      admin_data = administrator_data.objects.order_by("id").last()
+    except administrator_data.DoesNotExist:
+      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+
+    # データ変換
+    login_serializer = MemberSerializer(member_data, many=False)
+    admin_serializer = AdministratorSerializer(admin_data, many=False)
+
+    response_data = {
+      'login_data': login_serializer.data,
+      'admin_data': admin_serializer.data,
+    }
+    return Response(response_data, status=status.HTTP_200_OK)

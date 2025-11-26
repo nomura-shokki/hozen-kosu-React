@@ -344,9 +344,19 @@ const KosuNew: React.FC = () => {
       setData({ ...data, [field]: (data[field] as number || 0) + 15 });
     }
   };
+  const handleIncrement2 = (field: keyof Kosu) => {
+    if (data) {
+      setData({ ...data, [field]: (data[field] as number || 0) + 1 });
+    }
+  };
   const handleDecrement = (field: keyof Kosu) => {
     if (data) {
       setData({ ...data, [field]: (data[field] as number || 0) - 15 });
+    }
+  };
+  const handleDecrement2 = (field: keyof Kosu) => {
+    if (data) {
+      setData({ ...data, [field]: (data[field] as number || 0) - 1 });
     }
   };
 
@@ -508,6 +518,13 @@ const KosuNew: React.FC = () => {
             <div className={styles["over-time-wrapper"]}>
               <button
                 type="button"
+                className={styles["custom-button2"]}
+                onClick={() => handleDecrement2("over_time")}
+              >
+                -
+              </button>
+              <button
+                type="button"
                 className={styles["custom-button"]}
                 onClick={() => handleDecrement("over_time")}
               >
@@ -524,6 +541,13 @@ const KosuNew: React.FC = () => {
                 type="button"
                 className={styles["custom-button"]}
                 onClick={() => handleIncrement("over_time")}
+              >
+                +
+              </button>
+              <button
+                type="button"
+                className={styles["custom-button2"]}
+                onClick={() => handleIncrement2("over_time")}
               >
                 +
               </button>

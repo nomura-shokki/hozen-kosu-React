@@ -59,6 +59,7 @@ urlpatterns = [
   path('inquir_list/', inquiry_views.InquirList.as_view(), name='inquir_list'),
   path('inquir_detail/<int:pk>/', inquiry_views.InquirDetail.as_view(), name='inquir_detail'),
   path('inquir_update/<int:pk>/', inquiry_views.InquirUpdate.as_view(), name='inquir_update'),
+  path('Admin_menu/', main_views.AdministratorMenu.as_view(), name='Admin_menu'),
 
 
 

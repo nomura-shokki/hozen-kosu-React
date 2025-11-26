@@ -94,7 +94,7 @@ const MainMenu: React.FC = () => {
       <img src={logo} alt="Menuロゴ" className={styles["Menu-logo"]} />
       <p>こんにちは {data ? data.name : ""}さん</p>
       <div className={styles["alert-area"]}>
-        {adminData && (adminData.administrator_employee_no1 == data?.employee_no || adminData.administrator_employee_no2 == data?.employee_no || adminData.administrator_employee_no3 == data?.employee_no) && (
+        {adminData && (adminData.administrator_employee_no1 === data?.employee_no || adminData.administrator_employee_no2 === data?.employee_no || adminData.administrator_employee_no3 === data?.employee_no) && (
           <>
             {adminData?.pop_up_id1 && (
               <p><Link to={`/inquir-detail/${adminData?.pop_up_id1}`} className={styles["a-collar"]}>{adminData?.pop_up1}</Link></p>
@@ -140,6 +140,9 @@ const MainMenu: React.FC = () => {
         </>
       )}
       <Link to="/inquir-menu" className={styles["inquir-menu-button"]}>問い合わせMENU</Link>
+      {data?.administrator && (
+        <Link to="/admin-menu" className={styles["admin-menu-button"]}>管理者MENU</Link>
+      )}
       <button onClick={handleLogout} className="blue_button">
         ログアウト
       </button>
