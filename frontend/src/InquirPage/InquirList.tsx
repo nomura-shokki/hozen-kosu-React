@@ -238,6 +238,7 @@ const TeamList: React.FC = () => {
             <table ref={tableRef}>
               <thead>
                 <tr>
+                  <th className={styles["th-collar"]}>No.</th>
                   <th className={styles["th-collar"]}>問い合わせ者</th>
                   <th className={styles["th-collar"]}>内容</th>
                   <th className={styles["th-collar"]}>問い合わせ</th>
@@ -247,6 +248,7 @@ const TeamList: React.FC = () => {
               <tbody>
                 {data.map((item) => (
                   <tr key={item.id}>
+                    <td>{item.id}</td>
                     <td><Link to={`/inquir-detail/${item.id}`} className={styles["a-collar"]}>{item.name}</Link></td>
                     <td>{item.content_choice}</td>
                     <td>{item.inquiry.length > 3 ? item.inquiry.substring(0, 3) + "..." : item.inquiry}</td>

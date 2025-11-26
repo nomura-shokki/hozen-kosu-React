@@ -105,7 +105,7 @@ const InquirUpdate: React.FC = () => {
         console.error(error);
         if (error.response && error.response.data && typeof error.response.data === 'string') {
           // 500エラーでHTMLが返された場合など
-          alert("削除時に不明なサーバーエラーが発生しました。IT担当者に連絡してください。");
+          alert("編集時に不明なサーバーエラーが発生しました。IT担当者に連絡してください。");
         } else if (error.response && error.response.data) {
           const errorMessage = error.response.data.detail || error.response.data.error || "削除時にエラーが発生しました。";
           alert(errorMessage);

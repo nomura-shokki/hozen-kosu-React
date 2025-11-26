@@ -732,10 +732,7 @@ class InquirNew(APIView):
     updatable_fields = ['content_choice', 'inquiry']
 
     # 問い合わせデータの新規作成
-    new_inquiry = inquiry_data(employee_no2=request.session['login_No'], 
-                              name=member_data,
-                              answer='',
-                              )
+    new_inquiry = inquiry_data(employee_no2=request.session['login_No'], name=member_data, answer='')
 
     for field in updatable_fields:
       if field in data:
@@ -945,6 +942,19 @@ class InquirUpdate(APIView):
 
 
   def put(self, request, pk):
+    # セッションからデータ取得
+    login_no = request.session.get('login_No')
+
+    # 未ログインや定義が未定義の場合はログイン画面へ
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # ログイン者データ確認
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
     # 問い合わせデータ取得
     inquir_instance = self.get_object(pk)
     if not inquir_instance:
@@ -952,7 +962,54 @@ class InquirUpdate(APIView):
 
     data = request.data
     serializer = InquirSerializer(inquir_instance, data=data)
+
+    try:
+      admin_data = administrator_data.objects.order_by("id").last()
+    except administrator_data.DoesNotExist:
+      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+
     if serializer.is_valid():
+      changed_fields = set() 
+      # 変更の有無とフィールドをチェック
+      for field, new_value in serializer.validated_data.items():
+          original_value = getattr(inquir_instance, field, None)
+          
+          # 値が異なるかチェック（型やフォーマットの違いに注意）
+          if original_value != new_value:
+              changed_fields.add(field)
+
+      # 問い合わせの内容に変更のあった場合
+      if 'content_choice' in changed_fields or 'inquiry' in changed_fields:
+        # 管理者へのポップアップ通知
+        for i in range(1, 6):
+          pop_up_attr = f'pop_up{i}'
+          pop_up_id_attr = f'pop_up_id{i}'
+          if getattr(admin_data, pop_up_attr) in ['', None]:
+            administrator_data.objects.update_or_create(
+              id=admin_data.id,
+              defaults={
+                pop_up_attr: f'ID{pk}の問い合わせが編集されました。',
+                pop_up_id_attr: pk,
+              }
+            )
+            break
+
+      # 回答に変更があった場合
+      if 'answer' in changed_fields:
+        # 問い合わせ者に回答通知
+        for i in range(1, 6):
+          pop_up_attr = f'pop_up{i}'
+          pop_up_id_attr = f'pop_up_id{i}'
+          if getattr(member_data, pop_up_attr) in ['', None]:
+            member.objects.update_or_create(
+              employee_no=login_no,
+              defaults={
+                pop_up_attr: f'ID{pk}の問い合わせに回答が来ています。',
+                pop_up_id_attr: pk,
+              },
+            )
+            break
+
       serializer.save()
       return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -963,6 +1020,79 @@ class InquirUpdate(APIView):
     inquir_instance = self.get_object(pk)
     if inquir_instance is None:
       return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # 質問者データ確認
+    try:
+      inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '質問者の人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+      admin_data = administrator_data.objects.order_by("id").last()
+    except administrator_data.DoesNotExist:
+      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+    # 削除する問い合わせに関する通知を削除
+    for i in range(1, 6):
+      pop_up_id_attr = f'pop_up_id{i}'
+      pop_up_attr = f'pop_up{i}'
+      if getattr(inquir_member, pop_up_id_attr) == str(pk):
+        member.objects.update_or_create(
+          employee_no=inquir_instance.employee_no2,
+          defaults={pop_up_id_attr: '', pop_up_attr: ''}
+        )
+    # 問い合わせ者の人員情報再取得
+    inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
+
+    # 問い合わせ者の通知情報整理
+    for i in range(1, 5):
+      pop_up_attr = f'pop_up{i}'
+      pop_up_id_attr = f'pop_up_id{i}'
+      next_pop_up_attr = f'pop_up{i + 1}'
+      next_pop_up_id_attr = f'pop_up_id{i + 1}'
+
+      if getattr(inquir_member, pop_up_attr) in ['', None]:
+        member.objects.update_or_create(
+          employee_no=inquir_instance.employee_no2,
+          defaults={
+            pop_up_attr: getattr(inquir_member, next_pop_up_attr),
+            pop_up_id_attr: getattr(inquir_member, next_pop_up_id_attr),
+            next_pop_up_attr: '',
+            next_pop_up_id_attr: ''
+          }
+        )
+        # 問い合わせ者の人員情報再取得
+        inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
+
+    # 削除する問い合わせに関する通知を削除
+    for i in range(1, 6):
+      pop_up_id_attr = f"pop_up_id{i}"
+      pop_up_attr = f"pop_up{i}"
+      if getattr(admin_data, pop_up_id_attr) == str(pk):
+        administrator_data.objects.update_or_create(
+          id=admin_data.id,
+          defaults={pop_up_id_attr: '', pop_up_attr: ''}
+        )
+    # 設定再取得
+    admin_data = administrator_data.objects.order_by('id').last()
+
+    # 管理者用通知整理
+    for i in range(1, 5):
+      pop_up_attr = f"pop_up{i}"
+      pop_up_id_attr = f"pop_up_id{i}"
+      next_pop_up_attr = f"pop_up{i + 1}"
+      next_pop_up_id_attr = f"pop_up_id{i + 1}"
+      if getattr(admin_data, pop_up_attr) in ["", None]:
+        administrator_data.objects.update_or_create(
+          id=admin_data.id,
+          defaults={
+            pop_up_attr: getattr(admin_data, next_pop_up_attr),
+            pop_up_id_attr: getattr(admin_data, next_pop_up_id_attr),
+            next_pop_up_attr: '',
+            next_pop_up_id_attr: ''
+          }
+        )
 
     # レコードを削除
     inquir_instance.delete()
