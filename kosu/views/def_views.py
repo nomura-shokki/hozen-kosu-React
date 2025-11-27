@@ -554,7 +554,7 @@ class DefList(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
 
-    if not member_data.authority:
+    if not member_data.administrator:
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
     defs = kosu_division.objects.all().order_by('-id')
@@ -582,9 +582,6 @@ class DefSearch(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
 
-    if not member_data.authority:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
-
     # データベースから全ての工数区分データを取得
     divisions = kosu_division.objects.filter(kosu_name=def_ver)
 
@@ -611,7 +608,7 @@ class DefNew(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
-    if not member_data.authority:
+    if not member_data.administrator:
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
     serializer = MemberSerializer([member_data], many=True)
@@ -652,7 +649,7 @@ class DefUpdate(APIView):
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
     member_data = member.objects.get(employee_no=login_no)
-    if not member_data.authority:
+    if not member_data.administrator:
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
     serializer = DefSerializer(def_instance)
@@ -694,7 +691,7 @@ class DefDelete(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': 'ログイン情報が正しくありません'}, status=status.HTTP_404_NOT_FOUND)
 
-    if not member_data.authority:
+    if not member_data.administrator:
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
     def_instance = self.get_object(pk)

@@ -17,7 +17,7 @@ const AdministratorMenu: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_menu/`, {
+      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/admin_menu/`, {
         withCredentials: true,
       })
       .then(() => {
@@ -45,12 +45,11 @@ const AdministratorMenu: React.FC = () => {
 
   return (
     <div className={styles["menu-wrapper"]}>
-      <h1 className={styles["h1-collar"]}>問い合わせMENU</h1>
-      <nav className={styles["inquir-nav"]}>
+      <h1 className={styles["h1-collar"]}>管理者MENU</h1>
+      <nav className={styles["admin-nav"]}>
         <Link to="/">メインMENU</Link>
       </nav>
-      <Link to="/inquir-new" className={styles["inquir-button1"]}>問い合わせ</Link>
-      <Link to="/inquir-list" className={styles["inquir-button2"]}>問い合わせ履歴</Link>
+      <Link to="/Asmin-update" className={styles["admin-button1"]}>設定変更</Link>
     </div>
   );
 };

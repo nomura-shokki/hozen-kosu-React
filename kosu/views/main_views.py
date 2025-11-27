@@ -1325,3 +1325,103 @@ class AdministratorMenu(APIView):
       'admin_data': admin_serializer.data,
     }
     return Response(response_data, status=status.HTTP_200_OK)
+
+
+
+class AdministratorUpdate(APIView):
+  # GET時の動作
+  def get(self, request, pk):
+    # セッションからデータ取得
+    login_no = request.session.get('login_No')
+
+    # 未ログインや定義が未定義の場合はログイン画面へ
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # ログイン者データ確認
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+      admin_data = administrator_data.objects.order_by("id").last()
+    except administrator_data.DoesNotExist:
+      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # データ変換
+    login_serializer = MemberSerializer(member_data, many=False)
+    admin_serializer = AdministratorSerializer(admin_data, many=False)
+
+    # 送信データ
+    response_data = {
+      'admin_data': admin_serializer.data,
+      'login_data': login_serializer.data,
+    }
+
+    return Response(response_data)
+
+
+  def put(self, request):
+    # セッションからデータ取得
+    login_no = request.session.get('login_No')
+
+    # 未ログインや定義が未定義の場合はログイン画面へ
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # ログイン者データ確認
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+      admin_data = administrator_data.objects.order_by("id").last()
+    except administrator_data.DoesNotExist:
+      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = AdministratorSerializer(admin_data, data=request.data)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
