@@ -2,7 +2,6 @@ import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../components/Loading";
-import ItemSelect from "../components/ItemSelect";
 import styles from "../styles/AdministratorPage/AdministratorUpdate.module.css";
 
 // 型定義
@@ -42,8 +41,8 @@ const AdminUpdate: React.FC = () => {
     axios
       .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true })
       .then((response) => {
-        const { inquir_data, login_data } = response.data;
-        setFormData(inquir_data); // フォームデータをセット（変換後の名前付き）
+        const { admin_data, login_data } = response.data;
+        setFormData(admin_data); // フォームデータをセット（変換後の名前付き）
         setMemberData(login_data); // ログインユーザー情報をセット
         setLoading(false); // ローディング終了
       })
