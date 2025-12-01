@@ -6,10 +6,10 @@ import styles from "../styles/AdministratorPage/AdministratorUpdate.module.css";
 
 // 型定義
 interface Admin {
-  employee_no2: number;
-  name: string; // <--- 変換後の名前を保持するために必要
-  content_choice: string;
-  inquiry: string;
+  menu_row: number;
+  administrator_employee_no1: number;
+  administrator_employee_no2: number;
+  administrator_employee_no3: number;
   answer: string;
 }
 
@@ -35,15 +35,13 @@ const AdminUpdate: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { id } = useParams<{ id: string }>();
-  const [memberData, setMemberData] = useState<Member | null>(null);
 
   useEffect(() => {
     axios
-      .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true })
+      .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, { withCredentials: true })
       .then((response) => {
-        const { admin_data, login_data } = response.data;
+        const { admin_data } = response.data;
         setFormData(admin_data); // フォームデータをセット（変換後の名前付き）
-        setMemberData(login_data); // ログインユーザー情報をセット
         setLoading(false); // ローディング終了
       })
       .catch((err) => {
@@ -67,19 +65,7 @@ const AdminUpdate: React.FC = () => {
       return {
         ...prevData,
         [name]: value,
-      } as Inquir;
-    });
-  };
-
-  const handleContentChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value;
-    setFormData((prevData) => {
-      // prevDataがnullの場合は更新をスキップまたは初期値で返す
-      if (!prevData) return null;
-      return {
-        ...prevData,
-        content_choice: value, // content_choiceを更新
-      } as Inquir; // 明示的にInquir型としてアサーション
+      } as Admin;
     });
   };
 
@@ -94,10 +80,10 @@ const AdminUpdate: React.FC = () => {
     }
 
     axios
-      .put(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, formData, { withCredentials: true })
+      .put(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, formData, { withCredentials: true })
       .then(() => {
         alert("登録完了！");
-        navigate("/inquir-list"); 
+        navigate("/"); 
       })
       .catch((error) => {
         console.error(error);
@@ -110,24 +96,6 @@ const AdminUpdate: React.FC = () => {
         } else {
           alert("ネットワークエラーまたは不明なエラーが発生しました。");
         }
-      });
-  };
-
-  const handleDelete = () => {
-    const confirmed = window.confirm("削除すると戻せません。削除しますか？");
-    if (!confirmed) {
-      return;
-    }
-
-    axios
-      .delete(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true })
-      .then(() => {
-        alert("削除が完了しました");
-        navigate("/inquir-list");
-      })
-      .catch((error) => {
-        console.error(error);
-        alert("削除時にエラーが発生しました");
       });
   };
 
@@ -147,10 +115,10 @@ const AdminUpdate: React.FC = () => {
   return (
     <>
       <Loading isLoading={loading} />
-      <div className={styles["inquir-update-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>問い合わせ編集</h1>
-        <nav className={styles["inquir-nav"]}>
-          <Link to="/inquir-list">問い合わせ履歴</Link>
+      <div className={styles["admin-update-wrapper"]}>
+        <h1 className={styles["h1-collar"]}>設定編集</h1>
+        <nav className={styles["admin-nav"]}>
+          <Link to="/manager-menu">管理者MENU</Link>
         </nav>
 
         <form
@@ -163,36 +131,15 @@ const AdminUpdate: React.FC = () => {
           }}
         >
           <div className={styles["search-bar"]}>
-            <label htmlFor="ItemSelect">内容選択:</label>
-            <ItemSelect
-              id="ItemSelect"
-              name="content_choice"
-              value={formData.content_choice}
-              onChange={handleContentChange}
-            />
             <label htmlFor="inquiry">問い合わせ：</label>
-            <textarea
-              id="inquiry"
-              name="inquiry"
-              value={formData.inquiry}
+            <input
+              id="menu_row"
+              name="menu_row"
+              value={formData.menu_row}
               onChange={handleChange}
-              rows={5}
             />
-            {memberData?.administrator && (
-              <>
-                <label htmlFor="answer">回答：</label>
-                <textarea
-                  id="answer"
-                  name="answer"
-                  value={formData.answer}
-                  onChange={handleChange}
-                  rows={5}
-                />
-              </>
-            )}
             <div className={styles["pagination-buttons"]}>
               <button type="submit" className="pink_button">編集</button>
-              <button type="button" onClick={handleDelete} className="pink_button">削除</button>
             </div>
           </div>
         </form>

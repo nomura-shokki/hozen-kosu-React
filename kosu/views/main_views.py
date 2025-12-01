@@ -1330,7 +1330,7 @@ class AdministratorMenu(APIView):
 
 class AdministratorUpdate(APIView):
   # GET時の動作
-  def get(self, request, pk):
+  def get(self, request):
     # セッションからデータ取得
     login_no = request.session.get('login_No')
 

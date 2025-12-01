@@ -141,7 +141,7 @@ const MainMenu: React.FC = () => {
       )}
       <Link to="/inquir-menu" className={styles["inquir-menu-button"]}>問い合わせMENU</Link>
       {data?.administrator && (
-        <Link to="/admin-menu" className={styles["admin-menu-button"]}>管理者MENU</Link>
+        <Link to="/manager-menu" className={styles["admin-menu-button"]}>管理者MENU</Link>
       )}
       <button onClick={handleLogout} className="blue_button">
         ログアウト

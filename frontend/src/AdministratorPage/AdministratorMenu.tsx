@@ -49,7 +49,7 @@ const AdministratorMenu: React.FC = () => {
       <nav className={styles["admin-nav"]}>
         <Link to="/">メインMENU</Link>
       </nav>
-      <Link to="/Asmin-update" className={styles["admin-button1"]}>設定変更</Link>
+      <Link to="/manager-update" className={styles["admin-button1"]}>設定変更</Link>
     </div>
   );
 };
