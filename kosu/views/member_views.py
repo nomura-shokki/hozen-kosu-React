@@ -632,6 +632,7 @@ class MemberUpdate(APIView):
     except member.DoesNotExist:
       return None
 
+
   def get(self, request, pk):
     # セッションからログイン情報を取得
     login_no = request.session.get('login_No')
@@ -654,6 +655,7 @@ class MemberUpdate(APIView):
     # データをシリアライズして返却
     serializer = MemberSerializer(member_instance)
     return Response(serializer.data)
+
 
   def put(self, request, pk):
     # 特定の従業員データを取得

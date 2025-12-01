@@ -61,6 +61,7 @@ urlpatterns = [
   path('inquir_update/<int:pk>/', inquiry_views.InquirUpdate.as_view(), name='inquir_update'),
   path('manager_menu/', main_views.AdministratorMenu.as_view(), name='admin_menu'),
   path('manager_update/', main_views.AdministratorUpdate.as_view(), name='admin_update'),
+  path('manager_loading/', main_views.AdministratorLoading.as_view(), name='admin_loading'),
 
 
 

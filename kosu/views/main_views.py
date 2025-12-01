@@ -1387,13 +1387,54 @@ class AdministratorUpdate(APIView):
 
     serializer = AdministratorSerializer(admin_data, data=request.data)
     if serializer.is_valid():
+      menu_row_value = int(request.data.get('menu_row'))
+      administrator_employee_no1_value = int(request.data.get('administrator_employee_no1'))
+      administrator_employee_no2_value = int(request.data.get('administrator_employee_no2'))
+      administrator_employee_no3_value = int(request.data.get('administrator_employee_no3'))
+      if not isinstance(menu_row_value, int) or menu_row_value <= 0:
+        return Response({'error': '一覧表示項目数は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
+      if not isinstance(administrator_employee_no1_value, int) or administrator_employee_no1_value <= 0:
+        return Response({'error': '問い合わせ担当者従業員番号1は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
+      if not isinstance(administrator_employee_no2_value, int) or administrator_employee_no2_value <= 0:
+        return Response({'error': '問い合わせ担当者従業員番号2は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
+      if not isinstance(administrator_employee_no3_value, int) or administrator_employee_no3_value <= 0:
+        return Response({'error': '問い合わせ担当者従業員番号3は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
+      # 従業員番号存在確認
+
+
       serializer.save()
       return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
+class AdministratorLoading(APIView):
+  # GET時の動作
+  def get(self, request):
+    # セッションからデータ取得
+    login_no = request.session.get('login_No')
 
+    # 未ログインや定義が未定義の場合はログイン画面へ
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # ログイン者データ確認
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    # データ変換
+    login_serializer = MemberSerializer(member_data, many=False)
+
+    # 送信データ
+    response_data = {
+      'login_data': login_serializer.data,
+    }
+
+    return Response(response_data)
 
 
 

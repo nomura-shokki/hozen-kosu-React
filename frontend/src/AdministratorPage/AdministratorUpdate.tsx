@@ -10,7 +10,6 @@ interface Admin {
   administrator_employee_no1: number;
   administrator_employee_no2: number;
   administrator_employee_no3: number;
-  answer: string;
 }
 
 // メンバー情報の型定義
@@ -58,13 +57,30 @@ const AdminUpdate: React.FC = () => {
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
+
+    // 数値に変換が必要なフィールドを特定
+    const isNumberField = [
+      "menu_row",
+      "administrator_employee_no1",
+      "administrator_employee_no2",
+      "administrator_employee_no3",
+    ].includes(name);
+
+    // 数値フィールドの場合、文字列を数値に変換する
+    // 入力が空文字の場合は0として扱う（または必要に応じてnull/undefinedを検討）
+    const newValue = isNumberField
+      ? value === "" // 空文字チェック
+        ? 0 // 空文字の場合は0
+        : parseInt(value, 10) // それ以外は整数に変換
+      : value; // 数値フィールドではない場合はそのまま文字列（またはTextAreaの場合を想定）
+
     // name属性に基づいてformDataを更新
     setFormData((prevData) => {
       // prevDataがnullの場合は更新をスキップまたは初期値で返す
       if (!prevData) return null;
       return {
         ...prevData,
-        [name]: value,
+        [name]: newValue, // 変換後の値を使用
       } as Admin;
     });
   };
@@ -85,16 +101,13 @@ const AdminUpdate: React.FC = () => {
         alert("登録完了！");
         navigate("/"); 
       })
-      .catch((error) => {
+      .catch((err) => {
         console.error(error);
-        if (error.response && error.response.data && typeof error.response.data === 'string') {
-          // 500エラーでHTMLが返された場合など
-          alert("編集時に不明なサーバーエラーが発生しました。IT担当者に連絡してください。");
-        } else if (error.response && error.response.data) {
-          const errorMessage = error.response.data.detail || error.response.data.error || "削除時にエラーが発生しました。";
-          alert(errorMessage);
+        // サーバーが返すエラーメッセージを表示
+        if (err.response && err.response.data) {
+          setError(err.response.data.error);
         } else {
-          alert("ネットワークエラーまたは不明なエラーが発生しました。");
+          setError("不明なエラーが発生しました。IT担当者に連絡してください。");
         }
       });
   };
@@ -103,11 +116,7 @@ const AdminUpdate: React.FC = () => {
   if (loading) {
     return <div><Loading isLoading={loading} /></div>;
   }
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
   if (!formData) {
-    // データの取得が完了したが、なぜかformDataがnullの場合
     return <div>データが見つかりません</div>;
   }
 
@@ -121,6 +130,10 @@ const AdminUpdate: React.FC = () => {
           <Link to="/manager-menu">管理者MENU</Link>
         </nav>
 
+      {error && (
+        <div role="alert">{error}</div>
+      )}
+
         <form
           onSubmit={handleSubmit}
           onKeyDown={(e) => {
@@ -131,16 +144,39 @@ const AdminUpdate: React.FC = () => {
           }}
         >
           <div className={styles["search-bar"]}>
-            <label htmlFor="inquiry">問い合わせ：</label>
+            <label htmlFor="menu_row">一覧表示項目数：</label>
             <input
               id="menu_row"
               name="menu_row"
+              type="number"
               value={formData.menu_row}
               onChange={handleChange}
             />
-            <div className={styles["pagination-buttons"]}>
-              <button type="submit" className="pink_button">編集</button>
-            </div>
+            <label htmlFor="administrator_employee_no1">問い合わせ担当者従業員番号1：</label>
+            <input
+              id="administrator_employee_no1"
+              name="administrator_employee_no1"
+              type="number"
+              value={formData.administrator_employee_no1}
+              onChange={handleChange}
+            />
+            <label htmlFor="administrator_employee_no2">問い合わせ担当者従業員番号2：</label>
+            <input
+              id="administrator_employee_no2"
+              name="administrator_employee_no2"
+              type="number"
+              value={formData.administrator_employee_no2}
+              onChange={handleChange}
+            />
+            <label htmlFor="administrator_employee_no3">問い合わせ担当者従業員番号3：</label>
+            <input
+              id="administrator_employee_no3"
+              name="administrator_employee_no3"
+              type="number"
+              value={formData.administrator_employee_no3}
+              onChange={handleChange}
+            />
+            <button type="submit" className="gray_button">編集</button>
           </div>
         </form>
       </div>
