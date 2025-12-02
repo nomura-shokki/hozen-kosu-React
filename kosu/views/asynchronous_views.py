@@ -7,6 +7,7 @@ from ..tasks import generate_kosu_backup, generate_prediction, delete_kosu_data,
                     generate_def_backup, load_def_file, generate_inquiry_backup, load_inquiry_file, \
                     generate_setting_backup, load_setting_file
 from ..models import AsyncTask
+from django.views.decorators.csrf import csrf_exempt
 
 
 
@@ -19,6 +20,7 @@ from ..models import AsyncTask
 
 
 # 非同期タスク処理開始
+@csrf_exempt
 def start_task(request, task_type):
   # POST時の処理
   if request.method == 'POST':

@@ -51,8 +51,11 @@ def history_record(post_page, operation_models, status, operation_detail, reques
 #--------------------------------------------------------------------------------------------------------
 
 
+
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+
+
 
 # ページネーションクラス
 class CustomPagination(PageNumberPagination):
@@ -73,6 +76,27 @@ class CustomPagination(PageNumberPagination):
 
 
 
+def validate_employee_no_logic(value, member_model):
+  # 1. 空欄チェック: 値が存在しない、または空文字列の場合は空欄を許可する
+  if not value:
+    return True, None
+  
+  # 2. 整数変換チェック
+  try:
+    value_int = int(value)
+  except ValueError:
+    # intに変換できなかった場合 (例: 'abc'などの文字列)
+    return False, 'は自然数で入力して下さい'
 
+  # 3. 自然数チェック (1以上の整数)
+  if value_int <= 0:
+    return False, 'は自然数で入力して下さい'
+  
+  # 4. 従業員番号の存在チェック
+  try:
+    member_model.objects.get(employee_no=value_int)
+    return True, value_int # バリデーション成功
+  except member_model.DoesNotExist:
+    return False, 'に入力された従業員番号の人員は存在しません'
 
 

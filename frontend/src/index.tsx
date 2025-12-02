@@ -39,7 +39,7 @@ import InquirDetail from './InquirPage/InquirDetail';
 import InquirUpdate from './InquirPage/InquirUpdate';
 import AdministratorMenu from './AdministratorPage/AdministratorMenu';
 import AdministratorUpdate from './AdministratorPage/AdministratorUpdate';
-
+import AdministratorLoading from './AdministratorPage/AdministratorLoading';
 
 
 const App: React.FC = () => {
@@ -82,8 +82,9 @@ const App: React.FC = () => {
       "/inquir-list": "問い合わせ履歴 - 業務工数システム",
       "/inquir-detail/:id": "問い合わせ内容 - 業務工数システム",
       "/inquir-update/:id": "問い合わせ編集 - 業務工数システム",
-      "/admin-menu": "管理者Menu - 業務工数システム",
-      "/admin-update": "設定編集 - 業務工数システム",
+      "/manager-menu": "管理者Menu - 業務工数システム",
+      "/manager-update": "設定編集 - 業務工数システム",
+      "/manager-loading": "データ管理 - 業務工数システム",
     };
 
     // URLに基づいてタイトルを設定
@@ -129,6 +130,7 @@ const App: React.FC = () => {
       <Route path="/inquir-update/:id" element={<InquirUpdate />} />
       <Route path="/manager-menu" element={<AdministratorMenu />} />
       <Route path="/manager-update" element={<AdministratorUpdate />} />
+      <Route path="/manager-loading" element={<AdministratorLoading />} />
     </Routes>
   );
 };

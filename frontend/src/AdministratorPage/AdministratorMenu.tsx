@@ -17,7 +17,7 @@ const AdministratorMenu: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/admin_menu/`, {
+      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_menu/`, {
         withCredentials: true,
       })
       .then(() => {
@@ -50,6 +50,7 @@ const AdministratorMenu: React.FC = () => {
         <Link to="/">メインMENU</Link>
       </nav>
       <Link to="/manager-update" className={styles["admin-button1"]}>設定変更</Link>
+      <Link to="/manager-loading" className={styles["admin-button2"]}>データ管理</Link>
     </div>
   );
 };

@@ -1020,6 +1020,7 @@ from rest_framework import status
 from django.http import JsonResponse
 from .serializers import MemberSerializer, AdministratorSerializer
 import json
+from ..utils.main_utils import validate_employee_no_logic
 
 
 
@@ -1386,26 +1387,35 @@ class AdministratorUpdate(APIView):
       return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
     serializer = AdministratorSerializer(admin_data, data=request.data)
+
     if serializer.is_valid():
-      menu_row_value = int(request.data.get('menu_row'))
-      administrator_employee_no1_value = int(request.data.get('administrator_employee_no1'))
-      administrator_employee_no2_value = int(request.data.get('administrator_employee_no2'))
-      administrator_employee_no3_value = int(request.data.get('administrator_employee_no3'))
-      if not isinstance(menu_row_value, int) or menu_row_value <= 0:
-        return Response({'error': '一覧表示項目数は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
-      if not isinstance(administrator_employee_no1_value, int) or administrator_employee_no1_value <= 0:
-        return Response({'error': '問い合わせ担当者従業員番号1は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
-      if not isinstance(administrator_employee_no2_value, int) or administrator_employee_no2_value <= 0:
-        return Response({'error': '問い合わせ担当者従業員番号2は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
-      if not isinstance(administrator_employee_no3_value, int) or administrator_employee_no3_value <= 0:
-        return Response({'error': '問い合わせ担当者従業員番号3は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
-      # 従業員番号存在確認
+        # menu_rowのバリデーション (ここはそのまま残すか、同様に切り出しを検討)
+        try:
+          menu_row_value = int(request.data.get('menu_row'))
+          if menu_row_value <= 0:
+            raise ValueError
+        except (TypeError, ValueError):
+          return Response({'error': '一覧表示項目数は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
 
+        employee_fields = {
+            'administrator_employee_no1': '問い合わせ担当者従業員番号1',
+            'administrator_employee_no2': '問い合わせ担当者従業員番号2',
+            'administrator_employee_no3': '問い合わせ担当者従業員番号3',
+        }
 
-      serializer.save()
-      return Response(serializer.data, status=status.HTTP_200_OK)
+        for field_name, error_message_prefix in employee_fields.items():
+          value = request.data.get(field_name)
+          
+          # 外部バリデーションロジックの呼び出し
+          is_valid, result = validate_employee_no_logic(value, member)
+          
+          if not is_valid:
+            # バリデーション失敗時、エラーメッセージをビュー側で生成して返却
+            return Response({'error': error_message_prefix + result}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class AdministratorLoading(APIView):

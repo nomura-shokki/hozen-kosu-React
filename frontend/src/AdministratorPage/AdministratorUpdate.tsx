@@ -7,9 +7,9 @@ import styles from "../styles/AdministratorPage/AdministratorUpdate.module.css";
 // 型定義
 interface Admin {
   menu_row: number;
-  administrator_employee_no1: number;
-  administrator_employee_no2: number;
-  administrator_employee_no3: number;
+  administrator_employee_no1: number | null; 
+  administrator_employee_no2: number | null;
+  administrator_employee_no3: number | null;
 }
 
 // メンバー情報の型定義
@@ -55,10 +55,10 @@ const AdminUpdate: React.FC = () => {
       });
   }, [id, navigate]); // 依存配列: idとnavigateが変更されたときのみ実行
 
+  // handleChange 関数の修正
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
 
-    // 数値に変換が必要なフィールドを特定
     const isNumberField = [
       "menu_row",
       "administrator_employee_no1",
@@ -66,22 +66,19 @@ const AdminUpdate: React.FC = () => {
       "administrator_employee_no3",
     ].includes(name);
 
-    // 数値フィールドの場合、文字列を数値に変換する
-    // 入力が空文字の場合は0として扱う（または必要に応じてnull/undefinedを検討）
+    // 数値フィールドの場合の処理を修正
     const newValue = isNumberField
       ? value === "" // 空文字チェック
-        ? 0 // 空文字の場合は0
+        ? null // 👈 空文字の場合は null をセット
         : parseInt(value, 10) // それ以外は整数に変換
-      : value; // 数値フィールドではない場合はそのまま文字列（またはTextAreaの場合を想定）
+      : value;
 
-    // name属性に基づいてformDataを更新
     setFormData((prevData) => {
-      // prevDataがnullの場合は更新をスキップまたは初期値で返す
       if (!prevData) return null;
       return {
         ...prevData,
         [name]: newValue, // 変換後の値を使用
-      } as Admin;
+      } as Admin; // Admin型にキャスト（nullを許容する型に変更済み）
     });
   };
 
@@ -157,7 +154,7 @@ const AdminUpdate: React.FC = () => {
               id="administrator_employee_no1"
               name="administrator_employee_no1"
               type="number"
-              value={formData.administrator_employee_no1}
+              value={formData.administrator_employee_no1 ?? ""}
               onChange={handleChange}
             />
             <label htmlFor="administrator_employee_no2">問い合わせ担当者従業員番号2：</label>
@@ -165,7 +162,7 @@ const AdminUpdate: React.FC = () => {
               id="administrator_employee_no2"
               name="administrator_employee_no2"
               type="number"
-              value={formData.administrator_employee_no2}
+              value={formData.administrator_employee_no2 ?? ""}
               onChange={handleChange}
             />
             <label htmlFor="administrator_employee_no3">問い合わせ担当者従業員番号3：</label>
@@ -173,7 +170,7 @@ const AdminUpdate: React.FC = () => {
               id="administrator_employee_no3"
               name="administrator_employee_no3"
               type="number"
-              value={formData.administrator_employee_no3}
+              value={formData.administrator_employee_no3 ?? ""}
               onChange={handleChange}
             />
             <button type="submit" className="gray_button">編集</button>
