@@ -4,6 +4,11 @@ import { useNavigate, Link } from "react-router-dom";
 import Loading from "../components/Loading";
 import styles from "../styles/AdministratorPage/AdministratorLoading.module.css";
 
+// --- Axios CSRF/Cookie設定 (変更なし) ---
+axios.defaults.xsrfCookieName = 'csrftoken';
+axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+axios.defaults.withCredentials = true; // すべてのAxiosリクエストでCookieを送信
+
 // --- ユーティリティ型定義 ---
 
 interface TaskResponse {
@@ -17,19 +22,11 @@ interface AsyncOperationOptions {
   requireDates?: boolean;
 }
 
-// --- カスタムHooksとヘルパー関数 ---
-
-/**
- * Cookieから指定された名前の値を抽出するヘルパー関数
- * @param name 取得したいCookieの名前（通常は 'csrftoken'）
- * @returns Cookieの値、またはnull
- */
 const getCookie = (name: string): string | null => {
   if (document.cookie && document.cookie !== '') {
     const cookies = document.cookie.split(';');
     for (let i = 0; i < cookies.length; i++) {
       const cookie = cookies[i].trim();
-      // Does this cookie string begin with the name we want?
       if (cookie.substring(0, name.length + 1) === (name + '=')) {
         const cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
         return cookieValue;
@@ -39,27 +36,6 @@ const getCookie = (name: string): string | null => {
   return null;
 };
 
-
-// 💡 修正後の useCsrfToken: Cookieからトークンを取得するように変更
-const useCsrfToken = (): string | null => {
-  const [csrfToken, setCsrfToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Cookieから 'csrftoken' を取得する
-    // サーバーサイド（Djangoなど）が'csrftoken'という名前のCookieを設定していることを前提とします。
-    const token = getCookie('csrftoken'); 
-    
-    if (!token) {
-      // DOMからの取得ロジックは削除し、エラーの原因となるDOMアクセスを回避
-      console.error("CSRFトークンが見つかりません。");
-    }
-    setCsrfToken(token);
-  }, []);
-
-  return csrfToken;
-};
-
-// タスクの進行状態を監視するカスタムHook
 const useTaskMonitor = (
   initialEndpoint: string | null,
   onSuccess: (data: TaskResponse) => void,
@@ -72,8 +48,8 @@ const useTaskMonitor = (
 
     // ポーリング処理を開始
     const interval = setInterval(() => {
-      // AxiosでCookieを送信するために withCredentials: true を設定
-      axios.get<TaskResponse>(taskEndpoint, { withCredentials: true }) 
+      // Axiosのグローバル設定 (withCredentials: true) を使用
+      axios.get<TaskResponse>(taskEndpoint) 
         .then(response => {
           const data = response.data;
           if (data.status === 'success') {
@@ -121,45 +97,37 @@ const downloadFile = (endpoint: string, filePath?: string) => {
 
 // バックアップ開始処理のカスタムHook (startBackup関数を模倣)
 const useAsyncOperation = () => {
-  const csrfToken = useCsrfToken();
-
-  // startBackup 関数のロジックを React Hooks の形式で実装
   const startBackup = useCallback(async (
     endpoint: string,
     monitorFunc: (taskId: string) => void,
     options: AsyncOperationOptions = {}
   ): Promise<void> => {
+
+    // 💡 修正点 1: CSRFトークンをクッキーから手動で取得
+    const csrfToken = getCookie('csrftoken'); 
     if (!csrfToken) {
-      // useCsrfTokenがnullを返した場合に警告
-      alert("CSRFトークンが取得できません。処理を中断します。");
-      return;
+        alert('CSRFトークンが取得できませんでした。ページをリロードしてください。');
+        // Promise.reject() を使用してエラーをスローする
+        throw new Error('CSRF Token not found'); 
     }
-    
-    // API BASE URLを付与
+
     const fullEndpoint = `${process.env.REACT_APP_API_BASE_URL}${endpoint}`;
-    
-    let headers: Record<string, string> = {
-      'X-CSRFToken': csrfToken, // Cookieから取得したトークンを設定
-    };
-    let body: string | null = null;
-    let method: 'POST' | 'GET' = 'POST';
-
-    // 日付の入力が必要なロジックは省略
-
+    
+    // fetch から axios に変更
     try {
-      const response = await fetch(fullEndpoint, {
-        method: method,
-        headers: headers,
-        body: body,
-        credentials: 'include', // Cookieを送信するために必須
-      });
+      const response = await axios.post<TaskResponse>( // POSTメソッドを使用
+        fullEndpoint, 
+        {}, // bodyは空オブジェクト（または必要なデータ）
+        {
+          headers: {
+            'Content-Type': 'application/json', // 通常のPOSTリクエストとして
+            // 💡 修正点 2: 取得したCSRFトークンをヘッダーに明示的に設定
+            'X-CSRFToken': csrfToken, 
+          }
+        }
+      );
 
-      // HTTPステータスが200番台でなければエラーとして処理
-      if (!response.ok) {
-        throw new Error(`サーバーエラー: ${response.status} ${response.statusText}`);
-      }
-
-      const data: TaskResponse = await response.json();
+      const data = response.data;
 
       if (data.status === 'success' && data.task_id) {
         monitorFunc(data.task_id);
@@ -168,14 +136,18 @@ const useAsyncOperation = () => {
       }
     } catch (err) {
       console.error('Error starting backup:', err);
-      const errorMessage = err instanceof Error ? err.message : 'バックアップ開始中にネットワークエラーが発生しました。';
+            // AxiosErrorの型ガード
+      const errorMessage = (err as AxiosError).response?.status === 403 
+        ? 'CSRFエラーにより処理が拒否されました (403 Forbidden)。サーバーがCSRFクッキーを正しく設定しているか確認してください。' 
+        : err instanceof Error ? err.message : 'バックアップ開始中にネットワークエラーが発生しました。';
       alert(errorMessage);
+        // エラーを再スローして呼び出し元 (.catch) に伝える
+        throw err; 
     }
-  }, [csrfToken]); // csrfTokenが依存配列に含まれていることを確認
+  }, []); 
 
   return { startBackup };
 };
-
 // --- コンポーネント定義 ---
 
 interface Member {
@@ -194,10 +166,10 @@ const AdministratorLoading: React.FC = () => {
   const handleMonitorSuccess = useCallback((data: TaskResponse) => {
     setIsBackupRunning(false);
     // APIパスを修正
-    downloadFile('/api/download_member_backup', data.file_path); 
+    downloadFile('/api/download_member_backup', data.file_path); 
     alert('人員データバックアップが完了しました！');
   }, []);
-  
+  
   // タスク監視が失敗した際のコールバック
   const handleMonitorError = useCallback((data: TaskResponse) => {
     setIsBackupRunning(false);
@@ -209,9 +181,7 @@ const AdministratorLoading: React.FC = () => {
   // 画面ロード時の認証チェック
   useEffect(() => {
     axios
-      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_menu/`, {
-        withCredentials: true,
-      })
+      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_menu/`)
       .then(() => {
         setLoading(false);
       })
@@ -227,43 +197,39 @@ const AdministratorLoading: React.FC = () => {
       });
   }, [navigate]);
 
-  // 人員データバックアップ処理 (start-asynchronous5の処理を実装)
   const handleMemberBackup = () => {
     if (isBackupRunning) {
       alert("現在、他のバックアップ処理が実行中です。");
       return;
     }
-    
+    
     setError(null);
     setIsBackupRunning(true);
-    
-    startBackup('/api/start_member_backup', (taskId) => { // APIパスを修正
-      // タスク監視開始
+    startBackup('/api/start_member_backup', (taskId) => {
       startMonitoring(`${process.env.REACT_APP_API_BASE_URL}/api/check_member_backup_status?task_id=${taskId}`);
     })
     .catch((err) => {
+      // startBackup内で throw されたエラーをここで捕捉し、isRunningを解除
       console.error(err);
       setIsBackupRunning(false);
-      // startBackup内でエラー処理を行っているため、通常はここのcatchは実行されない
-      setError('バックアップ開始に予期せぬエラーが発生しました。');
+      // CSRFトークンが見つからない場合のエラーは startBackup 内ですでに alert されているため、ここでは一般的なメッセージを表示
+      if (!(err instanceof Error && err.message === 'CSRF Token not found')) {
+        setError('バックアップ開始に予期せぬエラーが発生しました。');
+      }
     });
   };
 
   if (loading) {
-    // 認証チェック中のローディング表示
     return <div>Loading...</div>;
   }
 
-  // 認証チェックは成功したが、APIからのデータ取得エラーがある場合
   if (error && !isBackupRunning) {
     return <div>Error: {error}</div>;
   }
 
   return (
     <>
-      {/* バックアップ実行中のローディング表示 */}
-      <Loading isLoading={isBackupRunning} /> 
-      
+      <Loading isLoading={isBackupRunning} /> 
       <div className={styles["admin-loading-wrapper"]}>
         <h1 className={styles["h1-collar"]}>設定編集</h1>
         <nav className={styles["admin-nav"]}>
@@ -276,13 +242,12 @@ const AdministratorLoading: React.FC = () => {
 
         <div className={styles["search-bar"]}>
           <label htmlFor="start-asynchronous5">人員データバックアップ：</label>
-          {/* type="submit"をtype="button"に変更し、onChangeをonClickに変更 */}
           <input
             id="start-asynchronous5"
             name="start-asynchronous5"
-            type="button" 
+            type="button" 
             value={isBackupRunning ? "実行中..." : "開始"}
-            onClick={handleMemberBackup} // イベントハンドラを接続
+            onClick={handleMemberBackup}
             disabled={isBackupRunning}
           />
         </div>
@@ -294,7 +259,22 @@ const AdministratorLoading: React.FC = () => {
 export default AdministratorLoading;
 
 
-//import React, { useState, useEffect } from "react";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import Loading from "../components/Loading";
@@ -368,4 +348,4 @@ const AdministratorLoading: React.FC = () => {
 };
 
 export default AdministratorLoading;
-//
+*/

@@ -8,6 +8,7 @@ from .views import inquiry_views
 from kosu.views import asynchronous_views
 from django.conf import settings
 from django.conf.urls.static import static
+from functools import partial
 
 
 
@@ -63,10 +64,9 @@ urlpatterns = [
   path('manager_update/', main_views.AdministratorUpdate.as_view(), name='admin_update'),
   path('manager_loading/', main_views.AdministratorLoading.as_view(), name='admin_loading'),
 
-  path('start_member_backup', lambda request: asynchronous_views.start_task(request, 'member_backup'), name='start_member_backup'), # 人員データバックアップ非同期処理開始APIエンドポイント
-  path('check_member_backup_status', asynchronous_views.check_task_status, name='check_member_backup_status'), # 人員データバックアップ非同期処理監視APIエンドポイント
-  path('download_member_backup', asynchronous_views.download_file, name='download_member_backup'), # 人員データバックアップファイルダウンロード非同期処理APIエンドポイント
-
+  path('start_member_backup', partial(asynchronous_views.start_task, task_type='member_backup'), name='start_member_backup'), 
+  path('check_member_backup_status', asynchronous_views.check_task_status, name='check_member_backup_status'), 
+  path('download_member_backup', asynchronous_views.download_file, name='download_member_backup'),
 
 
 
