@@ -1423,6 +1423,7 @@ class AdministratorLoading(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
     if not member_data.administrator:
+      print(member_data,member_data.administrator)
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
     # データ変換

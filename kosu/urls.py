@@ -64,11 +64,9 @@ urlpatterns = [
   path('manager_update/', main_views.AdministratorUpdate.as_view(), name='admin_update'),
   path('manager_loading/', main_views.AdministratorLoading.as_view(), name='admin_loading'),
 
-  path('start_member_backup', partial(asynchronous_views.start_task, task_type='member_backup'), name='start_member_backup'), 
-  path('check_member_backup_status', asynchronous_views.check_task_status, name='check_member_backup_status'), 
-  path('download_member_backup', asynchronous_views.download_file, name='download_member_backup'),
-
-
+  # path('member_backup/', asynchronous_views.member_backup, name='member_backup'),
+  # path('member_backup/', lambda request: asynchronous_views.member_backup(request, 'member_backup'), name='member_backup'),
+  path('member_backup/', asynchronous_views.handle_member_backup, name='member_backup'),
 
   path('help', main_views.HelpView.as_view(), name='help'), # ヘルプ画面
   path('login', main_views.LoginView.as_view(), name='login'), # ログイン画面

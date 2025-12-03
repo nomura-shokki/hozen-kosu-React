@@ -980,3 +980,20 @@ def load_setting_file(file_obj):
 
 
 
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+from django_q.tasks import async_task
+import time
+
+def sample_task():
+    print(123)
+    time.sleep(10)
+    print(456)

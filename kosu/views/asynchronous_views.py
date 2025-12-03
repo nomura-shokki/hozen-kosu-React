@@ -220,3 +220,40 @@ def validate_dates(data_day, data_day2):
 
 
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+import uuid
+from ..tasks import sample_task
+
+@api_view(['POST'])
+def handle_member_backup(request):
+  return member_backup(request, 'member_backup')
+
+@api_view(['POST'])
+def member_backup(request, task_type):
+  """
+  # タスクID生成
+  task_id = str(uuid.uuid4())
+  AsyncTask.objects.create(task_id=task_id, status='pending')
+
+  if task_type == 'member_backup':
+    task_function = generate_member_backup
+    args = ()
+  else:
+    return JsonResponse({'status': 'error', 'message': '無効なタスクタイプです。'}, status=400)
+
+  thread = threading.Thread(target=handle_task, args=(task_id, task_function, *args))
+  thread.start()
+  # タスクIDを返却し、非同期処理開始を通知
+  return JsonResponse({'status': 'success', 'task_id': task_id})
+  """
+
+
+  sample_task()
+
+  sample_task()  # 非同期タスクを呼び出します。
+  return Response({"message": "Backup process started!"}, status=200)
+
+
+
+

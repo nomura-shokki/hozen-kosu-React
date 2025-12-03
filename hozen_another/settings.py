@@ -49,12 +49,12 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
-# 以下の設定は、CORS環境下で有効ですが、同一オリジンでの動作では必須ではありません。
-# 開発環境（HTTP）で動作させるため、CSRFクッキーの設定と整合性を取るため変更はありません。
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ORIGINS = [
     'http://localhost:3000',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
 ]
 
 REST_FRAMEWORK = {
@@ -72,9 +72,8 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 SESSION_COOKIE_AGE = 315360000
 
-# 💡 修正箇所 1: 開発環境 (HTTP) でクッキーを送信するために False に変更
-SESSION_COOKIE_SAMESITE = 'Lax' # SameSiteはLaxに戻すか、Noneのままにし、Secure=Falseにする
-SESSION_COOKIE_SECURE = False 
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
 
 ROOT_URLCONF = 'hozen_another.urls'
 
@@ -159,9 +158,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://hozen-kosu-another-c6e2gyeraydpdnhq.japaneast-01.azurewebsites.net',
-    'http://127.0.0.1:8000',
-    ]
+  'https://hozen-kosu-another-c6e2gyeraydpdnhq.japaneast-01.azurewebsites.net',
+  'http://localhost:8000',
+  'http://127.0.0.1:8000',
+]
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
@@ -169,14 +169,11 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# 💡 修正箇所 2: 開発環境 (HTTP) でクッキーを送信するために False に変更
-CSRF_COOKIE_SECURE = False
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'simple': {
+        'simple': {  
             'format': '{message}',
             'style': '{',
         },
@@ -187,7 +184,7 @@ LOGGING = {
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'simple',
             'filename': 'web_console.log',
-            'maxBytes': 1024 * 1024 * 1, # 最大ファイルサイズ (1MB)
+            'maxBytes': 1024 * 1024 * 1,  # 最大ファイルサイズ (1MB)
             'backupCount': 1,
             'encoding': 'utf-8',
         },
