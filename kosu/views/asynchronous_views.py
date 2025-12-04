@@ -108,26 +108,9 @@ def start_task(request, task_type):
 
 
 
-#--------------------------------------------------------------------------------------------------------
 
 
 
-
-
-# 日付バリデーション関数
-def validate_dates(data_day, data_day2):
-  # 日付指定無かったり、開始日が終了日を越えていた場合エラーを返す
-  if not data_day or not data_day2:
-    return JsonResponse({'status': 'error', 'message': '日付を指定してください。'}, status=400)
-  if data_day > data_day2:
-    return JsonResponse({'status': 'error', 'message': '開始日が終了日を超えています。'}, status=400)
-  return None
-
-
-
-
-
-#--------------------------------------------------------------------------------------------------------
 
 
 
@@ -146,8 +129,12 @@ def backup(request):
   task_id = str(uuid.uuid4())
   AsyncTask.objects.create(task_id=task_id, status='pending')
 
-  start_day = request.data.get('start_day','')
-  end_day = request.data.get('end_day', '')
+  start_day = request.data.get('start_day')
+  end_day = request.data.get('end_day')
+
+  error_response = validate_dates(start_day, end_day)
+  if error_response:
+    return error_response
 
   # url_name属性取得
   current_path = request.path
@@ -171,6 +158,17 @@ def backup(request):
 
   # タスクIDを返却し、非同期処理開始を通知
   return JsonResponse({'status': 'success', 'task_id': task_id})
+
+
+
+# 日付バリデーション関数
+def validate_dates(data_day, data_day2):
+  # 日付指定無かったり、開始日が終了日を越えていた場合エラーを返す
+  if not data_day or not data_day2:
+    return JsonResponse({'status': 'error', 'message': '日付を指定してください。'}, status=400)
+  if data_day > data_day2:
+    return JsonResponse({'status': 'error', 'message': '開始日が終了日を超えています。'}, status=400)
+  return None
 
 
 

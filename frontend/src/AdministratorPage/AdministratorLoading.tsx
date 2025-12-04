@@ -4,6 +4,15 @@ import { useNavigate, Link } from "react-router-dom";
 import Loading from "../components/Loading";
 import styles from "../styles/AdministratorPage/AdministratorLoading.module.css";
 
+// 今日の日付を取得する関数
+const getTodayDateString = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 // CSRFトークン取得関数
 function getCsrfToken() {
   // document.cookieからcsrftokenを取得する
@@ -86,7 +95,9 @@ const AdministratorLoading: React.FC = () => {
   const [KosuError, setKosuError] = useState<string | null>(null);
   const [MemberError, setMemberError] = useState<string | null>(null);
   const [TeamError, setTeamError] = useState<string | null>(null); 
-  
+  const today = getTodayDateString();
+  const [startDay, setStartDay] = useState<string>(today);
+  const [endDay, setEndDay] = useState<string>(today);
   const navigate = useNavigate();
 
   // 画面ロード時の認証チェック (axiosを使用)
@@ -122,6 +133,7 @@ const AdministratorLoading: React.FC = () => {
   const startKosuBackup = useCallback(async () => {
     const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/kosu_backup/`;
     const headers: Record<string, string> = {
+      'Content-Type': 'application/json', // Content-Type ヘッダーを追加
       'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
     };
 
@@ -131,6 +143,10 @@ const AdministratorLoading: React.FC = () => {
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: headers,
+        body: JSON.stringify({
+          start_day: startDay,
+          end_day: endDay,
+        }),
       });
       const data = await response.json();
 
@@ -153,7 +169,7 @@ const AdministratorLoading: React.FC = () => {
       setKosuError("人員データバックアップの開始中にネットワークエラーが発生しました。");
       alert("人員データバックアップの開始に失敗しました。");
     }
-  }, [monitorKosuTaskStatus, setKosuError]);
+  }, [monitorKosuTaskStatus, setKosuError, startDay, endDay]);
 
   // =========================================================================
   // 人員バックアップ開始処理
@@ -246,10 +262,6 @@ const AdministratorLoading: React.FC = () => {
     return <div>Loading...</div>;
   }
 
-  if ((MemberError || TeamError || KosuError) && !isAnyBackupRunning) {
-    return <div>Error: {MemberError || TeamError || KosuError}</div>;
-  }
-
   return (
     <>
       <Loading isLoading={isAnyBackupRunning} /> 
@@ -269,12 +281,16 @@ const AdministratorLoading: React.FC = () => {
             type="date"
             id="start_day"
             name="start_day"
+            value={startDay}
+            onChange={(e) => setStartDay(e.target.value)}
           />
           ～
           <input
             type="date"
             id="end_day"
             name="end_day"
+            value={endDay}
+            onChange={(e) => setEndDay(e.target.value)}
           />
           <input
             id="start-asynchronous1"

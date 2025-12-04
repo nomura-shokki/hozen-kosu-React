@@ -64,6 +64,7 @@ urlpatterns = [
   path('manager_update/', main_views.AdministratorUpdate.as_view(), name='admin_update'),
   path('manager_loading/', main_views.AdministratorLoading.as_view(), name='admin_loading'),
 
+  path('kosu_backup/', asynchronous_views.backup, name='kosu_backup'),
   path('member_backup/', asynchronous_views.backup, name='member_backup'),
   path('team_backup/', asynchronous_views.backup, name='team_backup'),
 

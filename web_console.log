@@ -1,10 +1,2 @@
 読み込みOK
-<QueryDict: {'task_id': ['b84003c9-4efd-4046-9d06-987a02f8c10c']}>
-Cleanup successful for C:\Users\54414\Desktop\kosu_react_app\hozen-kosu-React\media\人員データバックアップ_20251204.xlsx
-<QueryDict: {'task_id': ['a9e9e612-e869-48c3-b8cc-031afc8504eb']}>
-Cleanup successful for C:\Users\54414\Desktop\kosu_react_app\hozen-kosu-React\media\班員データバックアップ_20251204.xlsx
-<QueryDict: {'task_id': ['1aece342-d67f-4d87-929b-c2d672aeffa0']}>
-Cleanup successful for C:\Users\yuya\Desktop\kosu_react\hozen-kosu-React\media\人員データバックアップ_20251204.xlsx
-<QueryDict: {'task_id': ['0e3ca447-bfb5-4db9-b7fd-c77e5d4dd3ca']}>
-Cleanup successful for C:\Users\yuya\Desktop\kosu_react\hozen-kosu-React\media\班員データバックアップ_20251204.xlsx
-Cleanup failed after delay for C:\Users\yuya\Desktop\kosu_react\hozen-kosu-React\media\班員データバックアップ_20251205.xlsx: [WinError 5] アクセスが拒否されました。: 'C:\\Users\\yuya\\Desktop\\kosu_react\\hozen-kosu-React\\media\\班員データバックアップ_20251205.xlsx'
+{'start_day': '2025-12-04', 'end_day': '2025-12-05'}
