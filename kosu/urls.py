@@ -64,10 +64,19 @@ urlpatterns = [
   path('manager_update/', main_views.AdministratorUpdate.as_view(), name='admin_update'),
   path('manager_loading/', main_views.AdministratorLoading.as_view(), name='admin_loading'),
 
-  # path('member_backup/', asynchronous_views.member_backup, name='member_backup'),
-  # path('member_backup/', lambda request: asynchronous_views.member_backup(request, 'member_backup'), name='member_backup'),
-  path('member_backup/', asynchronous_views.handle_member_backup, name='member_backup'),
+  path('member_backup/', asynchronous_views.member_backup, name='member_backup'),
+  path('check_member_backup_status', asynchronous_views.check_task_status, name='check_member_backup_status'), # 人員データバックアップ非同期処理監視APIエンドポイント
+  path('download_member_backup', asynchronous_views.download_file, name='download_member_backup'),
 
+
+
+  ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
+"""
   path('help', main_views.HelpView.as_view(), name='help'), # ヘルプ画面
   path('login', main_views.LoginView.as_view(), name='login'), # ログイン画面
   path('', main_views.MainView.as_view(), name='main'), # メイン画面
@@ -154,6 +163,4 @@ urlpatterns = [
   path('download_def_backup', asynchronous_views.download_file, name='download_def_backup'), # 工数区分定義データバックアップファイルダウンロード非同期処理APIエンドポイント
   path('download_inquiry_backup', asynchronous_views.download_file, name='download_inquiry_backup'), # 問い合わせデータバックアップファイルダウンロード非同期処理APIエンドポイント
   path('download_setting_backup', asynchronous_views.download_file, name='download_setting_backup'), # 管理者設定データバックアップファイルダウンロード非同期処理APIエンドポイント
-  ]
-
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+"""

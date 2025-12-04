@@ -134,6 +134,17 @@ function getCsrfToken() {
 
 
 
+// 人員データバックアップ関数
+document.getElementById('start-asynchronous5').addEventListener('click', () => { // バックアップボタンを押すと処理開始
+  startBackup('/api/start_member_backup', (taskId) => { // バックアップ開始関数を呼ぶ
+    monitorTaskStatus(`/api/check_member_backup_status?task_id=${taskId}`, (data) => { // タスク監視関数を呼ぶ
+      downloadFile('/api/download_member_backup', data.file_path); // 処理完了後、ダウンロード
+    });
+  });
+});
+
+
+
 // 工数データバックアップボタン操作
 document.getElementById('start-asynchronous1').addEventListener('click', () => { // バックアップボタンを押すと処理開始
   startBackup('/start_kosu_backup', (taskId) => { // バックアップ開始関数を呼ぶ
@@ -174,17 +185,6 @@ document.getElementById('start-asynchronous4').addEventListener('click', () => {
       alert('ロードが完了しました！'); // 成功後、ポップアップ表示
     });
   }, 'kosu_file'); // ファイルアップロードフォーム指定
-});
-
-
-
-// 人員データバックアップ関数
-document.getElementById('start-asynchronous5').addEventListener('click', () => { // バックアップボタンを押すと処理開始
-  startBackup('/start_member_backup', (taskId) => { // バックアップ開始関数を呼ぶ
-    monitorTaskStatus(`/check_member_backup_status?task_id=${taskId}`, (data) => { // タスク監視関数を呼ぶ
-      downloadFile('/download_member_backup', data.file_path); // 処理完了後、ダウンロード
-    });
-  });
 });
 
 

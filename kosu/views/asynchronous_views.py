@@ -143,27 +143,6 @@ def handle_task(task_id, task_function, *args, **kwargs):
 
 
 # 非同期タスク監視関数
-def check_task_status(request):
-  task_id = request.GET.get('task_id')
-  # タスクIDがない場合、エラーを返す
-  if not task_id:
-    return JsonResponse({'status': 'error', 'message': 'タスクIDが指定されていません。'}, status=400)
-
-  try:
-    # データベースからタスクIDに対応する状態を取得し返す
-    task = AsyncTask.objects.get(task_id=task_id)
-    if task.status == 'success':
-      return JsonResponse({'status': 'success', 'file_path': task.result})
-    elif task.status == 'error':
-      return JsonResponse({'status': 'error', 'message': task.result})
-    else:
-      return JsonResponse({'status': 'pending'}, status=202)
-
-  except AsyncTask.DoesNotExist:
-    # 指定されたタスクIDが存在しない場合にエラーを返す
-    return JsonResponse({'status': 'error', 'message': '無効なタスクIDです。'}, status=404)
-
-
 
 
 
@@ -175,26 +154,6 @@ def check_task_status(request):
 
 
 # ファイルダウンロード関数
-def download_file(request):
-  file_path = request.GET.get('file_path')
-  # ファイルパスがない場合、エラーを返す
-  if not file_path or not os.path.exists(file_path):
-    return JsonResponse({'status': 'error', 'message': 'ファイルが見つかりません。'}, status=404)
-
-  # ファイル添付してレスポンス作成
-  response = FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
-
-  # 一時ファイル削除関数
-  def file_cleanup():
-    if os.path.exists(file_path):
-      os.remove(file_path)
-
-  # 一時ファイル削除実行
-  response['Cleanup-Callback'] = file_cleanup()
-  return response
-
-
-
 
 
 #--------------------------------------------------------------------------------------------------------
@@ -222,21 +181,25 @@ def validate_dates(data_day, data_day2):
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.urls import resolve
+import threading
 import uuid
-from ..tasks import sample_task
+import time
+
+
 
 @api_view(['POST'])
-def handle_member_backup(request):
-  return member_backup(request, 'member_backup')
-
-@api_view(['POST'])
-def member_backup(request, task_type):
-  """
+def member_backup(request):
   # タスクID生成
   task_id = str(uuid.uuid4())
   AsyncTask.objects.create(task_id=task_id, status='pending')
 
-  if task_type == 'member_backup':
+  # url_name属性取得
+  current_path = request.path
+  match = resolve(current_path)
+  url_name = match.url_name
+
+  if url_name == 'member_backup':
     task_function = generate_member_backup
     args = ()
   else:
@@ -244,15 +207,58 @@ def member_backup(request, task_type):
 
   thread = threading.Thread(target=handle_task, args=(task_id, task_function, *args))
   thread.start()
+
   # タスクIDを返却し、非同期処理開始を通知
   return JsonResponse({'status': 'success', 'task_id': task_id})
-  """
 
 
-  sample_task()
+@api_view(['GET'])
+def check_task_status(request):
+  task_id = request.GET.get('task_id')
+  print(request.GET)
+  # タスクIDがない場合、エラーを返す
+  if not task_id:
+    return JsonResponse({'status': 'error', 'message': 'タスクIDが指定されていません。'}, status=400)
 
-  sample_task()  # 非同期タスクを呼び出します。
-  return Response({"message": "Backup process started!"}, status=200)
+  try:
+    # データベースからタスクIDに対応する状態を取得し返す
+    task = AsyncTask.objects.get(task_id=task_id)
+    if task.status == 'success':
+      return JsonResponse({'status': 'success', 'file_path': task.result})
+    elif task.status == 'error':
+      return JsonResponse({'status': 'error', 'message': task.result})
+    else:
+      return JsonResponse({'status': 'pending'}, status=202)
+
+  except AsyncTask.DoesNotExist:
+    # 指定されたタスクIDが存在しない場合にエラーを返す
+    return JsonResponse({'status': 'error', 'message': '無効なタスクIDです。'}, status=404)
+
+
+@api_view(['GET'])
+def download_file(request):
+  file_path = request.GET.get('file_path')
+  file_handle = open(file_path, 'rb')
+  response = FileResponse(file_handle, as_attachment=True, filename=os.path.basename(file_path))
+
+  def delayed_file_cleanup():
+    time.sleep(3) 
+    if os.path.exists(file_path):
+      try:
+        os.remove(file_path)
+        print(f"Cleanup successful for {file_path}")
+      except Exception as e:
+        # 念のため再度エラーが出た場合のログを残す
+        print(f"Cleanup failed after delay for {file_path}: {e}")
+
+  # response.close に設定する、新しいクリーンアップ関数
+  def cleanup_on_close():
+    thread = threading.Thread(target=delayed_file_cleanup)
+    thread.start()
+
+  response.close = cleanup_on_close 
+
+  return response
 
 
 
