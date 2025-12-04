@@ -114,34 +114,6 @@ def start_task(request, task_type):
 
 
 
-# 非同期タスク処理 (汎用版)
-def handle_task(task_id, task_function, *args, **kwargs):
-  try:
-    # タスク関数を実行し、結果を取得
-    result = task_function(*args, **kwargs)
-
-    # タスクを "success" に更新し結果を保存
-    task = AsyncTask.objects.get(task_id=task_id)
-    task.status = 'success'
-    task.result = result
-    task.save()
-  except Exception as e:
-    # 処理中にエラーが発生した場合、 "error" に更新しエラーメッセージ保存
-    task = AsyncTask.objects.get(task_id=task_id)
-    task.status = 'error'
-    task.result = str(e)
-    task.save()
-
-
-
-
-
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
-
 # 日付バリデーション関数
 def validate_dates(data_day, data_day2):
   # 日付指定無かったり、開始日が終了日を越えていた場合エラーを返す
@@ -174,12 +146,18 @@ def backup(request):
   task_id = str(uuid.uuid4())
   AsyncTask.objects.create(task_id=task_id, status='pending')
 
+  start_day = request.data.get('start_day','')
+  end_day = request.data.get('end_day', '')
+
   # url_name属性取得
   current_path = request.path
   match = resolve(current_path)
   url_name = match.url_name
 
-  if url_name == 'member_backup':
+  if url_name == 'kosu_backup':
+    task_function = generate_kosu_backup
+    args = (start_day, end_day)
+  elif url_name == 'member_backup':
     task_function = generate_member_backup
     args = ()
   elif url_name == 'team_backup':
@@ -195,10 +173,11 @@ def backup(request):
   return JsonResponse({'status': 'success', 'task_id': task_id})
 
 
+
 @api_view(['GET'])
 def check_task_status(request):
   task_id = request.GET.get('task_id')
-  print(request.GET)
+
   # タスクIDがない場合、エラーを返す
   if not task_id:
     return JsonResponse({'status': 'error', 'message': 'タスクIDが指定されていません。'}, status=400)
@@ -214,8 +193,8 @@ def check_task_status(request):
       return JsonResponse({'status': 'pending'}, status=202)
 
   except AsyncTask.DoesNotExist:
-    # 指定されたタスクIDが存在しない場合にエラーを返す
     return JsonResponse({'status': 'error', 'message': '無効なタスクIDです。'}, status=404)
+
 
 
 @api_view(['GET'])
@@ -229,9 +208,7 @@ def download_file(request):
     if os.path.exists(file_path):
       try:
         os.remove(file_path)
-        print(f"Cleanup successful for {file_path}")
       except Exception as e:
-        # 念のため再度エラーが出た場合のログを残す
         print(f"Cleanup failed after delay for {file_path}: {e}")
 
   # response.close に設定する、新しいクリーンアップ関数
@@ -245,4 +222,20 @@ def download_file(request):
 
 
 
+# 非同期タスク処理 (汎用版)
+def handle_task(task_id, task_function, *args, **kwargs):
+  try:
+    # タスク関数を実行し、結果を取得
+    result = task_function(*args, **kwargs)
 
+    # タスクを "success" に更新し結果を保存
+    task = AsyncTask.objects.get(task_id=task_id)
+    task.status = 'success'
+    task.result = result
+    task.save()
+  except Exception as e:
+    # 処理中にエラーが発生した場合、 "error" に更新しエラーメッセージ保存
+    task = AsyncTask.objects.get(task_id=task_id)
+    task.status = 'error'
+    task.result = str(e)
+    task.save()
