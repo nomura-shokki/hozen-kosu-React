@@ -142,26 +142,6 @@ def handle_task(task_id, task_function, *args, **kwargs):
 
 
 
-# 非同期タスク監視関数
-
-
-
-
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
-
-# ファイルダウンロード関数
-
-
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
-
 # 日付バリデーション関数
 def validate_dates(data_day, data_day2):
   # 日付指定無かったり、開始日が終了日を越えていた場合エラーを返す
@@ -189,7 +169,7 @@ import time
 
 
 @api_view(['POST'])
-def member_backup(request):
+def backup(request):
   # タスクID生成
   task_id = str(uuid.uuid4())
   AsyncTask.objects.create(task_id=task_id, status='pending')
@@ -201,6 +181,9 @@ def member_backup(request):
 
   if url_name == 'member_backup':
     task_function = generate_member_backup
+    args = ()
+  elif url_name == 'team_backup':
+    task_function = generate_team_backup
     args = ()
   else:
     return JsonResponse({'status': 'error', 'message': '無効なタスクタイプです。'}, status=400)

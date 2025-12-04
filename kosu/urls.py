@@ -64,10 +64,12 @@ urlpatterns = [
   path('manager_update/', main_views.AdministratorUpdate.as_view(), name='admin_update'),
   path('manager_loading/', main_views.AdministratorLoading.as_view(), name='admin_loading'),
 
-  path('member_backup/', asynchronous_views.member_backup, name='member_backup'),
-  path('check_member_backup_status', asynchronous_views.check_task_status, name='check_member_backup_status'), # 人員データバックアップ非同期処理監視APIエンドポイント
+  path('member_backup/', asynchronous_views.backup, name='member_backup'),
+  path('team_backup/', asynchronous_views.backup, name='team_backup'),
+  path('check_member_backup_status', asynchronous_views.check_task_status, name='check_member_backup_status'),
+  path('check_team_backup_status', asynchronous_views.check_task_status, name='check_team_backup_status'),
   path('download_member_backup', asynchronous_views.download_file, name='download_member_backup'),
-
+  path('download_team_backup', asynchronous_views.download_file, name='download_team_backup'),
 
 
   ]
