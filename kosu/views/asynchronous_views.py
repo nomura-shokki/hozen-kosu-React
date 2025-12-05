@@ -143,7 +143,7 @@ def backup(request):
       return error_response
     task_function = generate_kosu_backup
     args = (start_day, end_day)
-  elif url_name == 'kosu_delete':
+  elif url_name == 'kosu_delet':
     error_response = validate_dates(start_day, end_day)
     if error_response:
       return error_response

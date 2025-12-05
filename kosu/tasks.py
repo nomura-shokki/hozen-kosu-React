@@ -4,7 +4,7 @@ import openpyxl
 import pandas as pd
 import tempfile
 import datetime
-from .models import Business_Time_graph, kosu_division, member, team_member, inquiry_data, administrator_data
+from .models import Business_Time_graph, kosu_division, member, team_member, inquiry_data, administrator_data, AsyncTask
 from .utils.kosu_utils import kosu_division_dictionary
 
 
@@ -984,6 +984,62 @@ def load_setting_file(file_obj):
 
 #--------------------------------------------------------------------------------------------------------
 
+
+
+
+
+# 管理者設定データバックアップ非同期処理
+def generate_AsyncTask_backup():
+  # 今日の日付取得
+  today = datetime.date.today().strftime('%Y%m%d')
+  # 新しいExcelブック作成
+  wb = openpyxl.Workbook()
+  ws = wb.active
+
+  # ヘッダー作成
+  headers = [
+    'task_id', 
+    'status',
+    'result',
+    'created_at',
+    'updated_at',
+    ]
+
+  ws.append(headers)
+
+  # 問い合わせデータ取得
+  AsyncTask = AsyncTask.objects.all()
+
+  # データ書き込み
+  for item in AsyncTask:
+    row = [
+      item.task_id,
+      item.status,
+      item.result,
+      item.created_at,
+      item.updated_at,
+      ]
+
+    ws.append(row)
+
+  # 保存先のディレクトリ確認・作成
+  media_dir = settings.MEDIA_ROOT
+  if not os.path.exists(media_dir):
+    os.makedirs(media_dir)
+
+  # ファイル名作成と保存
+  filename = f'タスク履歴データバックアップ_{today}.xlsx'
+  filepath = os.path.join(media_dir, filename)
+  wb.save(filepath)
+
+  # ファイルパスを返却
+  return filepath
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
 
 
 
