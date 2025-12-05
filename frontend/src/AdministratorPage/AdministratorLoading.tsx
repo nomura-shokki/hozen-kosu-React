@@ -27,11 +27,11 @@ interface Member {
 // =========================================================================
 // タスク進行状態監視関数
 // =========================================================================
-const useMonitorTaskStatus = (setIsMemberBackupRunning: (running: boolean) => void, setMemberError: (error: string | null) => void) => {
+const useMonitorTaskStatus = (setIsRunning: (running: boolean) => void, setError: (error: string | null) => void) => {
 
   // タスク成功時の処理
   const handleSuccess = (data: any) => {
-    setIsMemberBackupRunning(false); // 監視停止
+    setIsRunning(false);
     // 提示されたロジック: 成功時、ダウンロード処理を実行
     if (data.file_path) {
       // ダウンロード処理
@@ -49,13 +49,14 @@ const useMonitorTaskStatus = (setIsMemberBackupRunning: (running: boolean) => vo
 
   // タスクエラー時の処理
   const handleError = (data: any) => {
-    setIsMemberBackupRunning(false); // 監視停止
+    setIsRunning(false);
     const errorMessage = data.message || "データバックアップ処理中にエラーが発生しました。";
-    setMemberError(errorMessage);
+    setError(errorMessage);
     alert(errorMessage);
   };
 
-  const monitorMemberTaskStatus = useCallback((taskId: string) => {
+  // 関数名を monitorMemberTaskStatus から monitorTaskStatus へ変更（任意だが、汎用化）
+  const monitorTaskStatus = useCallback((taskId: string) => {
     const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/check_backup_status?task_id=${taskId}`;
     
     // ポーリング処理
@@ -79,9 +80,9 @@ const useMonitorTaskStatus = (setIsMemberBackupRunning: (running: boolean) => vo
     }, 1000); // 1秒間隔でタスク状態確認
 
     return () => clearInterval(interval); // クリーンアップ関数を返す
-  }, [setIsMemberBackupRunning, setMemberError]);
+  }, [setIsRunning, setError]); // 依存配列も更新 (setIsMemberBackupRunning, setMemberError -> setIsRunning, setError)
 
-  return monitorMemberTaskStatus;
+  return monitorTaskStatus; // monitorMemberTaskStatus -> monitorTaskStatus に変更
 };
 
 // =========================================================================
@@ -90,11 +91,15 @@ const useMonitorTaskStatus = (setIsMemberBackupRunning: (running: boolean) => vo
 const AdministratorLoading: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isKosuBackupRunning, setIsKosuBackupRunning] = useState<boolean>(false); 
-  const [isMemberBackupRunning, setIsMemberBackupRunning] = useState<boolean>(false); // 人員バックアップの状態
+  const [isDefBackupRunning, setIsDefBackupRunning] = useState<boolean>(false); 
+  const [isMemberBackupRunning, setIsMemberBackupRunning] = useState<boolean>(false);
   const [isTeamBackupRunning, setIsTeamBackupRunning] = useState<boolean>(false); 
+  const [isSettingBackupRunning, setIsSettingBackupRunning] = useState<boolean>(false); 
   const [KosuError, setKosuError] = useState<string | null>(null);
+  const [DefError, setDefError] = useState<string | null>(null);
   const [MemberError, setMemberError] = useState<string | null>(null);
   const [TeamError, setTeamError] = useState<string | null>(null); 
+  const [SettingError, setSettingError] = useState<string | null>(null);
   const today = getTodayDateString();
   const [startDay, setStartDay] = useState<string>(today);
   const [endDay, setEndDay] = useState<string>(today);
@@ -122,10 +127,14 @@ const AdministratorLoading: React.FC = () => {
   
   // 工数バックアップ: タスク監視フックを呼び出し
   const monitorKosuTaskStatus = useMonitorTaskStatus(setIsKosuBackupRunning, setKosuError);
+  // 工数区分定義バックアップ: タスク監視フックを呼び出し
+  const monitorDefTaskStatus = useMonitorTaskStatus(setIsDefBackupRunning, setDefError);
   // 人員バックアップ: タスク監視フックを呼び出し
   const monitorMemberTaskStatus = useMonitorTaskStatus(setIsMemberBackupRunning, setMemberError);
   // 班員バックアップ: タスク監視フックを呼び出し
   const monitorTeamTaskStatus = useMonitorTaskStatus(setIsTeamBackupRunning, setTeamError); 
+  // 設定バックアップ: タスク監視フックを呼び出し
+  const monitorSettingTaskStatus = useMonitorTaskStatus(setIsSettingBackupRunning, setSettingError);
 
   // =========================================================================
   // 工数バックアップ開始処理
@@ -159,17 +168,56 @@ const AdministratorLoading: React.FC = () => {
           monitorKosuTaskStatus(taskId);
       } else {
         setIsKosuBackupRunning(false);
-        const message = data.message || "人員データバックアップの開始に失敗しました。";
+        const message = data.message || "工数データバックアップの開始に失敗しました。";
         setKosuError(message);
         alert(message);
       }
     } catch (err) {
       setIsKosuBackupRunning(false);
       console.error('Error:', err);
-      setKosuError("人員データバックアップの開始中にネットワークエラーが発生しました。");
-      alert("人員データバックアップの開始に失敗しました。");
+      setKosuError("工数データバックアップの開始中にネットワークエラーが発生しました。");
+      alert("工数データバックアップの開始に失敗しました。");
     }
   }, [monitorKosuTaskStatus, setKosuError, startDay, endDay]);
+
+  // =========================================================================
+  // 工数区分定義バックアップ開始処理
+  // =========================================================================
+  const startDefBackup = useCallback(async () => {
+    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/def_backup/`;
+    const headers: Record<string, string> = {
+      'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
+    };
+
+    setIsDefBackupRunning(true); // バックアップ実行中フラグをON
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: headers,
+      });
+      const data = await response.json();
+
+      // タスク開始成功時の処理
+      if (data.taskId) {
+        const taskId = data.taskId; 
+        monitorDefTaskStatus(taskId); // タスク監視関数を呼び出し
+      } else if (data.status === 'success' && data.task_id) {
+          const taskId = data.task_id;
+          monitorDefTaskStatus(taskId);
+      } else {
+        setIsDefBackupRunning(false);
+        const message = data.message || "工数区分定義データバックアップの開始に失敗しました。";
+        setDefError(message);
+        alert(message);
+      }
+    } catch (err) {
+      setIsDefBackupRunning(false);
+      console.error('Error:', err);
+      setDefError("工数区分定義データバックアップの開始中にネットワークエラーが発生しました。");
+      alert("工数区分定義データバックアップの開始に失敗しました。");
+    }
+  }, [monitorDefTaskStatus, setDefError]);
 
   // =========================================================================
   // 人員バックアップ開始処理
@@ -255,8 +303,47 @@ const AdministratorLoading: React.FC = () => {
     }
   }, [monitorTeamTaskStatus, setTeamError]);
 
+  // =========================================================================
+  // 設定バックアップ開始処理
+  // =========================================================================
+  const startSettingBackup = useCallback(async () => {
+    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/setting_backup/`;
+    const headers: Record<string, string> = {
+      'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
+    };
+
+    setIsSettingBackupRunning(true); // バックアップ実行中フラグをON
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: headers,
+      });
+      const data = await response.json();
+
+      // タスク開始成功時の処理
+      if (data.taskId) {
+        const taskId = data.taskId; 
+        monitorSettingTaskStatus(taskId); // タスク監視関数を呼び出し
+      } else if (data.status === 'success' && data.task_id) {
+          const taskId = data.task_id;
+          monitorSettingTaskStatus(taskId);
+      } else {
+        setIsSettingBackupRunning(false);
+        const message = data.message || "人員データバックアップの開始に失敗しました。";
+        setSettingError(message);
+        alert(message);
+      }
+    } catch (err) {
+      setIsSettingBackupRunning(false);
+      console.error('Error:', err);
+      setSettingError("人員データバックアップの開始中にネットワークエラーが発生しました。");
+      alert("人員データバックアップの開始に失敗しました。");
+    }
+  }, [monitorSettingTaskStatus, setSettingError]);
+
   // ローディング表示の条件に両方のバックアップ状態を追加
-  const isAnyBackupRunning = isKosuBackupRunning || isMemberBackupRunning || isTeamBackupRunning;
+  const isAnyBackupRunning = isKosuBackupRunning || isDefBackupRunning || isMemberBackupRunning || isTeamBackupRunning || isSettingBackupRunning;
 
   if (loading) {
     return <div>Loading...</div>;
@@ -271,12 +358,11 @@ const AdministratorLoading: React.FC = () => {
           <Link to="/manager-menu">管理者MENU</Link>
         </nav>
 
-        {(MemberError || TeamError || KosuError) && !isAnyBackupRunning && ( 
-          <div role="alert" style={{color: 'red', marginTop: '10px'}}>{MemberError || TeamError || KosuError}</div>
+        {(MemberError || TeamError || KosuError || DefError || SettingError) && !isAnyBackupRunning && ( 
+          <div role="alert" style={{color: 'red', marginTop: '10px'}}>{MemberError || TeamError || KosuError || DefError || SettingError}</div>
         )}
         
         <div className={styles["search-bar"]}>
-          <label htmlFor="start-asynchronous1">工数データバックアップ：</label>
           <input
             type="date"
             id="start_day"
@@ -292,6 +378,7 @@ const AdministratorLoading: React.FC = () => {
             value={endDay}
             onChange={(e) => setEndDay(e.target.value)}
           />
+          <label htmlFor="start-asynchronous1">工数データバックアップ：</label>
           <input
             id="start-asynchronous1"
             name="start-asynchronous1"
@@ -300,22 +387,48 @@ const AdministratorLoading: React.FC = () => {
             onClick={!isAnyBackupRunning ? startKosuBackup : undefined} 
             disabled={isAnyBackupRunning} 
           />
-          <label htmlFor="start-asynchronous2">人員データバックアップ：</label>
+          <input
+            id="start-asynchronous1"
+            name="start-asynchronous1"
+            type="button"
+            value={isKosuBackupRunning ? "実行中..." : "開始"} 
+            onClick={!isAnyBackupRunning ? startKosuBackup : undefined} 
+            disabled={isAnyBackupRunning} 
+          />
+          <label htmlFor="start-asynchronous2">工数区分定義データバックアップ：</label>
           <input
             id="start-asynchronous2"
             name="start-asynchronous2"
+            type="button"
+            value={isDefBackupRunning ? "実行中..." : "開始"} 
+            onClick={!isAnyBackupRunning ? startDefBackup : undefined} 
+            disabled={isAnyBackupRunning} 
+          />
+          <label htmlFor="start-asynchronous3">人員データバックアップ：</label>
+          <input
+            id="start-asynchronous3"
+            name="start-asynchronous3"
             type="button"
             value={isMemberBackupRunning ? "実行中..." : "開始"} 
             onClick={!isAnyBackupRunning ? startMemberBackup : undefined} 
             disabled={isAnyBackupRunning} 
           />
-          <label htmlFor="start-asynchronous3">班員データバックアップ：</label>
+          <label htmlFor="start-asynchronous4">班員データバックアップ：</label>
           <input
-            id="start-asynchronous3"
-            name="start-asynchronous3"
+            id="start-asynchronous4"
+            name="start-asynchronous4"
             type="button"
             value={isTeamBackupRunning ? "実行中..." : "開始"} 
             onClick={!isAnyBackupRunning ? startTeamBackup : undefined} 
+            disabled={isAnyBackupRunning} 
+          />
+          <label htmlFor="start-asynchronous5">設定データバックアップ：</label>
+          <input
+            id="start-asynchronous5"
+            name="start-asynchronous5"
+            type="button"
+            value={isSettingBackupRunning ? "実行中..." : "開始"} 
+            onClick={!isAnyBackupRunning ? startSettingBackup : undefined} 
             disabled={isAnyBackupRunning} 
           />
         </div>

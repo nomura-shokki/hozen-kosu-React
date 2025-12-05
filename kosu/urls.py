@@ -65,8 +65,11 @@ urlpatterns = [
   path('manager_loading/', main_views.AdministratorLoading.as_view(), name='admin_loading'),
 
   path('kosu_backup/', asynchronous_views.backup, name='kosu_backup'),
+  path('kosu_delet/', asynchronous_views.backup, name='kosu_delet'),
+  path('def_backup/', asynchronous_views.backup, name='def_backup'),
   path('member_backup/', asynchronous_views.backup, name='member_backup'),
   path('team_backup/', asynchronous_views.backup, name='team_backup'),
+  path('setting_backup/', asynchronous_views.backup, name='setting_backup'),
 
   path('check_backup_status', asynchronous_views.check_task_status, name='check_member_backup_status'),
   path('download_backup', asynchronous_views.download_file, name='download_member_backup'),

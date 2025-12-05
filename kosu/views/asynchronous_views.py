@@ -132,23 +132,34 @@ def backup(request):
   start_day = request.data.get('start_day')
   end_day = request.data.get('end_day')
 
-  error_response = validate_dates(start_day, end_day)
-  if error_response:
-    return error_response
-
   # url_name属性取得
   current_path = request.path
   match = resolve(current_path)
   url_name = match.url_name
 
   if url_name == 'kosu_backup':
+    error_response = validate_dates(start_day, end_day)
+    if error_response:
+      return error_response
     task_function = generate_kosu_backup
     args = (start_day, end_day)
+  elif url_name == 'kosu_delete':
+    error_response = validate_dates(start_day, end_day)
+    if error_response:
+      return error_response
+    task_function = delete_kosu_data
+    args = (start_day, end_day)
+  elif url_name == 'def_backup':
+    task_function = generate_def_backup
+    args = ()
   elif url_name == 'member_backup':
     task_function = generate_member_backup
     args = ()
   elif url_name == 'team_backup':
     task_function = generate_team_backup
+    args = ()
+  elif url_name == 'setting_backup':
+    task_function = generate_setting_backup
     args = ()
   else:
     return JsonResponse({'status': 'error', 'message': '無効なタスクタイプです。'}, status=400)
