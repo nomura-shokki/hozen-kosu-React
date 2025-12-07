@@ -70,6 +70,10 @@ urlpatterns = [
   path('member_backup/', asynchronous_views.backup, name='member_backup'),
   path('team_backup/', asynchronous_views.backup, name='team_backup'),
   path('setting_backup/', asynchronous_views.backup, name='setting_backup'),
+  path('AsyncTask_backup/', asynchronous_views.backup, name='AsyncTask_backup'),
+  path('AsyncTask_delet/', asynchronous_views.backup, name='AsyncTask_delet'),
+  path('Operation_history_backup/', asynchronous_views.backup, name='Operation_history_backup'),
+  path('Operation_history_delet/', asynchronous_views.backup, name='Operation_history_delet'),
 
   path('check_backup_status', asynchronous_views.check_task_status, name='check_member_backup_status'),
   path('download_backup', asynchronous_views.download_file, name='download_member_backup'),

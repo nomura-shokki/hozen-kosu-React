@@ -1,10 +1,12 @@
 import os
 from django.conf import settings
+from django.utils import timezone
 import openpyxl
 import pandas as pd
 import tempfile
 import datetime
-from .models import Business_Time_graph, kosu_division, member, team_member, inquiry_data, administrator_data, AsyncTask
+from .models import Business_Time_graph, kosu_division, member, team_member, \
+                    inquiry_data, administrator_data, AsyncTask, Operation_history
 from .utils.kosu_utils import kosu_division_dictionary
 
 
@@ -18,7 +20,7 @@ from .utils.kosu_utils import kosu_division_dictionary
 
 
 # 工数データバックアップ非同期処理
-def generate_kosu_backup(data_day, data_day2):
+def generate_kosu_backup(start_day, end_day):
   # 新しいExcelブック作成
   wb = openpyxl.Workbook()
   ws = wb.active
@@ -34,7 +36,7 @@ def generate_kosu_backup(data_day, data_day2):
 
   # 工数データ取得
   kosu_data = Business_Time_graph.objects.filter(
-    work_day2__gte=data_day, work_day2__lte=data_day2
+    work_day2__gte=start_day, work_day2__lte=end_day
     )
 
   # データ書き込み
@@ -54,7 +56,7 @@ def generate_kosu_backup(data_day, data_day2):
     os.makedirs(media_dir)
 
   # ファイル名作成と保存
-  filename = f'工数データバックアップ_{data_day}_{data_day2}.xlsx'
+  filename = f'工数データバックアップ_{start_day}_{end_day}.xlsx'
   filepath = os.path.join(media_dir, filename)
   wb.save(filepath)
 
@@ -151,9 +153,9 @@ def generate_prediction(data_day, data_day2):
 
 
 # 工数データ削除非同期処理
-def delete_kosu_data(data_day, data_day2):
+def delete_kosu_data(start_day, end_day):
   # 工数データ取得
-  kosu_obj = Business_Time_graph.objects.filter(work_day2__gte=data_day, work_day2__lte=data_day2)
+  kosu_obj = Business_Time_graph.objects.filter(work_day2__gte=start_day, work_day2__lte=end_day)
   # 取得した工数データを削除
   kosu_obj.delete()
 
@@ -988,10 +990,8 @@ def load_setting_file(file_obj):
 
 
 
-# 管理者設定データバックアップ非同期処理
-def generate_AsyncTask_backup():
-  # 今日の日付取得
-  today = datetime.date.today().strftime('%Y%m%d')
+#   タスク履歴データバックアップ非同期処理
+def generate_AsyncTask_backup(start_day, end_day):
   # 新しいExcelブック作成
   wb = openpyxl.Workbook()
   ws = wb.active
@@ -1007,17 +1007,21 @@ def generate_AsyncTask_backup():
 
   ws.append(headers)
 
-  # 問い合わせデータ取得
-  AsyncTask = AsyncTask.objects.all()
+  # タスク履歴データ取得
+  AsyncTask_data = AsyncTask.objects.filter(
+    created_at__gte=start_day, created_at__lte=end_day,
+  )
 
   # データ書き込み
-  for item in AsyncTask:
+  for item in AsyncTask_data:
+    created_at_local = timezone.localtime(item.created_at).replace(tzinfo=None)
+    updated_at_local = timezone.localtime(item.updated_at).replace(tzinfo=None)
     row = [
       item.task_id,
       item.status,
       item.result,
-      item.created_at,
-      item.updated_at,
+      created_at_local,
+      updated_at_local,
       ]
 
     ws.append(row)
@@ -1028,7 +1032,7 @@ def generate_AsyncTask_backup():
     os.makedirs(media_dir)
 
   # ファイル名作成と保存
-  filename = f'タスク履歴データバックアップ_{today}.xlsx'
+  filename = f'タスク履歴データバックアップ_{start_day}_{end_day}.xlsx'
   filepath = os.path.join(media_dir, filename)
   wb.save(filepath)
 
@@ -1040,6 +1044,113 @@ def generate_AsyncTask_backup():
 
 
 #--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# タスク履歴データ削除非同期処理
+def delete_AsyncTask_data(start_day, end_day):
+  # タスク履歴データ取得
+  AsyncTask_data = AsyncTask.objects.filter(
+    created_at__date__gte=start_day, 
+    created_at__date__lte=end_day,
+  )
+  
+  AsyncTask_data.delete()
+  return None
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 操作履歴データバックアップ非同期処理
+def generate_Operation_history_backup(start_day, end_day):
+  # 新しいExcelブック作成
+  wb = openpyxl.Workbook()
+  ws = wb.active
+
+  # ヘッダー作成
+  headers = [
+    '操作日時', 
+    '従業員番号',
+    '氏名',
+    'ページ',
+    '操作モデル',
+    '結果',
+    '編集詳細',
+    ]
+
+  ws.append(headers)
+
+  # タスク履歴データ取得
+  AsyncTask_data = Operation_history.objects.filter(
+    created_at__gte=start_day, created_at__lte=end_day,
+  )
+
+  # データ書き込み
+  for item in AsyncTask_data:
+    created_at_local = timezone.localtime(item.created_at).replace(tzinfo=None)
+    row = [
+      created_at_local,
+      item.employee_no4,
+      item.name,
+      item.post_page,
+      item.operation_models,
+      item.status,
+      item.operation_detail,
+      ]
+
+    ws.append(row)
+
+  # 保存先のディレクトリ確認・作成
+  media_dir = settings.MEDIA_ROOT
+  if not os.path.exists(media_dir):
+    os.makedirs(media_dir)
+
+  # ファイル名作成と保存
+  filename = f'操作履歴データバックアップ_{start_day}_{end_day}.xlsx'
+  filepath = os.path.join(media_dir, filename)
+  wb.save(filepath)
+
+  # ファイルパスを返却
+  return filepath
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 操作履歴データ削除非同期処理
+def delete_Operation_history_data(start_day, end_day):
+  # タスク履歴データ取得
+  OperationHistory_data = Operation_history.objects.filter(
+    created_at__date__gte=start_day, 
+    created_at__date__lte=end_day,
+  )
+  
+  OperationHistory_data.delete()
+  return None
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
 
 
 

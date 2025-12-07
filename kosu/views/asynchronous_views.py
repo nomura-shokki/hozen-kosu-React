@@ -5,7 +5,8 @@ import uuid
 from ..tasks import generate_kosu_backup, generate_prediction, delete_kosu_data, load_kosu_file, \
                     generate_member_backup, load_member_file, generate_team_backup, load_team_file, \
                     generate_def_backup, load_def_file, generate_inquiry_backup, load_inquiry_file, \
-                    generate_setting_backup, load_setting_file
+                    generate_setting_backup, load_setting_file, generate_AsyncTask_backup, \
+                    delete_AsyncTask_data, generate_Operation_history_backup ,delete_Operation_history_data
 from ..models import AsyncTask
 from django.views.decorators.csrf import csrf_exempt
 
@@ -161,6 +162,30 @@ def backup(request):
   elif url_name == 'setting_backup':
     task_function = generate_setting_backup
     args = ()
+  elif url_name == 'AsyncTask_backup':
+    error_response = validate_dates(start_day, end_day)
+    if error_response:
+      return error_response
+    task_function = generate_AsyncTask_backup
+    args = (start_day, end_day)
+  elif url_name == 'AsyncTask_delet':
+    error_response = validate_dates(start_day, end_day)
+    if error_response:
+      return error_response
+    task_function = delete_AsyncTask_data
+    args = (start_day, end_day)
+  elif url_name == 'Operation_history_backup':
+    error_response = validate_dates(start_day, end_day)
+    if error_response:
+      return error_response
+    task_function = generate_Operation_history_backup
+    args = (start_day, end_day)
+  elif url_name == 'Operation_history_delet':
+    error_response = validate_dates(start_day, end_day)
+    if error_response:
+      return error_response
+    task_function = delete_Operation_history_data
+    args = (start_day, end_day)
   else:
     return JsonResponse({'status': 'error', 'message': '無効なタスクタイプです。'}, status=400)
 
