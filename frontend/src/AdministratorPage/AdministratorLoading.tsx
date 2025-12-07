@@ -28,39 +28,36 @@ interface Member {
 }
 
 // -------------------------------------------------------------------------
-// 汎用タスク進行状態監視カスタムフック (useTaskMonitor)
+// 汎用タスク進行状態監視カスタムフック
 // -------------------------------------------------------------------------
 const useTaskMonitor = (
   setIsRunning: (running: boolean) => void,
   setError: (error: string | null) => void,
-  taskType: 'backup' | 'delete' | 'generic' // 処理タイプを明確化
+  taskType: 'backup' | 'delete' | 'load' | 'generic'
 ) => {
 
   // アラートメッセージに使用する処理名を決定
-  const processName = taskType === 'backup' ? 'データバックアップ' : 'データ削除';
+  const processName = taskType === 'backup' ? 'データバックアップ' : taskType === 'delete' ? 'データ削除' : 'データロード';
 
   // タスク成功時の処理
   const handleSuccess = useCallback((data: any) => {
     // 実行中ステートをfalseに設定してローディング表示を終了
     setIsRunning(false);
 
-    // 削除タスクの場合は完了アラートのみ表示して終了
-    if (taskType === 'delete') {
+    // 削除/ロードタスクの場合は完了アラートのみ表示して終了
+    if (taskType === 'delete' || taskType === 'load') {
       alert(`${processName}が完了しました。`);
       return;
     }
 
-    // バックアップタスクの場合（ダウンロード処理）
-    // レスポンスにファイルパス (file_path) が含まれていればダウンロードを実行
+    // バックアップタスク
     if (data.file_path) {
       // APIのダウンロードエンドポイントを設定
       const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/download_backup`;
       const filePath = data.file_path;
-      // <a>タグを動的に作成し、ダウンロードURLを設定してクリックさせることでダウンロードを開始
       const link = document.createElement('a');
-      // ファイルパスをクエリパラメータとしてエンコードして渡す
       link.href = `${endpoint}?file_path=${encodeURIComponent(filePath)}`;
-      link.download = ''; // ファイル名を指定しない（サーバー側で設定）
+      link.download = ''; 
       link.click();
       alert(`${processName}が完了し、ダウンロードが開始されました。`);
     } else {
@@ -126,7 +123,9 @@ const AdministratorLoading: React.FC = () => {
   const initialTaskStates = {
     KosuBackup: false, 
     KosuDelet: false,
+    KosuLoad: false, 
     DefBackup: false,
+    DefLoad: false,
     MemberBackup: false,
     TeamBackup: false,
     SettingBackup: false,
@@ -150,7 +149,9 @@ const AdministratorLoading: React.FC = () => {
   const today = getTodayDateString();
   const [startDay, setStartDay] = useState<string>(today); // 開始日
   const [endDay, setEndDay] = useState<string>(today); // 終了日
-  const navigate = useNavigate(); // ルーティング用のフック
+  const navigate = useNavigate();
+  const [kosuFile, setKosuFile] = useState<File | null>(null);
+  const [defFile, setDefFile] = useState<File | null>(null);
 
   // マウント時処理
   useEffect(() => {
@@ -183,11 +184,13 @@ const AdministratorLoading: React.FC = () => {
   };
 
   // タスク監視フックのインスタンス化
-  // 各タスク/処理タイプ (backup/delete) に対応する専用の監視関数を作成し、マップに格納
+  // 各タスク/処理タイプ (backup/delete/load) に対応する専用の監視関数を作成し、マップに格納
   const monitorHooks = {
     KosuBackup: useTaskMonitor(createSetter('KosuBackup'), createErrorSetter('KosuError'), 'backup'),
     KosuDelet: useTaskMonitor(createSetter('KosuDelet'), createErrorSetter('KosuError'), 'delete'),
+    KosuLoad: useTaskMonitor(createSetter('KosuLoad'), createErrorSetter('KosuError'), 'load'), 
     DefBackup: useTaskMonitor(createSetter('DefBackup'), createErrorSetter('DefError'), 'backup'),
+    DefLoad: useTaskMonitor(createSetter('DefLoad'), createErrorSetter('DefError'), 'load'), // ★追加
     MemberBackup: useTaskMonitor(createSetter('MemberBackup'), createErrorSetter('MemberError'), 'backup'),
     TeamBackup: useTaskMonitor(createSetter('TeamBackup'), createErrorSetter('TeamError'), 'backup'),
     SettingBackup: useTaskMonitor(createSetter('SettingBackup'), createErrorSetter('SettingError'), 'backup'),
@@ -221,7 +224,7 @@ const AdministratorLoading: React.FC = () => {
     try {
       // 日付範囲が必要な場合はリクエストボディを作成
       const bodyData = isDateRanged ? { start_day: startDay, end_day: endDay } : {};
-      
+
       // POSTリクエストボディがある場合はContent-Typeを設定
       if (isDateRanged) {
         headers['Content-Type'] = 'application/json';
@@ -256,7 +259,78 @@ const AdministratorLoading: React.FC = () => {
       setError(`${processName}の開始中にネットワークエラーが発生しました。`);
       alert(`${processName}の開始に失敗しました。`);
     }
-  }, [monitorHooks, startDay, endDay]); // monitorHooks, startDay, endDayに依存
+  }, [monitorHooks, startDay, endDay]);
+
+  // 汎用ファイルロード開始処理関数
+  const startFileLoad = useCallback(async (
+    taskKey: 'KosuLoad' | 'DefLoad',  // 監視フックとステートキーを特定するためのキー
+    endpointPath: string,  // APIエンドポイントのパス (例: 'kosu_load')
+    processName: string,  // 表示用プロセス名 (例: '工数データロード')
+    fileToLoad: File | null // ロード対象のファイルステート
+  ) => {
+    // 対応する実行中/エラーセッターを取得
+    const isRunningSetter = createSetter(taskKey as keyof typeof initialTaskStates);
+    // 例: KosuLoad -> KosuError, DefLoad -> DefError
+    const errorKey = `${taskKey.slice(0, -4)}Error` as keyof typeof initialErrorStates;
+    const setError = createErrorSetter(errorKey);
+
+    if (!fileToLoad) {
+      alert('アップロードするファイルを選択してください。');
+      return;
+    }
+    
+    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/${endpointPath}/`;
+    
+    const formData = new FormData();
+    formData.append('file', fileToLoad);
+    
+    // 実行中ステートを true に設定
+    isRunningSetter(true);
+
+    try {
+      // Fetch APIを使用してファイルをPOST
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCsrfToken()
+        },
+        body: formData,
+      });
+      
+      // レスポンスをJSONとしてパース
+      const data = await response.json();
+      
+      // APIレスポンスからタスクIDを取得できた場合
+      if (data.taskId || (data.status === 'success' && data.task_id)) {
+        const taskId = data.taskId || data.task_id;
+        // 対応する監視フックを呼び出し、ポーリングを開始
+        monitorHooks[taskKey](taskId);
+      } else {
+        // タスクIDが返されなかった場合（タスク開始失敗）
+        isRunningSetter(false);
+        const message = data.message || `${processName}の開始に失敗しました。`;
+        setError(message);
+        alert(message);
+      }
+    } catch (err) {
+      // ネットワークエラーまたはFetch処理自体のエラー
+      isRunningSetter(false);
+      console.error('Error:', err);
+      setError(`${processName}の開始中にネットワークエラーが発生しました。`);
+      alert(`${processName}の開始に失敗しました。`);
+    }
+  }, [monitorHooks]);
+
+  // Kosuデータロード開始処理関数
+  const startKosuload = useCallback(() => {
+    return startFileLoad('KosuLoad', 'kosu_load', '工数データロード', kosuFile);
+  }, [kosuFile, startFileLoad]);
+
+  // Defデータロード開始処理関数
+  const startDefload = useCallback(() => {
+    return startFileLoad('DefLoad', 'def_load', '工数区分定義データロード', defFile);
+  }, [defFile, startFileLoad]);
+
 
   // 各ボタンの onClick ハンドラを startTask に置き換え (具体的なタスク開始関数)
   // 各関数は startTask にタスク固有の引数を渡すだけ
@@ -333,12 +407,20 @@ const AdministratorLoading: React.FC = () => {
             disabled={isAnyBackupRunning} 
           />
           <input
+            id="kosu-file-upload"
+            name="kosu-file-upload"
+            type="file"
+            accept=".csv, .xlsx, .xls"
+            onChange={(e) => setKosuFile(e.target.files ? e.target.files[0] : null)}
+            disabled={isAnyBackupRunning}
+          />
+          <input
             id="start-kosu-load"
             name="start-kosu-load"
             type="button"
-            value={runningStates.KosuDelet ? "実行中..." : "ロード開始"} 
-            onClick={!isAnyBackupRunning ? startKosuDelet : undefined} 
-            disabled={isAnyBackupRunning} 
+            value={runningStates.KosuLoad ? "実行中..." : "ロード開始"} 
+            onClick={!isAnyBackupRunning ? startKosuload : undefined} 
+            disabled={isAnyBackupRunning || !kosuFile}
           />
 
           <label htmlFor="start-def-backup">工数区分定義データ：</label>
@@ -349,6 +431,22 @@ const AdministratorLoading: React.FC = () => {
             value={runningStates.DefBackup ? "実行中..." : "バックアップ開始"} 
             onClick={!isAnyBackupRunning ? startDefBackup : undefined} 
             disabled={isAnyBackupRunning} 
+          />
+          <input
+            id="def-file-upload"
+            name="def-file-upload"
+            type="file"
+            accept=".csv, .xlsx, .xls"
+            onChange={(e) => setDefFile(e.target.files ? e.target.files[0] : null)}
+            disabled={isAnyBackupRunning}
+          />
+          <input
+            id="start-def-load"
+            name="start-def-load"
+            type="button"
+            value={runningStates.DefLoad ? "実行中..." : "ロード開始"} 
+            onClick={!isAnyBackupRunning ? startDefload : undefined} 
+            disabled={isAnyBackupRunning || !defFile}
           />
 
           <label htmlFor="start-member-backup">人員データ：</label>

@@ -122,9 +122,13 @@ import threading
 import uuid
 import time
 from django.http import JsonResponse
-
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, JSONParser, FormParser
+import tempfile
+import os
 
 @api_view(['POST'])
+@parser_classes([MultiPartParser, JSONParser, FormParser])
 def backup(request):
   # タスクID生成
   task_id = str(uuid.uuid4())
@@ -151,12 +155,36 @@ def backup(request):
     task_function = delete_kosu_data
     args = (start_day, end_day)
   elif url_name == 'kosu_load':
-    kosu_file = request.FILES['kosu_file']
-    task_function = load_kosu_file
-    args = (kosu_file,)
+    kosu_file = request.FILES.get('file')
+    temp_file_path = None
+    try:
+      with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
+        for chunk in kosu_file.chunks():
+          temp_file.write(chunk)
+        temp_file_path = temp_file.name
+      task_function = load_kosu_file
+      args = (temp_file_path,)
+    except Exception as e:
+      if temp_file_path and os.path.exists(temp_file_path):
+        os.remove(temp_file_path)
+      return JsonResponse({'status': 'error', 'message': f'ファイル書き込みエラー: {str(e)}'}, status=500)
   elif url_name == 'def_backup':
     task_function = generate_def_backup
     args = ()
+  elif url_name == 'def_load':
+    def_file = request.FILES.get('file')
+    temp_file_path = None
+    try:
+      with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
+        for chunk in def_file.chunks():
+          temp_file.write(chunk)
+        temp_file_path = temp_file.name
+      task_function = load_def_file
+      args = (temp_file_path,)
+    except Exception as e:
+      if temp_file_path and os.path.exists(temp_file_path):
+        os.remove(temp_file_path)
+      return JsonResponse({'status': 'error', 'message': f'ファイル書き込みエラー: {str(e)}'}, status=500)
   elif url_name == 'member_backup':
     task_function = generate_member_backup
     args = ()

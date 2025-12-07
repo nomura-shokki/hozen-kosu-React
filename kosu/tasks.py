@@ -8,7 +8,8 @@ import datetime
 from .models import Business_Time_graph, kosu_division, member, team_member, \
                     inquiry_data, administrator_data, AsyncTask, Operation_history
 from .utils.kosu_utils import kosu_division_dictionary
-
+from django.db import IntegrityError
+from django.core.exceptions import ObjectDoesNotExist
 
 
 
@@ -171,18 +172,9 @@ def delete_kosu_data(start_day, end_day):
 
 
 # 工数データロード非同期処理
-def load_kosu_file(file_obj):
+def load_kosu_file(file_path):
   try:
-    # 一時ファイルを作成
-    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
-      # ファイルを書き込む
-      for chunk in file_obj.chunks():
-          temp_file.write(chunk)
-
-      # ファイル名保存
-      temp_file_path = temp_file.name
-
-    # ファイルを開く
+    temp_file_path = file_path
     wb = openpyxl.load_workbook(temp_file_path)
     ws = wb.worksheets[0]
 
@@ -192,52 +184,62 @@ def load_kosu_file(file_obj):
       '作業内容', '作業詳細', '残業時間', '昼休憩時間',
       '残業休憩時間1', '残業休憩時間2', '残業休憩時間3',
       '就業形態', '工数入力OK_NG', '休憩変更チェック',
-      ]
-    # ファイル内ヘッダー取得
+    ]
+
     actual_headers = [ws.cell(1, col).value for col in range(1, len(expected_headers) + 1)]
-    # ヘッダーのデータに相違がある場合、一時ファイル削除しエラーを返す
+    
+    # ヘッダーが一致しない場合、一時ファイルを削除しエラーを返す
     if actual_headers != expected_headers:
       os.remove(temp_file_path)
-      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None
+      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None 
 
-    # データ読み込み
+    # 4. データ読み込みとDB保存
     for i in range(2, ws.max_row + 1):
-      employee_no = ws.cell(row=i, column=1).value
-      work_day2 = ws.cell(row=i, column=4).value
+        employee_no = ws.cell(row=i, column=1).value
+        work_day2 = ws.cell(row=i, column=4).value
 
-      # もし既に同一データが存在するなら削除
-      existing_data = Business_Time_graph.objects.filter(
-        employee_no3=employee_no, work_day2=work_day2
-        )
-      if existing_data.exists():
-        existing_data.delete()
+        try:
+          member_instance = member.objects.get(employee_no=employee_no)
+        except ObjectDoesNotExist:
+          print(f"警告: 従業員番号 {employee_no} (行 {i}) のメンバーが見つかりませんでした。スキップします。")
+          continue # 次のループへ進む
 
-      # 新データをインスタンスとして作成してDBに保存
-      Business_Time_graph.objects.create(
-        employee_no3=employee_no,
-        name=member.objects.get(employee_no=employee_no),
-        def_ver2=ws.cell(row=i, column=3).value,
-        work_day2=work_day2,
-        tyoku2=ws.cell(row=i, column=5).value,
-        time_work=ws.cell(row=i, column=6).value,
-        detail_work=ws.cell(row=i, column=7).value,
-        over_time=ws.cell(row=i, column=8).value,
-        breaktime=ws.cell(row=i, column=9).value,
-        breaktime_over1=ws.cell(row=i, column=10).value,
-        breaktime_over2=ws.cell(row=i, column=11).value,
-        breaktime_over3=ws.cell(row=i, column=12).value,
-        work_time=ws.cell(row=i, column=13).value,
-        judgement=ws.cell(row=i, column=14).value,
-        break_change=ws.cell(row=i, column=15).value,
-        )
+        # もし既に同一データが存在するなら削除
+        existing_data = Business_Time_graph.objects.filter(
+          employee_no3=employee_no, work_day2=work_day2
+          )
+        if existing_data.exists():
+          existing_data.delete()
 
-    # 一時ファイルを削除
+        # 新データをインスタンスとして作成してDBに保存
+        try:
+          Business_Time_graph.objects.create(
+            employee_no3=employee_no,
+            name=member_instance, 
+            def_ver2=ws.cell(row=i, column=3).value,
+            work_day2=work_day2,
+            tyoku2=ws.cell(row=i, column=5).value,
+            time_work=ws.cell(row=i, column=6).value,
+            detail_work=ws.cell(row=i, column=7).value,
+            over_time=ws.cell(row=i, column=8).value,
+            breaktime=ws.cell(row=i, column=9).value,
+            breaktime_over1=ws.cell(row=i, column=10).value,
+            breaktime_over2=ws.cell(row=i, column=11).value,
+            breaktime_over3=ws.cell(row=i, column=12).value,
+            work_time=ws.cell(row=i, column=13).value,
+            judgement=ws.cell(row=i, column=14).value,
+            break_change=ws.cell(row=i, column=15).value,
+          )
+        except IntegrityError as create_err:
+          print(f"エラー: 行 {i} のデータ作成中に整合性エラーが発生しました: {create_err}。スキップします。")
+          continue # 次のループへ進む
+
+    # 5. 処理が成功したら一時ファイルを削除
     os.remove(temp_file_path)
     return {'status': 'success'}, None
 
   except Exception as e:
-    # ロード処理ミスした際は一時ファイルがあれば削除しエラーを返す
-    if 'temp_file_path' in locals():
+    if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
       os.remove(temp_file_path)
     return {'status': 'error', 'message': str(e)}, None
 
@@ -655,32 +657,26 @@ def generate_def_backup():
 
 
 # 工数区分定義データロード非同期処理
-def load_def_file(file_obj):
+def load_def_file(file_path):
   try:
-    # 一時ファイルを作成
-    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
-      # ファイルを書き込む
-      for chunk in file_obj.chunks():
-          temp_file.write(chunk)
+    # 1. 渡されたファイルパスを一時ファイルパスとして保持
+    temp_file_path = file_path
 
-      # ファイル名保存
-      temp_file_path = temp_file.name
-
-    # ファイルを開く
+    # 2. ファイルを開く
     wb = openpyxl.load_workbook(temp_file_path)
     ws = wb.worksheets[0]
 
-    # ヘッダー定義
+    # 3. ヘッダー定義とチェック
     expected_headers = ['工数区分定義Ver名'] + [item for i in range(1, 51) for item in [f'工数区分名{i}', f'定義{i}', f'作業内容{i}']]
 
-    # ファイル内ヘッダー取得
     actual_headers = [ws.cell(1, col).value for col in range(1, len(expected_headers) + 1)]
-    # ヘッダーのデータに相違がある場合、一時ファイル削除しエラーを返す
+    
+    # ヘッダーが一致しない場合、一時ファイルを削除しエラーを返す
     if actual_headers != expected_headers:
       os.remove(temp_file_path)
-      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None
+      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None 
 
-    # データ読み込み
+    # 4. データ読み込みとDB保存
     for i in range(2, ws.max_row + 1):
       # 読み込み予定データと同一の工数区分定義データが存在するか確認
       def_data_filter = kosu_division.objects.filter(kosu_name=ws.cell(row=i, column=1).value)
@@ -700,13 +696,13 @@ def load_def_file(file_obj):
       new_data = kosu_division(**def_data)
       new_data.save()
 
-    # 一時ファイルを削除
+    # 5. 処理が成功したら一時ファイルを削除
     os.remove(temp_file_path)
     return {'status': 'success'}, None
 
   except Exception as e:
-    # ロード処理ミスした際は一時ファイルがあれば削除しエラーを返す
-    if 'temp_file_path' in locals():
+    # ロード処理でエラーが発生した際は一時ファイルがあれば削除しエラーを返す
+    if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
       os.remove(temp_file_path)
     return {'status': 'error', 'message': str(e)}, None
 

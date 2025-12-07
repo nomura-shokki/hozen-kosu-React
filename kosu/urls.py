@@ -66,8 +66,9 @@ urlpatterns = [
 
   path('kosu_backup/', asynchronous_views.backup, name='kosu_backup'),
   path('kosu_delet/', asynchronous_views.backup, name='kosu_delet'),
-  path('kosu_load', asynchronous_views.backup, name='kosu_load'),
+  path('kosu_load/', asynchronous_views.backup, name='kosu_load'),
   path('def_backup/', asynchronous_views.backup, name='def_backup'),
+  path('def_load/', asynchronous_views.backup, name='def_load'),
   path('member_backup/', asynchronous_views.backup, name='member_backup'),
   path('team_backup/', asynchronous_views.backup, name='team_backup'),
   path('setting_backup/', asynchronous_views.backup, name='setting_backup'),
