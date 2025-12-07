@@ -116,12 +116,12 @@ def start_task(request, task_type):
 
 
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from django.urls import resolve
+import datetime
 import threading
 import uuid
 import time
-
+from django.http import JsonResponse
 
 
 @api_view(['POST'])
@@ -150,6 +150,10 @@ def backup(request):
       return error_response
     task_function = delete_kosu_data
     args = (start_day, end_day)
+  elif url_name == 'kosu_load':
+    kosu_file = request.FILES['kosu_file']
+    task_function = load_kosu_file
+    args = (kosu_file,)
   elif url_name == 'def_backup':
     task_function = generate_def_backup
     args = ()
@@ -198,11 +202,20 @@ def backup(request):
 
 
 # 日付バリデーション関数
-def validate_dates(data_day, data_day2):
-  # 日付指定無かったり、開始日が終了日を越えていた場合エラーを返す
-  if not data_day or not data_day2:
+def validate_dates(start_day, end_day):
+  today_str = datetime.date.today().strftime('%Y-%m-%d')
+  if not start_day or not end_day:
     return JsonResponse({'status': 'error', 'message': '日付を指定してください。'}, status=400)
-  if data_day > data_day2:
+
+  try:
+    end_date_obj = datetime.date.fromisoformat(end_day)
+    today_date_obj = datetime.date.fromisoformat(today_str)
+    start_date_obj = datetime.date.fromisoformat(start_day)
+  except ValueError:
+    return JsonResponse({'status': 'error', 'message': '日付の形式が不正です。'}, status=400)
+  if end_date_obj >= today_date_obj:
+    return JsonResponse({'status': 'error', 'message': '昨日の日付までしか指定できません。'}, status=400)
+  if start_date_obj > end_date_obj:
     return JsonResponse({'status': 'error', 'message': '開始日が終了日を超えています。'}, status=400)
   return None
 

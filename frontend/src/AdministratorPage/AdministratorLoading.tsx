@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios, { AxiosError } from "axios"; // 認証チェックのため、一部axiosを保持
+import axios, { AxiosError } from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import Loading from "../components/Loading";
 import styles from "../styles/AdministratorPage/AdministratorLoading.module.css";
 
-// 今日の日付を取得する関数
+
+
+// 今日の日付取得
 const getTodayDateString = () => {
   const today = new Date();
   const year = today.getFullYear();
@@ -13,120 +15,147 @@ const getTodayDateString = () => {
   return `${year}-${month}-${day}`;
 };
 
-// CSRFトークン取得関数
+// クッキーからCSRFトークン取得
 function getCsrfToken() {
-  // document.cookieからcsrftokenを取得する
+  // document.cookieから 'csrftoken=値' の形式を正規表現で探し、値を返す
   return document.cookie.match(/csrftoken=([^;]*)/)?.[1] || '';
 }
 
+// メンバー情報の型定義
 interface Member {
   employee_no: number;
   name: string;
 }
 
-// =========================================================================
-// タスク進行状態監視関数（修正案）
-// =========================================================================
-const useMonitorTaskStatus = (
+// -------------------------------------------------------------------------
+// 汎用タスク進行状態監視カスタムフック (useTaskMonitor)
+// -------------------------------------------------------------------------
+const useTaskMonitor = (
   setIsRunning: (running: boolean) => void,
   setError: (error: string | null) => void,
-  isDelet: boolean = false // ★追加: 削除タスクかどうかを判定するためのフラグ
+  taskType: 'backup' | 'delete' | 'generic' // 処理タイプを明確化
 ) => {
 
-  // タスク成功時の処理
-  const handleSuccess = (data: any) => { // handleBackupSuccess から handleSuccess に変更
-    setIsRunning(false); // 実行中フラグを必ずOFFにする
+  // アラートメッセージに使用する処理名を決定
+  const processName = taskType === 'backup' ? 'データバックアップ' : 'データ削除';
 
-    // 削除タスクの場合
-    if (isDelet) {
-      alert("データ削除が完了しました。");
+  // タスク成功時の処理
+  const handleSuccess = useCallback((data: any) => {
+    // 実行中ステートをfalseに設定してローディング表示を終了
+    setIsRunning(false);
+
+    // 削除タスクの場合は完了アラートのみ表示して終了
+    if (taskType === 'delete') {
+      alert(`${processName}が完了しました。`);
       return;
     }
-    
+
     // バックアップタスクの場合（ダウンロード処理）
+    // レスポンスにファイルパス (file_path) が含まれていればダウンロードを実行
     if (data.file_path) {
-      // ダウンロード処理
+      // APIのダウンロードエンドポイントを設定
       const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/download_backup`;
       const filePath = data.file_path;
-      const link = document.createElement('a'); // 仮想リンク作成
-      link.href = `${endpoint}?file_path=${encodeURIComponent(filePath)}`; // ダウンロードURLを設定
-      link.download = ''; // ファイル名はサーバー設定に委ねる
-      link.click(); // 仮想リンククリックでダウンロード開始
-      alert("データバックアップが完了し、ダウンロードが開始されました。");
+      // <a>タグを動的に作成し、ダウンロードURLを設定してクリックさせることでダウンロードを開始
+      const link = document.createElement('a');
+      // ファイルパスをクエリパラメータとしてエンコードして渡す
+      link.href = `${endpoint}?file_path=${encodeURIComponent(filePath)}`;
+      link.download = ''; // ファイル名を指定しない（サーバー側で設定）
+      link.click();
+      alert(`${processName}が完了し、ダウンロードが開始されました。`);
     } else {
       alert("処理が完了しました。");
     }
-  };
+  }, [setIsRunning, taskType, processName]);
 
   // タスクエラー時の処理
-  const handleError = (data: any) => {
+  const handleError = useCallback((data: any) => {
+    // 実行中ステートをfalseに設定してローディング表示を終了
     setIsRunning(false);
-    const defaultMessage = isDelet ? "データ削除処理中にエラーが発生しました。" : "データバックアップ処理中にエラーが発生しました。";
+    const defaultMessage = `${processName}処理中にエラーが発生しました。`;
+    // エラーメッセージがあればそれを使用、なければデフォルトメッセージ
     const errorMessage = data.message || defaultMessage;
+    // エラーステートを更新
     setError(errorMessage);
     alert(errorMessage);
-  };
+  }, [setIsRunning, setError, processName]);
 
+  //タスクの状態を定期的にチェックするポーリング処理を開始
   const monitorTaskStatus = useCallback((taskId: string) => {
+    // タスクステータスチェックのエンドポイント
     const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/check_backup_status?task_id=${taskId}`;
     
-    // ポーリング処理
+    // 1秒間隔でタスクの状態をチェックするポーリング処理
     const interval = setInterval(() => {
-      fetch(endpoint) // 定期的に状態を確認するためにリクエストを送信
-        .then(response => response.json()) // レスポンスJSONに変換
+      fetch(endpoint)
+        .then(response => response.json())
         .then(data => {
-          if (data.status === 'success') { // タスク成功時
-            clearInterval(interval); // 監視停止
-            handleSuccess(data); // 成功時の処理を呼び出す
-          } else if (data.status === 'error') { // タスクエラー時
-            clearInterval(interval); // 監視停止
-            handleError(data); // エラー処理を実行
+          // 成功の場合
+          if (data.status === 'success') {
+            clearInterval(interval); // ポーリングを停止
+            handleSuccess(data); // 成功時の処理を実行
+          // エラーの場合
+          } else if (data.status === 'error') {
+            clearInterval(interval); // ポーリングを停止
+            handleError(data); // エラー時の処理を実行
           }
         })
-        .catch(err => { // ネットワークエラー時
-          clearInterval(interval); // 監視停止
-          console.error('Error:', err); // エラーをログに記録
+        .catch(err => {
+          // ネットワークエラーが発生した場合
+          clearInterval(interval); // ポーリングを停止
+          console.error('Network Error:', err);
           handleError({ message: "ネットワークエラーが発生しました。" });
         });
-    }, 1000); // 1秒間隔でタスク状態確認
+    }, 1000); // 1000ミリ秒 (1秒) ごとにチェック
 
-    return () => clearInterval(interval); // クリーンアップ関数を返す
-  }, [setIsRunning, setError, isDelet]); // ★依存配列に isDelet を追加
+    // クリーンアップ関数（コンポーネントがアンマウントされたり、依存関係が変わった時にポーリングを停止）
+    return () => clearInterval(interval);
+  }, [handleSuccess, handleError]);
 
   return monitorTaskStatus;
 };
 
-// =========================================================================
+// -------------------------------------------------------------------------
 // AdministratorLoading コンポーネント
-// =========================================================================
+// -------------------------------------------------------------------------
 const AdministratorLoading: React.FC = () => {
+  // コンポーネント全体の初期ローディング状態（認証チェック用）
   const [loading, setLoading] = useState<boolean>(true);
-  const [isKosuBackupRunning, setIsKosuBackupRunning] = useState<boolean>(false); 
-  const [isKosuDeletRunning, setIsKosuDeletRunning] = useState<boolean>(false);
-  const [isDefBackupRunning, setIsDefBackupRunning] = useState<boolean>(false); 
-  const [isMemberBackupRunning, setIsMemberBackupRunning] = useState<boolean>(false);
-  const [isTeamBackupRunning, setIsTeamBackupRunning] = useState<boolean>(false); 
-  const [isSettingBackupRunning, setIsSettingBackupRunning] = useState<boolean>(false); 
-  const [isAsyncTaskBackupRunning, setIsAsyncTaskBackupRunning] = useState<boolean>(false); 
-  const [isAsyncTaskDeletRunning, setIsAsyncTaskDeletRunning] = useState<boolean>(false);
-  const [isOperationHistoryBackupRunning, setIsOperationHistoryBackupRunning] = useState<boolean>(false);
-  const [isOperationHistoryDeletRunning, setIsOperationHistoryDeletRunning] = useState<boolean>(false);
-  const [KosuError, setKosuError] = useState<string | null>(null);
-  const [DefError, setDefError] = useState<string | null>(null);
-  const [MemberError, setMemberError] = useState<string | null>(null);
-  const [TeamError, setTeamError] = useState<string | null>(null); 
-  const [SettingError, setSettingError] = useState<string | null>(null);
-  const [AsyncTaskError, setAsyncTaskError] = useState<string | null>(null);
-  const [OperationHistoryError, setOperationHistoryError] = useState<string | null>(null);
-  const today = getTodayDateString();
-  const [startDay, setStartDay] = useState<string>(today);
-  const [endDay, setEndDay] = useState<string>(today);
-  const navigate = useNavigate();
+  
+  // 実行中のタスク状態を一元管理するオブジェクト
+  const initialTaskStates = {
+    KosuBackup: false, 
+    KosuDelet: false,
+    DefBackup: false,
+    MemberBackup: false,
+    TeamBackup: false,
+    SettingBackup: false,
+    AsyncTaskBackup: false, 
+    AsyncTaskDelet: false,
+    OperationHistoryBackup: false, 
+    OperationHistoryDelet: false,
+  };
+  // 各タスクの実行中ステート
+  const [runningStates, setRunningStates] = useState(initialTaskStates);
 
-  // 画面ロード時の認証チェック (axiosを使用)
+  // 各タスクのエラー状態を一元管理するオブジェクト
+  const initialErrorStates = {
+    KosuError: null, DefError: null, MemberError: null, TeamError: null,
+    SettingError: null, AsyncTaskError: null, OperationHistoryError: null,
+  };
+  // 各タスクのエラーステート
+  const [errorStates, setErrorStates] = useState<Record<string, string | null>>(initialErrorStates);
+
+  // 日付範囲選択用のステート
+  const today = getTodayDateString();
+  const [startDay, setStartDay] = useState<string>(today); // 開始日
+  const [endDay, setEndDay] = useState<string>(today); // 終了日
+  const navigate = useNavigate(); // ルーティング用のフック
+
+  // マウント時処理
   useEffect(() => {
-    // 提示されたコードから変更なし
     axios
+      // 認証情報をチェックするAPIエンドポイントを叩く
       .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_Loading/`, {withCredentials: true})
       .then(() => {
         setLoading(false);
@@ -137,462 +166,118 @@ const AdministratorLoading: React.FC = () => {
         } else if (err.response?.status === 403) {
           navigate("/");
         } else {
-          setMemberError(err.message);
+          setErrorStates(prev => ({ ...prev, MemberError: err.message }));
         }
         setLoading(false);
       });
   }, [navigate]);
+
+  // Stateセッターの汎用化ヘルパー関数
+  // 特定のキーに対応する runningStates を更新する関数を生成
+  const createSetter = (key: keyof typeof initialTaskStates) => (value: boolean) => {
+    setRunningStates(prev => ({ ...prev, [key]: value }));
+  };
+  // 特定のキーに対応する errorStates を更新する関数を生成
+  const createErrorSetter = (key: keyof typeof initialErrorStates) => (value: string | null) => {
+    setErrorStates(prev => ({ ...prev, [key]: value }));
+  };
+
+  // タスク監視フックのインスタンス化
+  // 各タスク/処理タイプ (backup/delete) に対応する専用の監視関数を作成し、マップに格納
+  const monitorHooks = {
+    KosuBackup: useTaskMonitor(createSetter('KosuBackup'), createErrorSetter('KosuError'), 'backup'),
+    KosuDelet: useTaskMonitor(createSetter('KosuDelet'), createErrorSetter('KosuError'), 'delete'),
+    DefBackup: useTaskMonitor(createSetter('DefBackup'), createErrorSetter('DefError'), 'backup'),
+    MemberBackup: useTaskMonitor(createSetter('MemberBackup'), createErrorSetter('MemberError'), 'backup'),
+    TeamBackup: useTaskMonitor(createSetter('TeamBackup'), createErrorSetter('TeamError'), 'backup'),
+    SettingBackup: useTaskMonitor(createSetter('SettingBackup'), createErrorSetter('SettingError'), 'backup'),
+    AsyncTaskBackup: useTaskMonitor(createSetter('AsyncTaskBackup'), createErrorSetter('AsyncTaskError'), 'backup'),
+    AsyncTaskDelet: useTaskMonitor(createSetter('AsyncTaskDelet'), createErrorSetter('AsyncTaskError'), 'delete'),
+    OperationHistoryBackup: useTaskMonitor(createSetter('OperationHistoryBackup'), createErrorSetter('OperationHistoryError'), 'backup'),
+    OperationHistoryDelet: useTaskMonitor(createSetter('OperationHistoryDelet'), createErrorSetter('OperationHistoryError'), 'delete'),
+  };
   
-  // 工数バックアップ: タスク監視フックを呼び出し
-  const monitorKosuTaskStatus = useMonitorTaskStatus(setIsKosuBackupRunning, setKosuError);
-  // 工数削除: タスク監視フックを呼び出し
-  const monitorKosuDeletTaskStatus = useMonitorTaskStatus(setIsKosuDeletRunning, setKosuError);
-  // 工数区分定義バックアップ: タスク監視フックを呼び出し
-  const monitorDefTaskStatus = useMonitorTaskStatus(setIsDefBackupRunning, setDefError);
-  // 人員バックアップ: タスク監視フックを呼び出し
-  const monitorMemberTaskStatus = useMonitorTaskStatus(setIsMemberBackupRunning, setMemberError);
-  // 班員バックアップ: タスク監視フックを呼び出し
-  const monitorTeamTaskStatus = useMonitorTaskStatus(setIsTeamBackupRunning, setTeamError); 
-  // 設定バックアップ: タスク監視フックを呼び出し
-  const monitorSettingTaskStatus = useMonitorTaskStatus(setIsSettingBackupRunning, setSettingError);
-  // タスク履歴バックアップ: タスク監視フックを呼び出し
-  const monitorAsyncTaskTaskStatus = useMonitorTaskStatus(setIsAsyncTaskBackupRunning, setAsyncTaskError);
-  // タスク履歴削除: タスク監視フックを呼び出し
-  const monitorAsyncTaskDeletTaskStatus = useMonitorTaskStatus(setIsAsyncTaskDeletRunning, setAsyncTaskError);
-  // 操作履歴バックアップ: タスク監視フックを呼び出し
-  const monitorOperationHistoryTaskStatus = useMonitorTaskStatus(setIsOperationHistoryBackupRunning, setOperationHistoryError);
-  // 操作履歴削除: タスク監視フックを呼び出し
-  const monitorOperationHistoryDeletTaskStatus = useMonitorTaskStatus(setIsOperationHistoryDeletRunning, setOperationHistoryError);
+  // 汎用タスク開始処理関数
+  const startTask = useCallback(async (
+    taskKey: keyof typeof monitorHooks,  // 監視フックとステートキーを特定するためのキー
+    endpointPath: string,  // APIエンドポイントのパス (例: 'kosu_backup')
+    processName: string,  // 表示用プロセス名 (例: '工数データバックアップ')
+    isDateRanged: boolean = false // 日付範囲が必要かどうか
+  ) => {
+    // 対応する実行中/エラーセッターを取得
+    const isRunningSetter = createSetter(taskKey as keyof typeof initialTaskStates);
+    const errorKey = `${taskKey.slice(0, -6)}Error` as keyof typeof initialErrorStates;
+    const setError = createErrorSetter(errorKey);
 
-  // =========================================================================
-  // 工数バックアップ開始処理
-  // =========================================================================
-  const startKosuBackup = useCallback(async () => {
-    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/kosu_backup/`;
+    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/${endpointPath}/`;
+    // CSRFトークンをヘッダーに設定
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json', // Content-Type ヘッダーを追加
-      'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
+      'X-CSRFToken': getCsrfToken()
     };
 
-    setIsKosuBackupRunning(true); // バックアップ実行中フラグをON
+    // 実行中ステートを true に設定
+    isRunningSetter(true);
 
     try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          start_day: startDay,
-          end_day: endDay,
-        }),
-      });
-      const data = await response.json();
-
-      // タスク開始成功時の処理
-      if (data.taskId) {
-        const taskId = data.taskId; 
-        monitorKosuTaskStatus(taskId); // タスク監視関数を呼び出し
-      } else if (data.status === 'success' && data.task_id) {
-          const taskId = data.task_id;
-          monitorKosuTaskStatus(taskId);
-      } else {
-        setIsKosuBackupRunning(false);
-        const message = data.message || "工数データバックアップの開始に失敗しました。";
-        setKosuError(message);
-        alert(message);
-      }
-    } catch (err) {
-      setIsKosuBackupRunning(false);
-      console.error('Error:', err);
-      setKosuError("工数データバックアップの開始中にネットワークエラーが発生しました。");
-      alert("工数データバックアップの開始に失敗しました。");
-    }
-  }, [monitorKosuTaskStatus, setKosuError, startDay, endDay]);
-
-  // =========================================================================
-  // 工数削除開始処理
-  // =========================================================================
-  const startKosuDelet = useCallback(async () => {
-    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/kosu_delet/`;
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json', // Content-Type ヘッダーを追加
-      'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
-    };
-
-    setIsKosuDeletRunning(true); // バックアップ実行中フラグをON
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          start_day: startDay,
-          end_day: endDay,
-        }),
-      });
-      const data = await response.json();
-
-      // タスク開始成功時の処理
-      if (data.taskId) {
-        const taskId = data.taskId; 
-        monitorKosuDeletTaskStatus(taskId); // タスク監視関数を呼び出し
-      } else if (data.status === 'success' && data.task_id) {
-          const taskId = data.task_id;
-          monitorKosuDeletTaskStatus(taskId);
-      } else {
-        setIsKosuDeletRunning(false);
-        const message = data.message || "工数データ削除に失敗しました。";
-        setKosuError(message);
-        alert(message);
-      }
-    } catch (err) {
-      setIsKosuDeletRunning(false);
-      console.error('Error:', err);
-      setKosuError("工数データ削除中にネットワークエラーが発生しました。");
-      alert("工数削除に失敗しました。");
-    }
-  }, [monitorKosuDeletTaskStatus, setKosuError, startDay, endDay]);
-
-  // =========================================================================
-  // 工数区分定義バックアップ開始処理
-  // =========================================================================
-  const startDefBackup = useCallback(async () => {
-    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/def_backup/`;
-    const headers: Record<string, string> = {
-      'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
-    };
-
-    setIsDefBackupRunning(true); // バックアップ実行中フラグをON
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: headers,
-      });
-      const data = await response.json();
-
-      // タスク開始成功時の処理
-      if (data.taskId) {
-        const taskId = data.taskId; 
-        monitorDefTaskStatus(taskId); // タスク監視関数を呼び出し
-      } else if (data.status === 'success' && data.task_id) {
-          const taskId = data.task_id;
-          monitorDefTaskStatus(taskId);
-      } else {
-        setIsDefBackupRunning(false);
-        const message = data.message || "工数区分定義データバックアップの開始に失敗しました。";
-        setDefError(message);
-        alert(message);
-      }
-    } catch (err) {
-      setIsDefBackupRunning(false);
-      console.error('Error:', err);
-      setDefError("工数区分定義データバックアップの開始中にネットワークエラーが発生しました。");
-      alert("工数区分定義データバックアップの開始に失敗しました。");
-    }
-  }, [monitorDefTaskStatus, setDefError]);
-
-  // =========================================================================
-  // 人員バックアップ開始処理
-  // =========================================================================
-  const startMemberBackup = useCallback(async () => {
-    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/member_backup/`;
-    const headers: Record<string, string> = {
-      'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
-    };
-
-    setIsMemberBackupRunning(true); // バックアップ実行中フラグをON
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: headers,
-      });
-      const data = await response.json();
-
-      // タスク開始成功時の処理
-      if (data.taskId) {
-        const taskId = data.taskId; 
-        monitorMemberTaskStatus(taskId); // タスク監視関数を呼び出し
-      } else if (data.status === 'success' && data.task_id) {
-          const taskId = data.task_id;
-          monitorMemberTaskStatus(taskId);
-      } else {
-        setIsMemberBackupRunning(false);
-        const message = data.message || "人員データバックアップの開始に失敗しました。";
-        setMemberError(message);
-        alert(message);
-      }
-    } catch (err) {
-      setIsMemberBackupRunning(false);
-      console.error('Error:', err);
-      setMemberError("人員データバックアップの開始中にネットワークエラーが発生しました。");
-      alert("人員データバックアップの開始に失敗しました。");
-    }
-  }, [monitorMemberTaskStatus, setMemberError]);
-
-  // =========================================================================
-  // 班員バックアップ開始処理
-  // =========================================================================
-  const startTeamBackup = useCallback(async () => {
-    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/team_backup/`; 
-    const headers: Record<string, string> = {
-      'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
-    };
-
-    setIsTeamBackupRunning(true); 
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: headers,
-      });
+      // 日付範囲が必要な場合はリクエストボディを作成
+      const bodyData = isDateRanged ? { start_day: startDay, end_day: endDay } : {};
       
-      const data = await response.json();
-
-      // タスク開始成功時の処理
-      if (data.taskId) { 
-        const taskId = data.taskId; 
-        // 班員タスク監視関数を呼び出し
-        monitorTeamTaskStatus(taskId); 
-      } else if (data.status === 'success' && data.task_id) { 
-          const taskId = data.task_id;
-          // 班員タスク監視関数を呼び出し
-          monitorTeamTaskStatus(taskId);
-      } else {
-        // 班員実行中フラグをOFF
-        setIsTeamBackupRunning(false); 
-        // エラーメッセージ
-        const message = data.message || "班員データバックアップの開始に失敗しました。"; 
-        setTeamError(message);
-        alert(message);
+      // POSTリクエストボディがある場合はContent-Typeを設定
+      if (isDateRanged) {
+        headers['Content-Type'] = 'application/json';
       }
-    } catch (err) {
-      // 班員実行中フラグをOFF
-      setIsTeamBackupRunning(false); 
-      console.error('Error:', err);
-      setTeamError("班員データバックアップの開始中にネットワークエラーが発生しました。"); 
-      alert("班員データバックアップの開始に失敗しました。");
-    }
-  }, [monitorTeamTaskStatus, setTeamError]);
 
-  // =========================================================================
-  // 設定バックアップ開始処理
-  // =========================================================================
-  const startSettingBackup = useCallback(async () => {
-    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/setting_backup/`;
-    const headers: Record<string, string> = {
-      'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
-    };
-
-    setIsSettingBackupRunning(true); // バックアップ実行中フラグをON
-
-    try {
+      // APIへのPOSTリクエストを実行
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: headers,
+        // 日付範囲が必要な場合のみJSONボディを送信
+        body: isDateRanged ? JSON.stringify(bodyData) : undefined,
       });
+      // レスポンスをJSONとしてパース
       const data = await response.json();
 
-      // タスク開始成功時の処理
-      if (data.taskId) {
-        const taskId = data.taskId; 
-        monitorSettingTaskStatus(taskId); // タスク監視関数を呼び出し
-      } else if (data.status === 'success' && data.task_id) {
-          const taskId = data.task_id;
-          monitorSettingTaskStatus(taskId);
+      // APIレスポンスからタスクIDを取得できた場合
+      if (data.taskId || (data.status === 'success' && data.task_id)) {
+        const taskId = data.taskId || data.task_id;
+        // 対応する監視フックを呼び出し、ポーリングを開始
+        monitorHooks[taskKey](taskId);
       } else {
-        setIsSettingBackupRunning(false);
-        const message = data.message || "設定データバックアップの開始に失敗しました。";
-        setSettingError(message);
+        // タスクIDが返されなかった場合（タスク開始失敗）
+        isRunningSetter(false);
+        const message = data.message || `${processName}の開始に失敗しました。`;
+        setError(message);
         alert(message);
       }
     } catch (err) {
-      setIsSettingBackupRunning(false);
+      // ネットワークエラーまたはFetch処理自体のエラー
+      isRunningSetter(false);
       console.error('Error:', err);
-      setSettingError("設定データバックアップの開始中にネットワークエラーが発生しました。");
-      alert("設定データバックアップの開始に失敗しました。");
+      setError(`${processName}の開始中にネットワークエラーが発生しました。`);
+      alert(`${processName}の開始に失敗しました。`);
     }
-  }, [monitorSettingTaskStatus, setSettingError]);
+  }, [monitorHooks, startDay, endDay]); // monitorHooks, startDay, endDayに依存
 
-  // =========================================================================
-  // タスク履歴バックアップ開始処理
-  // =========================================================================
-  const startAsyncTaskBackup = useCallback(async () => {
-    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/AsyncTask_backup/`;
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json', // Content-Type ヘッダーを追加
-      'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
-    };
+  // 各ボタンの onClick ハンドラを startTask に置き換え (具体的なタスク開始関数)
+  // 各関数は startTask にタスク固有の引数を渡すだけ
+  const startKosuBackup = () => startTask('KosuBackup', 'kosu_backup', '工数データバックアップ', true);
+  const startKosuDelet = () => startTask('KosuDelet', 'kosu_delet', '工数データ削除', true);
+  const startDefBackup = () => startTask('DefBackup', 'def_backup', '工数区分定義データバックアップ');
+  const startMemberBackup = () => startTask('MemberBackup', 'member_backup', '人員データバックアップ');
+  const startTeamBackup = () => startTask('TeamBackup', 'team_backup', '班員データバックアップ');
+  const startSettingBackup = () => startTask('SettingBackup', 'setting_backup', '設定データバックアップ');
+  const startAsyncTaskBackup = () => startTask('AsyncTaskBackup', 'AsyncTask_backup', 'タスク履歴データバックアップ', true);
+  const startAsyncTaskDelet = () => startTask('AsyncTaskDelet', 'AsyncTask_delet', 'タスク履歴データ削除', true);
+  const startOperationHistoryBackup = () => startTask('OperationHistoryBackup', 'Operation_history_backup', '操作履歴データバックアップ', true);
+  const startOperationHistoryDelet = () => startTask('OperationHistoryDelet', 'Operation_history_delet', '操作履歴データ削除', true);
 
-    setIsAsyncTaskBackupRunning(true); // バックアップ実行中フラグをON
+  // 実行中ステートの集約: 1つでも true なら全体として実行中
+  const isAnyBackupRunning = Object.values(runningStates).some(state => state);
 
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          start_day: startDay,
-          end_day: endDay,
-        }),
-      });
-      const data = await response.json();
+  // エラー表示用の集約: 1つでも null でないエラーがあれば表示
+  const anyError = Object.values(errorStates).find(error => error !== null);
 
-      // タスク開始成功時の処理
-      if (data.taskId) {
-        const taskId = data.taskId; 
-        monitorAsyncTaskTaskStatus(taskId); // タスク監視関数を呼び出し
-      } else if (data.status === 'success' && data.task_id) {
-          const taskId = data.task_id;
-          monitorAsyncTaskTaskStatus(taskId);
-      } else {
-        setIsAsyncTaskBackupRunning(false);
-        const message = data.message || "タスク履歴データバックアップの開始に失敗しました。";
-        setAsyncTaskError(message);
-        alert(message);
-      }
-    } catch (err) {
-      setIsAsyncTaskBackupRunning(false);
-      console.error('Error:', err);
-      setAsyncTaskError("タスク履歴データバックアップの開始中にネットワークエラーが発生しました。");
-      alert("タスク履歴データバックアップの開始に失敗しました。");
-    }
-  }, [monitorAsyncTaskTaskStatus, setAsyncTaskError, startDay, endDay]);
-
-  // =========================================================================
-  // タスク履歴削除開始処理
-  // =========================================================================
-  const startAsyncTaskDelet = useCallback(async () => {
-    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/AsyncTask_delet/`;
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json', // Content-Type ヘッダーを追加
-      'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
-    };
-
-    setIsAsyncTaskDeletRunning(true); // バックアップ実行中フラグをON
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          start_day: startDay,
-          end_day: endDay,
-        }),
-      });
-      const data = await response.json();
-
-      // タスク開始成功時の処理
-      if (data.taskId) {
-        const taskId = data.taskId; 
-        monitorAsyncTaskDeletTaskStatus(taskId); // タスク監視関数を呼び出し
-      } else if (data.status === 'success' && data.task_id) {
-          const taskId = data.task_id;
-          monitorAsyncTaskDeletTaskStatus(taskId);
-      } else {
-        setIsAsyncTaskDeletRunning(false);
-        const message = data.message || "タスク履歴データ削除に失敗しました。";
-        setAsyncTaskError(message);
-        alert(message);
-      }
-    } catch (err) {
-      setIsAsyncTaskDeletRunning(false);
-      console.error('Error:', err);
-      setAsyncTaskError("タスク履歴データ削除中にネットワークエラーが発生しました。");
-      alert("タスク履歴削除に失敗しました。");
-    }
-  }, [monitorAsyncTaskDeletTaskStatus, setAsyncTaskError, startDay, endDay]);
-
-  // =========================================================================
-  // 操作履歴バックアップ開始処理
-  // =========================================================================
-  const startOperationHistoryBackup = useCallback(async () => {
-    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/Operation_history_backup/`;
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json', // Content-Type ヘッダーを追加
-      'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
-    };
-
-    setIsOperationHistoryBackupRunning(true); // バックアップ実行中フラグをON
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          start_day: startDay,
-          end_day: endDay,
-        }),
-      });
-      const data = await response.json();
-
-      // タスク開始成功時の処理
-      if (data.taskId) {
-        const taskId = data.taskId; 
-        monitorOperationHistoryTaskStatus(taskId); // タスク監視関数を呼び出し
-      } else if (data.status === 'success' && data.task_id) {
-          const taskId = data.task_id;
-          monitorOperationHistoryTaskStatus(taskId);
-      } else {
-        setIsOperationHistoryBackupRunning(false);
-        const message = data.message || "操作履歴データバックアップの開始に失敗しました。";
-        setOperationHistoryError(message);
-        alert(message);
-      }
-    } catch (err) {
-      setIsOperationHistoryBackupRunning(false);
-      console.error('Error:', err);
-      setOperationHistoryError("操作履歴データバックアップの開始中にネットワークエラーが発生しました。");
-      alert("操作履歴データバックアップの開始に失敗しました。");
-    }
-  }, [monitorOperationHistoryTaskStatus, setOperationHistoryError, startDay, endDay]);
-
-  // =========================================================================
-  // 操作履歴削除開始処理
-  // =========================================================================
-  const startOperationHistoryDelet = useCallback(async () => {
-    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/Operation_history_delet/`;
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json', // Content-Type ヘッダーを追加
-      'X-CSRFToken': getCsrfToken() // CSRFトークンを含むヘッダーを設定
-    };
-
-    setIsOperationHistoryDeletRunning(true); // バックアップ実行中フラグをON
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          start_day: startDay,
-          end_day: endDay,
-        }),
-      });
-      const data = await response.json();
-
-      // タスク開始成功時の処理
-      if (data.taskId) {
-        const taskId = data.taskId; 
-        monitorOperationHistoryDeletTaskStatus(taskId); // タスク監視関数を呼び出し
-      } else if (data.status === 'success' && data.task_id) {
-          const taskId = data.task_id;
-          monitorOperationHistoryDeletTaskStatus(taskId);
-      } else {
-        setIsOperationHistoryDeletRunning(false);
-        const message = data.message || "操作履歴データ削除に失敗しました。";
-        setOperationHistoryError(message);
-        alert(message);
-      }
-    } catch (err) {
-      setIsOperationHistoryDeletRunning(false);
-      console.error('Error:', err);
-      setOperationHistoryError("操作履歴データ削除中にネットワークエラーが発生しました。");
-      alert("操作履歴削除に失敗しました。");
-    }
-  }, [monitorOperationHistoryDeletTaskStatus, setOperationHistoryError, startDay, endDay]);
-
-  // ローディング表示の条件に両方のバックアップ状態を追加
-  const isAnyBackupRunning = isKosuBackupRunning || isKosuDeletRunning || isDefBackupRunning || isMemberBackupRunning || isTeamBackupRunning || isSettingBackupRunning || isAsyncTaskBackupRunning || isAsyncTaskDeletRunning || isOperationHistoryBackupRunning;
-
+  // 初期認証チェック中のローディング表示
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -601,13 +286,13 @@ const AdministratorLoading: React.FC = () => {
     <>
       <Loading isLoading={isAnyBackupRunning} /> 
       <div className={styles["admin-loading-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>設定編集</h1>
+        <h1 className={styles["h1-collar"]}>データ管理</h1>
         <nav className={styles["admin-nav"]}>
           <Link to="/manager-menu">管理者MENU</Link>
         </nav>
 
-        {(MemberError || TeamError || KosuError || DefError || SettingError || AsyncTaskError || OperationHistoryError) && !isAnyBackupRunning && ( 
-          <div role="alert" style={{color: 'red', marginTop: '10px'}}>{MemberError || TeamError || KosuError || DefError || SettingError || AsyncTaskError || OperationHistoryError}</div>
+        {anyError && !isAnyBackupRunning && ( 
+          <div role="alert" style={{color: 'red', marginTop: '10px'}}>{anyError}</div>
         )}
         
         <div className={styles["search-bar"]}>
@@ -626,90 +311,108 @@ const AdministratorLoading: React.FC = () => {
             value={endDay}
             onChange={(e) => setEndDay(e.target.value)}
           />
-          <label htmlFor="start-asynchronous1">工数データ：</label>
+
+          <label htmlFor="start-kosu-backup">工数データ：</label>
           <input
-            id="start-asynchronous1"
-            name="start-asynchronous1"
+            id="start-kosu-backup"
+            name="start-kosu-backup"
             type="button"
-            value={isKosuBackupRunning ? "実行中..." : "バックアップ開始"} 
+            // 実行中ステートに応じて表示テキストを変更
+            value={runningStates.KosuBackup ? "実行中..." : "バックアップ開始"} 
+            // 他のタスクが実行中でない場合のみクリック可能
             onClick={!isAnyBackupRunning ? startKosuBackup : undefined} 
+            // 他のタスクが実行中の場合はボタンを無効化
             disabled={isAnyBackupRunning} 
           />
           <input
-            id="start-asynchronous1"
-            name="start-asynchronous1"
+            id="start-kosu-delet"
+            name="start-kosu-delet"
             type="button"
-            value={isKosuDeletRunning ? "実行中..." : "削除開始"} 
+            value={runningStates.KosuDelet ? "実行中..." : "削除開始"} 
             onClick={!isAnyBackupRunning ? startKosuDelet : undefined} 
             disabled={isAnyBackupRunning} 
           />
-          <label htmlFor="start-asynchronous2">工数区分定義データ：</label>
           <input
-            id="start-asynchronous2"
-            name="start-asynchronous2"
+            id="start-kosu-load"
+            name="start-kosu-load"
             type="button"
-            value={isDefBackupRunning ? "実行中..." : "バックアップ開始"} 
+            value={runningStates.KosuDelet ? "実行中..." : "ロード開始"} 
+            onClick={!isAnyBackupRunning ? startKosuDelet : undefined} 
+            disabled={isAnyBackupRunning} 
+          />
+
+          <label htmlFor="start-def-backup">工数区分定義データ：</label>
+          <input
+            id="start-def-backup"
+            name="start-def-backup"
+            type="button"
+            value={runningStates.DefBackup ? "実行中..." : "バックアップ開始"} 
             onClick={!isAnyBackupRunning ? startDefBackup : undefined} 
             disabled={isAnyBackupRunning} 
           />
-          <label htmlFor="start-asynchronous3">人員データ：</label>
+
+          <label htmlFor="start-member-backup">人員データ：</label>
           <input
-            id="start-asynchronous3"
-            name="start-asynchronous3"
+            id="start-member-backup"
+            name="start-member-backup"
             type="button"
-            value={isMemberBackupRunning ? "実行中..." : "バックアップ開始"} 
+            value={runningStates.MemberBackup ? "実行中..." : "バックアップ開始"} 
             onClick={!isAnyBackupRunning ? startMemberBackup : undefined} 
             disabled={isAnyBackupRunning} 
           />
-          <label htmlFor="start-asynchronous4">班員データ：</label>
+
+          <label htmlFor="start-team-backup">班員データ：</label>
           <input
-            id="start-asynchronous4"
-            name="start-asynchronous4"
+            id="start-team-backup"
+            name="start-team-backup"
             type="button"
-            value={isTeamBackupRunning ? "実行中..." : "バックアップ開始"} 
+            value={runningStates.TeamBackup ? "実行中..." : "バックアップ開始"} 
             onClick={!isAnyBackupRunning ? startTeamBackup : undefined} 
             disabled={isAnyBackupRunning} 
           />
-          <label htmlFor="start-asynchronous5">設定データ：</label>
+
+          <label htmlFor="start-setting-backup">設定データ：</label>
           <input
-            id="start-asynchronous5"
-            name="start-asynchronous5"
+            id="start-setting-backup"
+            name="start-setting-backup"
             type="button"
-            value={isSettingBackupRunning ? "実行中..." : "バックアップ開始"} 
+            value={runningStates.SettingBackup ? "実行中..." : "バックアップ開始"} 
             onClick={!isAnyBackupRunning ? startSettingBackup : undefined} 
             disabled={isAnyBackupRunning} 
           />
-          <label htmlFor="start-asynchronous6">タスク履歴データ：</label>
+
+          <label htmlFor="start-async-backup">タスク履歴データ：</label>
           <input
-            id="start-asynchronous6"
-            name="start-asynchronous6"
+            id="start-async-backup"
+            name="start-async-backup"
             type="button"
-            value={isAsyncTaskBackupRunning ? "実行中..." : "バックアップ開始"} 
+            value={runningStates.AsyncTaskBackup ? "実行中..." : "バックアップ開始"} 
             onClick={!isAnyBackupRunning ? startAsyncTaskBackup : undefined} 
             disabled={isAnyBackupRunning} 
           />
           <input
-            id="start-asynchronous6"
-            name="start-asynchronous6"
+            id="start-async-delet"
+            name="start-async-delet"
             type="button"
-            value={isAsyncTaskDeletRunning ? "実行中..." : "削除開始"} 
+            value={runningStates.AsyncTaskDelet ? "実行中..." : "削除開始"} 
             onClick={!isAnyBackupRunning ? startAsyncTaskDelet : undefined} 
             disabled={isAnyBackupRunning} 
           />
-          <label htmlFor="start-asynchronous7">操作履歴データ：</label>
+
+          <label htmlFor="start-operation-backup">操作履歴データ：</label>
           <input
-            id="start-asynchronous7"
-            name="start-asynchronous7"
+            id="start-operation-backup"
+            name="start-operation-backup"
             type="button"
-            value={isOperationHistoryBackupRunning ? "実行中..." : "バックアップ開始"} 
+            value={runningStates.OperationHistoryBackup ? "実行中..." : "バックアップ開始"} 
             onClick={!isAnyBackupRunning ? startOperationHistoryBackup : undefined} 
             disabled={isAnyBackupRunning} 
           />
           <input
-            id="start-asynchronous7"
-            name="start-asynchronous7"
+            id="start-operation-delet"
+            name="start-operation-delet"
             type="button"
-            value={isOperationHistoryDeletRunning ? "実行中..." : "削除開始"} 
+            value={runningStates.OperationHistoryDelet ? "実行中..." : "削除開始"} 
             onClick={!isAnyBackupRunning ? startOperationHistoryDelet : undefined} 
             disabled={isAnyBackupRunning} 
           />
