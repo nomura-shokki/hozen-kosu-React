@@ -127,8 +127,13 @@ const AdministratorLoading: React.FC = () => {
     DefBackup: false,
     DefLoad: false,
     MemberBackup: false,
+    MemberLoad: false,
     TeamBackup: false,
+    TeamLoad: false,
+    InquiryBackup: false,
+    InquiryLoad: false,
     SettingBackup: false,
+    SettingLoad: false,
     AsyncTaskBackup: false, 
     AsyncTaskDelet: false,
     OperationHistoryBackup: false, 
@@ -139,7 +144,7 @@ const AdministratorLoading: React.FC = () => {
 
   // 各タスクのエラー状態を一元管理するオブジェクト
   const initialErrorStates = {
-    KosuError: null, DefError: null, MemberError: null, TeamError: null,
+    KosuError: null, DefError: null, MemberError: null, TeamError: null, InquiryError: null,
     SettingError: null, AsyncTaskError: null, OperationHistoryError: null,
   };
   // 各タスクのエラーステート
@@ -152,6 +157,10 @@ const AdministratorLoading: React.FC = () => {
   const navigate = useNavigate();
   const [kosuFile, setKosuFile] = useState<File | null>(null);
   const [defFile, setDefFile] = useState<File | null>(null);
+  const [memberFile, setMemberFile] = useState<File | null>(null);
+  const [teamFile, setTeamFile] = useState<File | null>(null);
+  const [inquiryFile, setInquiryFile] = useState<File | null>(null);
+  const [settingFile, setSettingFile] = useState<File | null>(null);
 
   // マウント時処理
   useEffect(() => {
@@ -190,10 +199,15 @@ const AdministratorLoading: React.FC = () => {
     KosuDelet: useTaskMonitor(createSetter('KosuDelet'), createErrorSetter('KosuError'), 'delete'),
     KosuLoad: useTaskMonitor(createSetter('KosuLoad'), createErrorSetter('KosuError'), 'load'), 
     DefBackup: useTaskMonitor(createSetter('DefBackup'), createErrorSetter('DefError'), 'backup'),
-    DefLoad: useTaskMonitor(createSetter('DefLoad'), createErrorSetter('DefError'), 'load'), // ★追加
+    DefLoad: useTaskMonitor(createSetter('DefLoad'), createErrorSetter('DefError'), 'load'),
     MemberBackup: useTaskMonitor(createSetter('MemberBackup'), createErrorSetter('MemberError'), 'backup'),
+    MemberLoad: useTaskMonitor(createSetter('MemberLoad'), createErrorSetter('MemberError'), 'load'),
     TeamBackup: useTaskMonitor(createSetter('TeamBackup'), createErrorSetter('TeamError'), 'backup'),
+    TeamLoad: useTaskMonitor(createSetter('TeamLoad'), createErrorSetter('TeamError'), 'load'),
+    InquiryBackup: useTaskMonitor(createSetter('InquiryBackup'), createErrorSetter('InquiryError'), 'backup'),
+    InquiryLoad: useTaskMonitor(createSetter('InquiryLoad'), createErrorSetter('InquiryError'), 'load'),
     SettingBackup: useTaskMonitor(createSetter('SettingBackup'), createErrorSetter('SettingError'), 'backup'),
+    SettingLoad: useTaskMonitor(createSetter('SettingLoad'), createErrorSetter('SettingError'), 'load'),
     AsyncTaskBackup: useTaskMonitor(createSetter('AsyncTaskBackup'), createErrorSetter('AsyncTaskError'), 'backup'),
     AsyncTaskDelet: useTaskMonitor(createSetter('AsyncTaskDelet'), createErrorSetter('AsyncTaskError'), 'delete'),
     OperationHistoryBackup: useTaskMonitor(createSetter('OperationHistoryBackup'), createErrorSetter('OperationHistoryError'), 'backup'),
@@ -263,7 +277,7 @@ const AdministratorLoading: React.FC = () => {
 
   // 汎用ファイルロード開始処理関数
   const startFileLoad = useCallback(async (
-    taskKey: 'KosuLoad' | 'DefLoad',  // 監視フックとステートキーを特定するためのキー
+    taskKey: 'KosuLoad' | 'DefLoad' | 'MemberLoad' | 'TeamLoad' | 'InquiryLoad' | 'SettingLoad',  // 監視フックとステートキーを特定するためのキー
     endpointPath: string,  // APIエンドポイントのパス (例: 'kosu_load')
     processName: string,  // 表示用プロセス名 (例: '工数データロード')
     fileToLoad: File | null // ロード対象のファイルステート
@@ -331,6 +345,25 @@ const AdministratorLoading: React.FC = () => {
     return startFileLoad('DefLoad', 'def_load', '工数区分定義データロード', defFile);
   }, [defFile, startFileLoad]);
 
+  // Memberデータロード開始処理関数
+  const startMemberload = useCallback(() => {
+    return startFileLoad('MemberLoad', 'member_load', '人員データロード', memberFile);
+  }, [memberFile, startFileLoad]);
+
+  // Teamデータロード開始処理関数
+  const startTeamload = useCallback(() => {
+    return startFileLoad('TeamLoad', 'team_load', '班員データロード', teamFile);
+  }, [teamFile, startFileLoad]);
+
+  // Inquiryデータロード開始処理関数
+  const startInquiryload = useCallback(() => {
+    return startFileLoad('InquiryLoad', 'inquiry_load', '問い合わせデータロード', inquiryFile);
+  }, [inquiryFile, startFileLoad]);
+
+  // Settingデータロード開始処理関数
+  const startSettingload = useCallback(() => {
+    return startFileLoad('SettingLoad', 'setting_load', '設定データロード', settingFile);
+  }, [settingFile, startFileLoad]);
 
   // 各ボタンの onClick ハンドラを startTask に置き換え (具体的なタスク開始関数)
   // 各関数は startTask にタスク固有の引数を渡すだけ
@@ -339,6 +372,7 @@ const AdministratorLoading: React.FC = () => {
   const startDefBackup = () => startTask('DefBackup', 'def_backup', '工数区分定義データバックアップ');
   const startMemberBackup = () => startTask('MemberBackup', 'member_backup', '人員データバックアップ');
   const startTeamBackup = () => startTask('TeamBackup', 'team_backup', '班員データバックアップ');
+  const startInquiryBackup = () => startTask('InquiryBackup', 'inquiry_backup', '問い合わせデータバックアップ');
   const startSettingBackup = () => startTask('SettingBackup', 'setting_backup', '設定データバックアップ');
   const startAsyncTaskBackup = () => startTask('AsyncTaskBackup', 'AsyncTask_backup', 'タスク履歴データバックアップ', true);
   const startAsyncTaskDelet = () => startTask('AsyncTaskDelet', 'AsyncTask_delet', 'タスク履歴データ削除', true);
@@ -368,34 +402,34 @@ const AdministratorLoading: React.FC = () => {
         {anyError && !isAnyBackupRunning && ( 
           <div role="alert" style={{color: 'red', marginTop: '10px'}}>{anyError}</div>
         )}
-        
+
         <div className={styles["search-bar"]}>
-          <input
-            type="date"
-            id="start_day"
-            name="start_day"
-            value={startDay}
-            onChange={(e) => setStartDay(e.target.value)}
-          />
-          ～
-          <input
-            type="date"
-            id="end_day"
-            name="end_day"
-            value={endDay}
-            onChange={(e) => setEndDay(e.target.value)}
-          />
+          <label htmlFor="start_day">期間指定：</label>
+          <div className={styles["time-row"]}>
+            <input
+              type="date"
+              id="start_day"
+              name="start_day"
+              value={startDay}
+              onChange={(e) => setStartDay(e.target.value)}
+            />
+            ～
+            <input
+              type="date"
+              id="end_day"
+              name="end_day"
+              value={endDay}
+              onChange={(e) => setEndDay(e.target.value)}
+            />
+          </div>
 
           <label htmlFor="start-kosu-backup">工数データ：</label>
           <input
             id="start-kosu-backup"
             name="start-kosu-backup"
             type="button"
-            // 実行中ステートに応じて表示テキストを変更
             value={runningStates.KosuBackup ? "実行中..." : "バックアップ開始"} 
-            // 他のタスクが実行中でない場合のみクリック可能
             onClick={!isAnyBackupRunning ? startKosuBackup : undefined} 
-            // 他のタスクが実行中の場合はボタンを無効化
             disabled={isAnyBackupRunning} 
           />
           <input
@@ -458,6 +492,22 @@ const AdministratorLoading: React.FC = () => {
             onClick={!isAnyBackupRunning ? startMemberBackup : undefined} 
             disabled={isAnyBackupRunning} 
           />
+          <input
+            id="member-file-upload"
+            name="member-file-upload"
+            type="file"
+            accept=".csv, .xlsx, .xls"
+            onChange={(e) => setMemberFile(e.target.files ? e.target.files[0] : null)}
+            disabled={isAnyBackupRunning}
+          />
+          <input
+            id="start-member-load"
+            name="start-member-load"
+            type="button"
+            value={runningStates.MemberLoad ? "実行中..." : "ロード開始"} 
+            onClick={!isAnyBackupRunning ? startMemberload : undefined} 
+            disabled={isAnyBackupRunning || !memberFile}
+          />
 
           <label htmlFor="start-team-backup">班員データ：</label>
           <input
@@ -468,6 +518,48 @@ const AdministratorLoading: React.FC = () => {
             onClick={!isAnyBackupRunning ? startTeamBackup : undefined} 
             disabled={isAnyBackupRunning} 
           />
+          <input
+            id="team-file-upload"
+            name="team-file-upload"
+            type="file"
+            accept=".csv, .xlsx, .xls"
+            onChange={(e) => setTeamFile(e.target.files ? e.target.files[0] : null)}
+            disabled={isAnyBackupRunning}
+          />
+          <input
+            id="start-team-load"
+            name="start-team-load"
+            type="button"
+            value={runningStates.TeamLoad ? "実行中..." : "ロード開始"} 
+            onClick={!isAnyBackupRunning ? startTeamload : undefined} 
+            disabled={isAnyBackupRunning || !teamFile}
+          />
+
+          <label htmlFor="start-inquiry-backup">問い合わせデータ：</label>
+          <input
+            id="start-inquiry-backup"
+            name="start-inquiry-backup"
+            type="button"
+            value={runningStates.InquiryBackup ? "実行中..." : "バックアップ開始"} 
+            onClick={!isAnyBackupRunning ? startInquiryBackup : undefined} 
+            disabled={isAnyBackupRunning} 
+          />
+          <input
+            id="inquiry-file-upload"
+            name="inquiry-file-upload"
+            type="file"
+            accept=".csv, .xlsx, .xls"
+            onChange={(e) => setInquiryFile(e.target.files ? e.target.files[0] : null)}
+            disabled={isAnyBackupRunning}
+          />
+          <input
+            id="start-inquiry-load"
+            name="start-inquiry-load"
+            type="button"
+            value={runningStates.InquiryLoad ? "実行中..." : "ロード開始"} 
+            onClick={!isAnyBackupRunning ? startInquiryload : undefined} 
+            disabled={isAnyBackupRunning || !inquiryFile}
+          />
 
           <label htmlFor="start-setting-backup">設定データ：</label>
           <input
@@ -477,6 +569,22 @@ const AdministratorLoading: React.FC = () => {
             value={runningStates.SettingBackup ? "実行中..." : "バックアップ開始"} 
             onClick={!isAnyBackupRunning ? startSettingBackup : undefined} 
             disabled={isAnyBackupRunning} 
+          />
+          <input
+            id="setting-file-upload"
+            name="setting-file-upload"
+            type="file"
+            accept=".csv, .xlsx, .xls"
+            onChange={(e) => setSettingFile(e.target.files ? e.target.files[0] : null)}
+            disabled={isAnyBackupRunning}
+          />
+          <input
+            id="start-setting-load"
+            name="start-setting-load"
+            type="button"
+            value={runningStates.SettingLoad ? "実行中..." : "ロード開始"} 
+            onClick={!isAnyBackupRunning ? startSettingload : undefined} 
+            disabled={isAnyBackupRunning || !settingFile}
           />
 
           <label htmlFor="start-async-backup">タスク履歴データ：</label>

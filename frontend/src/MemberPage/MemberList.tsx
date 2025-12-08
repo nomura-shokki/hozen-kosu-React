@@ -67,7 +67,7 @@ const MemberList: React.FC = () => {
   // コンポーネントの初回マウント時にデータを取得。また、fetchDataに依存。
   useEffect(() => {
     fetchData();
-  }, [currentPage]);
+  }, [currentPage, fetchData]);
 
   // 検索条件を適用してデータを再取得
   const handleSearch = () => {

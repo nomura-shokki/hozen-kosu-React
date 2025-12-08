@@ -1086,7 +1086,12 @@ class TeamNew(APIView):
     team_filter = team_member.objects.filter(employee_no5=login_no)
     if team_filter.count() > 1:
       return Response({'error': '複数の班員データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
-    team_data = team_filter.first()
+    
+    if team_filter.exists():
+      team_data = team_filter.first()
+    else:
+      team_data = team_member.objects.create(employee_no5=login_no)
+
     # 班員の従業員番号をリストにまとめる
     member_numbers = [
         team_data.member1, team_data.member2, team_data.member3,

@@ -1387,19 +1387,27 @@ class AdministratorUpdate(APIView):
     serializer = AdministratorSerializer(admin_data, data=request.data)
     if serializer.is_valid():
       menu_row_value = int(request.data.get('menu_row'))
-      administrator_employee_no1_value = int(request.data.get('administrator_employee_no1'))
-      administrator_employee_no2_value = int(request.data.get('administrator_employee_no2'))
-      administrator_employee_no3_value = int(request.data.get('administrator_employee_no3'))
+      try:
+        administrator_employee_no1_value = int(request.data.get('administrator_employee_no1'))
+        if not isinstance(administrator_employee_no1_value, int) or administrator_employee_no1_value <= 0:
+          return Response({'error': '問い合わせ担当者従業員番号1は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
+      except (TypeError, ValueError):
+        pass
+      try:
+        administrator_employee_no2_value = int(request.data.get('administrator_employee_no2'))
+        if not isinstance(administrator_employee_no2_value, int) or administrator_employee_no2_value <= 0:
+          return Response({'error': '問い合わせ担当者従業員番号2は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
+      except (TypeError, ValueError):
+        pass
+      try:
+        administrator_employee_no3_value = int(request.data.get('administrator_employee_no3'))
+        if not isinstance(administrator_employee_no3_value, int) or administrator_employee_no3_value <= 0:
+          return Response({'error': '問い合わせ担当者従業員番号3は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
+      except (TypeError, ValueError):
+        pass
+
       if not isinstance(menu_row_value, int) or menu_row_value <= 0:
         return Response({'error': '一覧表示項目数は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
-      if not isinstance(administrator_employee_no1_value, int) or administrator_employee_no1_value <= 0:
-        return Response({'error': '問い合わせ担当者従業員番号1は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
-      if not isinstance(administrator_employee_no2_value, int) or administrator_employee_no2_value <= 0:
-        return Response({'error': '問い合わせ担当者従業員番号2は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
-      if not isinstance(administrator_employee_no3_value, int) or administrator_employee_no3_value <= 0:
-        return Response({'error': '問い合わせ担当者従業員番号3は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
-      # 従業員番号存在確認
-
 
       serializer.save()
       return Response(serializer.data, status=status.HTTP_200_OK)

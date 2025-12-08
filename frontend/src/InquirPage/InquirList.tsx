@@ -251,8 +251,8 @@ const TeamList: React.FC = () => {
                     <td>{item.id}</td>
                     <td><Link to={`/inquir-detail/${item.id}`} className={styles["a-collar"]}>{item.name}</Link></td>
                     <td>{item.content_choice}</td>
-                    <td>{item.inquiry.length > 3 ? item.inquiry.substring(0, 3) + "..." : item.inquiry}</td>
-                    <td>{item.answer.length > 3 ? item.answer.substring(0, 3) + "..." : item.answer}</td>
+                    <td>{(item.inquiry || "").length > 3 ? item.inquiry.substring(0, 3) + "..." : item.inquiry}</td>
+                    <td>{(item.answer || "").length > 3 ? item.answer.substring(0, 3) + "..." : item.answer}</td>
                   </tr>
                 ))}
               </tbody>

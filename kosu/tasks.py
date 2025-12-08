@@ -195,44 +195,44 @@ def load_kosu_file(file_path):
 
     # 4. データ読み込みとDB保存
     for i in range(2, ws.max_row + 1):
-        employee_no = ws.cell(row=i, column=1).value
-        work_day2 = ws.cell(row=i, column=4).value
+      employee_no = ws.cell(row=i, column=1).value
+      work_day2 = ws.cell(row=i, column=4).value
 
-        try:
-          member_instance = member.objects.get(employee_no=employee_no)
-        except ObjectDoesNotExist:
-          print(f"警告: 従業員番号 {employee_no} (行 {i}) のメンバーが見つかりませんでした。スキップします。")
-          continue # 次のループへ進む
+      try:
+        member_instance = member.objects.get(employee_no=employee_no)
+      except ObjectDoesNotExist:
+        print(f"警告: 従業員番号 {employee_no} (行 {i}) のメンバーが見つかりませんでした。スキップします。")
+        continue # 次のループへ進む
 
-        # もし既に同一データが存在するなら削除
-        existing_data = Business_Time_graph.objects.filter(
-          employee_no3=employee_no, work_day2=work_day2
-          )
-        if existing_data.exists():
-          existing_data.delete()
+      # もし既に同一データが存在するなら削除
+      existing_data = Business_Time_graph.objects.filter(
+        employee_no3=employee_no, work_day2=work_day2
+        )
+      if existing_data.exists():
+        existing_data.delete()
 
-        # 新データをインスタンスとして作成してDBに保存
-        try:
-          Business_Time_graph.objects.create(
-            employee_no3=employee_no,
-            name=member_instance, 
-            def_ver2=ws.cell(row=i, column=3).value,
-            work_day2=work_day2,
-            tyoku2=ws.cell(row=i, column=5).value,
-            time_work=ws.cell(row=i, column=6).value,
-            detail_work=ws.cell(row=i, column=7).value,
-            over_time=ws.cell(row=i, column=8).value,
-            breaktime=ws.cell(row=i, column=9).value,
-            breaktime_over1=ws.cell(row=i, column=10).value,
-            breaktime_over2=ws.cell(row=i, column=11).value,
-            breaktime_over3=ws.cell(row=i, column=12).value,
-            work_time=ws.cell(row=i, column=13).value,
-            judgement=ws.cell(row=i, column=14).value,
-            break_change=ws.cell(row=i, column=15).value,
-          )
-        except IntegrityError as create_err:
-          print(f"エラー: 行 {i} のデータ作成中に整合性エラーが発生しました: {create_err}。スキップします。")
-          continue # 次のループへ進む
+      # 新データをインスタンスとして作成してDBに保存
+      try:
+        Business_Time_graph.objects.create(
+          employee_no3=employee_no,
+          name=member_instance, 
+          def_ver2=ws.cell(row=i, column=3).value,
+          work_day2=work_day2,
+          tyoku2=ws.cell(row=i, column=5).value,
+          time_work=ws.cell(row=i, column=6).value,
+          detail_work=ws.cell(row=i, column=7).value,
+          over_time=ws.cell(row=i, column=8).value,
+          breaktime=ws.cell(row=i, column=9).value,
+          breaktime_over1=ws.cell(row=i, column=10).value,
+          breaktime_over2=ws.cell(row=i, column=11).value,
+          breaktime_over3=ws.cell(row=i, column=12).value,
+          work_time=ws.cell(row=i, column=13).value,
+          judgement=ws.cell(row=i, column=14).value,
+          break_change=ws.cell(row=i, column=15).value,
+        )
+      except IntegrityError as create_err:
+        print(f"エラー: 行 {i} のデータ作成中に整合性エラーが発生しました: {create_err}。スキップします。")
+        continue # 次のループへ進む
 
     # 5. 処理が成功したら一時ファイルを削除
     os.remove(temp_file_path)
@@ -318,22 +318,16 @@ def generate_member_backup():
 
 
 # 人員データロード非同期処理
-def load_member_file(request, file_obj):
+def load_member_file(file_path):
   try:
-    # 一時ファイルを作成
-    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
-      # ファイルを書き込む
-      for chunk in file_obj.chunks():
-          temp_file.write(chunk)
+    # 1. 渡されたファイルパスを一時ファイルパスとして保持
+    temp_file_path = file_path
 
-      # ファイル名保存
-      temp_file_path = temp_file.name
-
-    # ファイルを開く
+    # 2. ファイルを開く
     wb = openpyxl.load_workbook(temp_file_path)
     ws = wb.worksheets[0]
 
-    # ヘッダー定義
+    # 3. ヘッダー定義とチェック
     expected_headers = [
       '従業員番号', '氏名', 'ショップ', '権限', '管理者', 
       '1直昼休憩時間', '1直残業休憩時間1', '1直残業休憩時間2', '1直残業休憩時間3', 
@@ -349,20 +343,24 @@ def load_member_file(request, file_obj):
 
     # ファイル内ヘッダー取得
     actual_headers = [ws.cell(1, col).value for col in range(1, len(expected_headers) + 1)]
-    # ヘッダーのデータに相違がある場合、一時ファイル削除しエラーを返す
+    
+    # ヘッダーが一致しない場合、一時ファイルを削除しエラーを返す
     if actual_headers != expected_headers:
       os.remove(temp_file_path)
-      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None
+      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None 
 
-    # データ読み込み
+    # 4. データ読み込みとDB保存
     for i in range(2, ws.max_row + 1):
-      # 読み込み予定データと同一の従業員番号のデータが存在するか確認
-      member_data_filter = member.objects.filter(employee_no = ws.cell(row=i, column=1).value)
-      # 上書きチェックONの場合の処理
-      if ('overwrite_check' in request.POST):
-        # 新データをインスタンスとして作成してDBに保存
+      employee_no_value = ws.cell(row=i, column=1).value
+
+      if member.objects.filter(employee_no=employee_no_value).exists():
+        print(f"従業員番号 {employee_no_value} は既に存在するためスキップしました。")
+        continue
+
+      # 存在しない場合のみ新規作成
+      try:
         member.objects.create(
-          employee_no=ws.cell(row=i, column=1).value,
+          employee_no=employee_no_value,
           name=ws.cell(row=i, column=2).value,
           shop=ws.cell(row=i, column=3).value,
           authority = ws.cell(row=i, column=4).value,
@@ -403,64 +401,18 @@ def load_member_file(request, file_obj):
           pop_up_id5 = ws.cell(row=i, column=39).value,
           break_check = ws.cell(row=i, column=40).value,
           def_prediction = ws.cell(row=i, column=41).value
-          )
-        
-      # 上書きチェックOFFの場合の処理
-      else:
-        # 読み込み予定データと同一の従業員番号のデータが存在する場合の処理
-        if not member_data_filter.exists():
-          # 新データをインスタンスとして作成してDBに保存
-          member.objects.create(
-            employee_no=ws.cell(row=i, column=1).value,
-            name=ws.cell(row=i, column=2).value,
-            shop=ws.cell(row=i, column=3).value,
-            authority = ws.cell(row=i, column=4).value,
-            administrator = ws.cell(row=i, column=5).value,
-            break_time1 = ws.cell(row=i, column=6).value,
-            break_time1_over1 = ws.cell(row=i, column=7).value,
-            break_time1_over2 = ws.cell(row=i, column=8).value,
-            break_time1_over3 = ws.cell(row=i, column=9).value,
-            break_time2 = ws.cell(row=i, column=10).value,
-            break_time2_over1 = ws.cell(row=i, column=11).value,
-            break_time2_over2 = ws.cell(row=i, column=12).value,
-            break_time2_over3 = ws.cell(row=i, column=13).value,
-            break_time3 = ws.cell(row=i, column=14).value,
-            break_time3_over1 = ws.cell(row=i, column=15).value,
-            break_time3_over2 = ws.cell(row=i, column=16).value,
-            break_time3_over3 = ws.cell(row=i, column=17).value,
-            break_time4 = ws.cell(row=i, column=18).value,
-            break_time4_over1 = ws.cell(row=i, column=19).value,
-            break_time4_over2 = ws.cell(row=i, column=20).value,
-            break_time4_over3 = ws.cell(row=i, column=21).value,
-            break_time5 = ws.cell(row=i, column=22).value,
-            break_time5_over1 = ws.cell(row=i, column=23).value,
-            break_time5_over2 = ws.cell(row=i, column=24).value,
-            break_time5_over3 = ws.cell(row=i, column=25).value,
-            break_time6 = ws.cell(row=i, column=26).value,
-            break_time6_over1 = ws.cell(row=i, column=27).value,
-            break_time6_over2 = ws.cell(row=i, column=28).value,
-            break_time6_over3 = ws.cell(row=i, column=29).value,
-            pop_up1 = ws.cell(row=i, column=30).value,
-            pop_up_id1 = ws.cell(row=i, column=31).value,
-            pop_up2 = ws.cell(row=i, column=32).value,
-            pop_up_id2 = ws.cell(row=i, column=33).value,
-            pop_up3 = ws.cell(row=i, column=34).value,
-            pop_up_id3 = ws.cell(row=i, column=35).value,
-            pop_up4 = ws.cell(row=i, column=36).value,
-            pop_up_id4 = ws.cell(row=i, column=37).value,
-            pop_up5 = ws.cell(row=i, column=38).value,
-            pop_up_id5 = ws.cell(row=i, column=39).value,
-            break_check = ws.cell(row=i, column=40).value,
-            def_prediction = ws.cell(row=i, column=41).value
-            )
+        )
+      except IntegrityError as create_e:
+        print(f"従業員番号 {employee_no_value} の書き込み中にIntegrityErrorが発生しました: {create_e}")
+        continue
 
-    # 一時ファイルを削除
+    # 5. 処理が成功したら一時ファイルを削除
     os.remove(temp_file_path)
     return {'status': 'success'}, None
 
   except Exception as e:
-    # ロード処理ミスした際は一時ファイルがあれば削除しエラーを返す
-    if 'temp_file_path' in locals():
+    # ロード処理でエラーが発生した際は一時ファイルがあれば削除しエラーを返す
+    if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
       os.remove(temp_file_path)
     return {'status': 'error', 'message': str(e)}, None
 
@@ -531,18 +483,12 @@ def generate_team_backup():
 
 
 # 班員データロード非同期処理
-def load_team_file(file_obj):
+def load_team_file(file_path):
   try:
-    # 一時ファイルを作成
-    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
-      # ファイルを書き込む
-      for chunk in file_obj.chunks():
-          temp_file.write(chunk)
+    # 1. 渡されたファイルパスを一時ファイルパスとして保持
+    temp_file_path = file_path
 
-      # ファイル名保存
-      temp_file_path = temp_file.name
-
-    # ファイルを開く
+    # 2. ファイルを開く
     wb = openpyxl.load_workbook(temp_file_path)
     ws = wb.worksheets[0]
 
@@ -556,47 +502,52 @@ def load_team_file(file_obj):
 
     # ファイル内ヘッダー取得
     actual_headers = [ws.cell(1, col).value for col in range(1, len(expected_headers) + 1)]
-    # ヘッダーのデータに相違がある場合、一時ファイル削除しエラーを返す
+    
+    # ヘッダーが一致しない場合、一時ファイルを削除しエラーを返す
     if actual_headers != expected_headers:
       os.remove(temp_file_path)
-      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None
+      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None 
 
-    # データ読み込み
+    # 4. データ読み込みとDB保存
     for i in range(2, ws.max_row + 1):
-      # 読み込み予定データと同一の従業員番号のデータが存在するか確認
-      team_data_filter = team_member.objects.filter(employee_no5=ws.cell(row=i, column=1).value)
-      # 同一従業員番号のデータがあった場合データ削除
-      if team_data_filter.exists():
-        team_data_filter.delete()
+      employee_no_value = ws.cell(row=i, column=1).value
 
-      # 新データをインスタンスとして作成してDBに保存
-      team_member.objects.create(
-        employee_no5=ws.cell(row=i, column=1).value,
-        member1=ws.cell(row=i, column=2).value,
-        member2=ws.cell(row=i, column=3).value,
-        member3=ws.cell(row=i, column=4).value,
-        member4=ws.cell(row=i, column=5).value,
-        member5=ws.cell(row=i, column=6).value,
-        member6=ws.cell(row=i, column=7).value,
-        member7=ws.cell(row=i, column=8).value,
-        member8=ws.cell(row=i, column=9).value,
-        member9=ws.cell(row=i, column=10).value,
-        member10=ws.cell(row=i, column=11).value,
-        member11=ws.cell(row=i, column=12).value,
-        member12=ws.cell(row=i, column=13).value,
-        member13=ws.cell(row=i, column=14).value,
-        member14=ws.cell(row=i, column=15).value,
-        member15=ws.cell(row=i, column=16).value,
-        follow=ws.cell(row=i, column=17).value,
+      if team_member.objects.filter(employee_no5=employee_no_value).exists():
+        print(f"従業員番号 {employee_no_value} は既に存在するためスキップしました。")
+        continue
+
+      # 存在しない場合のみ新規作成
+      try:
+        team_member.objects.create(
+          employee_no5=ws.cell(row=i, column=1).value,
+          member1=ws.cell(row=i, column=2).value,
+          member2=ws.cell(row=i, column=3).value,
+          member3=ws.cell(row=i, column=4).value,
+          member4=ws.cell(row=i, column=5).value,
+          member5=ws.cell(row=i, column=6).value,
+          member6=ws.cell(row=i, column=7).value,
+          member7=ws.cell(row=i, column=8).value,
+          member8=ws.cell(row=i, column=9).value,
+          member9=ws.cell(row=i, column=10).value,
+          member10=ws.cell(row=i, column=11).value,
+          member11=ws.cell(row=i, column=12).value,
+          member12=ws.cell(row=i, column=13).value,
+          member13=ws.cell(row=i, column=14).value,
+          member14=ws.cell(row=i, column=15).value,
+          member15=ws.cell(row=i, column=16).value,
+          follow=ws.cell(row=i, column=17).value,
         )
+      except IntegrityError as create_e:
+        print(f"従業員番号 {employee_no_value} の書き込み中にIntegrityErrorが発生しました: {create_e}")
+        continue
 
-    # 一時ファイルを削除
+    # 5. 処理が成功したら一時ファイルを削除
     os.remove(temp_file_path)
     return {'status': 'success'}, None
 
   except Exception as e:
-    # ロード処理ミスした際は一時ファイルがあれば削除しエラーを返す
-    if 'temp_file_path' in locals():
+    # ロード処理でエラーが発生した際は一時ファイルがあれば削除しエラーを返す
+    if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
       os.remove(temp_file_path)
     return {'status': 'error', 'message': str(e)}, None
 
@@ -770,18 +721,12 @@ def generate_inquiry_backup():
 
 
 # 問い合わせデータロード非同期処理
-def load_inquiry_file(file_obj):
+def load_inquiry_file(file_path):
   try:
-    # 一時ファイルを作成
-    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
-      # ファイルを書き込む
-      for chunk in file_obj.chunks():
-          temp_file.write(chunk)
+    # 1. 渡されたファイルパスを一時ファイルパスとして保持
+    temp_file_path = file_path
 
-      # ファイル名保存
-      temp_file_path = temp_file.name
-
-    # ファイルを開く
+    # 2. ファイルを開く
     wb = openpyxl.load_workbook(temp_file_path)
     ws = wb.worksheets[0]
 
@@ -792,32 +737,38 @@ def load_inquiry_file(file_obj):
 
     # ファイル内ヘッダー取得
     actual_headers = [ws.cell(1, col).value for col in range(1, len(expected_headers) + 1)]
-    # ヘッダーのデータに相違がある場合、一時ファイル削除しエラーを返す
+    
+    # ヘッダーが一致しない場合、一時ファイルを削除しエラーを返す
     if actual_headers != expected_headers:
       os.remove(temp_file_path)
-      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None
+      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None 
 
-    # データ読み込み
+    # 4. データ読み込みとDB保存
     for i in range(2, ws.max_row + 1):
-      # 従業員番号取得
-      employee_no = ws.cell(row=i, column=1).value
+      # 存在しない場合のみ新規作成
+      try:
+        # 従業員番号取得
+        employee_no = ws.cell(row=i, column=1).value
 
-      # 新データをインスタンスとして作成してDBに保存
-      inquiry_data.objects.create(
-        employee_no2=employee_no,
-        name=member.objects.get(employee_no=employee_no),
-        content_choice=ws.cell(row=i, column=3).value,
-        inquiry=ws.cell(row=i, column=4).value,
-        answer=ws.cell(row=i, column=5).value,
-        )
+        # 新データをインスタンスとして作成してDBに保存
+        inquiry_data.objects.create(
+          employee_no2=employee_no,
+          name=member.objects.get(employee_no=employee_no),
+          content_choice=ws.cell(row=i, column=3).value,
+          inquiry=ws.cell(row=i, column=4).value,
+          answer=ws.cell(row=i, column=5).value,
+          )
+      except IntegrityError as create_e:
+        print(f"書き込み中にIntegrityErrorが発生しました: {create_e}")
+        continue
 
-    # 一時ファイルを削除
+    # 5. 処理が成功したら一時ファイルを削除
     os.remove(temp_file_path)
     return {'status': 'success'}, None
 
   except Exception as e:
-    # ロード処理ミスした際は一時ファイルがあれば削除しエラーを返す
-    if 'temp_file_path' in locals():
+    # ロード処理でエラーが発生した際は一時ファイルがあれば削除しエラーを返す
+    if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
       os.remove(temp_file_path)
     return {'status': 'error', 'message': str(e)}, None
 

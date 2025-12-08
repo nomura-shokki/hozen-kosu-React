@@ -63,4 +63,19 @@
   box-sizing: border-box;
 }
 
+.time-row {
+  display: flex; 
+  justify-content: space-between;
+  align-items: center; 
+  width: 100%; 
+  align-self: center; 
+  max-width: 400px;
+  margin: 0 auto;
+}
 
+.time-row input {
+  width: 40%; 
+  max-width: none; 
+  margin: 0;
+  padding: 5px;
+}
