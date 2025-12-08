@@ -26,12 +26,12 @@
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
-.inquir-nav a {
+.admin-nav a {
   color: #656565;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
-.inquir-nav a:hover {
+.admin-nav a:hover {
   color: #3a3a3a;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
@@ -42,14 +42,13 @@
   justify-content: center;
   align-items: center;
   gap: 15px;
-  margin: 20px 0;
+  margin: 5px 0;
   min-width: 250px;
   flex-wrap: wrap;
 }
 
 .search-bar label {
   align-self: flex-start;
-  margin-left: 20px;
 }
 
 .search-bar input {
@@ -63,19 +62,231 @@
   box-sizing: border-box;
 }
 
-.time-row {
+.input-row {
   display: flex; 
   justify-content: space-between;
   align-items: center; 
   width: 100%; 
   align-self: center; 
-  max-width: 400px;
   margin: 0 auto;
 }
 
-.time-row input {
-  width: 40%; 
+.input-row input {
   max-width: none; 
-  margin: 0;
-  padding: 5px;
+  margin: 0 10px 15px 10px;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
 }
+
+.input-column {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: 0 10px 15px 10px; 
+}
+
+.input-column input:not(.hidden-file-input) {
+  width: 100%;
+  margin: 0;
+  max-width: none;
+}
+
+.input-column input {
+  width: 100%;
+  margin: 0;
+  max-width: none;
+}
+
+.hidden-file-input {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.custom-file-label {
+  display: inline-block;
+  width: 100%;
+  background-color: #f3f3f3;
+  color: #333;
+  text-shadow: none;
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin: 0 0 5px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; 
+}
+
+.custom-file-label:hover {
+  background-color: #e0e0e0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+}
+
+.custom-file-label[disabled],
+.custom-file-label[style*="not-allowed"] {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+}
+
+.kosu-button {
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+  background-color: #0ff;
+  color: #fff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: clamp(1rem, 1rem + 3vw, 2rem);
+  text-align: center;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 15px;
+  text-decoration: none;
+}
+
+.kosu-button:hover {
+  background-color: #0af;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-decoration: underline;
+  text-decoration: none;
+}
+
+.def-button {
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+  background-color: #0f0;
+  color: #fff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: clamp(1rem, 1rem + 3vw, 2rem);
+  text-align: center;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 15px;
+  text-decoration: none;
+}
+
+.def-button:hover {
+  background-color: #32cd32;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-decoration: underline;
+  text-decoration: none;
+}
+
+.member-button {
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+  background-color: #ffd700;
+  color: #fff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: clamp(1rem, 1rem + 3vw, 2rem);
+  text-align: center;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 15px;
+  text-decoration: none;
+}
+
+.member-button:hover {
+  background-color: #ffa500;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-decoration: underline;
+  text-decoration: none;
+}
+
+.team-button {
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+  background-color: #ff5500;
+  color: #fff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: clamp(1rem, 1rem + 3vw, 2rem);
+  text-align: center;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 15px;
+  text-decoration: none;
+}
+
+.team-button:hover {
+  background-color: #ff1100;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-decoration: underline;
+  text-decoration: none;
+}
+
+.inquiry-button {
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+  background-color: #ff69b4;
+  color: #fff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: clamp(1rem, 1rem + 3vw, 2rem);
+  text-align: center;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 15px;
+  text-decoration: none;
+}
+
+.inquiry-button:hover {
+  background-color: #ff1493;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-decoration: underline;
+  text-decoration: none;
+}
+
+.setting-button {
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+  background-color: #656565;
+  color: #fff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: clamp(1rem, 1rem + 3vw, 2rem);
+  text-align: center;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 15px;
+  text-decoration: none;
+}
+
+.setting-button:hover {
+  background-color: #3a3a3a;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-decoration: underline;
+  text-decoration: none;
+}
+
+
+

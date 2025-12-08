@@ -223,8 +223,13 @@ const AdministratorLoading: React.FC = () => {
   ) => {
     // 対応する実行中/エラーセッターを取得
     const isRunningSetter = createSetter(taskKey as keyof typeof initialTaskStates);
-    const errorKey = `${taskKey.slice(0, -6)}Error` as keyof typeof initialErrorStates;
+    const errorKey = taskKey.endsWith('Delet') ? 
+      `${taskKey.slice(0, -5)}Error` as keyof typeof initialErrorStates :
+      `${taskKey.slice(0, -6)}Error` as keyof typeof initialErrorStates;
     const setError = createErrorSetter(errorKey);
+
+    // ★新しい処理の開始時にエラーをリセット
+    setErrorStates(initialErrorStates);
 
     const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/${endpointPath}/`;
     // CSRFトークンをヘッダーに設定
@@ -273,7 +278,7 @@ const AdministratorLoading: React.FC = () => {
       setError(`${processName}の開始中にネットワークエラーが発生しました。`);
       alert(`${processName}の開始に失敗しました。`);
     }
-  }, [monitorHooks, startDay, endDay]);
+  }, [monitorHooks, startDay, endDay, useCallback]);
 
   // 汎用ファイルロード開始処理関数
   const startFileLoad = useCallback(async (
@@ -284,9 +289,11 @@ const AdministratorLoading: React.FC = () => {
   ) => {
     // 対応する実行中/エラーセッターを取得
     const isRunningSetter = createSetter(taskKey as keyof typeof initialTaskStates);
-    // 例: KosuLoad -> KosuError, DefLoad -> DefError
     const errorKey = `${taskKey.slice(0, -4)}Error` as keyof typeof initialErrorStates;
     const setError = createErrorSetter(errorKey);
+
+    // ★新しい処理の開始時にエラーをリセット
+    setErrorStates(initialErrorStates);
 
     if (!fileToLoad) {
       alert('アップロードするファイルを選択してください。');
@@ -333,7 +340,7 @@ const AdministratorLoading: React.FC = () => {
       setError(`${processName}の開始中にネットワークエラーが発生しました。`);
       alert(`${processName}の開始に失敗しました。`);
     }
-  }, [monitorHooks]);
+  }, [monitorHooks, useCallback]);
 
   // Kosuデータロード開始処理関数
   const startKosuload = useCallback(() => {
@@ -405,7 +412,7 @@ const AdministratorLoading: React.FC = () => {
 
         <div className={styles["search-bar"]}>
           <label htmlFor="start_day">期間指定：</label>
-          <div className={styles["time-row"]}>
+          <div className={styles["input-row"]}>
             <input
               type="date"
               id="start_day"
@@ -424,204 +431,297 @@ const AdministratorLoading: React.FC = () => {
           </div>
 
           <label htmlFor="start-kosu-backup">工数データ：</label>
-          <input
-            id="start-kosu-backup"
-            name="start-kosu-backup"
-            type="button"
-            value={runningStates.KosuBackup ? "実行中..." : "バックアップ開始"} 
-            onClick={!isAnyBackupRunning ? startKosuBackup : undefined} 
-            disabled={isAnyBackupRunning} 
-          />
-          <input
-            id="start-kosu-delet"
-            name="start-kosu-delet"
-            type="button"
-            value={runningStates.KosuDelet ? "実行中..." : "削除開始"} 
-            onClick={!isAnyBackupRunning ? startKosuDelet : undefined} 
-            disabled={isAnyBackupRunning} 
-          />
-          <input
-            id="kosu-file-upload"
-            name="kosu-file-upload"
-            type="file"
-            accept=".csv, .xlsx, .xls"
-            onChange={(e) => setKosuFile(e.target.files ? e.target.files[0] : null)}
-            disabled={isAnyBackupRunning}
-          />
-          <input
-            id="start-kosu-load"
-            name="start-kosu-load"
-            type="button"
-            value={runningStates.KosuLoad ? "実行中..." : "ロード開始"} 
-            onClick={!isAnyBackupRunning ? startKosuload : undefined} 
-            disabled={isAnyBackupRunning || !kosuFile}
-          />
+          <div className={styles["input-row"]}>
+            <input
+              id="start-kosu-backup"
+              name="start-kosu-backup"
+              type="button"
+              value={runningStates.KosuBackup ? "実行中..." : "バックアップ開始"} 
+              onClick={!isAnyBackupRunning ? startKosuBackup : undefined} 
+              disabled={isAnyBackupRunning} 
+              className={styles["kosu-button"]}
+            />
+            <input
+              id="start-kosu-delet"
+              name="start-kosu-delet"
+              type="button"
+              value={runningStates.KosuDelet ? "実行中..." : "削除開始"} 
+              onClick={!isAnyBackupRunning ? startKosuDelet : undefined} 
+              disabled={isAnyBackupRunning} 
+              className={styles["kosu-button"]}
+            />
+            <div className={styles["input-column"]}>
+              <input
+                id="kosu-file-upload"
+                name="kosu-file-upload"
+                type="file"
+                accept=".csv, .xlsx, .xls"
+                onChange={(e) => setKosuFile(e.target.files ? e.target.files[0] : null)}
+                disabled={isAnyBackupRunning}
+                className={styles["hidden-file-input"]}
+              />
+              <label 
+                htmlFor="kosu-file-upload" 
+                className={styles["custom-file-label"]}
+                style={{ opacity: isAnyBackupRunning ? 0.6 : 1, cursor: isAnyBackupRunning ? 'not-allowed' : 'pointer' }}
+              >
+                {kosuFile ? kosuFile.name : "ファイルを選択 (CSV/XLSX)"}
+              </label>
+              <input
+                id="start-kosu-load"
+                name="start-kosu-load"
+                type="button"
+                value={runningStates.KosuLoad ? "実行中..." : "ロード開始"} 
+                onClick={!isAnyBackupRunning ? startKosuload : undefined} 
+                disabled={isAnyBackupRunning || !kosuFile}
+                className={styles["kosu-button"]}
+              />
+            </div>
+          </div>
 
           <label htmlFor="start-def-backup">工数区分定義データ：</label>
-          <input
-            id="start-def-backup"
-            name="start-def-backup"
-            type="button"
-            value={runningStates.DefBackup ? "実行中..." : "バックアップ開始"} 
-            onClick={!isAnyBackupRunning ? startDefBackup : undefined} 
-            disabled={isAnyBackupRunning} 
-          />
-          <input
-            id="def-file-upload"
-            name="def-file-upload"
-            type="file"
-            accept=".csv, .xlsx, .xls"
-            onChange={(e) => setDefFile(e.target.files ? e.target.files[0] : null)}
-            disabled={isAnyBackupRunning}
-          />
-          <input
-            id="start-def-load"
-            name="start-def-load"
-            type="button"
-            value={runningStates.DefLoad ? "実行中..." : "ロード開始"} 
-            onClick={!isAnyBackupRunning ? startDefload : undefined} 
-            disabled={isAnyBackupRunning || !defFile}
-          />
+          <div className={styles["input-row"]}>
+            <input
+              id="start-def-backup"
+              name="start-def-backup"
+              type="button"
+              value={runningStates.DefBackup ? "実行中..." : "バックアップ開始"} 
+              onClick={!isAnyBackupRunning ? startDefBackup : undefined} 
+              disabled={isAnyBackupRunning}
+              className={styles["def-button"]}
+            />
+            <div className={styles["input-column"]}>
+              <input
+                id="def-file-upload"
+                name="def-file-upload"
+                type="file"
+                accept=".csv, .xlsx, .xls"
+                onChange={(e) => setDefFile(e.target.files ? e.target.files[0] : null)}
+                disabled={isAnyBackupRunning}
+                className={styles["hidden-file-input"]}
+              />
+              <label 
+                htmlFor="def-file-upload" 
+                className={styles["custom-file-label"]}
+                style={{ opacity: isAnyBackupRunning ? 0.6 : 1, cursor: isAnyBackupRunning ? 'not-allowed' : 'pointer' }}
+              >
+                {defFile ? defFile.name : "ファイルを選択 (CSV/XLSX)"}
+              </label>
+              <input
+                id="start-def-load"
+                name="start-def-load"
+                type="button"
+                value={runningStates.DefLoad ? "実行中..." : "ロード開始"} 
+                onClick={!isAnyBackupRunning ? startDefload : undefined} 
+                disabled={isAnyBackupRunning || !defFile}
+                className={styles["def-button"]}
+              />
+            </div>
+          </div>
 
           <label htmlFor="start-member-backup">人員データ：</label>
-          <input
-            id="start-member-backup"
-            name="start-member-backup"
-            type="button"
-            value={runningStates.MemberBackup ? "実行中..." : "バックアップ開始"} 
-            onClick={!isAnyBackupRunning ? startMemberBackup : undefined} 
-            disabled={isAnyBackupRunning} 
-          />
-          <input
-            id="member-file-upload"
-            name="member-file-upload"
-            type="file"
-            accept=".csv, .xlsx, .xls"
-            onChange={(e) => setMemberFile(e.target.files ? e.target.files[0] : null)}
-            disabled={isAnyBackupRunning}
-          />
-          <input
-            id="start-member-load"
-            name="start-member-load"
-            type="button"
-            value={runningStates.MemberLoad ? "実行中..." : "ロード開始"} 
-            onClick={!isAnyBackupRunning ? startMemberload : undefined} 
-            disabled={isAnyBackupRunning || !memberFile}
-          />
+          <div className={styles["input-row"]}>
+            <input
+              id="start-member-backup"
+              name="start-member-backup"
+              type="button"
+              value={runningStates.MemberBackup ? "実行中..." : "バックアップ開始"} 
+              onClick={!isAnyBackupRunning ? startMemberBackup : undefined} 
+              disabled={isAnyBackupRunning} 
+              className={styles["member-button"]}
+            />
+            <div className={styles["input-column"]}>
+              <input
+                id="member-file-upload"
+                name="member-file-upload"
+                type="file"
+                accept=".csv, .xlsx, .xls"
+                onChange={(e) => setMemberFile(e.target.files ? e.target.files[0] : null)}
+                disabled={isAnyBackupRunning}
+                className={styles["hidden-file-input"]}
+              />
+              <label 
+                htmlFor="member-file-upload" 
+                className={styles["custom-file-label"]}
+                style={{ opacity: isAnyBackupRunning ? 0.6 : 1, cursor: isAnyBackupRunning ? 'not-allowed' : 'pointer' }}
+              >
+                {memberFile ? memberFile.name : "ファイルを選択 (CSV/XLSX)"}
+              </label>
+              <input
+                id="start-member-load"
+                name="start-member-load"
+                type="button"
+                value={runningStates.MemberLoad ? "実行中..." : "ロード開始"} 
+                onClick={!isAnyBackupRunning ? startMemberload : undefined} 
+                disabled={isAnyBackupRunning || !memberFile}
+                className={styles["member-button"]}
+              />
+            </div>
+          </div>
 
           <label htmlFor="start-team-backup">班員データ：</label>
-          <input
-            id="start-team-backup"
-            name="start-team-backup"
-            type="button"
-            value={runningStates.TeamBackup ? "実行中..." : "バックアップ開始"} 
-            onClick={!isAnyBackupRunning ? startTeamBackup : undefined} 
-            disabled={isAnyBackupRunning} 
-          />
-          <input
-            id="team-file-upload"
-            name="team-file-upload"
-            type="file"
-            accept=".csv, .xlsx, .xls"
-            onChange={(e) => setTeamFile(e.target.files ? e.target.files[0] : null)}
-            disabled={isAnyBackupRunning}
-          />
-          <input
-            id="start-team-load"
-            name="start-team-load"
-            type="button"
-            value={runningStates.TeamLoad ? "実行中..." : "ロード開始"} 
-            onClick={!isAnyBackupRunning ? startTeamload : undefined} 
-            disabled={isAnyBackupRunning || !teamFile}
-          />
+          <div className={styles["input-row"]}>
+            <input
+              id="start-team-backup"
+              name="start-team-backup"
+              type="button"
+              value={runningStates.TeamBackup ? "実行中..." : "バックアップ開始"} 
+              onClick={!isAnyBackupRunning ? startTeamBackup : undefined} 
+              disabled={isAnyBackupRunning} 
+              className={styles["team-button"]}
+            />
+            <div className={styles["input-column"]}>
+              <input
+                id="team-file-upload"
+                name="team-file-upload"
+                type="file"
+                accept=".csv, .xlsx, .xls"
+                onChange={(e) => setTeamFile(e.target.files ? e.target.files[0] : null)}
+                disabled={isAnyBackupRunning}
+                className={styles["hidden-file-input"]}
+              />
+              <label 
+                htmlFor="team-file-upload" 
+                className={styles["custom-file-label"]}
+                style={{ opacity: isAnyBackupRunning ? 0.6 : 1, cursor: isAnyBackupRunning ? 'not-allowed' : 'pointer' }}
+              >
+                {teamFile ? teamFile.name : "ファイルを選択 (CSV/XLSX)"}
+              </label>
+              <input
+                id="start-team-load"
+                name="start-team-load"
+                type="button"
+                value={runningStates.TeamLoad ? "実行中..." : "ロード開始"} 
+                onClick={!isAnyBackupRunning ? startTeamload : undefined} 
+                disabled={isAnyBackupRunning || !teamFile}
+                className={styles["team-button"]}
+              />
+            </div>
+          </div>
 
           <label htmlFor="start-inquiry-backup">問い合わせデータ：</label>
-          <input
-            id="start-inquiry-backup"
-            name="start-inquiry-backup"
-            type="button"
-            value={runningStates.InquiryBackup ? "実行中..." : "バックアップ開始"} 
-            onClick={!isAnyBackupRunning ? startInquiryBackup : undefined} 
-            disabled={isAnyBackupRunning} 
-          />
-          <input
-            id="inquiry-file-upload"
-            name="inquiry-file-upload"
-            type="file"
-            accept=".csv, .xlsx, .xls"
-            onChange={(e) => setInquiryFile(e.target.files ? e.target.files[0] : null)}
-            disabled={isAnyBackupRunning}
-          />
-          <input
-            id="start-inquiry-load"
-            name="start-inquiry-load"
-            type="button"
-            value={runningStates.InquiryLoad ? "実行中..." : "ロード開始"} 
-            onClick={!isAnyBackupRunning ? startInquiryload : undefined} 
-            disabled={isAnyBackupRunning || !inquiryFile}
-          />
+          <div className={styles["input-row"]}>
+            <input
+              id="start-inquiry-backup"
+              name="start-inquiry-backup"
+              type="button"
+              value={runningStates.InquiryBackup ? "実行中..." : "バックアップ開始"} 
+              onClick={!isAnyBackupRunning ? startInquiryBackup : undefined} 
+              disabled={isAnyBackupRunning} 
+              className={styles["inquiry-button"]}
+            />
+            <div className={styles["input-column"]}>
+              <input
+                id="inquiry-file-upload"
+                name="inquiry-file-upload"
+                type="file"
+                accept=".csv, .xlsx, .xls"
+                onChange={(e) => setInquiryFile(e.target.files ? e.target.files[0] : null)}
+                disabled={isAnyBackupRunning}
+                className={styles["hidden-file-input"]}
+              />
+              <label 
+                htmlFor="inquiry-file-upload" 
+                className={styles["custom-file-label"]}
+                style={{ opacity: isAnyBackupRunning ? 0.6 : 1, cursor: isAnyBackupRunning ? 'not-allowed' : 'pointer' }}
+              >
+                {inquiryFile ? inquiryFile.name : "ファイルを選択 (CSV/XLSX)"}
+              </label>
+              <input
+                id="start-inquiry-load"
+                name="start-inquiry-load"
+                type="button"
+                value={runningStates.InquiryLoad ? "実行中..." : "ロード開始"} 
+                onClick={!isAnyBackupRunning ? startInquiryload : undefined} 
+                disabled={isAnyBackupRunning || !inquiryFile}
+                className={styles["inquiry-button"]}
+              />
+            </div>
+          </div>
 
           <label htmlFor="start-setting-backup">設定データ：</label>
-          <input
-            id="start-setting-backup"
-            name="start-setting-backup"
-            type="button"
-            value={runningStates.SettingBackup ? "実行中..." : "バックアップ開始"} 
-            onClick={!isAnyBackupRunning ? startSettingBackup : undefined} 
-            disabled={isAnyBackupRunning} 
-          />
-          <input
-            id="setting-file-upload"
-            name="setting-file-upload"
-            type="file"
-            accept=".csv, .xlsx, .xls"
-            onChange={(e) => setSettingFile(e.target.files ? e.target.files[0] : null)}
-            disabled={isAnyBackupRunning}
-          />
-          <input
-            id="start-setting-load"
-            name="start-setting-load"
-            type="button"
-            value={runningStates.SettingLoad ? "実行中..." : "ロード開始"} 
-            onClick={!isAnyBackupRunning ? startSettingload : undefined} 
-            disabled={isAnyBackupRunning || !settingFile}
-          />
+          <div className={styles["input-row"]}>
+            <input
+              id="start-setting-backup"
+              name="start-setting-backup"
+              type="button"
+              value={runningStates.SettingBackup ? "実行中..." : "バックアップ開始"} 
+              onClick={!isAnyBackupRunning ? startSettingBackup : undefined} 
+              disabled={isAnyBackupRunning} 
+              className={styles["setting-button"]}
+            />
+            <div className={styles["input-column"]}>
+              <input
+                id="setting-file-upload"
+                name="setting-file-upload"
+                type="file"
+                accept=".csv, .xlsx, .xls"
+                onChange={(e) => setSettingFile(e.target.files ? e.target.files[0] : null)}
+                disabled={isAnyBackupRunning}
+                className={styles["hidden-file-input"]}
+              />
+              <label 
+                htmlFor="setting-file-upload" 
+                className={styles["custom-file-label"]}
+                style={{ opacity: isAnyBackupRunning ? 0.6 : 1, cursor: isAnyBackupRunning ? 'not-allowed' : 'pointer' }}
+              >
+                {settingFile ? settingFile.name : "ファイルを選択 (CSV/XLSX)"}
+              </label>
+              <input
+                id="start-setting-load"
+                name="start-setting-load"
+                type="button"
+                value={runningStates.SettingLoad ? "実行中..." : "ロード開始"} 
+                onClick={!isAnyBackupRunning ? startSettingload : undefined} 
+                disabled={isAnyBackupRunning || !settingFile}
+                className={styles["setting-button"]}
+              />
+            </div>
+          </div>
 
           <label htmlFor="start-async-backup">タスク履歴データ：</label>
-          <input
-            id="start-async-backup"
-            name="start-async-backup"
-            type="button"
-            value={runningStates.AsyncTaskBackup ? "実行中..." : "バックアップ開始"} 
-            onClick={!isAnyBackupRunning ? startAsyncTaskBackup : undefined} 
-            disabled={isAnyBackupRunning} 
-          />
-          <input
-            id="start-async-delet"
-            name="start-async-delet"
-            type="button"
-            value={runningStates.AsyncTaskDelet ? "実行中..." : "削除開始"} 
-            onClick={!isAnyBackupRunning ? startAsyncTaskDelet : undefined} 
-            disabled={isAnyBackupRunning} 
-          />
+          <div className={styles["input-row"]}>
+            <input
+              id="start-async-backup"
+              name="start-async-backup"
+              type="button"
+              value={runningStates.AsyncTaskBackup ? "実行中..." : "バックアップ開始"} 
+              onClick={!isAnyBackupRunning ? startAsyncTaskBackup : undefined} 
+              disabled={isAnyBackupRunning}
+              className={styles["setting-button"]} 
+            />
+            <input
+              id="start-async-delet"
+              name="start-async-delet"
+              type="button"
+              value={runningStates.AsyncTaskDelet ? "実行中..." : "削除開始"} 
+              onClick={!isAnyBackupRunning ? startAsyncTaskDelet : undefined} 
+              disabled={isAnyBackupRunning} 
+              className={styles["setting-button"]}
+            />
+          </div>
 
           <label htmlFor="start-operation-backup">操作履歴データ：</label>
-          <input
-            id="start-operation-backup"
-            name="start-operation-backup"
-            type="button"
-            value={runningStates.OperationHistoryBackup ? "実行中..." : "バックアップ開始"} 
-            onClick={!isAnyBackupRunning ? startOperationHistoryBackup : undefined} 
-            disabled={isAnyBackupRunning} 
-          />
-          <input
-            id="start-operation-delet"
-            name="start-operation-delet"
-            type="button"
-            value={runningStates.OperationHistoryDelet ? "実行中..." : "削除開始"} 
-            onClick={!isAnyBackupRunning ? startOperationHistoryDelet : undefined} 
-            disabled={isAnyBackupRunning} 
-          />
+          <div className={styles["input-row"]}>
+            <input
+              id="start-operation-backup"
+              name="start-operation-backup"
+              type="button"
+              value={runningStates.OperationHistoryBackup ? "実行中..." : "バックアップ開始"} 
+              onClick={!isAnyBackupRunning ? startOperationHistoryBackup : undefined} 
+              disabled={isAnyBackupRunning} 
+              className={styles["setting-button"]}
+            />
+            <input
+              id="start-operation-delet"
+              name="start-operation-delet"
+              type="button"
+              value={runningStates.OperationHistoryDelet ? "実行中..." : "削除開始"} 
+              onClick={!isAnyBackupRunning ? startOperationHistoryDelet : undefined} 
+              disabled={isAnyBackupRunning} 
+              className={styles["setting-button"]}
+            />
+          </div>
         </div>
       </div>
     </>
