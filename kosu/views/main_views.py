@@ -1497,7 +1497,7 @@ class AdministratorKosuList(APIView):
         kosus = kosus.filter(work_day2=search_day)
     print('a', search_member)
     if search_member:
-      kosu = kosus.filter(employee_no3=search_member)
+      kosus = kosus.filter(employee_no3=search_member)
 
     # ページネーション
     paginator = CustomPagination()
@@ -1506,7 +1506,7 @@ class AdministratorKosuList(APIView):
 
     # 人員情報取得
     kosu_member = list(Business_Time_graph.objects.values_list('employee_no3', flat=True).order_by('employee_no3').distinct())
-    member_filter = member.objects.filter(employee_no__in=kosu_member)
+    member_filter = member.objects.filter(employee_no__in=kosu_member).order_by('employee_no')
     member_serializer = MemberSerializer(member_filter, many=True)
 
 
