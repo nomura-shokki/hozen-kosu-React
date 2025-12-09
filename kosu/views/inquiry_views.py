@@ -676,7 +676,7 @@ class InquirList(APIView):
     if item:
       inquirs = inquirs.filter(content_choice=item)
 
-    # 班員の人員情報取得
+    # 問い合わせ者の人員情報取得
     inquir_member = list(inquiry_data.objects.values_list('employee_no2', flat=True).order_by('employee_no2').distinct())
     member_filter = member.objects.filter(employee_no__in=inquir_member)
 

@@ -1484,6 +1484,7 @@ class AdministratorKosuList(APIView):
     search_day = request.query_params.get('day')
     mode = request.query_params.get('mode', 'day')
     filter_flag = request.query_params.get('filter', 'false') == 'true'
+    search_member = request.query_params.get('member')
 
     # 工数履歴データの取得
     kosus = Business_Time_graph.objects.all().order_by('-work_day2')
@@ -1494,14 +1495,23 @@ class AdministratorKosuList(APIView):
         kosus = kosus.filter(work_day2__startswith=search_day[:7])
       else:
         kosus = kosus.filter(work_day2=search_day)
+    print('a', search_member)
+    if search_member:
+      kosu = kosus.filter(employee_no3=search_member)
 
     # ページネーション
     paginator = CustomPagination()
     result_page = paginator.paginate_queryset(kosus, request)
     serializer = KosuSerializer(result_page, many=True)
 
+    # 人員情報取得
+    kosu_member = list(Business_Time_graph.objects.values_list('employee_no3', flat=True).order_by('employee_no3').distinct())
+    member_filter = member.objects.filter(employee_no__in=kosu_member)
+    member_serializer = MemberSerializer(member_filter, many=True)
+
+
     response_data = {
-      'member_data': '',
+      'member_data': member_serializer.data,
       'kosu_data': paginator.get_paginated_response(serializer.data).data,
     }
     return Response(response_data)

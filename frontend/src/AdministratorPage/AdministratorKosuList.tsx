@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, ChangeEvent } from "react";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Loading from "../components/Loading";
+import TeamMemberSelect from "../components/TeamMemberSelect";
 import styles from "../styles/AdministratorPage/AdministratorKosuList.module.css";
 
 interface Kosu {
@@ -11,6 +12,12 @@ interface Kosu {
   work_day2: string;
   tyoku2: string;
   judgement: boolean;
+}
+
+interface KosuMember {
+  id: number;
+  employee_no: number;
+  name: string;
 }
 
 const formatTyoku = (value: string | number): string => {
@@ -33,6 +40,8 @@ const getDayOfWeek = (dateStr: string): string => {
 
 const AdministratorKosuList: React.FC = () => {
   const [data, setData] = useState<Kosu[]>([]);
+  const [MemberOptions, setMemberOptions] = useState<KosuMember[]>([]);
+  const [selectedMemberInput, setSelectedMemberInput] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchDay, setSearchDay] = useState<string>("");
@@ -46,28 +55,45 @@ const AdministratorKosuList: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const fetchData = useCallback(async (targetMode: boolean | null = null) => {
+  const fetchData = useCallback(async (
+    page: number, 
+    day: string, 
+    mode: boolean,
+    member: string,
+  ) => {
     setLoading(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu/`, {
         params: {
-          page: currentPage,
-          ...(searchDay && {
-            day: searchDay,
-            mode: targetMode !== null ? (targetMode ? "month" : "day") : (searchByMonth ? "month" : "day"),
+          page: page,
+          ...(day && {
+            day: day,
+            mode: mode ? "month" : "day",
             filter: "true",
+            member: member,
           }),
         },
         withCredentials: true,
       });
 
-      const kosuData = response.data.kosu_data || {};
+      const kosuData = response.data?.kosu_data || {};
       const results = kosuData.results || [];
       const count = kosuData.count || 0;
       const pageSize = results.length > 0 ? count / Math.ceil(count / results.length) : 20;
-      setData(results);
+      const memberOptions = response.data?.member_data || [];
       setTotalPages(Math.ceil(count / pageSize));
 
+      const memberNameMap: { [key: number]: string } = {};
+      memberOptions.forEach((member: KosuMember) => {
+        memberNameMap[member.employee_no] = member.name;
+      });
+
+      const transformedData = results.map((item: Kosu) => ({
+        ...item,
+        name: memberNameMap[item.employee_no3] || `Unknown (${item.employee_no3})`,
+      }));
+      setData(transformedData);
+      setMemberOptions(memberOptions);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {
@@ -83,22 +109,24 @@ const AdministratorKosuList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, navigate, searchByMonth, searchDay]);
+  }, [navigate]); 
 
   useEffect(() => {
     setSearchDay("");
+    setSelectedMemberInput("");
     setSearchByMonth(false);
     setCurrentPage(1);
   }, [location.pathname]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(currentPage, searchDay, searchByMonth, selectedMemberInput);
+  }, [currentPage, fetchData]);
+
 
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);
-    fetchData(isMonthSearch);
     setCurrentPage(1);
+    fetchData(1, searchDay, isMonthSearch, ""); 
   };
 
   const handleNextPage = () => {
@@ -121,9 +149,13 @@ const AdministratorKosuList: React.FC = () => {
     setCurrentPage(totalPages);
   };
 
+  const handleMemberChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedMemberInput(event.target.value);
+  };
+
   useEffect(() => {
     const updateMaxHeight = () => {
-      const searchBarHeight = (document.querySelector(".search-bar") as HTMLElement)?.offsetHeight || 0;
+      const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0; 
       const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
       setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40);
     };
@@ -170,17 +202,26 @@ const AdministratorKosuList: React.FC = () => {
           <div className={styles["button-group"]}>
             <button
               onClick={() => handleSearch(true)}
-              className="light_blue_button"
+              className="gray_button"
             >
               指定月
             </button>
             <button
               onClick={() => handleSearch(false)}
-              className="light_blue_button"
+              className="gray_button"
             >
               指定日
             </button>
           </div>
+          <label htmlFor="team-member-select"></label>
+          <TeamMemberSelect
+            id="team-member-select"
+            name="team-member-select"
+            value={selectedMemberInput}
+            onChange={handleMemberChange}
+            options={MemberOptions}
+          />
+
         </div>
         {data.length === 0 ? (
           <p>No data found.</p>
@@ -196,6 +237,7 @@ const AdministratorKosuList: React.FC = () => {
             <table ref={tableRef}>
               <thead>
                 <tr>
+                  <th className={styles["th-collar"]}>氏名</th>
                   <th className={styles["th-collar"]}>就業日</th>
                   <th className={styles["th-collar"]}>直</th>
                   <th className={styles["th-collar"]}>整合性</th>
@@ -206,6 +248,7 @@ const AdministratorKosuList: React.FC = () => {
               <tbody>
                 {data.map((item) => (
                   <tr key={item.id}>
+                    <td>{item.name}</td>
                     <td>{item.work_day2} ({getDayOfWeek(item.work_day2)})</td>
                     <td>{formatTyoku(item.tyoku2)}</td>
                     <td className={item.judgement ? styles["status-ok"] : styles["status-ng"]}>

@@ -125,6 +125,7 @@ Q_CLUSTER = {
     'orm': 'default',
     'workers': 4, 
     'recycle': 2000,
+    'retry': 2000,
     'timeout': 1800,
 }
 

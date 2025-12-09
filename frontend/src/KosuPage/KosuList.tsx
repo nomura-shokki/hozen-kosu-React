@@ -46,15 +46,19 @@ const KosuList: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const fetchData = useCallback(async (targetMode: boolean | null = null) => {
+  const fetchData = useCallback(async (
+    page: number, 
+    day: string, 
+    mode: boolean
+  ) => {
     setLoading(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_list/`, {
         params: {
-          page: currentPage,
-          ...(searchDay && {
-            day: searchDay,
-            mode: targetMode !== null ? (targetMode ? "month" : "day") : (searchByMonth ? "month" : "day"),
+          page: page,
+          ...(day && {
+            day: day,
+            mode: mode ? "month" : "day",
             filter: "true",
           }),
         },
@@ -80,7 +84,7 @@ const KosuList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, navigate, searchByMonth, searchDay]);
+  }, [navigate]);
 
   useEffect(() => {
     setSearchDay("");
@@ -89,13 +93,13 @@ const KosuList: React.FC = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(currentPage, searchDay, searchByMonth);
+  }, [currentPage, fetchData]);
 
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);
-    fetchData(isMonthSearch);
     setCurrentPage(1);
+    fetchData(1, searchDay, isMonthSearch); 
   };
 
   const handleNextPage = () => {
@@ -120,7 +124,7 @@ const KosuList: React.FC = () => {
 
   useEffect(() => {
     const updateMaxHeight = () => {
-      const searchBarHeight = (document.querySelector(".search-bar") as HTMLElement)?.offsetHeight || 0;
+      const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0;
       const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
       setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40);
     };

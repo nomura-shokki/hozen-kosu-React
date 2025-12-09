@@ -21,6 +21,8 @@ const MemberList: React.FC = () => {
   const [error, setError] = useState<string | null>(null); // エラーメッセージ
   const [searchNumber, setSearchNumber] = useState<string>(""); // 従業員番号の検索条件
   const [searchShop, setSearchShop] = useState<string>(""); // ショップ名の検索条件
+  const [currentFilterNumber, setCurrentFilterNumber] = useState<string>(""); // 現在適用中の従業員番号フィルター
+  const [currentFilterShop, setCurrentFilterShop] = useState<string>(""); // 現在適用中のショップフィルター
   const [currentPage, setCurrentPage] = useState<number>(1); // 現在のページ番号
   const [totalPages, setTotalPages] = useState<number>(0); // 全ページ数
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight); // テーブルの最大高さ
@@ -29,15 +31,16 @@ const MemberList: React.FC = () => {
   const navigate = useNavigate(); // ルートナビゲーション用
 
   // データをAPIから取得する関数。useCallbackで最適化
+  // ★修正1: searchNumberとsearchShopへの依存を削除し、currentPageとフィルター用stateに依存させる
   const fetchData = useCallback(async () => {
     setLoading(true); // ローディング状態をtrueに設定
     try {
       // APIコールでデータを取得
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/member_list/`, {
         params: {
-          page: currentPage, // 現在のページ番号をAPIへ送信
-          employee_no: searchNumber, // 従業員番号の検索条件
-          shop: searchShop, // ショップの検索条件
+          page: currentPage, // 現在のページ番号を使用
+          employee_no: currentFilterNumber,
+          shop: currentFilterShop, // ★適用中のフィルターを使用
         },
         withCredentials: true, // クッキーを含めたリクエスト
       });
@@ -62,23 +65,25 @@ const MemberList: React.FC = () => {
     } finally {
       setLoading(false); // ローディング状態を終了
     }
-  }, [currentPage, navigate, searchNumber, searchShop]);
+  }, [currentPage, navigate, currentFilterNumber, currentFilterShop]);
 
-  // コンポーネントの初回マウント時にデータを取得。また、fetchDataに依存。
   useEffect(() => {
     fetchData();
   }, [currentPage, fetchData]);
 
   // 検索条件を適用してデータを再取得
   const handleSearch = () => {
+    setCurrentFilterNumber(searchNumber);
+    setCurrentFilterShop(searchShop);
+
     if (currentPage !== 1) {
       setCurrentPage(1);
-    } else {
-      fetchData(); // ページをリセットせずデータを取得
+    } 
+    else {
     }
   };
 
-  // ページ送り関連のハンドラ
+  // ページ送り関連のハンドラ (変更なし)
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1); // 次ページに進む
@@ -102,7 +107,7 @@ const MemberList: React.FC = () => {
   // ウィンドウサイズ変更時にテーブルの最大高さを再計算
   useEffect(() => {
     const updateMaxHeight = () => {
-      const searchBarHeight = (document.querySelector(".search-bar") as HTMLElement)?.offsetHeight || 0;
+      const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0;
       const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
       setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40); // スペースを差し引いて高を設定
     };

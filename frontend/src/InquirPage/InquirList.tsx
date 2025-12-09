@@ -111,7 +111,6 @@ const TeamList: React.FC = () => {
   // ルートが変更されたときに検索状態をリセット
   useEffect(() => {
     setCurrentPage(1);
-    // ★修正ポイント5: 検索クエリの状態もリセット
     setSelectedMemberInput("");
     setSearchMemberId("");
     setSearchItemInput("");
