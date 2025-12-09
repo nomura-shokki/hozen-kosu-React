@@ -40,7 +40,7 @@
   display: inline-block;
   width: 100%;
   max-width: 400px;
-  background-color: #656565;
+  background-color: #999999;
   color: #fff;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
   padding: 10px;
@@ -58,7 +58,25 @@
   display: inline-block;
   width: 100%;
   max-width: 400px;
-  background-color: #575757;
+  background-color: #909090;
+  color: #fff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  padding: 10px;
+  font-size: 2rem;
+  text-align: center;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 15px;
+  text-decoration: none;
+}
+
+.admin-button3 {
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+  background-color: #878787;
   color: #fff;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
   padding: 10px;
@@ -73,7 +91,8 @@
 }
 
 .admin-button1:hover,
-.admin-button2:hover {
+.admin-button2:hover,
+.admin-button3:hover {
   background-color: #3a3a3a;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   text-decoration: underline;

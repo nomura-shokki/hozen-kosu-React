@@ -51,6 +51,7 @@ const AdministratorMenu: React.FC = () => {
       </nav>
       <Link to="/manager-update" className={styles["admin-button1"]}>設定変更</Link>
       <Link to="/manager-loading" className={styles["admin-button2"]}>データ管理</Link>
+      <Link to="/manager-kosu" className={styles["admin-button3"]}>全工数データ管理</Link>
     </div>
   );
 };

@@ -430,7 +430,7 @@ const AdministratorLoading: React.FC = () => {
             />
           </div>
 
-          <label htmlFor="start-kosu-backup">工数データ：</label>
+          <label htmlFor="start-kosu-backup">工数データ(バックアップ&削除は日付指定)：</label>
           <div className={styles["input-row"]}>
             <input
               id="start-kosu-backup"
@@ -679,7 +679,7 @@ const AdministratorLoading: React.FC = () => {
             </div>
           </div>
 
-          <label htmlFor="start-async-backup">タスク履歴データ：</label>
+          <label htmlFor="start-async-backup">タスク履歴データ(日付指定)：</label>
           <div className={styles["input-row"]}>
             <input
               id="start-async-backup"
@@ -701,7 +701,7 @@ const AdministratorLoading: React.FC = () => {
             />
           </div>
 
-          <label htmlFor="start-operation-backup">操作履歴データ：</label>
+          <label htmlFor="start-operation-backup">操作履歴データ(日付指定)：</label>
           <div className={styles["input-row"]}>
             <input
               id="start-operation-backup"

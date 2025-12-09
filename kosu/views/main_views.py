@@ -1018,7 +1018,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
-from .serializers import MemberSerializer, AdministratorSerializer
+from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer
+from ..utils.main_utils import CustomPagination
 import json
 
 
@@ -1045,24 +1046,26 @@ def manifest(request):
 
 # ログイン
 class Login(APIView):
-  # POST時の動作
+  # POST処理
   def post(self, request):
     try:
+      # 送られてきたデータ確認
       data = json.loads(request.body)
+      input_number = data.get('employee_no')
     except json.JSONDecodeError:
       return JsonResponse({'status': 'error', 'message': 'JSON形式が正しくありません。'}, status=400)
 
-    input_number = data.get('employee_no')
-
+    # POSTされた従番が人員データにある場合、セッションに保存&最新工数区分定義取得
     if member.objects.filter(employee_no=input_number).exists():
       request.session['login_No'] = input_number
       def_Ver = kosu_division.objects.order_by("id").last()
 
+      # 取得した工数区分定義をセッションに保存
       if not def_Ver:
         return JsonResponse({'status': 'error', 'message': '利用可能な工数区分がありません。ERROR052'})
-
-      request.session['input_def'] = def_Ver.kosu_name
-      return JsonResponse({'status': 'success'})
+      else:
+        request.session['input_def'] = def_Ver.kosu_name
+        return JsonResponse({'status': 'success'})
 
     else:
       return JsonResponse({'status': 'error', 'message': '入力された従業員番号は登録がありません。ERROR048'})
@@ -1071,7 +1074,9 @@ class Login(APIView):
 
 # ログアウト
 class Logout(APIView):
+  # POST処理
   def post(self,request):
+    # セッション削除
     request.session.flush()
     return Response({'status': 'success', 'message': 'セッションが削除されました。'})
 
@@ -1129,7 +1134,7 @@ class MemberMenu(APIView):
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
-    # ログイン者データ確認
+    # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.authority:
@@ -1206,7 +1211,7 @@ class TeamMenu(APIView):
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
-    # ログイン者データ確認
+    # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.authority:
@@ -1301,7 +1306,7 @@ class AdministratorMenu(APIView):
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
-    # ログイン者データ確認
+    # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.administrator:
@@ -1327,17 +1332,18 @@ class AdministratorMenu(APIView):
 
 
 
+# 管理者設定更新
 class AdministratorUpdate(APIView):
-  # GET時の動作
+  # GET処理
   def get(self, request):
-    # セッションからデータ取得
+    # ログイン者情報取得
     login_no = request.session.get('login_No')
 
     # 未ログインや定義が未定義の場合はログイン画面へ
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
-    # ログイン者データ確認
+    # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
@@ -1345,6 +1351,7 @@ class AdministratorUpdate(APIView):
     if not member_data.administrator:
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
+    # 設定データ確認
     try:
       admin_data = administrator_data.objects.order_by("id").last()
     except administrator_data.DoesNotExist:
@@ -1354,7 +1361,6 @@ class AdministratorUpdate(APIView):
     login_serializer = MemberSerializer(member_data, many=False)
     admin_serializer = AdministratorSerializer(admin_data, many=False)
 
-    # 送信データ
     response_data = {
       'admin_data': admin_serializer.data,
       'login_data': login_serializer.data,
@@ -1363,6 +1369,7 @@ class AdministratorUpdate(APIView):
     return Response(response_data)
 
 
+  # PUT処理
   def put(self, request):
     # セッションからデータ取得
     login_no = request.session.get('login_No')
@@ -1379,15 +1386,18 @@ class AdministratorUpdate(APIView):
     if not member_data.administrator:
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
+    # 設定データ確認
     try:
       admin_data = administrator_data.objects.order_by("id").last()
     except administrator_data.DoesNotExist:
       return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
+    # データ更新&変換
     serializer = AdministratorSerializer(admin_data, data=request.data)
+    # バリテーション成功時
     if serializer.is_valid():
-      menu_row_value = int(request.data.get('menu_row'))
       try:
+        # 問い合わせ担当者バリテーション
         administrator_employee_no1_value = int(request.data.get('administrator_employee_no1'))
         if not isinstance(administrator_employee_no1_value, int) or administrator_employee_no1_value <= 0:
           return Response({'error': '問い合わせ担当者従業員番号1は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
@@ -1405,18 +1415,21 @@ class AdministratorUpdate(APIView):
           return Response({'error': '問い合わせ担当者従業員番号3は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
       except (TypeError, ValueError):
         pass
-
+      # 一覧表示数バリテーション
+      menu_row_value = int(request.data.get('menu_row'))
       if not isinstance(menu_row_value, int) or menu_row_value <= 0:
         return Response({'error': '一覧表示項目数は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
 
+      # データ保存
       serializer.save()
       return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
+# データ管理
 class AdministratorLoading(APIView):
-  # GET時の動作
+  # GET処理
   def get(self, request):
     # セッションからデータ取得
     login_no = request.session.get('login_No')
@@ -1425,7 +1438,7 @@ class AdministratorLoading(APIView):
     if not login_no:
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
-    # ログイン者データ確認
+    # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
@@ -1437,11 +1450,60 @@ class AdministratorLoading(APIView):
     # データ変換
     login_serializer = MemberSerializer(member_data, many=False)
 
-    # 送信データ
     response_data = {
       'login_data': login_serializer.data,
     }
 
+    return Response(response_data)
+
+
+
+# 全工数履歴
+class AdministratorKosuList(APIView):
+  # GET処理
+  def get(self, request):
+    # セッション値取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+    if not def_ver:
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # ログイン者情報取得
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    # 検索パラメータの取得
+    search_day = request.query_params.get('day')
+    mode = request.query_params.get('mode', 'day')
+    filter_flag = request.query_params.get('filter', 'false') == 'true'
+
+    # 工数履歴データの取得
+    kosus = Business_Time_graph.objects.all().order_by('-work_day2')
+
+    # 工数履歴データ絞り込み
+    if search_day and filter_flag:
+      if mode == 'month':
+        kosus = kosus.filter(work_day2__startswith=search_day[:7])
+      else:
+        kosus = kosus.filter(work_day2=search_day)
+
+    # ページネーション
+    paginator = CustomPagination()
+    result_page = paginator.paginate_queryset(kosus, request)
+    serializer = KosuSerializer(result_page, many=True)
+
+    response_data = {
+      'member_data': '',
+      'kosu_data': paginator.get_paginated_response(serializer.data).data,
+    }
     return Response(response_data)
 
 

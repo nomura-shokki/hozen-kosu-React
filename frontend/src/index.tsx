@@ -40,6 +40,8 @@ import InquirUpdate from './InquirPage/InquirUpdate';
 import AdministratorMenu from './AdministratorPage/AdministratorMenu';
 import AdministratorUpdate from './AdministratorPage/AdministratorUpdate';
 import AdministratorLoading from './AdministratorPage/AdministratorLoading';
+import AdministratorKosuList from './AdministratorPage/AdministratorKosuList';
+
 
 
 const App: React.FC = () => {
@@ -85,6 +87,7 @@ const App: React.FC = () => {
       "/manager-menu": "管理者Menu - 業務工数システム",
       "/manager-update": "設定編集 - 業務工数システム",
       "/manager-loading": "データ管理 - 業務工数システム",
+      "/manager-kosu": "全工数管理 - 業務工数システム",
     };
 
     // URLに基づいてタイトルを設定
@@ -131,6 +134,7 @@ const App: React.FC = () => {
       <Route path="/manager-menu" element={<AdministratorMenu />} />
       <Route path="/manager-update" element={<AdministratorUpdate />} />
       <Route path="/manager-loading" element={<AdministratorLoading />} />
+      <Route path="/manager-kosu" element={<AdministratorKosuList />} />
     </Routes>
   );
 };
