@@ -56,8 +56,8 @@ const AdministratorKosuList: React.FC = () => {
   const navigate = useNavigate();
 
   const fetchData = useCallback(async (
-    page: number, 
-    day: string, 
+    page: number, 
+    day: string, 
     mode: boolean,
     member: string,
   ) => {
@@ -66,12 +66,12 @@ const AdministratorKosuList: React.FC = () => {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu/`, {
         params: {
           page: page,
-          ...(day && {
+          ...(day || member ? { // フィルターが存在する場合にのみday, mode, filterを渡す
             day: day,
             mode: mode ? "month" : "day",
             filter: "true",
             member: member,
-          }),
+          } : {}),
         },
         withCredentials: true,
       });
@@ -109,7 +109,7 @@ const AdministratorKosuList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [navigate]); 
+  }, [navigate]); 
 
   useEffect(() => {
     setSearchDay("");
@@ -122,11 +122,16 @@ const AdministratorKosuList: React.FC = () => {
     fetchData(currentPage, searchDay, searchByMonth, selectedMemberInput);
   }, [currentPage, fetchData]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+    fetchData(1, searchDay, searchByMonth, selectedMemberInput);
+  }, [selectedMemberInput, fetchData, searchDay, searchByMonth]);
+
 
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);
     setCurrentPage(1);
-    fetchData(1, searchDay, isMonthSearch, ""); 
+    fetchData(1, searchDay, isMonthSearch, selectedMemberInput); // 修正箇所
   };
 
   const handleNextPage = () => {
@@ -155,7 +160,7 @@ const AdministratorKosuList: React.FC = () => {
 
   useEffect(() => {
     const updateMaxHeight = () => {
-      const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0; 
+      const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0; 
       const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
       setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40);
     };

@@ -91,7 +91,7 @@ const useTaskMonitor = (
 const AdministratorLoading: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
-  const initialTaskStates = {
+  const initialTaskStates = useMemo(() => ({
     KosuBackup: false,
     KosuDelet: false,
     KosuLoad: false,
@@ -109,14 +109,14 @@ const AdministratorLoading: React.FC = () => {
     AsyncTaskDelet: false,
     OperationHistoryBackup: false,
     OperationHistoryDelet: false,
-  };
+  }), []); 
+
   const [runningStates, setRunningStates] = useState(initialTaskStates);
 
   const initialErrorStates = useMemo(() => ({
     KosuError: null, DefError: null, MemberError: null, TeamError: null, InquiryError: null,
     SettingError: null, AsyncTaskError: null, OperationHistoryError: null,
-  }), []); // useMemoでラップ
-
+  }), []); 
   const [errorStates, setErrorStates] = useState<Record<string, string | null>>(initialErrorStates);
 
   const today = getTodayDateString();
@@ -150,31 +150,54 @@ const AdministratorLoading: React.FC = () => {
 
   const createSetter = useCallback((key: keyof typeof initialTaskStates) => (value: boolean) => {
     setRunningStates(prev => ({ ...prev, [key]: value }));
-  }, []); // useCallbackでラップ
+  }, []);
 
   const createErrorSetter = useCallback((key: keyof typeof initialErrorStates) => (value: string | null) => {
     setErrorStates(prev => ({ ...prev, [key]: value }));
-  }, []); // useCallbackでラップ
+  }, []);
+
+  const KosuBackupMonitor = useTaskMonitor(createSetter('KosuBackup'), createErrorSetter('KosuError'), 'backup');
+  const KosuDeletMonitor = useTaskMonitor(createSetter('KosuDelet'), createErrorSetter('KosuError'), 'delete');
+  const KosuLoadMonitor = useTaskMonitor(createSetter('KosuLoad'), createErrorSetter('KosuError'), 'load');
+  const DefBackupMonitor = useTaskMonitor(createSetter('DefBackup'), createErrorSetter('DefError'), 'backup');
+  const DefLoadMonitor = useTaskMonitor(createSetter('DefLoad'), createErrorSetter('DefError'), 'load');
+  const MemberBackupMonitor = useTaskMonitor(createSetter('MemberBackup'), createErrorSetter('MemberError'), 'backup');
+  const MemberLoadMonitor = useTaskMonitor(createSetter('MemberLoad'), createErrorSetter('MemberError'), 'load');
+  const TeamBackupMonitor = useTaskMonitor(createSetter('TeamBackup'), createErrorSetter('TeamError'), 'backup');
+  const TeamLoadMonitor = useTaskMonitor(createSetter('TeamLoad'), createErrorSetter('TeamError'), 'load');
+  const InquiryBackupMonitor = useTaskMonitor(createSetter('InquiryBackup'), createErrorSetter('InquiryError'), 'backup');
+  const InquiryLoadMonitor = useTaskMonitor(createSetter('InquiryLoad'), createErrorSetter('InquiryError'), 'load');
+  const SettingBackupMonitor = useTaskMonitor(createSetter('SettingBackup'), createErrorSetter('SettingError'), 'backup');
+  const SettingLoadMonitor = useTaskMonitor(createSetter('SettingLoad'), createErrorSetter('SettingError'), 'load');
+  const AsyncTaskBackupMonitor = useTaskMonitor(createSetter('AsyncTaskBackup'), createErrorSetter('AsyncTaskError'), 'backup');
+  const AsyncTaskDeletMonitor = useTaskMonitor(createSetter('AsyncTaskDelet'), createErrorSetter('AsyncTaskError'), 'delete');
+  const OperationHistoryBackupMonitor = useTaskMonitor(createSetter('OperationHistoryBackup'), createErrorSetter('OperationHistoryError'), 'backup');
+  const OperationHistoryDeletMonitor = useTaskMonitor(createSetter('OperationHistoryDelet'), createErrorSetter('OperationHistoryError'), 'delete');
 
   const monitorHooks = useMemo(() => ({
-    KosuBackup: useTaskMonitor(createSetter('KosuBackup'), createErrorSetter('KosuError'), 'backup'),
-    KosuDelet: useTaskMonitor(createSetter('KosuDelet'), createErrorSetter('KosuError'), 'delete'),
-    KosuLoad: useTaskMonitor(createSetter('KosuLoad'), createErrorSetter('KosuError'), 'load'),
-    DefBackup: useTaskMonitor(createSetter('DefBackup'), createErrorSetter('DefError'), 'backup'),
-    DefLoad: useTaskMonitor(createSetter('DefLoad'), createErrorSetter('DefError'), 'load'),
-    MemberBackup: useTaskMonitor(createSetter('MemberBackup'), createErrorSetter('MemberError'), 'backup'),
-    MemberLoad: useTaskMonitor(createSetter('MemberLoad'), createErrorSetter('MemberError'), 'load'),
-    TeamBackup: useTaskMonitor(createSetter('TeamBackup'), createErrorSetter('TeamError'), 'backup'),
-    TeamLoad: useTaskMonitor(createSetter('TeamLoad'), createErrorSetter('TeamError'), 'load'),
-    InquiryBackup: useTaskMonitor(createSetter('InquiryBackup'), createErrorSetter('InquiryError'), 'backup'),
-    InquiryLoad: useTaskMonitor(createSetter('InquiryLoad'), createErrorSetter('InquiryError'), 'load'),
-    SettingBackup: useTaskMonitor(createSetter('SettingBackup'), createErrorSetter('SettingError'), 'backup'),
-    SettingLoad: useTaskMonitor(createSetter('SettingLoad'), createErrorSetter('SettingError'), 'load'),
-    AsyncTaskBackup: useTaskMonitor(createSetter('AsyncTaskBackup'), createErrorSetter('AsyncTaskError'), 'backup'),
-    AsyncTaskDelet: useTaskMonitor(createSetter('AsyncTaskDelet'), createErrorSetter('AsyncTaskError'), 'delete'),
-    OperationHistoryBackup: useTaskMonitor(createSetter('OperationHistoryBackup'), createErrorSetter('OperationHistoryError'), 'backup'),
-    OperationHistoryDelet: useTaskMonitor(createSetter('OperationHistoryDelet'), createErrorSetter('OperationHistoryError'), 'delete'),
-  }), [createSetter, createErrorSetter]); // useMemoでラップ
+    KosuBackup: KosuBackupMonitor,
+    KosuDelet: KosuDeletMonitor,
+    KosuLoad: KosuLoadMonitor,
+    DefBackup: DefBackupMonitor,
+    DefLoad: DefLoadMonitor,
+    MemberBackup: MemberBackupMonitor,
+    MemberLoad: MemberLoadMonitor,
+    TeamBackup: TeamBackupMonitor,
+    TeamLoad: TeamLoadMonitor,
+    InquiryBackup: InquiryBackupMonitor,
+    InquiryLoad: InquiryLoadMonitor,
+    SettingBackup: SettingBackupMonitor,
+    SettingLoad: SettingLoadMonitor,
+    AsyncTaskBackup: AsyncTaskBackupMonitor,
+    AsyncTaskDelet: AsyncTaskDeletMonitor,
+    OperationHistoryBackup: OperationHistoryBackupMonitor,
+    OperationHistoryDelet: OperationHistoryDeletMonitor,
+  }), [
+    KosuBackupMonitor, KosuDeletMonitor, KosuLoadMonitor, DefBackupMonitor, DefLoadMonitor,
+    MemberBackupMonitor, MemberLoadMonitor, TeamBackupMonitor, TeamLoadMonitor,
+    InquiryBackupMonitor, InquiryLoadMonitor, SettingBackupMonitor, SettingLoadMonitor,
+    AsyncTaskBackupMonitor, AsyncTaskDeletMonitor, OperationHistoryBackupMonitor, OperationHistoryDeletMonitor,
+  ]);
 
   const startTask = useCallback(async (
     taskKey: keyof typeof monitorHooks,
@@ -226,7 +249,7 @@ const AdministratorLoading: React.FC = () => {
       setError(`${processName}の開始中にネットワークエラーが発生しました。`);
       alert(`${processName}の開始に失敗しました。`);
     }
-  }, [monitorHooks, startDay, endDay, createSetter, createErrorSetter, initialErrorStates]);
+  }, [monitorHooks, startDay, endDay, createSetter, createErrorSetter, initialErrorStates]); // initialErrorStatesを追加
 
   const startFileLoad = useCallback(async (
     taskKey: 'KosuLoad' | 'DefLoad' | 'MemberLoad' | 'TeamLoad' | 'InquiryLoad' | 'SettingLoad',
@@ -278,7 +301,7 @@ const AdministratorLoading: React.FC = () => {
       setError(`${processName}の開始中にネットワークエラーが発生しました。`);
       alert(`${processName}の開始に失敗しました。`);
     }
-  }, [monitorHooks, createSetter, createErrorSetter, initialErrorStates]);
+  }, [monitorHooks, createSetter, createErrorSetter, initialErrorStates]); // initialErrorStatesを追加
 
   const startKosuload = useCallback(() => {
     return startFileLoad('KosuLoad', 'kosu_load', '工数データロード', kosuFile);
