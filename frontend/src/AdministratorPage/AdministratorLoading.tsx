@@ -249,7 +249,7 @@ const AdministratorLoading: React.FC = () => {
       setError(`${processName}の開始中にネットワークエラーが発生しました。`);
       alert(`${processName}の開始に失敗しました。`);
     }
-  }, [monitorHooks, startDay, endDay, createSetter, createErrorSetter, initialErrorStates]); // initialErrorStatesを追加
+  }, [monitorHooks, startDay, endDay, createSetter, createErrorSetter, initialErrorStates]);
 
   const startFileLoad = useCallback(async (
     taskKey: 'KosuLoad' | 'DefLoad' | 'MemberLoad' | 'TeamLoad' | 'InquiryLoad' | 'SettingLoad',
@@ -301,7 +301,7 @@ const AdministratorLoading: React.FC = () => {
       setError(`${processName}の開始中にネットワークエラーが発生しました。`);
       alert(`${processName}の開始に失敗しました。`);
     }
-  }, [monitorHooks, createSetter, createErrorSetter, initialErrorStates]); // initialErrorStatesを追加
+  }, [monitorHooks, createSetter, createErrorSetter, initialErrorStates]);
 
   const startKosuload = useCallback(() => {
     return startFileLoad('KosuLoad', 'kosu_load', '工数データロード', kosuFile);
