@@ -1533,6 +1533,58 @@ class AdministratorKosuList(APIView):
 
 
 
+class AdministratorKosuUpdate(APIView):
+  # 指定IDの工数データ取得
+  def get_object(self, pk):
+    try:
+      return Business_Time_graph.objects.get(id=pk)
+    except Business_Time_graph.DoesNotExist:
+      return None
+
+
+  # GET処理
+  def get(self, request, pk):
+    # 工数データ取得
+    kosu_instance = self.get_object(pk)
+    if not kosu_instance:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # セッション値、日付取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+    request.session['day'] = str(kosu_instance.work_day2)
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+    if not def_ver:
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+
+    # ログイン者情報取得
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    # ログイン者情報取得
+    try:
+      kosu_member = member.objects.get(employee_no=kosu_instance.employee_no3)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '工数データのユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # データ変換
+    kosu_serializer = KosuSerializer(kosu_instance)
+    member_serializer = MemberSerializer(kosu_member, many=False)
+
+    # 送信データ
+    response_data = {
+      'kosu_data': kosu_serializer.data,
+      'member_data': member_serializer.data,
+    }
+
+    return Response(response_data)
 
 
 

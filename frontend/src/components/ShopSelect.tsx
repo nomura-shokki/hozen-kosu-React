@@ -1,11 +1,11 @@
 import React from "react";
+import styles from "../styles/components/ShopSelect.module.css";
 
 interface ShopSelectProps {
+  id?: string;
   value: string;
   onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  className?: string;
   name?: string;
-  id?: string;
 }
 
 // value と label を分けた選択肢リスト
@@ -29,11 +29,10 @@ const shopOptions = [
 const ShopSelect: React.FC<ShopSelectProps> = ({
   value,
   onChange,
-  className = "form-select",
   name = "shop",
   id = "shop",
 }) => (
-  <select id={id} name={name} value={value} onChange={onChange} className={className}>
+  <select id={id} name={name} value={value} onChange={onChange} className={styles["form-width"]}>
     {shopOptions.map((option) => (
       <option key={option.value} value={option.value}>
         {option.label}

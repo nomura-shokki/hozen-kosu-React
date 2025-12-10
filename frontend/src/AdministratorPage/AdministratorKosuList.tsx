@@ -221,8 +221,6 @@ const AdministratorKosuList: React.FC = () => {
 
   useEffect(() => {
     const updateMaxHeight = () => {
-      const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0; 
-      const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
       setMaxHeight(window.innerHeight - 100);
     };
 
@@ -254,18 +252,18 @@ const AdministratorKosuList: React.FC = () => {
           <Link to="/manager-menu">管理者MENU</Link>
         </nav>
         <div className={styles["search-bar"]}>
-          <label onClick={() => dateInputRef.current?.showPicker?.()}>
-            就業日：
-            <input
-              type="date"
-              ref={dateInputRef}
-              value={searchDay}
-              onChange={handleSearchDayChange}
-              placeholder="日付を選択"
-            />
-          </label>
-
-          <div className={styles["button-group"]}>
+          <div className={styles["row-group"]}>
+            <div className={styles["form-group"]}>
+              <label htmlFor="searchDayInput">就業日：</label>
+              <input 
+                type="date" 
+                id="searchDayInput" 
+                ref={dateInputRef} 
+                value={searchDay} 
+                onChange={handleSearchDayChange} 
+                placeholder="日付を選択"
+              />
+            </div>
             <button
               onClick={() => handleSearch(true)}
               className="gray_button"
@@ -279,41 +277,57 @@ const AdministratorKosuList: React.FC = () => {
               指定日
             </button>
           </div>
-          <label htmlFor="team-member-select">人員：</label>
-          <TeamMemberSelect
-            id="team-member-select"
-            name="team-member-select"
-            value={selectedMemberInput}
-            onChange={handleMemberChange}
-            options={MemberOptions}
-          />
-          <label htmlFor="shopFilter">ショップ：</label>
-          <ShopSelect
-            id="shopFilter"
-            name="shopFilter"
-            value={searchShop}
-            onChange={handleShopChange}
-          />
-          <label htmlFor="tyokuFilter">直：</label>
-          <TyokuSelect 
-            id="tyokuFilter" 
-            value={searchTyoku} 
-            onChange={handleTyokuChange} 
-          />
-          <label htmlFor="workFilter">勤務形態：</label>
-          <WorkSelect
-            id="workFilter" 
-            value={searchWork} 
-            onChange={handleWorkChange} 
-            mode='ALL' 
-          />
-          <label htmlFor="JudgementSelect">整合性:</label>
-          <JudgementSelect
-            id="JudgementSelect"
-            name="JudgementSelect"
-            value={searchJudgement}
-            onChange={handleJudgementChange}
-          />
+          <div className={styles["row-group"]}>
+            <div className={styles["form-group"]}>
+              <label htmlFor="team-member-select">人員：</label>
+              <TeamMemberSelect
+                id="team-member-select"
+                name="team-member-select"
+                value={selectedMemberInput}
+                onChange={handleMemberChange}
+                options={MemberOptions}
+              />
+            </div>
+            <div className={styles["form-group"]}>
+              <label htmlFor="shopFilter">ショップ：</label>
+              <ShopSelect
+                id="shopFilter"
+                name="shopFilter"
+                value={searchShop}
+                onChange={handleShopChange}
+              />
+            </div>
+          </div>
+          <div className={styles["row-group"]}>
+            <div className={styles["form-group"]}>
+              <label htmlFor="tyokuFilter">直：</label>
+              <TyokuSelect 
+                id="tyokuFilter" 
+                value={searchTyoku} 
+                onChange={handleTyokuChange} 
+              />
+            </div>
+            <div className={styles["form-group"]}>
+              <label htmlFor="workFilter">勤務形態：</label>
+              <WorkSelect
+                id="workFilter" 
+                value={searchWork} 
+                onChange={handleWorkChange} 
+                mode='ALL' 
+              />
+            </div>
+          </div>
+          <div className={styles["row-group"]}>
+            <div className={styles["form-group"]}>
+              <label htmlFor="JudgementSelect">整合性:</label>
+              <JudgementSelect
+                id="JudgementSelect"
+                name="JudgementSelect"
+                value={searchJudgement}
+                onChange={handleJudgementChange}
+              />
+            </div>
+          </div>
         </div>
         {data.length === 0 ? (
           <p>No data found.</p>
@@ -348,7 +362,7 @@ const AdministratorKosuList: React.FC = () => {
                       {item.judgement ? "OK" : "NG"}
                     </td>
                     <td>
-                      <Link to={`/kosu-update/${item.id}`} className={styles["a-collar"]}>編集</Link>
+                      <Link to={`/manager-kosu-update/${item.id}`} className={styles["a-collar"]}>編集</Link>
                     </td>
                   </tr>
                 ))}
