@@ -94,7 +94,7 @@ const KosuList: React.FC = () => {
 
   useEffect(() => {
     fetchData(currentPage, searchDay, searchByMonth);
-  }, [currentPage, fetchData]);
+  }, [currentPage, fetchData, searchDay, searchByMonth]);
 
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);

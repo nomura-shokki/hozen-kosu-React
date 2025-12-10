@@ -76,16 +76,33 @@ const TeamNew: React.FC = () => {
         const teamDefaultData = response.data.member_default;
         const teamFollow = response.data.team_data.follow;
 
-        const initialFormData: any = { ...formData, employee_no5: loggedInEmployeeNo, follow: teamFollow };
+        const initialFields: any = { 
+          employee_no5: loggedInEmployeeNo, 
+          follow: teamFollow,
+          shop1: "",
+          shop2: "",
+        };
+        // member1-15 の初期値設定
         teamDefaultData.forEach((member: { employee_no: number }, index: number) => {
           const memberKey = `member${index + 1}` as keyof FormData;
-          initialFormData[memberKey] = String(member.employee_no);
+          initialFields[memberKey] = String(member.employee_no);
         });
 
-        initialFormData.shop1 = "";
-        initialFormData.shop2 = "";
+        setFormData((prevFormData) => {
+          for (let i = 1; i <= 15; i++) {
+            const memberKey = `member${i}` as keyof FormData;
+            if (!initialFields[memberKey]) {
+              initialFields[memberKey] = "";
+            }
+          }
 
-        setFormData(initialFormData);
+          return {
+            ...prevFormData, 
+            ...initialFields,
+            shop1: "", 
+            shop2: "", 
+          };
+        });
       })
       .catch((err) => {
         if (err.response?.status === 401) {

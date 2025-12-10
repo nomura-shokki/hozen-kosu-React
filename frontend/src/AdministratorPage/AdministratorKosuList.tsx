@@ -120,7 +120,7 @@ const AdministratorKosuList: React.FC = () => {
 
   useEffect(() => {
     fetchData(currentPage, searchDay, searchByMonth, selectedMemberInput);
-  }, [currentPage, fetchData]);
+  }, [currentPage, fetchData, searchDay, searchByMonth, selectedMemberInput]);
 
   useEffect(() => {
     setCurrentPage(1);
