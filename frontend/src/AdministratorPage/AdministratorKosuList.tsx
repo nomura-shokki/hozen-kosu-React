@@ -118,20 +118,34 @@ const AdministratorKosuList: React.FC = () => {
     setCurrentPage(1);
   }, [location.pathname]);
 
+  // ページネーション変更時のみfetchDataを呼び出す
   useEffect(() => {
     fetchData(currentPage, searchDay, searchByMonth, selectedMemberInput);
-  }, [currentPage, fetchData, searchDay, searchByMonth, selectedMemberInput]);
+  }, [currentPage, fetchData, searchDay, searchByMonth, selectedMemberInput]); // selectedMemberInput, searchDay, searchByMonth も依存に追加
 
-  useEffect(() => {
+  // searchDayの変更ハンドラ: 選択されたら即座に絞り込みを実行し、ページを1にリセット
+  const handleSearchDayChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newDay = e.target.value;
+    setSearchDay(newDay);
     setCurrentPage(1);
-    fetchData(1, searchDay, searchByMonth, selectedMemberInput);
-  }, [selectedMemberInput, fetchData, searchDay, searchByMonth]);
+    // fetchDataを直接呼び出して絞り込みを実行
+    fetchData(1, newDay, searchByMonth, selectedMemberInput);
+  };
 
+  // メンバー変更ハンドラ: 選択されたら即座に絞り込みを実行し、ページを1にリセット
+  const handleMemberChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const newMember = event.target.value;
+    setSelectedMemberInput(newMember);
+    setCurrentPage(1); // 絞り込み時にページをリセット
+    // fetchDataを直接呼び出して絞り込みを実行
+    fetchData(1, searchDay, searchByMonth, newMember);
+  };
 
+  // 日付指定検索ボタンのハンドラ: searchByMonthの状態を変更し、ページを1にリセットして絞り込みを実行
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);
     setCurrentPage(1);
-    fetchData(1, searchDay, isMonthSearch, selectedMemberInput); // 修正箇所
+    fetchData(1, searchDay, isMonthSearch, selectedMemberInput);
   };
 
   const handleNextPage = () => {
@@ -152,10 +166,6 @@ const AdministratorKosuList: React.FC = () => {
 
   const handleLastPage = () => {
     setCurrentPage(totalPages);
-  };
-
-  const handleMemberChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedMemberInput(event.target.value);
   };
 
   useEffect(() => {
@@ -199,7 +209,7 @@ const AdministratorKosuList: React.FC = () => {
               type="date"
               ref={dateInputRef}
               value={searchDay}
-              onChange={(e) => setSearchDay(e.target.value)}
+              onChange={handleSearchDayChange}
               placeholder="日付を選択"
             />
           </label>
@@ -223,7 +233,7 @@ const AdministratorKosuList: React.FC = () => {
             id="team-member-select"
             name="team-member-select"
             value={selectedMemberInput}
-            onChange={handleMemberChange}
+            onChange={handleMemberChange} // ★変更なし: handleMemberChange内でページを1にリセットするように変更
             options={MemberOptions}
           />
 
