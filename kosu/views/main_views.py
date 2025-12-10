@@ -1482,6 +1482,10 @@ class AdministratorKosuList(APIView):
 
     # 検索パラメータの取得
     search_day = request.query_params.get('day')
+    search_shop = request.query_params.get('shop')
+    search_tyoku = request.query_params.get('tyoku')
+    search_work = request.query_params.get('work')
+    search_judgement = request.query_params.get('judgement')
     mode = request.query_params.get('mode', 'day')
     filter_flag = request.query_params.get('filter', 'false') == 'true'
     search_member = request.query_params.get('member')
@@ -1489,26 +1493,37 @@ class AdministratorKosuList(APIView):
     # 工数履歴データの取得
     kosus = Business_Time_graph.objects.all().order_by('-work_day2')
 
-    # 工数履歴データ絞り込み
+    # 人員情報取得
+    kosu_member = list(Business_Time_graph.objects.values_list('employee_no3', flat=True).order_by('employee_no3').distinct())
+    member_filter = member.objects.filter(employee_no__in=kosu_member).order_by('employee_no')
+
+    # データ絞り込み
     if search_day and filter_flag:
       if mode == 'month':
         kosus = kosus.filter(work_day2__startswith=search_day[:7])
       else:
         kosus = kosus.filter(work_day2=search_day)
-    print('a', search_member)
     if search_member:
       kosus = kosus.filter(employee_no3=search_member)
+    if search_shop:
+      member_shop = member.objects.filter(shop=search_shop).values_list('employee_no', flat=True)
+      kosus = kosus.filter(employee_no3__in=member_shop)
+      common_employee_no = set(kosu_member) & set(member_shop)
+      member_filter = member.objects.filter(employee_no__in=list(common_employee_no)).order_by('employee_no')
+    if search_tyoku:
+      kosus = kosus.filter(tyoku2=search_tyoku)
+    if search_work:
+      kosus = kosus.filter(work_time=search_work)
+    if search_judgement:
+      judgement = True if search_judgement == 'OK' else False
+      kosus = kosus.filter(judgement=judgement)
+
+    member_serializer = MemberSerializer(member_filter, many=True)
 
     # ページネーション
     paginator = CustomPagination()
     result_page = paginator.paginate_queryset(kosus, request)
     serializer = KosuSerializer(result_page, many=True)
-
-    # 人員情報取得
-    kosu_member = list(Business_Time_graph.objects.values_list('employee_no3', flat=True).order_by('employee_no3').distinct())
-    member_filter = member.objects.filter(employee_no__in=kosu_member).order_by('employee_no')
-    member_serializer = MemberSerializer(member_filter, many=True)
-
 
     response_data = {
       'member_data': member_serializer.data,

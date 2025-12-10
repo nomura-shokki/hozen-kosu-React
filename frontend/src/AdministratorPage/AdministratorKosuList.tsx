@@ -3,6 +3,10 @@ import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Loading from "../components/Loading";
 import TeamMemberSelect from "../components/TeamMemberSelect";
+import ShopSelect from "../components/ShopSelect";
+import TyokuSelect from "../components/TyokuSelect";
+import WorkSelect from "../components/WorkSelect";
+import JudgementSelect from "../components/JudgementSelect";
 import styles from "../styles/AdministratorPage/AdministratorKosuList.module.css";
 
 interface Kosu {
@@ -11,6 +15,7 @@ interface Kosu {
   name: string;
   work_day2: string;
   tyoku2: string;
+  work_time: string;
   judgement: boolean;
 }
 
@@ -35,13 +40,17 @@ const formatTyoku = (value: string | number): string => {
 const getDayOfWeek = (dateStr: string): string => {
   const days = ["日", "月", "火", "水", "木", "金", "土"];
   const date = new Date(dateStr);
-  return days[date.getDay()] || ""; // 日付が無効の場合は空文字を返す
+  return days[date.getDay()] || "";
 };
 
 const AdministratorKosuList: React.FC = () => {
   const [data, setData] = useState<Kosu[]>([]);
   const [MemberOptions, setMemberOptions] = useState<KosuMember[]>([]);
   const [selectedMemberInput, setSelectedMemberInput] = useState<string>("");
+  const [searchShop, setSearchShop] = useState<string>(""); 
+  const [searchTyoku, setSearchTyoku] = useState<string>(""); 
+  const [searchWork, setSearchWork] = useState<string>(""); 
+  const [searchJudgement, setSearchJudgement] = useState<string>(""); 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchDay, setSearchDay] = useState<string>("");
@@ -56,21 +65,29 @@ const AdministratorKosuList: React.FC = () => {
   const navigate = useNavigate();
 
   const fetchData = useCallback(async (
-    page: number, 
-    day: string, 
+    page: number, 
+    day: string, 
     mode: boolean,
     member: string,
+    shop: string,
+    tyoku: string,
+    work: string,
+    judgement: string,
   ) => {
     setLoading(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu/`, {
         params: {
           page: page,
-          ...(day || member ? { // フィルターが存在する場合にのみday, mode, filterを渡す
+          ...(day || member || shop || tyoku || work || judgement ? { 
             day: day,
             mode: mode ? "month" : "day",
             filter: "true",
             member: member,
+            shop: shop,
+            tyoku: tyoku,
+            work: work,
+            judgement: judgement,
           } : {}),
         },
         withCredentials: true,
@@ -109,43 +126,77 @@ const AdministratorKosuList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [navigate]); 
+  }, [navigate]); 
 
   useEffect(() => {
     setSearchDay("");
     setSelectedMemberInput("");
+    setSearchShop("");
+    setSearchTyoku(""); 
+    setSearchWork(""); 
+    setSearchJudgement(""); 
     setSearchByMonth(false);
     setCurrentPage(1);
   }, [location.pathname]);
 
-  // ページネーション変更時のみfetchDataを呼び出す
   useEffect(() => {
-    fetchData(currentPage, searchDay, searchByMonth, selectedMemberInput);
-  }, [currentPage, fetchData, searchDay, searchByMonth, selectedMemberInput]); // selectedMemberInput, searchDay, searchByMonth も依存に追加
+    fetchData(currentPage, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement);
+  }, [currentPage, fetchData, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement]); 
 
-  // searchDayの変更ハンドラ: 選択されたら即座に絞り込みを実行し、ページを1にリセット
+  // searchDayの変更ハンドラ
   const handleSearchDayChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newDay = e.target.value;
     setSearchDay(newDay);
     setCurrentPage(1);
-    // fetchDataを直接呼び出して絞り込みを実行
-    fetchData(1, newDay, searchByMonth, selectedMemberInput);
+    fetchData(1, newDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement);
   };
 
-  // メンバー変更ハンドラ: 選択されたら即座に絞り込みを実行し、ページを1にリセット
+  // メンバー変更ハンドラ
   const handleMemberChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const newMember = event.target.value;
     setSelectedMemberInput(newMember);
-    setCurrentPage(1); // 絞り込み時にページをリセット
-    // fetchDataを直接呼び出して絞り込みを実行
-    fetchData(1, searchDay, searchByMonth, newMember);
+    setCurrentPage(1);
+    fetchData(1, searchDay, searchByMonth, newMember, searchShop, searchTyoku, searchWork, searchJudgement);
   };
 
-  // 日付指定検索ボタンのハンドラ: searchByMonthの状態を変更し、ページを1にリセットして絞り込みを実行
+  // ShopSelectの変更ハンドラ
+  const handleShopChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const newShop = event.target.value;
+    setSearchShop(newShop);
+    setCurrentPage(1);
+    fetchData(1, searchDay, searchByMonth, selectedMemberInput, newShop, searchTyoku, searchWork, searchJudgement);
+  };
+  
+  // TyokuSelectの変更ハンドラ
+  const handleTyokuChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const newTyoku = event.target.value;
+    setSearchTyoku(newTyoku);
+    setCurrentPage(1);
+    fetchData(1, searchDay, searchByMonth, selectedMemberInput, searchShop, newTyoku, searchWork, searchJudgement);
+  };
+
+  // WorkSelectの変更ハンドラ
+  const handleWorkChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const newWork = event.target.value;
+    setSearchWork(newWork);
+    setCurrentPage(1);
+    fetchData(1, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, newWork, searchJudgement);
+  };
+
+  // udgementSelectの変更ハンドラ
+  const handleJudgementChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const newJudgement = event.target.value;
+    setSearchJudgement(newJudgement);
+    setCurrentPage(1);
+    fetchData(1, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, newJudgement);
+  };
+
+
+  // 日付指定検索ボタンのハンドラ
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);
     setCurrentPage(1);
-    fetchData(1, searchDay, isMonthSearch, selectedMemberInput);
+    fetchData(1, searchDay, isMonthSearch, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement);
   };
 
   const handleNextPage = () => {
@@ -170,9 +221,9 @@ const AdministratorKosuList: React.FC = () => {
 
   useEffect(() => {
     const updateMaxHeight = () => {
-      const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0; 
+      const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0; 
       const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
-      setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40);
+      setMaxHeight(window.innerHeight - 100);
     };
 
     updateMaxHeight();
@@ -228,15 +279,41 @@ const AdministratorKosuList: React.FC = () => {
               指定日
             </button>
           </div>
-          <label htmlFor="team-member-select"></label>
+          <label htmlFor="team-member-select">人員：</label>
           <TeamMemberSelect
             id="team-member-select"
             name="team-member-select"
             value={selectedMemberInput}
-            onChange={handleMemberChange} // ★変更なし: handleMemberChange内でページを1にリセットするように変更
+            onChange={handleMemberChange}
             options={MemberOptions}
           />
-
+          <label htmlFor="shopFilter">ショップ：</label>
+          <ShopSelect
+            id="shopFilter"
+            name="shopFilter"
+            value={searchShop}
+            onChange={handleShopChange}
+          />
+          <label htmlFor="tyokuFilter">直：</label>
+          <TyokuSelect 
+            id="tyokuFilter" 
+            value={searchTyoku} 
+            onChange={handleTyokuChange} 
+          />
+          <label htmlFor="workFilter">勤務形態：</label>
+          <WorkSelect
+            id="workFilter" 
+            value={searchWork} 
+            onChange={handleWorkChange} 
+            mode='ALL' 
+          />
+          <label htmlFor="JudgementSelect">整合性:</label>
+          <JudgementSelect
+            id="JudgementSelect"
+            name="JudgementSelect"
+            value={searchJudgement}
+            onChange={handleJudgementChange}
+          />
         </div>
         {data.length === 0 ? (
           <p>No data found.</p>
@@ -244,7 +321,7 @@ const AdministratorKosuList: React.FC = () => {
           <div
             className={styles["table-wrapper"]}
             style={{
-              maxHeight: `${maxHeight}px`,
+              minHeight: `${maxHeight}px`,
               overflowY: "auto",
               width: `${tableWidth + 20}px`,
             }}
@@ -255,9 +332,9 @@ const AdministratorKosuList: React.FC = () => {
                   <th className={styles["th-collar"]}>氏名</th>
                   <th className={styles["th-collar"]}>就業日</th>
                   <th className={styles["th-collar"]}>直</th>
+                  <th className={styles["th-collar"]}>勤務形態</th>
                   <th className={styles["th-collar"]}>整合性</th>
                   <th className={styles["th-collar"]}>編集</th>
-                  <th className={styles["th-collar"]}>削除</th>
                 </tr>
               </thead>
               <tbody>
@@ -266,14 +343,12 @@ const AdministratorKosuList: React.FC = () => {
                     <td>{item.name}</td>
                     <td>{item.work_day2} ({getDayOfWeek(item.work_day2)})</td>
                     <td>{formatTyoku(item.tyoku2)}</td>
+                    <td>{item.work_time}</td>
                     <td className={item.judgement ? styles["status-ok"] : styles["status-ng"]}>
                       {item.judgement ? "OK" : "NG"}
                     </td>
                     <td>
                       <Link to={`/kosu-update/${item.id}`} className={styles["a-collar"]}>編集</Link>
-                    </td>
-                    <td>
-                      <Link to={`/kosu-delete/${item.id}`} className={styles["a-collar"]}>削除</Link>
                     </td>
                   </tr>
                 ))}

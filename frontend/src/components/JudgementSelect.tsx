@@ -9,13 +9,12 @@ interface ItemSelectProps {
 }
 
 const Options = [
-  { value: "", label: "-- 内容選択 --" },
-  { value: "要望", label: "要望" },
-  { value: "不具合", label: "不具合" },
-  { value: "問い合わせ", label: "問い合わせ" },
+  { value: "", label: "---" },
+  { value: "OK", label: "OK" },
+  { value: "NG", label: "NG" },
 ];
 
-const ItemSelect: React.FC<ItemSelectProps> = ({
+const JudgementSelect: React.FC<ItemSelectProps> = ({
   value,
   onChange,
   className = "form-select",
@@ -31,4 +30,4 @@ const ItemSelect: React.FC<ItemSelectProps> = ({
   </select>
 );
 
-export default ItemSelect;
+export default JudgementSelect;
