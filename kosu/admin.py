@@ -7,6 +7,7 @@ from .models import administrator_data
 from .models import inquiry_data
 from .models import AsyncTask
 from .models import Operation_history
+from .models import History
 
 
 
@@ -30,3 +31,9 @@ class OperationHistoryAdmin(admin.ModelAdmin):
   readonly_fields = ('created_at',)
 
 admin.site.register(Operation_history, OperationHistoryAdmin)
+
+class HistoryAdmin(admin.ModelAdmin):
+  readonly_fields = ('timestamp',)
+
+admin.site.register(History, HistoryAdmin)
+

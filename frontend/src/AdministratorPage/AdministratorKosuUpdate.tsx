@@ -1,8 +1,7 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import Loading from "../components/Loading";
-import ShopSelect from "../components/ShopSelect"; 
+import Loading from "../components/Loading"; 
 import styles from "../styles/AdministratorPage/AdministratorKosuUpdate.module.css";
 
 // サーバーから取得・送信される人員データの型定義
@@ -31,14 +30,9 @@ interface KosuResponse {
 }
 
 const AdministratorKosuUpdate: React.FC = () => {
-  // URLパラメータから従業員番号（文字列）を取得 → 数値に変換
-  const { employee_no } = useParams<{ employee_no: string }>();
-  const employeeNo = Number(employee_no);
-
-  const navigate = useNavigate(); // 画面遷移用フック
-
-  // 各ステート定義（人員情報、ロード状態、エラー表示など）
-  const [formData, setFormData] = useState<Member | null>(null);
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<Kosu | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -46,9 +40,10 @@ const AdministratorKosuUpdate: React.FC = () => {
   // 初回マウント時に該当従業員のデータを取得
   useEffect(() => {
     axios
-      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, { withCredentials: true })
+      .get<KosuResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`, { withCredentials: true })
       .then((response) => {
-        setFormData(response.data); // 取得したデータをステートに格納
+        const { kosu_data } = response.data;
+        setFormData(kosu_data);
         setLoading(false);
       })
       .catch((err) => {
@@ -62,7 +57,7 @@ const AdministratorKosuUpdate: React.FC = () => {
         }
         setLoading(false);
       });
-  }, [employeeNo, navigate]); // employeeNoやnavigateが変わったら再実行
+  }, [id, navigate]);
 
   // ローディング中の表示
   if (loading) {
@@ -79,46 +74,18 @@ const AdministratorKosuUpdate: React.FC = () => {
     return <div>データが見つかりません</div>;
   }
 
-  // 入力フォームで値が変更されたときのハンドラー
-  const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = event.target;
-
-    // チェックボックス（boolean）の場合と、それ以外で処理を分ける
-    if (type === "checkbox") {
-      const { checked } = event.target as HTMLInputElement;
-      setFormData((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          [name]: checked,
-        };
-      });
-    } else {
-      setFormData((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          [name]: value,
-        };
-      });
-    }
-  };
-
   // フォーム送信時（PUTで更新）
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // ページリロード防止
+    event.preventDefault();
 
     axios
-      .put(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, formData, { withCredentials: true })
+      .put(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`, formData, { withCredentials: true })
       .then(() => {
         alert("データが更新されました！");
-        navigate("/member-list"); // 更新完了後は一覧ページへ
+        navigate("/manager-kosu");
       })
       .catch((error) => {
         console.error(error);
-        // エラー内容を表示
         if (error.response && error.response.data) {
           setErrorMessage(error.response.data.error);
         } else {
@@ -127,14 +94,13 @@ const AdministratorKosuUpdate: React.FC = () => {
       });
   };
 
-  // JSXで画面描画
   return (
     <>
       <Loading isLoading={loading} />
-      <div className={styles["member-edit-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>人員データ編集</h1>
-        <nav className={styles["member-nav"]}>
-          <Link to="/member-list">人員一覧</Link>
+      <div className={styles["admin-kosu-update-wrapper"]}>
+        <h1 className={styles["h1-collar"]}>全工数データ編集</h1>
+        <nav className={styles["admin-nav"]}>
+          <Link to="/manager-kosu">全工数履歴一覧</Link>
         </nav>
 
         {errorMessage && (
@@ -156,10 +122,9 @@ const AdministratorKosuUpdate: React.FC = () => {
               type="number"
               id="employee_no"
               name="employee_no"
-              value={formData.employee_no}
-              onChange={handleChange}
+              value={formData.employee_no3}
             />
-            <button type="submit" className="yellow_button">更新</button>
+            <button type="submit" className="gray_button">更新</button>
           </div>
         </form>
       </div>

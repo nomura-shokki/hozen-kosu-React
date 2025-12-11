@@ -481,7 +481,7 @@ from rest_framework import status
 from ..models import member, administrator_data
 from .serializers import MemberSerializer
 from ..utils.main_utils import CustomPagination
-
+from ..middleware.clear_session_middleware import get_current_request
 
 
 

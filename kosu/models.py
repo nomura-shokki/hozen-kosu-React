@@ -1,4 +1,5 @@
 from django.db import models
+import jsonfield
 
 
 
@@ -335,3 +336,16 @@ class Operation_history(models.Model):
 
   def __str__(self):
     return str(self.id) + str(self.name) + '：' + str(self.created_at)
+
+
+
+class History(models.Model):
+  operation = models.CharField(max_length=10)
+  table_name = models.CharField(max_length=50)
+  record_id = models.IntegerField()
+  login_No = models.CharField(max_length=255, blank=True, null=True)
+  changes = jsonfield.JSONField(blank=True, null=True)
+  timestamp = models.DateTimeField(auto_now_add=True)
+
+  def __str__(self):
+      return f"{self.operation} on {self.table_name} (ID: {self.record_id})"

@@ -4,3 +4,6 @@ from django.apps import AppConfig
 class KosuConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'kosu'
+
+    def ready(self):
+        import kosu.signals 

@@ -47,6 +47,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'kosu.middleware.clear_session_middleware.CurrentRequestMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
