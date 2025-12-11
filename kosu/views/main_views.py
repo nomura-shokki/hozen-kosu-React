@@ -1018,7 +1018,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
-from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer
+from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer, DefSerializer
 from ..utils.main_utils import CustomPagination
 import json
 
@@ -1574,14 +1574,20 @@ class AdministratorKosuUpdate(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': '工数データのユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
 
+    # データベースから全ての工数区分データを取得
+    divisions = kosu_division.objects.all()
+
     # データ変換
     kosu_serializer = KosuSerializer(kosu_instance)
     member_serializer = MemberSerializer(kosu_member, many=False)
+    def_serializer = DefSerializer(divisions, many=True)
 
     # 送信データ
     response_data = {
       'kosu_data': kosu_serializer.data,
       'member_data': member_serializer.data,
+      'choices': def_serializer.data,
+      'current_version': def_ver 
     }
 
     return Response(response_data)

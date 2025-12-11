@@ -18,7 +18,7 @@ class member(models.Model):
     ('組長以上(P,R,T,その他)', '組長以上(P,R,T,その他)'),
     ('組長以上(W,A)', '組長以上(W,A)'),
     ('異動・退社', '異動・退社'),
-    ]
+  ]
   
   employee_no = models.IntegerField('従業員番号')
   name = models.CharField('氏名', max_length=100)
@@ -297,7 +297,7 @@ class inquiry_data(models.Model):
     ('要望', '要望'),
     ('不具合', '不具合'),
     ('問い合わせ' ,'問い合わせ'),
-    ]
+  ]
 
   employee_no2 = models.IntegerField('従業員番号')
   name = models.ForeignKey(member, verbose_name='氏名', null=True, on_delete=models.SET_NULL)
@@ -318,7 +318,7 @@ class AsyncTask(models.Model):
     ('pending', 'Pending'),
     ('success', 'Success'),
     ('error', 'Error')
-    ])
+  ])
   result = models.TextField(null=True, blank=True)
   created_at = models.DateTimeField(auto_now_add=True)
   updated_at = models.DateTimeField(auto_now=True)
@@ -340,12 +340,29 @@ class Operation_history(models.Model):
 
 
 class History(models.Model):
-  operation = models.CharField(max_length=10)
-  table_name = models.CharField(max_length=50)
-  record_id = models.IntegerField()
-  login_No = models.CharField(max_length=255, blank=True, null=True)
-  changes = jsonfield.JSONField(blank=True, null=True)
-  timestamp = models.DateTimeField(auto_now_add=True)
+    MAX_RECORDS = 500000
 
-  def __str__(self):
-      return f"{self.operation} on {self.table_name} (ID: {self.record_id})"
+    operation = models.CharField(max_length=10)
+    table_name = models.CharField(max_length=50)
+    record_id = models.IntegerField()
+    login_No = models.CharField(max_length=255, blank=True, null=True)
+    changes = jsonfield.JSONField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+      return f'{self.operation} on {self.table_name} (ID: {self.record_id})'
+
+    def save(self, *args, **kwargs):
+      # セーブ
+      super().save(*args, **kwargs)
+      
+      # 現レコード総数取得
+      current_count = self.__class__.objects.count()
+
+      # レコード数が許容数以上の場合の処理
+      if current_count > self.MAX_RECORDS:
+        # 超過レコード数分のレコード取得し削除
+        excess_count = current_count - self.MAX_RECORDS
+        oldest_records = self.__class__.objects.order_by('timestamp')[:excess_count]
+        for record in oldest_records:
+          record.delete()

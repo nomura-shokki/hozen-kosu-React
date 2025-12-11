@@ -526,6 +526,7 @@ class DefVer(APIView):
       'current_version': def_ver  # 現在の工数区分定義のバージョン
     }, status=status.HTTP_200_OK)  # HTTP 200で成功レスポンスを返す
 
+
   def post(self, request, *args, **kwargs):
     # POSTリクエスト取得
     selected_version = request.data.get('versionchoice')

@@ -2,8 +2,7 @@ import React, { useState, FormEvent, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/DefinitionPage/DefVer.module.css";
-
-
+import DefVersionSelect from "../components/DefVersionSelect"; 
 
 // 工数区分の選択肢アイテムの型
 interface DefData {
@@ -62,6 +61,7 @@ const DefVer: React.FC = () => {
       .then(() => {
         setCurrentVersion(selectedVersion);
         alert("切り替え完了！");
+        setErrorMessage(null);
       })
       .catch((error) => {
         console.error(error);
@@ -103,22 +103,11 @@ const DefVer: React.FC = () => {
         }}
       >
         <label htmlFor="versionchoice">工数区分の選択:</label>
-        <select
-          id="versionchoice"
-          name="versionchoice"
-          value={selectedVersion}
-          onChange={(e) => setSelectedVersion(e.target.value)}
-        >
-          {choices.length > 0 ? (
-            choices.map((choice) => (
-              <option key={choice.id} value={choice.kosu_name}>
-                {choice.kosu_name}
-              </option>
-            ))
-          ) : (
-            <option disabled>選択肢が取得できません</option>
-          )}
-        </select>
+        <DefVersionSelect 
+          choices={choices}
+          selectedVersion={selectedVersion}
+          setSelectedVersion={setSelectedVersion}
+        />
         <div className={styles["search-button-row"]}>
           <button type="submit" className="green_button">工数区分定義切り替え</button>
         </div>

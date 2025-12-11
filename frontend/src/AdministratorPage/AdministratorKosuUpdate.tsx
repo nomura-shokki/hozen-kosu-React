@@ -2,6 +2,7 @@ import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../components/Loading"; 
+import DefVersionSelect from "../components/DefVersionSelect"; 
 import styles from "../styles/AdministratorPage/AdministratorKosuUpdate.module.css";
 
 // サーバーから取得・送信される人員データの型定義
@@ -24,9 +25,16 @@ interface Member {
   shop: string;
 }
 
+interface DefData {
+  id: number;
+  kosu_name: string;
+}
+
 interface KosuResponse {
   kosu_data: Kosu;
   member_data: Member;
+  choices: DefData[];
+  current_version: string;
 }
 
 const AdministratorKosuUpdate: React.FC = () => {
@@ -34,6 +42,8 @@ const AdministratorKosuUpdate: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<Kosu | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [choices, setChoices] = useState<DefData[]>([]);
+  const [selectedVersion, setSelectedVersion] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -42,9 +52,11 @@ const AdministratorKosuUpdate: React.FC = () => {
     axios
       .get<KosuResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`, { withCredentials: true })
       .then((response) => {
-        const { kosu_data } = response.data;
+        const { kosu_data, choices } = response.data;
         setFormData(kosu_data);
         setLoading(false);
+        setChoices(choices);
+        setSelectedVersion(response.data.current_version);
       })
       .catch((err) => {
         // エラーステータスによって遷移やメッセージ制御
@@ -123,6 +135,13 @@ const AdministratorKosuUpdate: React.FC = () => {
               id="employee_no"
               name="employee_no"
               value={formData.employee_no3}
+            />
+            <label htmlFor="dev_Ver">工数区分定義:</label>
+            <DefVersionSelect 
+              id="dev_Ver"
+              choices={choices}
+              selectedVersion={formData.def_ver2}
+              setSelectedVersion={setSelectedVersion}
             />
             <button type="submit" className="gray_button">更新</button>
           </div>

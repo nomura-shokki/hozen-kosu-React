@@ -3,6 +3,9 @@ from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from .models import History, member, Business_Time_graph, team_member, kosu_division, administrator_data, inquiry_data
 from .middleware.clear_session_middleware import get_current_request
+from django.db import models
+
+
 
 # スレッドローカル変数初期化
 _thread_locals = local()
@@ -27,24 +30,64 @@ def get_instance_cache():
 
 # 値の差分取得
 def get_changes(instance, created):
-  # 新規作成時は全データ取得
-  if created:
-    return {field.name: getattr(instance, field.name) for field in instance._meta.fields}
-
-  # 更新時は更新前と比較し差分を取得
-  old_instance = get_instance_cache()
   changes = {}
+  
+  # モデルの全フィールド処理
+  for field in instance._meta.fields:
+    field_name = field.name
+    
+    # 値取得
+    old_instance = get_instance_cache()
+    new_value = getattr(instance, field_name)
 
-  # キャッシュが存在する場合のみ処理
-  if old_instance:
-    for field in instance._meta.fields:
-      field_name = field.name
-      old_value = getattr(old_instance, field_name)
-      new_value = getattr(instance, field_name)
+    # 新規作成時、全て変更として処理
+    if created:
+      old_value = None
+      is_changed = True
+    # 更新時、差分取得
+    else:
+      if old_instance:
+        old_value = getattr(old_instance, field_name)
+        is_changed = (old_value != new_value)
+      else:
+        continue
 
-      # 差分があるフィールドのみ記録
-      if old_value != new_value:
-        changes[field_name] = {'old': old_value, 'new': new_value}
+    # 変更or新規作成
+    if is_changed:
+        
+      # JSON化できないリレーションフィールド処理
+      if field.is_relation and field.many_to_one:
+        # 関連ID取得
+        old_json_safe_value = getattr(old_instance, field.attname) if old_instance else None
+        new_json_safe_value = getattr(instance, field.attname)
+      
+      # その他オブジェクト処理
+      elif not isinstance(new_value, (str, int, float, bool, type(None))):
+        # インスタンスが直接フィールドに格納されている場合、IDと文字列表現記録
+        if isinstance(new_value, models.Model):
+          old_json_safe_value = {'id': old_value.pk, 'str': str(old_value)} if old_value else None
+          new_json_safe_value = {'id': new_value.pk, 'str': str(new_value)}
+        # Datetimeの場合の処理
+        elif isinstance(new_value, (models.DateField, models.DateTimeField)):
+          old_json_safe_value = old_value.isoformat() if old_value else None
+          new_json_safe_value = new_value.isoformat()
+        # その他は文字列化
+        else:
+          old_json_safe_value = str(old_value) if old_value else None
+          new_json_safe_value = str(new_value)
+      
+      # JSON化可能な基本データ型の処理
+      else:
+        old_json_safe_value = old_value
+        new_json_safe_value = new_value
+
+      # 6. changes辞書に記録
+      if created:
+        # 新規作成時は新しい値のみ記録
+        changes[field_name] = new_json_safe_value
+      else:
+        # 更新時は古い値と新しい値を記録
+        changes[field_name] = {'old': old_json_safe_value, 'new': new_json_safe_value}
 
   return changes
 

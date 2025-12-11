@@ -21,3 +21,4 @@ pandas==2.1.2
 python-Levenshtein==0.26.1
 setuptools==76.1.0
 django-cors-headers==4.7.0
+jsonfield==3.2.0
