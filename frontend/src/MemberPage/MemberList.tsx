@@ -31,7 +31,6 @@ const MemberList: React.FC = () => {
   const navigate = useNavigate(); // ルートナビゲーション用
 
   // データをAPIから取得する関数。useCallbackで最適化
-  // ★修正1: searchNumberとsearchShopへの依存を削除し、currentPageとフィルター用stateに依存させる
   const fetchData = useCallback(async () => {
     setLoading(true); // ローディング状態をtrueに設定
     try {
@@ -40,7 +39,7 @@ const MemberList: React.FC = () => {
         params: {
           page: currentPage, // 現在のページ番号を使用
           employee_no: currentFilterNumber,
-          shop: currentFilterShop, // ★適用中のフィルターを使用
+          shop: currentFilterShop,
         },
         withCredentials: true, // クッキーを含めたリクエスト
       });
@@ -132,10 +131,10 @@ const MemberList: React.FC = () => {
 
   // エラーが発生した場合はエラーメッセージを表示
   if (error) return <div>Error: {error}</div>;
+  if (loading) return <div><Loading isLoading={loading} /></div>;
 
   return (
     <>
-      {/* ローディングコンポーネント */}
       <Loading isLoading={loading} />
       {/* コンテンツ全体のラッパー */}
       <div className={styles["member-list-wrapper"]}>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ChangeEvent } from "react";
 
 // 親コンポーネントから渡されるPropsの型
 interface DefVersionSelectProps {
@@ -8,22 +8,23 @@ interface DefVersionSelectProps {
     kosu_name: string;
   }[];
   selectedVersion: string;
-  setSelectedVersion: (version: string) => void;
+  onChange: (event: ChangeEvent<HTMLSelectElement>) => void; 
 }
 
 const DefVersionSelect: React.FC<DefVersionSelectProps> = ({
   id = "versionchoice",
   choices,
   selectedVersion,
-  setSelectedVersion,
+  onChange, // PropsとしてonChangeを受け取る
 }) => {
   return (
     <select
       id={id}
       name={id}
       value={selectedVersion}
-      onChange={(e) => setSelectedVersion(e.target.value)}
+      onChange={onChange}
     >
+      <option value="">---</option>
       {choices.length > 0 ? (
         choices.map((choice) => (
           <option key={choice.id} value={choice.kosu_name}>

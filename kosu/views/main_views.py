@@ -1593,6 +1593,27 @@ class AdministratorKosuUpdate(APIView):
     return Response(response_data)
 
 
+  # PUT処理
+  def put(self, request, pk):
+    # 工数データ取得
+    kosu_instance = self.get_object(pk)
+    if not kosu_instance:
+      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # セッション値、日付、ログイン者データ取得
+    login_no = request.session.get('login_No')
+    day = request.session.get('day')
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+    if not day:
+      return Response({'error': '編集前の就業日データがありませんでした。IT担当者に連絡してください。'}, status=status.HTTP_404_NOT_FOUND)
+
+    print(request.data)
+
+    return Response({'status': 'success', 'message': 'データが更新されました。'})
+
 
 
 

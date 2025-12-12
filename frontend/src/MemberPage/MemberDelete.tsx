@@ -67,7 +67,7 @@ const MemberDelete: React.FC = () => {
   }, [record]);
 
   if (loading) {
-    return <div>loading</div>;
+    return <div><Loading isLoading={loading} /></div>;
   }
 
   if (error) {

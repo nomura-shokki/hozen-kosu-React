@@ -72,21 +72,20 @@ const MemberEdit: React.FC = () => {
         setLoading(false);
       })
       .catch((err) => {
-        // エラーステータスによって遷移やメッセージ制御
         if (err.response?.status === 401) {
-          navigate("/login"); // 認証なし → ログインページへ
+          navigate("/login");
         } else if (err.response?.status === 403) {
-          navigate("/"); // 権限なし → ホームへ
+          navigate("/");
         } else {
-          setError(err.message); // その他のエラーをステートに格納
+          setError(err.message);
         }
         setLoading(false);
       });
-  }, [employeeNo, navigate]); // employeeNoやnavigateが変わったら再実行
+  }, [employeeNo, navigate]);
 
   // ローディング中の表示
   if (loading) {
-    return <div>loading</div>;
+    return <div><Loading isLoading={loading} /></div>;
   }
 
   // エラー時の表示
@@ -99,13 +98,11 @@ const MemberEdit: React.FC = () => {
     return <div>データが見つかりません</div>;
   }
 
-  // 入力フォームで値が変更されたときのハンドラー
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = event.target;
 
-    // チェックボックス（boolean）の場合と、それ以外で処理を分ける
     if (type === "checkbox") {
       const { checked } = event.target as HTMLInputElement;
       setFormData((prev) => {

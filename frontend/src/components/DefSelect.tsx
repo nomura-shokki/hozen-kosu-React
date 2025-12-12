@@ -40,16 +40,14 @@ const DefSelect: React.FC<DefSelectProps> = ({
   // JSXを返す部分。セレクトボックスの構造を定義。
   return (
     <select
-      id={id} // セレクトボックスのidを設定
-      name={name} // セレクトボックスのnameを設定
-      value={value} // 現在の選択値を設定
-      onChange={onChange} // 値変更時にコールバックを実行
-      className={className} // クラス名を適用
-      disabled={disabled} // この行を追加
+      id={id}
+      name={name}
+      value={value}
+      onChange={onChange}
+      className={className}
+      disabled={disabled}
     >
-      {/* 初期状態のプレースホルダーオプション */}
       <option value="">---</option>
-      {/* 生成したオプションリストを展開 */}
       {defOptions.map(({ value, label }) => (
         <option key={value} value={value}>
           {label}

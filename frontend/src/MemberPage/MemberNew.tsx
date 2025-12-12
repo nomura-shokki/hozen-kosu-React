@@ -2,6 +2,7 @@ import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import axios from "axios"; // HTTPクライアント
 import ShopSelect from "../components/ShopSelect"; // ショップ選択コンポーネント
 import { Link, useNavigate } from "react-router-dom"; // 画面遷移に使用
+import Loading from "../components/Loading";
 import styles from "../styles/MemberPage/MemberNew.module.css"; // CSSモジュール
 
 // フォームで取り扱うデータ型を定義
@@ -40,6 +41,8 @@ interface FormData {
 }
 
 const MemberNew: React.FC = () => {
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
   // 初期フォーム値と状態管理
   const [formData, setFormData] = useState<FormData>({
     employee_no: 0,
@@ -85,6 +88,9 @@ const MemberNew: React.FC = () => {
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, { withCredentials: true })
+      .then(() => {
+        setLoading(false);
+      })
       .catch((err) => {
         // 未認証や権限不足の場合のリダイレクト処理
         if (err.response?.status === 401) {
@@ -92,8 +98,9 @@ const MemberNew: React.FC = () => {
         } else if (err.response?.status === 403) {
           navigate("/");
         } else {
-          console.error("不明なエラー:", err);
+          setError(err.message);
         }
+        setLoading(false);
       });
   }, [navigate]);
 
@@ -172,6 +179,16 @@ const MemberNew: React.FC = () => {
         }
       });
   };
+
+  // ローディング中の表示
+  if (loading) {
+    return <div><Loading isLoading={loading} /></div>;
+  }
+
+  // エラー時の表示
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className={styles["member-new-wrapper"]}>

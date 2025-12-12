@@ -20,7 +20,6 @@ const DefVer: React.FC = () => {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [choices, setChoices] = useState<DefData[]>([]);
@@ -42,8 +41,6 @@ const DefVer: React.FC = () => {
       .catch((err) => {
         if (err.response?.status === 401) {
           navigate("/login");
-        } else {
-          setError(err.message);
         }
         setLoading(false);
       });
@@ -73,14 +70,13 @@ const DefVer: React.FC = () => {
       });
   };
 
+  const handleChangeVersion = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedVersion(e.target.value);
+  };
+
   // ローディング中
   if (loading) {
     return <div>Loading...</div>;
-  }
-
-  // エラー時
-  if (error) {
-    return <div>Error: {error}</div>;
   }
 
   return (
@@ -106,7 +102,7 @@ const DefVer: React.FC = () => {
         <DefVersionSelect 
           choices={choices}
           selectedVersion={selectedVersion}
-          setSelectedVersion={setSelectedVersion}
+          onChange={handleChangeVersion}
         />
         <div className={styles["search-button-row"]}>
           <button type="submit" className="green_button">工数区分定義切り替え</button>
