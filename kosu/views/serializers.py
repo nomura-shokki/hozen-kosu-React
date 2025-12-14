@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from ..models import member, Business_Time_graph, kosu_division, team_member, inquiry_data, administrator_data
+from ..models import member, Business_Time_graph, kosu_division, team_member, \
+                      inquiry_data, administrator_data, AsyncTask, History
 
 
 
@@ -41,4 +42,18 @@ class InquirSerializer(serializers.ModelSerializer):
 class AdministratorSerializer(serializers.ModelSerializer):
   class Meta:
     model = administrator_data
+    fields = '__all__'
+
+
+
+class TaskSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = AsyncTask
+    fields = '__all__'
+
+
+
+class HistorySerializer(serializers.ModelSerializer):
+  class Meta:
+    model = History
     fields = '__all__'

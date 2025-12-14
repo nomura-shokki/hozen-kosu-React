@@ -44,9 +44,9 @@ const InquirUpdate: React.FC = () => {
       .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true })
       .then((response) => {
         const { inquir_data, login_data } = response.data;
-        setFormData(inquir_data); // フォームデータをセット（変換後の名前付き）
-        setMemberData(login_data); // ログインユーザー情報をセット
-        setLoading(false); // ローディング終了
+        setFormData(inquir_data);
+        setMemberData(login_data);
+        setLoading(false);
       })
       .catch((err) => {
         console.error("APIエラー:", err);

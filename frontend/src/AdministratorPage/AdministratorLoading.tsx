@@ -107,15 +107,15 @@ const AdministratorLoading: React.FC = () => {
     SettingLoad: false,
     AsyncTaskBackup: false,
     AsyncTaskDelet: false,
-    OperationHistoryBackup: false,
-    OperationHistoryDelet: false,
+    HistoryBackup: false,
+    HistoryDelet: false,
   }), []); 
 
   const [runningStates, setRunningStates] = useState(initialTaskStates);
 
   const initialErrorStates = useMemo(() => ({
     KosuError: null, DefError: null, MemberError: null, TeamError: null, InquiryError: null,
-    SettingError: null, AsyncTaskError: null, OperationHistoryError: null,
+    SettingError: null, AsyncTaskError: null, HistoryError: null,
   }), []); 
   const [errorStates, setErrorStates] = useState<Record<string, string | null>>(initialErrorStates);
 
@@ -171,8 +171,8 @@ const AdministratorLoading: React.FC = () => {
   const SettingLoadMonitor = useTaskMonitor(createSetter('SettingLoad'), createErrorSetter('SettingError'), 'load');
   const AsyncTaskBackupMonitor = useTaskMonitor(createSetter('AsyncTaskBackup'), createErrorSetter('AsyncTaskError'), 'backup');
   const AsyncTaskDeletMonitor = useTaskMonitor(createSetter('AsyncTaskDelet'), createErrorSetter('AsyncTaskError'), 'delete');
-  const OperationHistoryBackupMonitor = useTaskMonitor(createSetter('OperationHistoryBackup'), createErrorSetter('OperationHistoryError'), 'backup');
-  const OperationHistoryDeletMonitor = useTaskMonitor(createSetter('OperationHistoryDelet'), createErrorSetter('OperationHistoryError'), 'delete');
+  const HistoryBackupMonitor = useTaskMonitor(createSetter('HistoryBackup'), createErrorSetter('HistoryError'), 'backup');
+  const HistoryDeletMonitor = useTaskMonitor(createSetter('HistoryDelet'), createErrorSetter('HistoryError'), 'delete');
 
   const monitorHooks = useMemo(() => ({
     KosuBackup: KosuBackupMonitor,
@@ -190,13 +190,13 @@ const AdministratorLoading: React.FC = () => {
     SettingLoad: SettingLoadMonitor,
     AsyncTaskBackup: AsyncTaskBackupMonitor,
     AsyncTaskDelet: AsyncTaskDeletMonitor,
-    OperationHistoryBackup: OperationHistoryBackupMonitor,
-    OperationHistoryDelet: OperationHistoryDeletMonitor,
+    HistoryBackup: HistoryBackupMonitor,
+    HistoryDelet: HistoryDeletMonitor,
   }), [
     KosuBackupMonitor, KosuDeletMonitor, KosuLoadMonitor, DefBackupMonitor, DefLoadMonitor,
     MemberBackupMonitor, MemberLoadMonitor, TeamBackupMonitor, TeamLoadMonitor,
     InquiryBackupMonitor, InquiryLoadMonitor, SettingBackupMonitor, SettingLoadMonitor,
-    AsyncTaskBackupMonitor, AsyncTaskDeletMonitor, OperationHistoryBackupMonitor, OperationHistoryDeletMonitor,
+    AsyncTaskBackupMonitor, AsyncTaskDeletMonitor, HistoryBackupMonitor, HistoryDeletMonitor,
   ]);
 
   const startTask = useCallback(async (
@@ -336,8 +336,8 @@ const AdministratorLoading: React.FC = () => {
   const startSettingBackup = () => startTask('SettingBackup', 'setting_backup', '設定データバックアップ');
   const startAsyncTaskBackup = () => startTask('AsyncTaskBackup', 'AsyncTask_backup', 'タスク履歴データバックアップ', true);
   const startAsyncTaskDelet = () => startTask('AsyncTaskDelet', 'AsyncTask_delet', 'タスク履歴データ削除', true);
-  const startOperationHistoryBackup = () => startTask('OperationHistoryBackup', 'Operation_history_backup', '操作履歴データバックアップ', true);
-  const startOperationHistoryDelet = () => startTask('OperationHistoryDelet', 'Operation_history_delet', '操作履歴データ削除', true);
+  const startHistoryBackup = () => startTask('HistoryBackup', 'History_backup', '操作履歴データバックアップ', true);
+  const startHistoryDelet = () => startTask('HistoryDelet', 'History_delet', '操作履歴データ削除', true);
 
   const isAnyBackupRunning = Object.values(runningStates).some(state => state);
 
@@ -657,8 +657,8 @@ const AdministratorLoading: React.FC = () => {
               id="start-operation-backup"
               name="start-operation-backup"
               type="button"
-              value={runningStates.OperationHistoryBackup ? "実行中..." : "バックアップ開始"}
-              onClick={!isAnyBackupRunning ? startOperationHistoryBackup : undefined}
+              value={runningStates.HistoryBackup ? "実行中..." : "バックアップ開始"}
+              onClick={!isAnyBackupRunning ? startHistoryBackup : undefined}
               disabled={isAnyBackupRunning}
               className={styles["setting-button"]}
             />
@@ -666,8 +666,8 @@ const AdministratorLoading: React.FC = () => {
               id="start-operation-delet"
               name="start-operation-delet"
               type="button"
-              value={runningStates.OperationHistoryDelet ? "実行中..." : "削除開始"}
-              onClick={!isAnyBackupRunning ? startOperationHistoryDelet : undefined}
+              value={runningStates.HistoryDelet ? "実行中..." : "削除開始"}
+              onClick={!isAnyBackupRunning ? startHistoryDelet : undefined}
               disabled={isAnyBackupRunning}
               className={styles["setting-button"]}
             />

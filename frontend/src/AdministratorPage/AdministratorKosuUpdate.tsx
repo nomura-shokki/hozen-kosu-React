@@ -76,6 +76,50 @@ const joinDetailWorkSegments = (segments: string[]): string => {
   return allElements.slice(0, 288).join('$');
 };
 
+const isValidTimeFormat = (timeStr: string): boolean => {
+  if (!/^\d{4}$/.test(timeStr)) return false;
+  
+  const hour = parseInt(timeStr.substring(0, 2), 10);
+  const minute = parseInt(timeStr.substring(2, 4), 10);
+
+  // 時のチェック (00〜23)
+  if (hour < 0 || hour > 23) return false;
+  
+  // 分のチェック (00〜59、かつ5分刻み)
+  if (minute < 0 || minute > 59 || minute % 5 !== 0) return false;
+
+  return true;
+};
+
+const validateBreakTime = (breakTimeValue: string, fieldName: string): string | null => {
+  if (breakTimeValue === "") {
+    // 空欄は許可すると仮定します。もし必須であればこのチェックを変更してください。
+    return null; 
+  }
+
+  // フォーマットチェック: # + 8桁の数字
+  const regex = /^#(\d{8})$/;
+  const match = breakTimeValue.match(regex);
+  
+  if (!match) {
+    return `${fieldName} のフォーマットが正しくありません。#と8桁の数字（例: #12001300）で入力してください。`;
+  }
+
+  const timeNumbers = match[1];
+  const startTimeStr = timeNumbers.substring(0, 4);
+  const endTimeStr = timeNumbers.substring(4, 8);
+
+  // 時刻の妥当性チェック
+  if (!isValidTimeFormat(startTimeStr)) {
+    return `${fieldName} の開始時刻 ${startTimeStr} が無効な時刻（00:00〜23:55、5分刻み）です。`;
+  }
+  if (!isValidTimeFormat(endTimeStr)) {
+    return `${fieldName} の終了時刻 ${endTimeStr} が無効な時刻（00:00〜23:55、5分刻み）です。`;
+  }
+  return null;
+};
+
+
 const AdministratorKosuUpdate: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -109,7 +153,7 @@ const AdministratorKosuUpdate: React.FC = () => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (formData) {
-      const { name, value, type, checked } = e.target; // checked を追加で取得
+      const { name, value, type, checked } = e.target;
       
       let updatedValue: string | number | boolean;
       
@@ -117,6 +161,8 @@ const AdministratorKosuUpdate: React.FC = () => {
         updatedValue = checked;
       } else if (name === 'employee_no3' && type === 'number') {
         updatedValue = Number(value);
+      } else if (name === 'over_time' && type === 'number') {
+        updatedValue = Number(value); 
       } else {
         updatedValue = value;
       }
@@ -137,11 +183,9 @@ const AdministratorKosuUpdate: React.FC = () => {
     });
   };
 
-  // detail_workのセグメント変更ハンドラ (新規)
   const handleDetailSegmentChange = (index: number) => (e: ChangeEvent<HTMLInputElement>) => {
-    // detail_workのセグメントは12個の要素（$で区切り）からなる文字列
     const newValue = e.target.value;
-    
+
     setDetailWorkSegments(prevSegments => {
       const newSegments = [...prevSegments];
       newSegments[index] = newValue;
@@ -194,6 +238,20 @@ const AdministratorKosuUpdate: React.FC = () => {
 
     setErrorMessage(null);
 
+    // 1. 従業員番号のチェック
+    if (!formData.employee_no3 || formData.employee_no3 === 0) {
+        setErrorMessage("従業員番号は必須です。空欄や0は許可されません。");
+        return;
+    }
+
+    // 2. 就業日のチェック
+    if (!formData.work_day2) {
+        setErrorMessage("就業日は必須です。空欄は許可されません。");
+        return;
+    }
+
+
+    // 3. detail_workのセグメント（$区切り）数チェック
     for (let i = 0; i < detailWorkSegments.length; i++) {
       const segment = detailWorkSegments[i];
       const dollarCount = (segment.match(/\$/g) || []).length;
@@ -204,9 +262,26 @@ const AdministratorKosuUpdate: React.FC = () => {
       }
     }
 
+    // 4. 休憩時間フィールドのチェック
+    const breakTimeFields: Array<[keyof Kosu, string]> = [
+      ["breaktime", "昼休憩時間"],
+      ["breaktime_over1", "残業休憩時間1"],
+      ["breaktime_over2", "残業休憩時間2"],
+      ["breaktime_over3", "残業休憩時間3"],
+    ];
+
+    for (const [fieldKey, fieldName] of breakTimeFields) {
+      const value = formData[fieldKey] as string;
+      const error = validateBreakTime(value, fieldName);
+      if (error) {
+        setErrorMessage(error);
+        return;
+      }
+    }
+
+
     const updatedTimeWork = joinTimeWorkSegments(timeWorkSegments);
     const updatedDetailWork = joinDetailWorkSegments(detailWorkSegments);
-    
     const dataToSubmit = { 
       ...formData, 
       time_work: updatedTimeWork,
@@ -376,7 +451,7 @@ const AdministratorKosuUpdate: React.FC = () => {
               value={formData?.breaktime_over1 || ""}
               onChange={handleChange}
             />
-            <label htmlFor="breaktime_over1">残業休憩時間2:</label>
+            <label htmlFor="breaktime_over2">残業休憩時間2:</label>
             <input
               type="text"
               name="breaktime_over2"
@@ -384,7 +459,7 @@ const AdministratorKosuUpdate: React.FC = () => {
               value={formData?.breaktime_over2 || ""}
               onChange={handleChange}
             />
-            <label htmlFor="breaktime_over1">残業休憩時間3:</label>
+            <label htmlFor="breaktime_over3">残業休憩時間3:</label>
             <input
               type="text"
               name="breaktime_over3"
@@ -405,6 +480,24 @@ const AdministratorKosuUpdate: React.FC = () => {
                 <span className={styles["toggle-slider"]}></span>
               </label>
             </div>
+            <div className={styles["switch-wrapper"]}>
+              <label htmlFor="break_change">休憩変更チェック:</label>
+              <label className={styles["toggle-switch"]}>
+                <input
+                  type="checkbox"
+                  id="break_change"
+                  name="break_change"
+                  checked={formData?.break_change || false}
+                  onChange={handleChange}
+                />
+                <span className={styles["toggle-slider"]}></span>
+              </label>
+            </div>
+
+            {errorMessage && (
+              <div role="alert" style={{ color: 'red', border: '1px solid red', padding: '10px', marginBottom: '20px' }}>{errorMessage}</div>
+            )}
+
             <button type="submit" className="gray_button" style={{ marginTop: '20px' }}>更新</button>
           </div>
         </form>

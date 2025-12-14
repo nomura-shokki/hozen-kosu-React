@@ -17,7 +17,7 @@ import environ
 from ..utils.kosu_utils import get_member
 from ..utils.main_utils import has_non_halfwidth_characters
 from ..utils.main_utils import history_record
-from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, Operation_history
+from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, AsyncTask
 from ..forms import loginForm, administrator_data_Form, uploadForm, history_findForm
 
 
@@ -812,172 +812,6 @@ class HelpView(FormView):
 
 
 
-# データ変更情報一覧表示画面定義
-class HistoryList(ListView):
-  model = Operation_history
-  template_name = 'kosu/history_list.html'
-  context_object_name = 'data'
-
-
-  # 画面処理前の初期設定
-  def dispatch(self, request, *args, **kwargs):
-    # 人員情報取得
-    member_obj = get_member(request)
-    # 人員情報なしor未ログインの場合ログイン画面へ
-    if isinstance(member_obj, HttpResponseRedirect):
-      return member_obj
-    self.member_obj = member_obj
-    
-    # 権限がないユーザーの場合ログイン画面へ
-    if not self.member_obj.administrator:
-      return redirect('/')
-    
-    # ページネーション設定データの取得
-    last_record = administrator_data.objects.order_by("id").last()
-    if last_record is None:
-      # レコードが1件もない場合、menu_rowフィールドだけに値を設定したインスタンスを作成
-      page_num = administrator_data(menu_row=20).menu_row
-    else:
-      page_num = last_record.menu_row
-
-    # 工数区分表示用のオブジェクト取得
-    self.data = Operation_history.objects.all().order_by('created_at').reverse()
-    self.page = Paginator(self.data, page_num)
-
-    return super().dispatch(request, *args, **kwargs)
-
-
-  # POST時の処理をオーバーライド
-  def post(self, request, *args, **kwargs):
-    delete_day = request.POST.get('delete_day')
-    if delete_day:
-      try:
-        # POSTされた日付を時間ありに変更
-        naive_datetime = datetime.datetime.strptime(delete_day, '%Y-%m-%d')
-        aware_datetime = make_aware(naive_datetime)
-        # レコード削除
-        Operation_history.objects.filter(created_at__lt=aware_datetime).delete()
-      except ValueError:
-        pass
-
-      # フィルタリング条件をセッションに保存
-    request.session['filter_day'] = request.POST.get('day', '')
-    request.session['filter_name_list'] = request.POST.get('name_list', '')
-    request.session['filter_model_list'] = request.POST.get('model_list', '')
-    request.session['filter_page_list'] = request.POST.get('page_list', '')
-
-    return redirect(reverse_lazy('history_list', args = [1]))
-
-
-  # フィルタリングしたデータ取得
-  def get_queryset(self):
-    # セッションからフィルタリング条件を取得
-    day = self.request.session.get('filter_day', '')
-    name_list = self.request.session.get('filter_name_list', '')
-    model_list = self.request.session.get('filter_model_list', '')
-    page_list = self.request.session.get('filter_page_list', '')
-
-    # POST時のフィルタ処理
-    if day or name_list or model_list or page_list:
-      queryset = Operation_history.objects.filter(
-        created_at__contains=day,
-        employee_no4__contains=name_list,
-        operation_models__contains=model_list,
-        post_page__contains=page_list
-      ).order_by('-created_at')
-    # GET時のフィルタ処理
-    else:
-      queryset = Operation_history.objects.all().order_by('-created_at')
-
-    return queryset
-
-
-  # フォームの状態定義
-  def get_form(self):
-    # 編集履歴にある要素リスト作成
-    employee_no_list = Operation_history.objects.values_list('employee_no4', flat=True).order_by('employee_no4').distinct()
-    model_edit_list = Operation_history.objects.values_list('operation_models', flat=True).order_by('operation_models').distinct()
-    page_edit_list = Operation_history.objects.values_list('post_page', flat=True).order_by('post_page').distinct()
-
-    # 選択肢リスト定義
-    name_list = [['', '']] + [
-      [No, member.objects.get(employee_no=No)]
-      for No in employee_no_list
-      if member.objects.filter(employee_no=No).exists()
-    ]
-    model_list = [['', '']] + [[model, model] for model in model_edit_list]
-    page_list = [['', '']] + [[page, page] for page in page_edit_list]
-
-    # フォームを作成し選択肢を設定
-    if self.request.method == 'POST':
-      form = history_findForm(self.request.POST)
-    else:
-      form = history_findForm()
-
-    form.fields['name_list'].choices = name_list
-    form.fields['model_list'].choices = model_list
-    form.fields['page_list'].choices = page_list
-    return form
-
-
-  # コンテキスト定義
-  def get_context_data(self, **kwargs):
-    context = super().get_context_data(**kwargs)
-    context['title'] = '編集履歴一覧'
-    context['pk'] = self.kwargs.get('pk')
-    context['form'] = self.get_form()
-    context['data'] = self.page.get_page(self.kwargs.get('pk'))
-    return context
-
-
-
-
-
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
-
-# データ操作履歴詳細画面定義
-class HistoryDelete(DeleteView):
-  # モデル、テンプレート、リダイレクト先などを指定
-  model = Operation_history
-  template_name = 'kosu/history_delete.html'
-  success_url = reverse_lazy('history_list', args = [1])
-
-
-  # リクエストを処理するメソッドをオーバーライド
-  def dispatch(self, request, *args, **kwargs):
-    # 人員情報取得
-    member_obj = get_member(request)
-    # 人員情報なしor未ログインの場合ログイン画面へ
-    if isinstance(member_obj, HttpResponseRedirect):
-      return member_obj
-    self.member_obj = member_obj
-    # 親クラスのdispatchメソッドを呼び出し
-    return super().dispatch(request, *args, **kwargs)
-
-
-  # コンテキストデータを取得するメソッドをオーバーライド
-  def get_context_data(self, **kwargs):
-    context = super().get_context_data(**kwargs)
-    obj_get = self.get_object()
-    context['title'] = '編集履歴詳細'
-    context['id'] = self.object.id
-    context['obj'] = obj_get
-    return context
-
-
-
-
-
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
-
 # 専用ロガー取得('views_logger'という名前のカスタムロガーを使用しログメッセージ記録)
 views_logger = logging.getLogger('views_logger')
 
@@ -1013,12 +847,14 @@ def get_logs(request):
 
 
 
-from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, Operation_history
+from ..models import member, Business_Time_graph, kosu_division, team_member, \
+                      administrator_data, History
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
-from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer, DefSerializer
+from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer, \
+                          DefSerializer, TaskSerializer, HistorySerializer
 from ..utils.main_utils import CustomPagination
 import json
 
@@ -1444,7 +1280,6 @@ class AdministratorLoading(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
     if not member_data.administrator:
-      print(member_data,member_data.administrator)
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
     # データ変換
@@ -1549,10 +1384,11 @@ class AdministratorKosuUpdate(APIView):
     if not kosu_instance:
       return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    # セッション値、日付取得
+    # セッション値、編集前の日付、従業員番号取得
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
     request.session['day'] = str(kosu_instance.work_day2)
+    request.session['employee_no'] = str(kosu_instance.employee_no3)
 
     # セッション値なしエラー
     if not login_no:
@@ -1600,9 +1436,10 @@ class AdministratorKosuUpdate(APIView):
     if not kosu_instance:
       return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    # セッション値、日付、ログイン者データ取得
+    # セッション値、日付、人員データ取得
     login_no = request.session.get('login_No')
     day = request.session.get('day')
+    employee_no = request.session.get('employee_no')
 
     # セッション値なしエラー
     if not login_no:
@@ -1610,18 +1447,167 @@ class AdministratorKosuUpdate(APIView):
     if not day:
       return Response({'error': '編集前の就業日データがありませんでした。IT担当者に連絡してください。'}, status=status.HTTP_404_NOT_FOUND)
 
-    print(request.data)
+    # クライアントから送られてきたデータをシリアライズ
+    data = request.data
+    serializer = KosuSerializer(kosu_instance, data=data)
 
-    return Response({'status': 'success', 'message': 'データが更新されました。'})
+    if serializer.is_valid():
+      if not member.objects.filter(employee_no=data.get('employee_no3')).exists():
+        return Response({'error': '入力した従業員番号は登録されていません。'},status=status.HTTP_400_BAD_REQUEST)
+      if (day != data.get('work_day2') or int(employee_no) != data.get('employee_no3')) and Business_Time_graph.objects.filter(employee_no3=data.get('employee_no3'), work_day2=data.get('work_day2')).exists():
+        return Response({'error': '入力した就業日には既に工数データがあります。'},status=status.HTTP_400_BAD_REQUEST)
+
+      serializer.save()
+      return Response({'status': 'success', 'message': 'データが更新されました。'}, status=status.HTTP_200_OK)
+    return Response({'error': 'バリテーションエラー'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
+class AdministratorTaskList(APIView):
+  # GET処理
+  def get(self, request):
+    # セッション値取得
+    login_no = request.session.get('login_No')
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # ログイン者情報取得
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    # 検索パラメータの取得
+    search_day = request.query_params.get('day')
+    mode = request.query_params.get('mode', 'day')
+
+    # 工数履歴データの取得
+    tasks = AsyncTask.objects.all().order_by('-created_at')
+
+    # データ絞り込み
+    if search_day:
+      if mode == 'month':
+        tasks = tasks.filter(created_at__startswith=search_day[:7])
+      else:
+        tasks = tasks = tasks.filter(created_at__date=search_day)
+
+    # ページネーション
+    paginator = CustomPagination()
+    result_page = paginator.paginate_queryset(tasks, request)
+    serializer = TaskSerializer(result_page, many=True)
+
+    response_data = {
+      'task_data': paginator.get_paginated_response(serializer.data).data,
+    }
+    return Response(response_data)
 
 
 
+class AdministratorTaskDetail(APIView):
+  def get_object(self, pk):
+    try:
+      return AsyncTask.objects.get(id=pk)
+    except AsyncTask.DoesNotExist:
+      return None
+
+
+  def get(self, request, pk):
+    # セッションからログイン情報を取得
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # ログイン者情報取得
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    # 削除対象のオブジェクトを取得
+    task_instance = self.get_object(pk)
+    if task_instance is None:
+      return Response({'error': 'データがありません'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = TaskSerializer(task_instance)
+
+    response_data = {
+      'task_data': serializer.data,
+    }
+    return Response(response_data)
+
+
+  def delete(self, request, pk):
+    # セッションからログイン情報を取得
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # ログイン者情報取得
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    # 削除対象のオブジェクトを取得
+    task_instance = self.get_object(pk)
+    if task_instance is None:
+      return Response({'error': 'データがありません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # レコードを削除
+    task_instance.delete()
+    return Response({'status': 'success', 'message': 'データを削除しました。'}, status=status.HTTP_200_OK)
 
 
 
+class AdministratorHistoryList(APIView):
+  # GET処理
+  def get(self, request):
+    # セッション値取得
+    login_no = request.session.get('login_No')
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # ログイン者情報取得
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    # 検索パラメータの取得
+    search_day = request.query_params.get('day')
+    mode = request.query_params.get('mode', 'day')
+
+    # 工数履歴データの取得
+    historys = History.objects.all().order_by('-timestamp')
+
+    # データ絞り込み
+    if search_day:
+      if mode == 'month':
+        historys = historys.filter(timestamp__startswith=search_day[:7])
+      else:
+        historys = historys.filter(timestamp__date=search_day)
+
+    # ページネーション
+    paginator = CustomPagination()
+    result_page = paginator.paginate_queryset(historys, request)
+    serializer = HistorySerializer(result_page, many=True)
+
+    response_data = {
+      'history_data': paginator.get_paginated_response(serializer.data).data,
+    }
+    return Response(response_data)
 
 
 

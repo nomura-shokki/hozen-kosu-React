@@ -6,7 +6,7 @@ import pandas as pd
 import tempfile
 import datetime
 from .models import Business_Time_graph, kosu_division, member, team_member, \
-                    inquiry_data, administrator_data, AsyncTask, Operation_history
+                    inquiry_data, administrator_data, AsyncTask, History
 from .utils.kosu_utils import kosu_division_dictionary
 from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
@@ -688,12 +688,12 @@ def generate_inquiry_backup():
   # データ書き込み
   for item in inquiry:
     row = [
-        item.employee_no2, 
-        str(item.name), 
-        item.content_choice, 
-        item.inquiry, 
-        item.answer,
-      ]
+      item.employee_no2, 
+      str(item.name), 
+      item.content_choice, 
+      item.inquiry, 
+      item.answer,
+    ]
 
     ws.append(row)
 
@@ -857,18 +857,12 @@ def generate_setting_backup():
 
 
 # 管理者設定データロード非同期処理
-def load_setting_file(file_obj):
+def load_setting_file(file_path):
   try:
-    # 一時ファイルを作成
-    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
-      # ファイルを書き込む
-      for chunk in file_obj.chunks():
-          temp_file.write(chunk)
+    # 1. 渡されたファイルパスを一時ファイルパスとして保持
+    temp_file_path = file_path
 
-      # ファイル名保存
-      temp_file_path = temp_file.name
-
-    # ファイルを開く
+    # 2. ファイルを開く
     wb = openpyxl.load_workbook(temp_file_path)
     ws = wb.worksheets[0]
 
@@ -892,38 +886,44 @@ def load_setting_file(file_obj):
 
     # ファイル内ヘッダー取得
     actual_headers = [ws.cell(1, col).value for col in range(1, len(expected_headers) + 1)]
-    # ヘッダーのデータに相違がある場合、一時ファイル削除しエラーを返す
+    
+    # ヘッダーが一致しない場合、一時ファイルを削除しエラーを返す
     if actual_headers != expected_headers:
       os.remove(temp_file_path)
-      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None
+      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None 
 
-    # データ読み込み
+    administrator_data.objects.all().delete()
+
     for i in range(2, ws.max_row + 1):
-      # 新データをインスタンスとして作成してDBに保存
-      administrator_data.objects.create(
-        menu_row = ws.cell(row=i, column=1).value, 
-        administrator_employee_no1 = ws.cell(row=i, column=2).value, 
-        administrator_employee_no2 = ws.cell(row=i, column=3).value, 
-        administrator_employee_no3 = ws.cell(row=i, column=4).value, 
-        pop_up1 = ws.cell(row=i, column=5).value, 
-        pop_up_id1 = ws.cell(row=i, column=6).value, 
-        pop_up2 = ws.cell(row=i, column=7).value, 
-        pop_up_id2 = ws.cell(row=i, column=8).value, 
-        pop_up3 = ws.cell(row=i, column=9).value, 
-        pop_up_id3 = ws.cell(row=i, column=10).value, 
-        pop_up4 = ws.cell(row=i, column=11).value, 
-        pop_up_id4 = ws.cell(row=i, column=12).value, 
-        pop_up5 = ws.cell(row=i, column=13).value, 
-        pop_up_id5 = ws.cell(row=i, column=14).value
+      try:
+        # 新データをインスタンスとして作成してDBに保存
+        administrator_data.objects.create(
+          menu_row = ws.cell(row=i, column=1).value, 
+          administrator_employee_no1 = ws.cell(row=i, column=2).value, 
+          administrator_employee_no2 = ws.cell(row=i, column=3).value, 
+          administrator_employee_no3 = ws.cell(row=i, column=4).value, 
+          pop_up1 = ws.cell(row=i, column=5).value, 
+          pop_up_id1 = ws.cell(row=i, column=6).value, 
+          pop_up2 = ws.cell(row=i, column=7).value, 
+          pop_up_id2 = ws.cell(row=i, column=8).value, 
+          pop_up3 = ws.cell(row=i, column=9).value, 
+          pop_up_id3 = ws.cell(row=i, column=10).value, 
+          pop_up4 = ws.cell(row=i, column=11).value, 
+          pop_up_id4 = ws.cell(row=i, column=12).value, 
+          pop_up5 = ws.cell(row=i, column=13).value, 
+          pop_up_id5 = ws.cell(row=i, column=14).value
         )
+      except IntegrityError as create_e:
+        print(f"書き込み中にIntegrityErrorが発生しました: {create_e}")
+        continue
 
-    # 一時ファイルを削除
+    # 5. 処理が成功したら一時ファイルを削除
     os.remove(temp_file_path)
     return {'status': 'success'}, None
 
   except Exception as e:
-    # ロード処理ミスした際は一時ファイルがあれば削除しエラーを返す
-    if 'temp_file_path' in locals():
+    # ロード処理でエラーが発生した際は一時ファイルがあれば削除しエラーを返す
+    if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
       os.remove(temp_file_path)
     return {'status': 'error', 'message': str(e)}, None
 
@@ -950,7 +950,7 @@ def generate_AsyncTask_backup(start_day, end_day):
     'result',
     'created_at',
     'updated_at',
-    ]
+  ]
 
   ws.append(headers)
 
@@ -969,7 +969,7 @@ def generate_AsyncTask_backup(start_day, end_day):
       item.result,
       created_at_local,
       updated_at_local,
-      ]
+    ]
 
     ws.append(row)
 
@@ -1018,41 +1018,38 @@ def delete_AsyncTask_data(start_day, end_day):
 
 
 # 操作履歴データバックアップ非同期処理
-def generate_Operation_history_backup(start_day, end_day):
+def generate_History_backup(start_day, end_day):
   # 新しいExcelブック作成
   wb = openpyxl.Workbook()
   ws = wb.active
 
   # ヘッダー作成
   headers = [
-    '操作日時', 
-    '従業員番号',
-    '氏名',
-    'ページ',
-    '操作モデル',
-    '結果',
-    '編集詳細',
-    ]
+    '操作種類', 
+    '操作テーブル',
+    'ID',
+    '操作者No',
+    '変更箇所',
+    '操作日時'
+  ]
 
   ws.append(headers)
 
   # タスク履歴データ取得
-  AsyncTask_data = Operation_history.objects.filter(
-    created_at__gte=start_day, created_at__lte=end_day,
+  History_data = History.objects.filter(
+    timestamp__gte=start_day, timestamp__lte=end_day,
   )
 
   # データ書き込み
-  for item in AsyncTask_data:
-    created_at_local = timezone.localtime(item.created_at).replace(tzinfo=None)
+  for item in History_data:
     row = [
-      created_at_local,
-      item.employee_no4,
-      item.name,
-      item.post_page,
-      item.operation_models,
-      item.status,
-      item.operation_detail,
-      ]
+      item.operation,
+      item.table_name,
+      item.record_id,
+      item.login_No,
+      item.changes,
+      item.timestamp,
+    ]
 
     ws.append(row)
 
@@ -1080,11 +1077,11 @@ def generate_Operation_history_backup(start_day, end_day):
 
 
 # 操作履歴データ削除非同期処理
-def delete_Operation_history_data(start_day, end_day):
+def delete_History_data(start_day, end_day):
   # タスク履歴データ取得
-  OperationHistory_data = Operation_history.objects.filter(
-    created_at__date__gte=start_day, 
-    created_at__date__lte=end_day,
+  OperationHistory_data = History.objects.filter(
+    timestamp__date__gte=start_day, 
+    timestamp__date__lte=end_day,
   )
   
   OperationHistory_data.delete()

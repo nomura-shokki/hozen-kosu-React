@@ -6,111 +6,14 @@ from ..tasks import generate_kosu_backup, generate_prediction, delete_kosu_data,
                     generate_member_backup, load_member_file, generate_team_backup, load_team_file, \
                     generate_def_backup, load_def_file, generate_inquiry_backup, load_inquiry_file, \
                     generate_setting_backup, load_setting_file, generate_AsyncTask_backup, \
-                    delete_AsyncTask_data, generate_Operation_history_backup ,delete_Operation_history_data
+                    delete_AsyncTask_data, generate_History_backup ,delete_History_data
 from ..models import AsyncTask
-from django.views.decorators.csrf import csrf_exempt
 
 
 
 
 
 #--------------------------------------------------------------------------------------------------------
-
-
-
-
-
-# 非同期タスク処理開始
-@csrf_exempt
-def start_task(request, task_type):
-  # POST時の処理
-  if request.method == 'POST':
-    # 日付指定のあるタスク実行時の処理
-    if task_type in ['kosu_backup', 'prediction', 'kosu_delete']:
-      # 開始日と終了日取得
-      data_day = request.POST.get('data_day')
-      data_day2 = request.POST.get('data_day2')
-
-      # 日付の範囲指定が正しくない場合エラー
-      error_response = validate_dates(data_day, data_day2)
-      if error_response:
-        return error_response
-
-    # タスクID生成
-    task_id = str(uuid.uuid4())
-
-    # 非同期処理のデータを登録（初期状態は "pending"）
-    AsyncTask.objects.create(task_id=task_id, status='pending')
-
-    # タスクの種類に応じた処理関数を選択
-    if task_type == 'kosu_backup':
-      task_function = generate_kosu_backup
-      args = (data_day, data_day2)
-    elif task_type == 'prediction':
-      task_function = generate_prediction
-      args = (data_day, data_day2)
-    elif task_type == 'kosu_delete':
-      task_function = delete_kosu_data
-      args = (data_day, data_day2)
-    elif task_type == 'kosu_load':
-      kosu_file = request.FILES['kosu_file']
-      task_function = load_kosu_file
-      args = (kosu_file,)
-    elif task_type == 'member_backup':
-      task_function = generate_member_backup
-      args = ()
-    elif task_type == 'member_load':
-      member_file = request.FILES['member_file']
-      task_function = load_member_file
-      args = (request, member_file)
-    elif task_type == 'team_backup':
-      task_function = generate_team_backup
-      args = ()
-    elif task_type == 'team_load':
-      team_file = request.FILES['team_file']
-      task_function = load_team_file
-      args = (team_file,)
-    elif task_type == 'def_backup':
-      task_function = generate_def_backup
-      args = ()
-    elif task_type == 'def_load':
-      def_file = request.FILES['def_file']
-      task_function = load_def_file
-      args = (def_file,)
-    elif task_type == 'inquiry_backup':
-      task_function = generate_inquiry_backup
-      args = ()
-    elif task_type == 'inquiry_load':
-      inquiry_file = request.FILES['inquiry_file']
-      task_function = load_inquiry_file
-      args = (inquiry_file,)
-    elif task_type == 'setting_backup':
-      task_function = generate_setting_backup
-      args = ()
-    elif task_type == 'setting_load':
-      setting_file = request.FILES['setting_file']
-      task_function = load_setting_file
-      args = (setting_file,)
-    else:
-      # 無効なタスクタイプであればエラーを返却
-      return JsonResponse({'status': 'error', 'message': '無効なタスクタイプです。'}, status=400)
-
-    # 非同期処理を実行するための新しいスレッド起動
-    thread = threading.Thread(target=handle_task, args=(task_id, task_function, *args))
-    thread.start()
-
-    # タスクIDを返却し、非同期処理開始を通知
-    return JsonResponse({'status': 'success', 'task_id': task_id})
-
-  # POST以外はエラーを返却
-  return JsonResponse({'status': 'error', 'message': '無効なリクエストです。'}, status=400)
-
-
-
-
-
-
-
 
 
 
@@ -239,6 +142,20 @@ def backup(request):
   elif url_name == 'setting_backup':
     task_function = generate_setting_backup
     args = ()
+  elif url_name == 'setting_load':
+    setting_file = request.FILES.get('file')
+    temp_file_path = None
+    try:
+      with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
+        for chunk in setting_file.chunks():
+          temp_file.write(chunk)
+        temp_file_path = temp_file.name
+      task_function = load_setting_file
+      args = (temp_file_path,)
+    except Exception as e:
+      if temp_file_path and os.path.exists(temp_file_path):
+        os.remove(temp_file_path)
+      return JsonResponse({'status': 'error', 'message': f'ファイル書き込みエラー: {str(e)}'}, status=500)
   elif url_name == 'AsyncTask_backup':
     error_response = validate_dates(start_day, end_day)
     if error_response:
@@ -251,17 +168,17 @@ def backup(request):
       return error_response
     task_function = delete_AsyncTask_data
     args = (start_day, end_day)
-  elif url_name == 'Operation_history_backup':
+  elif url_name == 'History_backup':
     error_response = validate_dates(start_day, end_day)
     if error_response:
       return error_response
-    task_function = generate_Operation_history_backup
+    task_function = generate_History_backup
     args = (start_day, end_day)
-  elif url_name == 'Operation_history_delet':
+  elif url_name == 'History_delet':
     error_response = validate_dates(start_day, end_day)
     if error_response:
       return error_response
-    task_function = delete_Operation_history_data
+    task_function = delete_History_data
     args = (start_day, end_day)
   else:
     return JsonResponse({'status': 'error', 'message': '無効なタスクタイプです。'}, status=400)
@@ -319,50 +236,25 @@ def check_task_status(request):
 
 @api_view(['GET'])
 def download_file(request):
-  # 1. クエリパラメータからダウンロード対象のファイルパスを取得
-  #    このファイルパスは、非同期タスクが作成し、AsyncTask.result に格納したもの（例：/tmp/backup_20250101.xlsx）
   file_path = request.GET.get('file_path')
-
-  # 2. ファイルをバイナリ読み込みモード ('rb') で開く
-  #    FileResponse でファイルをクライアントに送信するために、ファイルハンドルが必要です。
   file_handle = open(file_path, 'rb')
-
-  # 3. FileResponse を作成
-  #    - file_handle: 開いたファイルオブジェクト
-  #    - as_attachment=True: ブラウザに対してファイルをダウンロードさせる指示（Content-Disposition ヘッダーを設定）
-  #    - filename: ダウンロード時のファイル名として、元のファイルパスのベース名（ファイル名部分のみ）を設定
   response = FileResponse(file_handle, as_attachment=True, filename=os.path.basename(file_path))
 
-  # 4. ファイルダウンロード完了後に実行するための遅延クリーンアップ関数を定義
   def delayed_file_cleanup():
-      # クライアントへのファイル送信が完了する時間を確保するため、3秒待機
-      # これにより、Djangoがファイルハンドルを閉じ、レスポンスの送信が開始された後に削除処理が走る
       time.sleep(3) 
-      
-      # ファイルが存在するか確認（他のプロセスによって削除されていないか）
       if os.path.exists(file_path):
-          try:
-              # 一時ファイル/バックアップファイルを削除
-              os.remove(file_path)
-          except Exception as e:
-              # 削除に失敗した場合（権限、ファイルロックなど）はログ出力
-              print(f"Cleanup failed after delay for {file_path}: {e}")
+        try:
+          os.remove(file_path)
+        except Exception as e:
+          print(f"Cleanup failed after delay for {file_path}: {e}")
 
-  # 5. response.close のカスタム実装を定義
-  #    FileResponse が提供する close() メソッドが呼び出されたときに、
-  #    ファイル削除を別スレッドで実行するための処理をラップする
+
   def cleanup_on_close():
-      # クリーンアップ処理をメインスレッドから切り離し、別スレッドで実行
-      # これにより、ダウンロードリクエストの処理がファイル削除の完了を待たずに終了できる
       thread = threading.Thread(target=delayed_file_cleanup)
       thread.start()
 
-  # 6. FileResponse オブジェクトの close() メソッドをカスタム関数に置き換え
-  #    Django/WSGIサーバーがレスポンスの送信を終える適切なタイミングで、
-  #    この cleanup_on_close() が呼び出される（元の file_handle の close() も自動的に呼び出される）
   response.close = cleanup_on_close 
 
-  # 7. クライアントへのレスポンスを返却（ファイル送信を開始）
   return response
 
 

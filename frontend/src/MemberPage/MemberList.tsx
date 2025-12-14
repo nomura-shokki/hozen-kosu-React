@@ -108,7 +108,7 @@ const MemberList: React.FC = () => {
     const updateMaxHeight = () => {
       const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0;
       const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
-      setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40); // スペースを差し引いて高を設定
+      setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40);
     };
 
     updateMaxHeight();

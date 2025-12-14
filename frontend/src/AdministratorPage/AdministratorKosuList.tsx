@@ -47,10 +47,10 @@ const AdministratorKosuList: React.FC = () => {
   const [data, setData] = useState<Kosu[]>([]);
   const [MemberOptions, setMemberOptions] = useState<KosuMember[]>([]);
   const [selectedMemberInput, setSelectedMemberInput] = useState<string>("");
-  const [searchShop, setSearchShop] = useState<string>(""); 
-  const [searchTyoku, setSearchTyoku] = useState<string>(""); 
-  const [searchWork, setSearchWork] = useState<string>(""); 
-  const [searchJudgement, setSearchJudgement] = useState<string>(""); 
+  const [searchShop, setSearchShop] = useState<string>("");
+  const [searchTyoku, setSearchTyoku] = useState<string>("");
+  const [searchWork, setSearchWork] = useState<string>("");
+  const [searchJudgement, setSearchJudgement] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchDay, setSearchDay] = useState<string>("");
@@ -65,8 +65,8 @@ const AdministratorKosuList: React.FC = () => {
   const navigate = useNavigate();
 
   const fetchData = useCallback(async (
-    page: number, 
-    day: string, 
+    page: number,
+    day: string,
     mode: boolean,
     member: string,
     shop: string,
@@ -79,7 +79,7 @@ const AdministratorKosuList: React.FC = () => {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu/`, {
         params: {
           page: page,
-          ...(day || member || shop || tyoku || work || judgement ? { 
+          ...(day || member || shop || tyoku || work || judgement ? {
             day: day,
             mode: mode ? "month" : "day",
             filter: "true",
@@ -126,69 +126,61 @@ const AdministratorKosuList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [navigate]); 
+  }, [navigate]);
 
   useEffect(() => {
     setSearchDay("");
     setSelectedMemberInput("");
     setSearchShop("");
-    setSearchTyoku(""); 
-    setSearchWork(""); 
-    setSearchJudgement(""); 
+    setSearchTyoku("");
+    setSearchWork("");
+    setSearchJudgement("");
     setSearchByMonth(false);
     setCurrentPage(1);
   }, [location.pathname]);
 
+  // 全てのフィルタリング条件の変更時にデータを再取得する
   useEffect(() => {
     fetchData(currentPage, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement);
-  }, [currentPage, fetchData, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement]); 
+  }, [currentPage, fetchData, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement]);
+
+  const handleGenericChange = (
+    setter: React.Dispatch<React.SetStateAction<string>>,
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const newValue = event.target.value;
+    setter(newValue);
+    setCurrentPage(1);
+  };
 
   // searchDayの変更ハンドラ
   const handleSearchDayChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newDay = e.target.value;
-    setSearchDay(newDay);
-    setCurrentPage(1);
-    fetchData(1, newDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement);
+    handleGenericChange(setSearchDay, e);
   };
 
   // メンバー変更ハンドラ
   const handleMemberChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const newMember = event.target.value;
-    setSelectedMemberInput(newMember);
-    setCurrentPage(1);
-    fetchData(1, searchDay, searchByMonth, newMember, searchShop, searchTyoku, searchWork, searchJudgement);
+    handleGenericChange(setSelectedMemberInput, event);
   };
 
   // ShopSelectの変更ハンドラ
   const handleShopChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const newShop = event.target.value;
-    setSearchShop(newShop);
-    setCurrentPage(1);
-    fetchData(1, searchDay, searchByMonth, selectedMemberInput, newShop, searchTyoku, searchWork, searchJudgement);
+    handleGenericChange(setSearchShop, event);
   };
-  
+
   // TyokuSelectの変更ハンドラ
   const handleTyokuChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const newTyoku = event.target.value;
-    setSearchTyoku(newTyoku);
-    setCurrentPage(1);
-    fetchData(1, searchDay, searchByMonth, selectedMemberInput, searchShop, newTyoku, searchWork, searchJudgement);
+    handleGenericChange(setSearchTyoku, event);
   };
 
   // WorkSelectの変更ハンドラ
   const handleWorkChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const newWork = event.target.value;
-    setSearchWork(newWork);
-    setCurrentPage(1);
-    fetchData(1, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, newWork, searchJudgement);
+    handleGenericChange(setSearchWork, event);
   };
 
-  // udgementSelectの変更ハンドラ
+  // JudgementSelectの変更ハンドラ
   const handleJudgementChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const newJudgement = event.target.value;
-    setSearchJudgement(newJudgement);
-    setCurrentPage(1);
-    fetchData(1, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, newJudgement);
+    handleGenericChange(setSearchJudgement, event);
   };
 
 
@@ -196,7 +188,7 @@ const AdministratorKosuList: React.FC = () => {
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);
     setCurrentPage(1);
-    fetchData(1, searchDay, isMonthSearch, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement);
+    // fetchDataの呼び出しはuseEffectに任せるため、ここでは行わない
   };
 
   const handleNextPage = () => {
@@ -256,12 +248,12 @@ const AdministratorKosuList: React.FC = () => {
           <div className={styles["row-group"]}>
             <div className={styles["form-group"]}>
               <label htmlFor="searchDayInput">就業日：</label>
-              <input 
-                type="date" 
-                id="searchDayInput" 
-                ref={dateInputRef} 
-                value={searchDay} 
-                onChange={handleSearchDayChange} 
+              <input
+                type="date"
+                id="searchDayInput"
+                ref={dateInputRef}
+                value={searchDay}
+                onChange={handleSearchDayChange}
                 placeholder="日付を選択"
               />
             </div>
@@ -302,19 +294,19 @@ const AdministratorKosuList: React.FC = () => {
           <div className={styles["row-group"]}>
             <div className={styles["form-group"]}>
               <label htmlFor="tyokuFilter">直：</label>
-              <TyokuSelect 
-                id="tyokuFilter" 
-                value={searchTyoku} 
-                onChange={handleTyokuChange} 
+              <TyokuSelect
+                id="tyokuFilter"
+                value={searchTyoku}
+                onChange={handleTyokuChange}
               />
             </div>
             <div className={styles["form-group"]}>
               <label htmlFor="workFilter">勤務形態：</label>
               <WorkSelect
-                id="workFilter" 
-                value={searchWork} 
-                onChange={handleWorkChange} 
-                mode='ALL' 
+                id="workFilter"
+                value={searchWork}
+                onChange={handleWorkChange}
+                mode='ALL'
               />
             </div>
           </div>

@@ -42,6 +42,8 @@ import AdministratorUpdate from './AdministratorPage/AdministratorUpdate';
 import AdministratorLoading from './AdministratorPage/AdministratorLoading';
 import AdministratorKosuList from './AdministratorPage/AdministratorKosuList';
 import AdministratorKosuUpdate from './AdministratorPage/AdministratorKosuUpdate';
+import AdministratorTaskList from './AdministratorPage/AdministratorTaskList';
+import AdministratorTaskDetail from './AdministratorPage/AdministratorTaskDetail';
 
 
 
@@ -90,6 +92,8 @@ const App: React.FC = () => {
       "/manager-loading": "データ管理 - 業務工数システム",
       "/manager-kosu": "全工数管理 - 業務工数システム",
       "/manager-kosu-update/:id": "全工数編集 - 業務工数システム",
+      "/manager-task": "非同期タスクデータ管理 - 業務工数システム",
+      "/manager-task-detail/:id": "非同期タスク詳細 - 業務工数システム",
     };
 
     // URLに基づいてタイトルを設定
@@ -138,6 +142,8 @@ const App: React.FC = () => {
       <Route path="/manager-loading" element={<AdministratorLoading />} />
       <Route path="/manager-kosu" element={<AdministratorKosuList />} />
       <Route path="/manager-kosu-update/:id" element={<AdministratorKosuUpdate />} />
+      <Route path="/manager-task" element={<AdministratorTaskList />} />
+      <Route path="/manager-task-detail/:id" element={<AdministratorTaskDetail />} />
     </Routes>
   );
 };
