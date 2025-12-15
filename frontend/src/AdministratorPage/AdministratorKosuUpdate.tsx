@@ -304,6 +304,35 @@ const AdministratorKosuUpdate: React.FC = () => {
       });
   };
 
+  const handleDelete = () => {
+    if (!id) return;
+
+    if (!window.confirm("このデータを完全に削除してもよろしいですか？この操作は元に戻せません。")) {
+      return;
+    }
+
+    setErrorMessage(null);
+
+    axios
+      .delete(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`, { withCredentials: true })
+      .then(() => {
+        alert("データが削除されました！");
+        navigate("/manager-kosu");
+      })
+      .catch((error) => {
+        console.error(error);
+        if (error.response?.status === 401) {
+          navigate("/login");
+        } else if (error.response?.status === 403) {
+          navigate("/");
+        } else if (error.response && error.response.data) {
+          setErrorMessage(error.response.data.error);
+        } else {
+          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+        }
+      });
+  };
+
   // ローディング中の表示
   if (loading) {
     return <div><Loading isLoading={loading} /></div>;
@@ -499,6 +528,14 @@ const AdministratorKosuUpdate: React.FC = () => {
             )}
 
             <button type="submit" className="gray_button" style={{ marginTop: '20px' }}>更新</button>
+            <button 
+              type="button"
+              className="gray_button" 
+              style={{ marginTop: '20px', backgroundColor: '#dc3545', color: 'white' }}
+              onClick={handleDelete}
+            >
+              削除
+            </button>
           </div>
         </form>
       </div>

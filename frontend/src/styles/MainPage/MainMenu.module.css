@@ -9,17 +9,23 @@
   }
 }
 
+.page-container {
+  min-height: 100vh;
+}
+
 .menu-wrapper {
   animation: fadeInUp 1s ease-out;
   display: flex;
   flex-direction: column;
   justify-content: top;
   align-items: center;
-  height: 100vh;
   width: 85%;
   margin: 0 auto;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: 20px; /* LogConsoleの上の余白を確保 */
 }
+
+/* ... 以下、既存のスタイルは省略せずそのまま維持 ... */
 
 .kosu-menu-button {
   display: inline-block;

@@ -9,15 +9,18 @@
   }
 }
 
+.page-container {
+  min-height: 100vh;
+}
+
 .admin-update-wrapper {
   animation: fadeInUp 1s ease-out;
-  display: flex; /* 子要素をフレックスレイアウトにする */
-  flex-direction: column; /* 縦方向に要素を並べる */
+  display: flex;
+  flex-direction: column;
   justify-content: top;
-  align-items: center; /* 横方向の中央に配置 */
-  height: 100vh; /* 画面の高さいっぱいにする */
+  align-items: center;
   width: 100%;
-  margin: 0 auto; /* 横方向の中央寄せ */
+  margin: 0 auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -61,4 +64,63 @@
   width: calc(100% - 40px);
   max-width: 400px;
   box-sizing: border-box;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 75px;
+  height: 39px;
+  margin: 0 auto;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 30px;
+  transition: 0.3s;
+}
+
+.toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 30px;
+  width: 30px;
+  left: 4.5px;
+  bottom: 4.5px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #000066;
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(36px);
+}
+
+.switch-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+}
+
+.switch-wrapper label {
+  margin-left: 20px;
 }

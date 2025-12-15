@@ -2,7 +2,11 @@ import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../components/Loading";
+import LogConsole from "../components/LogConsole";
 import styles from "../styles/AdministratorPage/AdministratorUpdate.module.css";
+
+// ローカルストレージで使用するキー
+const LOG_CONSOLE_VISIBILITY_KEY = "showLogConsole";
 
 // 型定義
 interface Admin {
@@ -35,6 +39,11 @@ const AdminUpdate: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { id } = useParams<{ id: string }>();
 
+  const [showLogConsole, setShowLogConsole] = useState<boolean>(() => {
+    const cachedValue = localStorage.getItem(LOG_CONSOLE_VISIBILITY_KEY);
+    return cachedValue === 'true'; 
+  });
+
   useEffect(() => {
     axios
       .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, { withCredentials: true })
@@ -53,11 +62,21 @@ const AdminUpdate: React.FC = () => {
         }
         setLoading(false); // ローディング終了
       });
-  }, [id, navigate]); // 依存配列: idとnavigateが変更されたときのみ実行
+  }, [id, navigate]);
 
-  // handleChange 関数の修正
+  useEffect(() => {
+    localStorage.setItem(LOG_CONSOLE_VISIBILITY_KEY, String(showLogConsole));
+  }, [showLogConsole]);
+
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = event.target;
+    const { name, value, type } = event.target;
+    const isCheckbox = type === 'checkbox';
+    const checked = isCheckbox && (event.target as HTMLInputElement).checked;
+
+    if (name === LOG_CONSOLE_VISIBILITY_KEY && isCheckbox) {
+      setShowLogConsole(checked); // checkedの値を使用
+      return; // 他の formData の更新は行わない
+    }
 
     const isNumberField = [
       "menu_row",
@@ -66,19 +85,18 @@ const AdminUpdate: React.FC = () => {
       "administrator_employee_no3",
     ].includes(name);
 
-    // 数値フィールドの場合の処理を修正
     const newValue = isNumberField
-      ? value === "" // 空文字チェック
-        ? null // 👈 空文字の場合は null をセット
-        : parseInt(value, 10) // それ以外は整数に変換
+      ? value === ""
+        ? null
+        : parseInt(value, 10)
       : value;
 
     setFormData((prevData) => {
       if (!prevData) return null;
       return {
         ...prevData,
-        [name]: newValue, // 変換後の値を使用
-      } as Admin; // Admin型にキャスト（nullを許容する型に変更済み）
+        [name]: newValue,
+      } as Admin;
     });
   };
 
@@ -86,9 +104,8 @@ const AdminUpdate: React.FC = () => {
     event.preventDefault();
     setError(null);
 
-    // formDataがnullでないことを確認
     if (!formData) {
-      setError("フォームデータがありません。");
+      setError("データがありません。");
       return;
     }
 
@@ -119,7 +136,7 @@ const AdminUpdate: React.FC = () => {
 
   // レンダリング
   return (
-    <>
+    <div className={styles["page-container"]}>
       <Loading isLoading={loading} />
       <div className={styles["admin-update-wrapper"]}>
         <h1 className={styles["h1-collar"]}>設定編集</h1>
@@ -173,11 +190,26 @@ const AdminUpdate: React.FC = () => {
               value={formData.administrator_employee_no3 ?? ""}
               onChange={handleChange}
             />
+
+            <div className={styles["switch-wrapper"]}>
+              <label htmlFor={LOG_CONSOLE_VISIBILITY_KEY}>バックエンドログ表示:</label>
+              <label className={styles["toggle-switch"]}>
+                <input
+                  type="checkbox"
+                  id={LOG_CONSOLE_VISIBILITY_KEY}
+                  name={LOG_CONSOLE_VISIBILITY_KEY}
+                  checked={showLogConsole}
+                  onChange={handleChange}
+                />
+                <span className={styles["toggle-slider"]}></span>
+              </label>
+            </div>
             <button type="submit" className="gray_button">編集</button>
           </div>
         </form>
       </div>
-    </>
+      {showLogConsole && <LogConsole />}
+    </div>
   );
 };
 

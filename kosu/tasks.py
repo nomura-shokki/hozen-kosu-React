@@ -3,7 +3,7 @@ from django.conf import settings
 from django.utils import timezone
 import openpyxl
 import pandas as pd
-import tempfile
+import pytz
 import datetime
 from .models import Business_Time_graph, kosu_division, member, team_member, \
                     inquiry_data, administrator_data, AsyncTask, History
@@ -954,15 +954,24 @@ def generate_AsyncTask_backup(start_day, end_day):
 
   ws.append(headers)
 
+  start_date = datetime.datetime.strptime(start_day, '%Y-%m-%d').date()
+  end_date = datetime.datetime.strptime(end_day, '%Y-%m-%d').date()
+
   # タスク履歴データ取得
   AsyncTask_data = AsyncTask.objects.filter(
-    created_at__gte=start_day, created_at__lte=end_day,
+    created_at__date__gte=start_date, created_at__date__lte=end_date,
   )
 
   # データ書き込み
   for item in AsyncTask_data:
-    created_at_local = timezone.localtime(item.created_at).replace(tzinfo=None)
-    updated_at_local = timezone.localtime(item.updated_at).replace(tzinfo=None)
+    try:
+      target_tz = pytz.timezone(settings.TIME_ZONE)
+      created_at_local = item.created_at.astimezone(target_tz).replace(tzinfo=None)
+      updated_at_local = item.updated_at.astimezone(target_tz).replace(tzinfo=None)
+    except ImportError:
+      created_at_local = item.created_at.replace(tzinfo=None)
+      updated_at_local = item.updated_at.replace(tzinfo=None)
+
     row = [
       item.task_id,
       item.status,
@@ -1035,20 +1044,29 @@ def generate_History_backup(start_day, end_day):
 
   ws.append(headers)
 
+  start_date = datetime.datetime.strptime(start_day, '%Y-%m-%d').date()
+  end_date = datetime.datetime.strptime(end_day, '%Y-%m-%d').date()
+
   # タスク履歴データ取得
   History_data = History.objects.filter(
-    timestamp__gte=start_day, timestamp__lte=end_day,
+    timestamp__date__gte=start_date, timestamp__date__lte=end_date,
   )
 
   # データ書き込み
   for item in History_data:
+    try:
+      target_tz = pytz.timezone(settings.TIME_ZONE)
+      timestamp_local_naive = item.timestamp.astimezone(target_tz).replace(tzinfo=None)
+    except ImportError:
+      timestamp_local_naive = item.timestamp.replace(tzinfo=None)
+
     row = [
       item.operation,
       item.table_name,
       item.record_id,
       item.login_No,
-      item.changes,
-      item.timestamp,
+      str(item.changes),
+      timestamp_local_naive,
     ]
 
     ws.append(row)

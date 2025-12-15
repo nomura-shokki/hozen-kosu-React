@@ -68,6 +68,7 @@ urlpatterns = [
   path('manager_task/', main_views.AdministratorTaskList.as_view(), name='admin_task'),
   path('manager_task_detail/<int:pk>/', main_views.AdministratorTaskDetail.as_view(), name='admin_task_detail'),
   path('manager_history/', main_views.AdministratorHistoryList.as_view(), name='admin_history'),
+  path('manager_history_detail/<int:pk>/', main_views.AdministratorHistoryDetail.as_view(), name='admin_history_detail'),
 
   path('kosu_backup/', asynchronous_views.backup, name='kosu_backup'),
   path('kosu_delet/', asynchronous_views.backup, name='kosu_delet'),
@@ -90,7 +91,7 @@ urlpatterns = [
   path('check_backup_status', asynchronous_views.check_task_status, name='check_member_backup_status'),
   path('download_backup', asynchronous_views.download_file, name='download_member_backup'),
 
-
-  ]
+  path('web_console_log/', main_views.WebConsoleLogView.as_view(), name='web_console_log'),
+]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

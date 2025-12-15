@@ -2,8 +2,11 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../img/MenuRogo.png";
+import LogConsole from "../components/LogConsole";
 import styles from "../styles/MainPage/MainMenu.module.css";
 
+// ローカルストレージで使用するキー
+const LOG_CONSOLE_VISIBILITY_KEY = "showLogConsole";
 
 
 interface Member {
@@ -52,6 +55,32 @@ const MainMenu: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  // ローカルストレージから showLogConsole の状態を取得
+  const [showLogConsole, setShowLogConsole] = useState<boolean>(() => {
+    const cachedValue = localStorage.getItem(LOG_CONSOLE_VISIBILITY_KEY);
+    // ローカルストレージの値が 'true' なら true、それ以外は false
+    return cachedValue === 'true'; 
+  });
+
+  // ローカルストレージの変更を監視するためのリスナー設定
+  useEffect(() => {
+    // storageイベントハンドラ
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === LOG_CONSOLE_VISIBILITY_KEY) {
+        // ローカルストレージの値が変更されたら状態を更新
+        setShowLogConsole(event.newValue === 'true');
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // クリーンアップ関数
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+
   useEffect(() => {
     axios
       .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/main_menu/`, {withCredentials: true})
@@ -90,62 +119,65 @@ const MainMenu: React.FC = () => {
   }
 
   return (
-    <div className={styles["menu-wrapper"]}>
-      <img src={logo} alt="Menuロゴ" className={styles["Menu-logo"]} />
-      <p>こんにちは {data ? data.name : ""}さん</p>
-      <div className={styles["alert-area"]}>
-        {adminData && (Number(adminData.administrator_employee_no1) === data?.employee_no || Number(adminData.administrator_employee_no2) === data?.employee_no || Number(adminData.administrator_employee_no3) === data?.employee_no) && (
+    <div className={styles["page-container"]}>
+      <div className={styles["menu-wrapper"]}>
+        <img src={logo} alt="Menuロゴ" className={styles["Menu-logo"]} />
+        <p>こんにちは {data ? data.name : ""}さん</p>
+        <div className={styles["alert-area"]}>
+          {adminData && (Number(adminData.administrator_employee_no1) === data?.employee_no || Number(adminData.administrator_employee_no2) === data?.employee_no || Number(adminData.administrator_employee_no3) === data?.employee_no) && (
+            <>
+              {adminData?.pop_up_id1 && (
+                <p><Link to={`/inquir-detail/${adminData?.pop_up_id1}`} className={styles["a-collar"]}>{adminData?.pop_up1}</Link></p>
+              )}
+              {adminData?.pop_up_id2 && (
+                <p><Link to={`/inquir-detail/${adminData?.pop_up_id2}`} className={styles["a-collar"]}>{adminData?.pop_up2}</Link></p>
+              )}
+              {adminData?.pop_up_id3 && (
+                <p><Link to={`/inquir-detail/${adminData?.pop_up_id3}`} className={styles["a-collar"]}>{adminData?.pop_up3}</Link></p>
+              )}
+              {adminData?.pop_up_id4 && (
+                <p><Link to={`/inquir-detail/${adminData?.pop_up_id4}`} className={styles["a-collar"]}>{adminData?.pop_up4}</Link></p>
+              )}
+              {adminData?.pop_up_id5 && (
+                <p><Link to={`/inquir-detail/${adminData?.pop_up_id5}`} className={styles["a-collar"]}>{adminData?.pop_up5}</Link></p>
+              )}
+            </>
+          )}
+
+          {data?.pop_up_id1 && (
+            <p><Link to={`/inquir-detail/${data.pop_up_id1}`} className={styles["a-collar"]}>{data ? data.pop_up1 : ""}</Link></p>
+          )}
+          {data?.pop_up_id2 && (
+            <p><Link to={`/inquir-detail/${data.pop_up_id2}`} className={styles["a-collar"]}>{data ? data.pop_up2 : ""}</Link></p>
+          )}
+          {data?.pop_up_id3 && (
+            <p><Link to={`/inquir-detail/${data.pop_up_id3}`} className={styles["a-collar"]}>{data ? data.pop_up3 : ""}</Link></p>
+          )}
+          {data?.pop_up_id4 && (
+            <p><Link to={`/inquir-detail/${data.pop_up_id4}`} className={styles["a-collar"]}>{data ? data.pop_up4 : ""}</Link></p>
+          )}
+          {data?.pop_up_id5 && (
+            <p><Link to={`/inquir-detail/${data.pop_up_id5}`} className={styles["a-collar"]}>{data ? data.pop_up5 : ""}</Link></p>
+          )}
+        </div>
+        <p>　</p>
+        <Link to="/kosu-menu" className={styles["kosu-menu-button"]}>工数MENU</Link>
+        <Link to="/def-menu" className={styles["def-menu-button"]}>工数定義区分MENU</Link>
+        {data?.authority && (
           <>
-            {adminData?.pop_up_id1 && (
-              <p><Link to={`/inquir-detail/${adminData?.pop_up_id1}`} className={styles["a-collar"]}>{adminData?.pop_up1}</Link></p>
-            )}
-            {adminData?.pop_up_id2 && (
-              <p><Link to={`/inquir-detail/${adminData?.pop_up_id2}`} className={styles["a-collar"]}>{adminData?.pop_up2}</Link></p>
-            )}
-            {adminData?.pop_up_id3 && (
-              <p><Link to={`/inquir-detail/${adminData?.pop_up_id3}`} className={styles["a-collar"]}>{adminData?.pop_up3}</Link></p>
-            )}
-            {adminData?.pop_up_id4 && (
-              <p><Link to={`/inquir-detail/${adminData?.pop_up_id4}`} className={styles["a-collar"]}>{adminData?.pop_up4}</Link></p>
-            )}
-            {adminData?.pop_up_id5 && (
-              <p><Link to={`/inquir-detail/${adminData?.pop_up_id5}`} className={styles["a-collar"]}>{adminData?.pop_up5}</Link></p>
-            )}
+            <Link to="/member-menu" className={styles["member-menu-button"]}>人員MENU</Link>
+            <Link to="/team-menu" className={styles["team-menu-button"]}>班員MENU</Link>
           </>
         )}
-
-        {data?.pop_up_id1 && (
-          <p><Link to={`/inquir-detail/${data.pop_up_id1}`} className={styles["a-collar"]}>{data ? data.pop_up1 : ""}</Link></p>
+        <Link to="/inquir-menu" className={styles["inquir-menu-button"]}>問い合わせMENU</Link>
+        {data?.administrator && (
+          <Link to="/manager-menu" className={styles["admin-menu-button"]}>管理者MENU</Link>
         )}
-        {data?.pop_up_id2 && (
-          <p><Link to={`/inquir-detail/${data.pop_up_id2}`} className={styles["a-collar"]}>{data ? data.pop_up2 : ""}</Link></p>
-        )}
-        {data?.pop_up_id3 && (
-          <p><Link to={`/inquir-detail/${data.pop_up_id3}`} className={styles["a-collar"]}>{data ? data.pop_up3 : ""}</Link></p>
-        )}
-        {data?.pop_up_id4 && (
-          <p><Link to={`/inquir-detail/${data.pop_up_id4}`} className={styles["a-collar"]}>{data ? data.pop_up4 : ""}</Link></p>
-        )}
-        {data?.pop_up_id5 && (
-          <p><Link to={`/inquir-detail/${data.pop_up_id5}`} className={styles["a-collar"]}>{data ? data.pop_up5 : ""}</Link></p>
-        )}
+        <button onClick={handleLogout} className="blue_button">
+          ログアウト
+        </button>
       </div>
-      <p>　</p>
-      <Link to="/kosu-menu" className={styles["kosu-menu-button"]}>工数MENU</Link>
-      <Link to="/def-menu" className={styles["def-menu-button"]}>工数定義区分MENU</Link>
-      {data?.authority && (
-        <>
-          <Link to="/member-menu" className={styles["member-menu-button"]}>人員MENU</Link>
-          <Link to="/team-menu" className={styles["team-menu-button"]}>班員MENU</Link>
-        </>
-      )}
-      <Link to="/inquir-menu" className={styles["inquir-menu-button"]}>問い合わせMENU</Link>
-      {data?.administrator && (
-        <Link to="/manager-menu" className={styles["admin-menu-button"]}>管理者MENU</Link>
-      )}
-      <button onClick={handleLogout} className="blue_button">
-        ログアウト
-      </button>
+      {showLogConsole && <LogConsole />}
     </div>
   );
 };

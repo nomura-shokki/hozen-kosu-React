@@ -857,7 +857,9 @@ from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializ
                           DefSerializer, TaskSerializer, HistorySerializer
 from ..utils.main_utils import CustomPagination
 import json
-
+import os
+from django.views import View
+from django.conf import settings
 
 
 # Reactメインページ呼び出し
@@ -1462,6 +1464,30 @@ class AdministratorKosuUpdate(APIView):
     return Response({'error': 'バリテーションエラー'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+  def delete(self, request, pk):
+    # セッションからログイン情報を取得
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # ログイン者情報取得
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    # 削除対象のオブジェクトを取得
+    kosu_instance = self.get_object(pk)
+    if kosu_instance is None:
+      return Response({'error': 'データがありません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # レコードを削除
+    kosu_instance.delete()
+    return Response({'status': 'success', 'message': 'データを削除しました。'}, status=status.HTTP_200_OK)
+
+
 
 class AdministratorTaskList(APIView):
   # GET処理
@@ -1611,16 +1637,86 @@ class AdministratorHistoryList(APIView):
 
 
 
+class AdministratorHistoryDetail(APIView):
+  def get_object(self, pk):
+    try:
+      return History.objects.get(id=pk)
+    except History.DoesNotExist:
+      return None
+
+
+  def get(self, request, pk):
+    # セッションからログイン情報を取得
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # ログイン者情報取得
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    # 削除対象のオブジェクトを取得
+    history_instance = self.get_object(pk)
+
+    if history_instance is None:
+      return Response({'error': 'データがありません'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = HistorySerializer(history_instance)
+
+    response_data = {
+      'history_data': serializer.data,
+    }
+    return Response(response_data)
+
+
+  def delete(self, request, pk):
+    # セッションからログイン情報を取得
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # ログイン者情報取得
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+
+    # 削除対象のオブジェクトを取得
+    history_instance = self.get_object(pk)
+    if history_instance is None:
+      return Response({'error': 'データがありません'}, status=status.HTTP_404_NOT_FOUND)
+
+    # レコードを削除
+    history_instance.delete()
+    return Response({'status': 'success', 'message': 'データを削除しました。'}, status=status.HTTP_200_OK)
 
 
 
+class WebConsoleLogView(View):
+  def get(self, request, *args, **kwargs):
+    # プロジェクトルートからのweb_console.logの相対パス
+    LOG_FILE_PATH = os.path.join(settings.BASE_DIR, 'web_console.log')
+    try:
+      # ファイルが存在するか確認
+      if not os.path.exists(LOG_FILE_PATH):
+        return JsonResponse({"log_content": "Log file not found."}, status=200)
 
+      # ファイルの内容を読み込む
+      with open(LOG_FILE_PATH, 'r', encoding='utf-8') as f:
+        log_content = f.read()
+      
+      # log_contentをクライアントに返す
+      return JsonResponse({"log_content": log_content}, status=200)
 
-
-
-
-
-
+    except Exception as e:
+      # 読み込みエラーが発生した場合
+      return JsonResponse({"error": str(e)}, status=500)
 
 
 
