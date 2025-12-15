@@ -41,38 +41,42 @@ const AdministratorHistoryList: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchDay, setSearchDay] = useState<string>("");
+  const [searchID, setSearchID] = useState<string>("");
+  const [queryDay, setQueryDay] = useState<string>("");
+  const [queryID, setQueryID] = useState<string>("");
   const [searchByMonth, setSearchByMonth] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
   const [tableWidth, setTableWidth] = useState<number>(0);
   const tableRef = useRef<HTMLTableElement>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
   const fetchData = useCallback(async (
-    page: number, 
-    day: string, 
+    page: number,
+    day: string,
     mode: boolean,
+    id: string,
   ) => {
     setLoading(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_history/`, {
         params: {
           page: page,
-          ...(day ? { 
-            day: day,
-            mode: mode ? "month" : "day",
-          } : {}),
+          record_id: id,
+          day: day,
+          mode: mode ? "month" : "day",
         },
         withCredentials: true,
       });
 
       const historyData = response.data?.history_data || {};
+      const ModelChoices = response.data?.model_choices || {};
+      console.log(ModelChoices)
       const results = historyData.results || [];
       const count = historyData.count || 0;
-      const pageSize = results.length > 0 ? count / Math.ceil(count / results.length) : 20;
+      const pageSize = results.length > 0 ? historyData.count / Math.ceil(historyData.count / results.length) : 20;
       setTotalPages(Math.ceil(count / pageSize));
       const transformedData = results.map((item: History) => ({
         ...item,
@@ -94,31 +98,38 @@ const AdministratorHistoryList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [navigate]); 
+  }, [navigate]);
 
   useEffect(() => {
     setSearchDay("");
+    setSearchID("");
+    setQueryDay("");
+    setQueryID("");
     setSearchByMonth(false);
     setCurrentPage(1);
   }, [location.pathname]);
 
   useEffect(() => {
-    fetchData(currentPage, searchDay, searchByMonth);
-  }, [currentPage, fetchData, searchDay, searchByMonth]); 
+    fetchData(currentPage, queryDay, searchByMonth, queryID);
+  }, [currentPage, fetchData, queryDay, searchByMonth, queryID]);
 
-  // searchDayの変更ハンドラ
   const handleSearchDayChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newDay = e.target.value;
-    setSearchDay(newDay);
-    setCurrentPage(1);
-    fetchData(1, newDay, searchByMonth);
+    setSearchDay(e.target.value);
   };
 
-  // 日付指定検索ボタンのハンドラ
-  const handleSearch = (isMonthSearch: boolean) => {
+  const handleSearchIDChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchID(e.target.value);
+  };
+
+  const handleDaySearchClick = (isMonthSearch: boolean) => {
+    setQueryDay(searchDay);
     setSearchByMonth(isMonthSearch);
     setCurrentPage(1);
-    fetchData(1, searchDay, isMonthSearch);
+  };
+
+  const handleIDSearchClick = () => {
+    setQueryID(searchID);
+    setCurrentPage(1);
   };
 
   const handleNextPage = () => {
@@ -144,8 +155,10 @@ const AdministratorHistoryList: React.FC = () => {
   useEffect(() => {
     const updateMaxHeight = () => {
       const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0;
-      const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
-      setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40);
+      const headerHeight = (document.querySelector(`.${styles["h1-collar"]}`) as HTMLElement)?.offsetHeight || 0;
+      const containerPadding = 40;
+      const newMaxHeight = window.innerHeight - searchBarHeight - headerHeight - containerPadding - 50;
+      setMaxHeight(Math.max(200, newMaxHeight));
     };
 
     updateMaxHeight();
@@ -166,7 +179,6 @@ const AdministratorHistoryList: React.FC = () => {
   }, [data]);
 
   if (error) return <div>Error: {error}</div>;
-  if (loading) return <div><Loading isLoading={loading} /></div>;
 
   return (
     <>
@@ -177,31 +189,48 @@ const AdministratorHistoryList: React.FC = () => {
           <Link to="/manager-menu">管理者MENU</Link>
         </nav>
         <div className={styles["search-bar"]}>
-          <label htmlFor="searchDayInput">就業日：</label>
-          <input 
-            type="date" 
-            id="searchDayInput" 
-            ref={dateInputRef} 
-            value={searchDay} 
-            onChange={handleSearchDayChange} 
-            placeholder="日付を選択"
-          />
-          <div className={styles["button-group"]}>
+          <div className={styles["search-group-day"]}>
+            <label htmlFor="searchDayInput">就業日:</label>
+            <input
+              type="date"
+              id="searchDayInput"
+              value={searchDay}
+              onChange={handleSearchDayChange}
+              placeholder="日付を選択"
+            />
             <button
-              onClick={() => handleSearch(true)}
+              onClick={() => handleDaySearchClick(true)} // 月検索
               className="gray_button"
+              disabled={!searchDay}
             >
-              指定月
+              指定月検索
             </button>
             <button
-              onClick={() => handleSearch(false)}
+              onClick={() => handleDaySearchClick(false)} // 日検索
+              className="gray_button"
+              disabled={!searchDay}
+            >
+              指定日検索
+            </button>
+          </div>
+          <div className={styles["search-group-id"]}>
+            <label htmlFor="searchID">レコードID:</label>
+            <input
+              type="text"
+              id="searchID"
+              value={searchID}
+              onChange={handleSearchIDChange}
+              placeholder="レコードID"
+            />
+            <button
+              onClick={handleIDSearchClick}
               className="gray_button"
             >
-              指定日
+              検索
             </button>
           </div>
         </div>
-        {data.length === 0 ? (
+        {data.length === 0 && !loading ? (
           <p>No data found.</p>
         ) : (
           <div
@@ -209,7 +238,8 @@ const AdministratorHistoryList: React.FC = () => {
             style={{
               minHeight: `${maxHeight}px`,
               overflowY: "auto",
-              width: `${tableWidth + 20}px`,
+              width: tableWidth > 0 ? `${tableWidth}px` : "100%",
+              maxWidth: "100vw",
             }}
           >
             <table ref={tableRef}>

@@ -54,7 +54,10 @@ def history_record(post_page, operation_models, status, operation_detail, reques
 
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-
+import inspect
+from django.db import models
+from django.apps import apps
+from kosu import models as myapp_models
 
 
 # ページネーションクラス
@@ -100,3 +103,19 @@ def validate_employee_no_logic(value, member_model):
     return False, 'に入力された従業員番号の人員は存在しません'
 
 
+
+
+
+def get_all_model_names_in_myapp():
+  model_names = []
+  
+  # myapp_modelsモジュールのメンバーを全て取得
+  for name, obj in inspect.getmembers(myapp_models):
+    if (inspect.isclass(obj) and 
+      issubclass(obj, models.Model) and 
+      not obj._meta.abstract and 
+      not obj._meta.proxy and
+      obj.__module__ == myapp_models.__name__):
+      model_names.append(name)
+
+  return model_names

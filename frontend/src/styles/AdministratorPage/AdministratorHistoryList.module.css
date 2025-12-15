@@ -19,6 +19,8 @@
   width: 100%;
   margin: 0 auto;
   -webkit-overflow-scrolling: touch;
+  padding: 20px; /* 適切なパディングを追加 */
+  box-sizing: border-box; /* パディングを幅に含める */
 }
 
 .h1-collar {
@@ -29,6 +31,8 @@
 .admin-nav a {
   color: #656565;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  margin-bottom: 10px;
+  display: block; /* リンクを下線付きで独立させる */
 }
 
 .admin-nav a:hover {
@@ -37,13 +41,41 @@
 }
 
 .search-bar {
+  /* ★修正: 縦に並べる */
   display: flex;
-  flex-direction: row;
+  flex-direction: column; /* 縦並び */
   justify-content: center;
+  align-items: center; /* 中央寄せ */
+  gap: 15px; /* 要素間の縦の間隔 */
+  margin: 10px 0;
+  width: 100%; /* 親要素の幅いっぱいに広げる */
+  max-width: 800px; /* 適切な最大幅を設定 */
+}
+
+/* ★新規追加: 日付検索グループを横並びにする */
+.search-group-day {
+  display: flex;
+  flex-direction: row; /* 横並び */
   align-items: center;
   gap: 15px;
-  margin: 10px 0;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* 画面が狭くなったら折り返す */
+  justify-content: center; /* グループ内の要素を中央寄せ */
+  width: 100%;
+}
+
+/* ★新規追加: ID検索グループを横並びにする */
+.search-group-id {
+  display: flex;
+  flex-direction: row; /* 横並び */
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap; /* 画面が狭くなったら折り返す */
+  justify-content: center;
+  width: 100%;
+}
+
+.search-bar label {
+  white-space: nowrap; /* ラベルを折り返さない */
 }
 
 .search-bar input,
@@ -52,18 +84,12 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
-  min-width: 180px;
+  /* min-width: 180px; */ /* 幅の指定を削除または緩和 */
 }
 
 .search-bar button:focus {
   outline: none;
   box-shadow: 0 0 3px #555;
-}
-
-.button-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .table-wrapper {
@@ -80,6 +106,7 @@
 
 .th-collar{
   background-color: #656565;
+  color: #FFF; /* 文字色を白に */
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
@@ -172,9 +199,42 @@
     height: 40px;
   }
 
+  /* search-bar内の修正 */
   .search-bar {
-    flex-direction: column;
+    flex-direction: column; /* 縦並び維持 */
     gap: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  .search-group-day,
+  .search-group-id {
+    flex-direction: column; /* 縦並びにする */
+    align-items: flex-start; /* 左寄せ */
+    width: 100%;
+    gap: 5px;
+    padding: 5px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+  }
+
+  .search-group-day label,
+  .search-group-id label {
+    margin-right: 0;
+    margin-bottom: 5px;
+  }
+
+  .search-group-day input[type="date"],
+  .search-group-id input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 5px;
+  }
+
+  .search-group-day button,
+  .search-group-id button {
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .admin-nav a {

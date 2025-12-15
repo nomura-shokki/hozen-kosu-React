@@ -855,7 +855,7 @@ from rest_framework import status
 from django.http import JsonResponse
 from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer, \
                           DefSerializer, TaskSerializer, HistorySerializer
-from ..utils.main_utils import CustomPagination
+from ..utils.main_utils import CustomPagination, get_all_model_names_in_myapp
 import json
 import os
 from django.views import View
@@ -1614,6 +1614,7 @@ class AdministratorHistoryList(APIView):
     # 検索パラメータの取得
     search_day = request.query_params.get('day')
     mode = request.query_params.get('mode', 'day')
+    search_ID = request.query_params.get('record_id')
 
     # 工数履歴データの取得
     historys = History.objects.all().order_by('-timestamp')
@@ -1624,6 +1625,8 @@ class AdministratorHistoryList(APIView):
         historys = historys.filter(timestamp__startswith=search_day[:7])
       else:
         historys = historys.filter(timestamp__date=search_day)
+    if search_ID:
+      historys = historys.filter(record_id__contains=search_ID)
 
     # ページネーション
     paginator = CustomPagination()
@@ -1632,6 +1635,7 @@ class AdministratorHistoryList(APIView):
 
     response_data = {
       'history_data': paginator.get_paginated_response(serializer.data).data,
+      'model_choices': get_all_model_names_in_myapp(),
     }
     return Response(response_data)
 

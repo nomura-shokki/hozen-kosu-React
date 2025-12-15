@@ -732,8 +732,8 @@ def load_inquiry_file(file_path):
 
     # ヘッダー定義
     expected_headers = [
-    '従業員番号', '氏名', '内容選択', '問い合わせ', '回答'
-      ]
+      '従業員番号', '氏名', '内容選択', '問い合わせ', '回答'
+    ]
 
     # ファイル内ヘッダー取得
     actual_headers = [ws.cell(1, col).value for col in range(1, len(expected_headers) + 1)]
@@ -757,7 +757,7 @@ def load_inquiry_file(file_path):
           content_choice=ws.cell(row=i, column=3).value,
           inquiry=ws.cell(row=i, column=4).value,
           answer=ws.cell(row=i, column=5).value,
-          )
+        )
       except IntegrityError as create_e:
         print(f"書き込み中にIntegrityErrorが発生しました: {create_e}")
         continue
@@ -806,7 +806,7 @@ def generate_setting_backup():
     'ポップアップID4',
     'ポップアップ5',
     'ポップアップID6',
-    ]
+  ]
 
   ws.append(headers)
 
@@ -830,7 +830,7 @@ def generate_setting_backup():
       item.pop_up_id4,
       item.pop_up5,
       item.pop_up_id5,
-      ]
+    ]
 
     ws.append(row)
 
