@@ -1615,6 +1615,8 @@ class AdministratorHistoryList(APIView):
     search_day = request.query_params.get('day')
     mode = request.query_params.get('mode', 'day')
     search_ID = request.query_params.get('record_id')
+    table_name = request.query_params.get('table_name')
+    login_No = request.query_params.get('login_No')
 
     # 工数履歴データの取得
     historys = History.objects.all().order_by('-timestamp')
@@ -1627,6 +1629,15 @@ class AdministratorHistoryList(APIView):
         historys = historys.filter(timestamp__date=search_day)
     if search_ID:
       historys = historys.filter(record_id__contains=search_ID)
+    if table_name:
+      historys = historys.filter(table_name=table_name)
+    if login_No:
+      historys = historys.filter(login_No__contains=login_No)
+
+    # モデル名取得
+    model_remove = 'History'
+    model_choices = get_all_model_names_in_myapp()
+    model_choices.remove(model_remove)
 
     # ページネーション
     paginator = CustomPagination()
@@ -1635,7 +1646,7 @@ class AdministratorHistoryList(APIView):
 
     response_data = {
       'history_data': paginator.get_paginated_response(serializer.data).data,
-      'model_choices': get_all_model_names_in_myapp(),
+      'model_choices': model_choices,
     }
     return Response(response_data)
 

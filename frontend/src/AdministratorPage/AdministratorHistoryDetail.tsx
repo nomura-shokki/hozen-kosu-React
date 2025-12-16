@@ -10,7 +10,7 @@ interface History {
   table_name: string;
   record_id: string;
   login_No: string;
-  changes: string; // changesはstring型として維持
+  changes: string;
   timestamp: string;
 }
 
@@ -18,9 +18,8 @@ interface Response {
   history_data: History;
 }
 
-// 変更内容のオブジェクトの型定義（changesの内容に応じて）
 interface ChangesObject {
-  [key: string]: any; // old/new構造、または単一の値が入る可能性を許容
+  [key: string]: any;
 }
 
 const HistoryDetail: React.FC = () => {
@@ -108,32 +107,16 @@ const HistoryDetail: React.FC = () => {
 
   // changesをパースして表示用の要素に変換する処理（データ形式エラー対応済み）
   const renderChanges = (changesString: string) => {
-    
-    // ★ 修正箇所: changesがnullや空の場合のチェックを追加
-    // TypeScriptの型安全性のために changesString as any を使用し、null/undefinedを処理
     if (!changesString || String(changesString).trim().length === 0) {
         return <div>変更なし</div>; // または return null;
     }
-    
-    // changesString が "null" という文字列である可能性も考慮し、
-    // if (changesString === "null") { return <div>変更なし</div>; } のようなチェックも可能ですが、
-    // 後のJSON置換処理で "None" => "null" に変換され、JSON.parseで null になるため、
-    // ほとんどのケースは try-catch または上記の !changesString でカバーできます。
-
     try {
-      // 1. Python/JavaScriptのオブジェクトリテラル形式をJSON形式に変換する処理
-
-      // 1-a. 一重引用符で囲まれたプロパティ名（キー）を二重引用符に変換
       let validJsonString = changesString.replace(/'([^']+)':/g, '"$1":');
-
-      // 1-b. Python形式の真偽値（True/False）をJSON形式（true/false）に変換
       validJsonString = validJsonString.replace(/True/g, 'true');
       validJsonString = validJsonString.replace(/False/g, 'false');
-      
-      // 1-c. Python形式のNoneをJSON形式（null）に変換
+
       validJsonString = validJsonString.replace(/None/g, 'null');
-      
-      // 1-d. 残っているすべての一重引用符を二重引用符に変換（値に含まれる一重引用符に対応）
+
       validJsonString = validJsonString.replace(/'/g, '"'); 
 
       // JSON文字列をパース
@@ -238,7 +221,6 @@ const HistoryDetail: React.FC = () => {
               </tr>
               <tr>
                 <th className={styles["th-collar"]}>編集内容</th>
-                {/* 修正後の renderChanges 関数を呼び出す */}
                 <td>
                   {renderChanges(formData.changes)}
                 </td>

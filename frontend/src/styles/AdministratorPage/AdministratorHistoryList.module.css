@@ -41,7 +41,6 @@
 }
 
 .search-bar {
-  /* ★修正: 縦に並べる */
   display: flex;
   flex-direction: column; /* 縦並び */
   justify-content: center;
@@ -49,28 +48,17 @@
   gap: 15px; /* 要素間の縦の間隔 */
   margin: 10px 0;
   width: 100%; /* 親要素の幅いっぱいに広げる */
-  max-width: 800px; /* 適切な最大幅を設定 */
+  max-width: 800px;
 }
 
 /* ★新規追加: 日付検索グループを横並びにする */
-.search-group-day {
+.search-group {
   display: flex;
   flex-direction: row; /* 横並び */
   align-items: center;
   gap: 15px;
   flex-wrap: wrap; /* 画面が狭くなったら折り返す */
   justify-content: center; /* グループ内の要素を中央寄せ */
-  width: 100%;
-}
-
-/* ★新規追加: ID検索グループを横並びにする */
-.search-group-id {
-  display: flex;
-  flex-direction: row; /* 横並び */
-  align-items: center;
-  gap: 15px;
-  flex-wrap: wrap; /* 画面が狭くなったら折り返す */
-  justify-content: center;
   width: 100%;
 }
 
@@ -84,7 +72,6 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
-  /* min-width: 180px; */ /* 幅の指定を削除または緩和 */
 }
 
 .search-bar button:focus {
@@ -207,8 +194,7 @@
     box-sizing: border-box;
   }
 
-  .search-group-day,
-  .search-group-id {
+  .search-group {
     flex-direction: column; /* 縦並びにする */
     align-items: flex-start; /* 左寄せ */
     width: 100%;
@@ -218,22 +204,17 @@
     border-radius: 4px;
   }
 
-  .search-group-day label,
-  .search-group-id label {
+  .search-group label {
     margin-right: 0;
     margin-bottom: 5px;
   }
 
-  .search-group-day input[type="date"],
-  .search-group-id input[type="text"] {
-    width: 100%;
+  .search-group input[type="text"] {
     box-sizing: border-box;
     margin-bottom: 5px;
   }
 
-  .search-group-day button,
-  .search-group-id button {
-    width: 100%;
+  .search-group button {
     box-sizing: border-box;
   }
 

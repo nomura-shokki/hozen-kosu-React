@@ -42,13 +42,18 @@ const AdministratorHistoryList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchDay, setSearchDay] = useState<string>("");
   const [searchID, setSearchID] = useState<string>("");
+  const [searchNo, setSearchNo] = useState<string>("");
+  const [searchTable, setSearchTable] = useState<string>("");
   const [queryDay, setQueryDay] = useState<string>("");
   const [queryID, setQueryID] = useState<string>("");
+  const [queryNo, setQueryNo] = useState<string>("");
+  const [queryTable, setQueryTable] = useState<string>("");
   const [searchByMonth, setSearchByMonth] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
   const [tableWidth, setTableWidth] = useState<number>(0);
+  const [modelChoices, setModelChoices] = useState<string[]>([]);
   const tableRef = useRef<HTMLTableElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -58,6 +63,8 @@ const AdministratorHistoryList: React.FC = () => {
     day: string,
     mode: boolean,
     id: string,
+    table: string,
+    loginNo: string,
   ) => {
     setLoading(true);
     try {
@@ -67,13 +74,19 @@ const AdministratorHistoryList: React.FC = () => {
           record_id: id,
           day: day,
           mode: mode ? "month" : "day",
+          table_name: table,
+          login_No: loginNo,
         },
         withCredentials: true,
       });
 
       const historyData = response.data?.history_data || {};
       const ModelChoices = response.data?.model_choices || {};
-      console.log(ModelChoices)
+
+      if (Array.isArray(ModelChoices)) {
+        setModelChoices(ModelChoices);
+      }
+
       const results = historyData.results || [];
       const count = historyData.count || 0;
       const pageSize = results.length > 0 ? historyData.count / Math.ceil(historyData.count / results.length) : 20;
@@ -103,15 +116,19 @@ const AdministratorHistoryList: React.FC = () => {
   useEffect(() => {
     setSearchDay("");
     setSearchID("");
+    setSearchNo("");
+    setSearchTable("");
     setQueryDay("");
     setQueryID("");
+    setQueryNo("");
+    setQueryTable("");
     setSearchByMonth(false);
     setCurrentPage(1);
   }, [location.pathname]);
 
   useEffect(() => {
-    fetchData(currentPage, queryDay, searchByMonth, queryID);
-  }, [currentPage, fetchData, queryDay, searchByMonth, queryID]);
+    fetchData(currentPage, queryDay, searchByMonth, queryID, queryTable, queryNo); // queryNoを追加
+  }, [currentPage, fetchData, queryDay, searchByMonth, queryID, queryTable, queryNo]); // queryNoを依存配列に追加
 
   const handleSearchDayChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchDay(e.target.value);
@@ -121,14 +138,24 @@ const AdministratorHistoryList: React.FC = () => {
     setSearchID(e.target.value);
   };
 
+  const handleSearchNoChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchNo(e.target.value);
+  };
+
+  const handleSearchTableChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setSearchTable(e.target.value);
+  };
+
   const handleDaySearchClick = (isMonthSearch: boolean) => {
     setQueryDay(searchDay);
     setSearchByMonth(isMonthSearch);
     setCurrentPage(1);
   };
 
-  const handleIDSearchClick = () => {
+  const handleIDAndTableSearchClick = () => {
     setQueryID(searchID);
+    setQueryTable(searchTable);
+    setQueryNo(searchNo);
     setCurrentPage(1);
   };
 
@@ -189,7 +216,7 @@ const AdministratorHistoryList: React.FC = () => {
           <Link to="/manager-menu">管理者MENU</Link>
         </nav>
         <div className={styles["search-bar"]}>
-          <div className={styles["search-group-day"]}>
+          <div className={styles["search-group"]}>
             <label htmlFor="searchDayInput">就業日:</label>
             <input
               type="date"
@@ -199,22 +226,22 @@ const AdministratorHistoryList: React.FC = () => {
               placeholder="日付を選択"
             />
             <button
-              onClick={() => handleDaySearchClick(true)} // 月検索
+              onClick={() => handleDaySearchClick(true)}
               className="gray_button"
               disabled={!searchDay}
             >
               指定月検索
             </button>
             <button
-              onClick={() => handleDaySearchClick(false)} // 日検索
+              onClick={() => handleDaySearchClick(false)}
               className="gray_button"
               disabled={!searchDay}
             >
               指定日検索
             </button>
           </div>
-          <div className={styles["search-group-id"]}>
-            <label htmlFor="searchID">レコードID:</label>
+          <div className={styles["search-group"]}>
+            <label htmlFor="searchID"></label>
             <input
               type="text"
               id="searchID"
@@ -222,13 +249,34 @@ const AdministratorHistoryList: React.FC = () => {
               onChange={handleSearchIDChange}
               placeholder="レコードID"
             />
-            <button
-              onClick={handleIDSearchClick}
-              className="gray_button"
+            <label htmlFor="searchTableSelect"></label>
+            <select
+              id="searchTableSelect"
+              value={searchTable}
+              onChange={handleSearchTableChange}
             >
-              検索
-            </button>
+              <option value="">-- 操作テーブル選択 --</option>
+              {modelChoices.map((table, index) => (
+                <option key={index} value={table}>
+                  {table}
+                </option>
+              ))}
+            </select>
+            <label htmlFor="searchNo"></label>
+            <input
+              type="text"
+              id="searchNo"
+              value={searchNo}
+              onChange={handleSearchNoChange}
+              placeholder="操作者従業員番号"
+            />
           </div>
+          <button
+            onClick={handleIDAndTableSearchClick}
+            className="gray_button"
+          >
+            検索
+          </button>
         </div>
         {data.length === 0 && !loading ? (
           <p>No data found.</p>
@@ -238,7 +286,7 @@ const AdministratorHistoryList: React.FC = () => {
             style={{
               minHeight: `${maxHeight}px`,
               overflowY: "auto",
-              width: tableWidth > 0 ? `${tableWidth}px` : "100%",
+              width: tableWidth > 0 ? `${tableWidth + 20}px` : "100%",
               maxWidth: "100vw",
             }}
           >
