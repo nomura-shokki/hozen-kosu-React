@@ -21,13 +21,13 @@
 }
 
 .search-bar {
-  display: flex; /* Flexboxで子要素を柔軟に配置 */
-  flex-direction: column; /* 子要素を縦方向に並べる */
-  justify-content: center; /* コンテナ内で縦方向中央寄せ */
-  align-items: center; /* コンテナ内で横方向中央寄せ */
-  gap: 15px; /* 子要素間のスペースを15pxに設定 */
-  margin: 20px 0; /* 上下に20pxのマージンを設定 */
-  flex-wrap: wrap; /* 幅が足りない場合に子要素を折り返し */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin: 20px 0;
+  flex-wrap: wrap;
 }
 
 .login-logo {
@@ -40,15 +40,61 @@
 }
 
 .search-bar input {
-  padding: 8px 10px; /* 内側の余白を上下8px、左右10pxに設定して、入力欄を広げ文字が快適に入力できるようにする */
-  border: 1px solid #ccc; /* グレーの枠線を入力欄の周囲に描画し、視覚的に区別しやすくする */
-  border-radius: 4px; /* 四角い角を滑らかに（4pxの曲線）し、モダンなデザインに調整 */
-  font-size: 1rem; /* フォントサイズを標準的なサイズ（大体16px程度）に設定 */
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
   width: calc(100% - 60px);
 }
 
 .search-bar input:focus {
-  border-color: #08f; /* フォーカス時（クリックまたはタブで選択）、枠線を変更し、視認性を向上 */
-  outline: none; /* デフォルトのアウトライン（ブラウザが自動生成する枠）を非表示にしてデザインを統一 */
-  box-shadow: 0 0 3px #555; /* フォーカス時に青色の柔らかな影を追加して、視覚的にエレメントがアクティブであることを強調 */
+  border-color: #08f;
+  outline: none;
+  box-shadow: 0 0 3px #555;
+}
+
+/* styles/MainPage/Login.module.css */
+
+.help-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background-color: #ffffff;
+  border: 2px solid #007bff;
+  transform: rotate(45deg);
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  text-decoration: none;
+  cursor: pointer;
+  opacity: 0;
+  animation: fadeIn 0s linear 3.0s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* ホバー時は色のみ変更（動きはなし） */
+.help-button:hover {
+  background-color: #007bff;
+  /* scale(1.1) などを削除して拡大しないように設定 */
+}
+
+.help-button::after {
+  content: "?";
+  /* 文字の向きを正位置に戻す */
+  transform: rotate(-45deg);
+  color: #007bff;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+/* ホバー時の中の文字色 */
+.help-button:hover::after {
+  color: #ffffff;
 }

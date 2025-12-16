@@ -18,17 +18,12 @@ const formatTimestamp = (timestamp: string): string => {
   if (!timestamp) return "";
   try {
     const date = new Date(timestamp);
-
-    if (isNaN(date.getTime())) {
-      return timestamp;
-    }
-
+    if (isNaN(date.getTime())) return timestamp;
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-
     return `${year}-${month}-${day} (${hours}:${minutes})`;
   } catch (error) {
     console.error("Failed to format timestamp:", error);
@@ -40,14 +35,23 @@ const AdministratorHistoryList: React.FC = () => {
   const [data, setData] = useState<History[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchDay, setSearchDay] = useState<string>("");
-  const [searchID, setSearchID] = useState<string>("");
-  const [searchNo, setSearchNo] = useState<string>("");
-  const [searchTable, setSearchTable] = useState<string>("");
-  const [queryDay, setQueryDay] = useState<string>("");
-  const [queryID, setQueryID] = useState<string>("");
-  const [queryNo, setQueryNo] = useState<string>("");
-  const [queryTable, setQueryTable] = useState<string>("");
+  
+  // 検索用入力ステートの統合
+  const [searchFields, setSearchFields] = useState({
+    day: "",
+    id: "",
+    no: "",
+    table: ""
+  });
+  
+  // 確定した検索条件
+  const [queries, setQueries] = useState({
+    day: "",
+    id: "",
+    no: "",
+    table: ""
+  });
+
   const [searchByMonth, setSearchByMonth] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
@@ -83,28 +87,19 @@ const AdministratorHistoryList: React.FC = () => {
       const historyData = response.data?.history_data || {};
       const ModelChoices = response.data?.model_choices || {};
 
-      if (Array.isArray(ModelChoices)) {
-        setModelChoices(ModelChoices);
-      }
+      if (Array.isArray(ModelChoices)) setModelChoices(ModelChoices);
 
       const results = historyData.results || [];
       const count = historyData.count || 0;
       const pageSize = results.length > 0 ? historyData.count / Math.ceil(historyData.count / results.length) : 20;
       setTotalPages(Math.ceil(count / pageSize));
-      const transformedData = results.map((item: History) => ({
-        ...item,
-      }));
-      setData(transformedData);
+      setData(results);
 
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.message);
       } else {
         setError("予期しないエラーが発生しました");
       }
@@ -114,69 +109,37 @@ const AdministratorHistoryList: React.FC = () => {
   }, [navigate]);
 
   useEffect(() => {
-    setSearchDay("");
-    setSearchID("");
-    setSearchNo("");
-    setSearchTable("");
-    setQueryDay("");
-    setQueryID("");
-    setQueryNo("");
-    setQueryTable("");
+    setSearchFields({ day: "", id: "", no: "", table: "" });
+    setQueries({ day: "", id: "", no: "", table: "" });
     setSearchByMonth(false);
     setCurrentPage(1);
   }, [location.pathname]);
 
   useEffect(() => {
-    fetchData(currentPage, queryDay, searchByMonth, queryID, queryTable, queryNo); // queryNoを追加
-  }, [currentPage, fetchData, queryDay, searchByMonth, queryID, queryTable, queryNo]); // queryNoを依存配列に追加
+    fetchData(currentPage, queries.day, searchByMonth, queries.id, queries.table, queries.no);
+  }, [currentPage, fetchData, queries, searchByMonth]);
 
-  const handleSearchDayChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchDay(e.target.value);
-  };
-
-  const handleSearchIDChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchID(e.target.value);
-  };
-
-  const handleSearchNoChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchNo(e.target.value);
-  };
-
-  const handleSearchTableChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setSearchTable(e.target.value);
+  // 入力ハンドラの統合
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setSearchFields(prev => ({ ...prev, [name]: value }));
   };
 
   const handleDaySearchClick = (isMonthSearch: boolean) => {
-    setQueryDay(searchDay);
+    setQueries(prev => ({ ...prev, day: searchFields.day }));
     setSearchByMonth(isMonthSearch);
     setCurrentPage(1);
   };
 
   const handleIDAndTableSearchClick = () => {
-    setQueryID(searchID);
-    setQueryTable(searchTable);
-    setQueryNo(searchNo);
+    setQueries({ ...searchFields });
     setCurrentPage(1);
   };
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+  const handlePageChange = (targetPage: number) => {
+    if (targetPage >= 1 && targetPage <= totalPages) {
+      setCurrentPage(targetPage);
     }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleFirstPage = () => {
-    setCurrentPage(1);
-  };
-
-  const handleLastPage = () => {
-    setCurrentPage(totalPages);
   };
 
   useEffect(() => {
@@ -195,11 +158,8 @@ const AdministratorHistoryList: React.FC = () => {
 
   useEffect(() => {
     const updateTableWidth = () => {
-      if (tableRef.current) {
-        setTableWidth(tableRef.current.offsetWidth);
-      }
+      if (tableRef.current) setTableWidth(tableRef.current.offsetWidth);
     };
-
     updateTableWidth();
     window.addEventListener("resize", updateTableWidth);
     return () => window.removeEventListener("resize", updateTableWidth);
@@ -221,62 +181,45 @@ const AdministratorHistoryList: React.FC = () => {
             <input
               type="date"
               id="searchDayInput"
-              value={searchDay}
-              onChange={handleSearchDayChange}
+              name="day"
+              value={searchFields.day}
+              onChange={handleInputChange}
               placeholder="日付を選択"
             />
-            <button
-              onClick={() => handleDaySearchClick(true)}
-              className="gray_button"
-              disabled={!searchDay}
-            >
+            <button onClick={() => handleDaySearchClick(true)} className="gray_button">
               指定月検索
             </button>
-            <button
-              onClick={() => handleDaySearchClick(false)}
-              className="gray_button"
-              disabled={!searchDay}
-            >
+            <button onClick={() => handleDaySearchClick(false)} className="gray_button">
               指定日検索
             </button>
           </div>
           <div className={styles["search-group"]}>
-            <label htmlFor="searchID"></label>
             <input
               type="text"
-              id="searchID"
-              value={searchID}
-              onChange={handleSearchIDChange}
+              name="id"
+              value={searchFields.id}
+              onChange={handleInputChange}
               placeholder="レコードID"
             />
-            <label htmlFor="searchTableSelect"></label>
             <select
-              id="searchTableSelect"
-              value={searchTable}
-              onChange={handleSearchTableChange}
+              name="table"
+              value={searchFields.table}
+              onChange={handleInputChange}
             >
               <option value="">-- 操作テーブル選択 --</option>
               {modelChoices.map((table, index) => (
-                <option key={index} value={table}>
-                  {table}
-                </option>
+                <option key={index} value={table}>{table}</option>
               ))}
             </select>
-            <label htmlFor="searchNo"></label>
             <input
               type="text"
-              id="searchNo"
-              value={searchNo}
-              onChange={handleSearchNoChange}
+              name="no"
+              value={searchFields.no}
+              onChange={handleInputChange}
               placeholder="操作者従業員番号"
             />
+            <button onClick={handleIDAndTableSearchClick} className="gray_button">検索</button>
           </div>
-          <button
-            onClick={handleIDAndTableSearchClick}
-            className="gray_button"
-          >
-            検索
-          </button>
         </div>
         {data.length === 0 && !loading ? (
           <p>No data found.</p>
@@ -297,6 +240,7 @@ const AdministratorHistoryList: React.FC = () => {
                   <th className={styles["th-collar"]}>操作者</th>
                   <th className={styles["th-collar"]}>操作テーブル</th>
                   <th className={styles["th-collar"]}>レコードID</th>
+                  <th className={styles["th-collar"]}>操作種類</th>
                   <th className={styles["th-collar"]}>詳細</th>
                 </tr>
               </thead>
@@ -307,6 +251,7 @@ const AdministratorHistoryList: React.FC = () => {
                     <td>{item.login_No}</td>
                     <td>{item.table_name}</td>
                     <td>{item.record_id}</td>
+                    <td>{item.operation}</td>
                     <td>
                       <Link to={`/manager-history-detail/${item.id}`} className={styles["a-collar"]}>詳細</Link>
                     </td>
@@ -315,19 +260,11 @@ const AdministratorHistoryList: React.FC = () => {
               </tbody>
             </table>
             <div className={styles["pagination"]}>
-              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handleFirstPage}>
-                最初
-              </button>
-              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handlePreviousPage}>
-                前
-              </button>
+              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={() => handlePageChange(1)}>最初</button>
+              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>前</button>
               <span>{currentPage} / {totalPages}</span>
-              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleNextPage}>
-                次
-              </button>
-              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleLastPage}>
-                最後
-              </button>
+              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>次</button>
+              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={() => handlePageChange(totalPages)}>最後</button>
             </div>
           </div>
         )}

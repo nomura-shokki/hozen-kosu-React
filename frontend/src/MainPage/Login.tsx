@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from "../img/TitleRogo.png";
 import styles from "../styles/MainPage/Login.module.css";
@@ -55,25 +55,26 @@ const Login: React.FC = () => {
       >
         <h2>ログイン</h2>
         <div className={styles["search-bar"]}>
-            <label>従業員番号</label>
-            <input
-              type="number"
-              id="numberInput"
-              value={employee_no}
-              onChange={(e) => {
-                const value = e.target.value;
-                setNumber(value === "" ? "" : value);
-              }}
-              required
-              className={styles["input-focus"]}
-            />
-            {errorMessage && (
-              <div role="alert">{errorMessage}</div>
-            )}
+          <label htmlFor="numberInput">従業員番号</label>
+          <input
+            type="number"
+            id="numberInput"
+            value={employee_no}
+            onChange={(e) => {
+              const value = e.target.value;
+              setNumber(value === "" ? "" : value);
+            }}
+            required
+            className={styles["input-focus"]}
+          />
+          {errorMessage && (
+            <div role="alert">{errorMessage}</div>
+          )}
 
           <button type="submit" className="blue_button">ログイン</button>
         </div>
       </form>
+      <Link to="/help" className={styles["help-button"]}></Link>
     </div>
   );
 };

@@ -1,0 +1,76 @@
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import styles from "../styles/MainPage/Help.module.css";
+
+const Help: React.FC = () => {
+  // 1. チェックボックスの状態を管理するステートを追加
+  const [isMemberReset, setIsMemberReset] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const navigate = useNavigate();
+
+  // 2. チェックボックスの変更を検知するハンドラー
+  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsMemberReset(event.target.checked);
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setErrorMessage("");
+
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/help/`,
+        { memberReset: isMemberReset },
+        { withCredentials: true }
+      );
+    } catch (error: any) {
+      setErrorMessage(
+        error.response?.data?.message || "通信エラーが発生しました。"
+      );
+    }
+  };
+
+  return (
+    <div className={styles["help-wrapper"]}>
+      <h1 className={styles["h1-collar"]}>ヘルプ</h1>
+      <nav className={styles["help-nav"]}>
+        <Link to="/login">ログイン</Link>
+      </nav>
+
+      {errorMessage && (
+        <div role="alert" style={{ color: "red" }}>{errorMessage}</div>
+      )}
+
+      <form 
+        onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
+            e.preventDefault();
+            (e.target as HTMLInputElement).blur();
+          }
+        }}
+      >
+        <div className={styles["search-bar"]}>
+          <div className={styles["switch-wrapper"]}>
+            <label htmlFor="member-reset">人員データリセット:</label>
+            <label className={styles["toggle-switch"]}>
+              <input
+                type="checkbox"
+                id="member-reset"
+                name="member-reset"
+                checked={isMemberReset}
+                onChange={handleCheckboxChange}
+              />
+              <span className={styles["toggle-slider"]}></span>
+            </label>
+          </div>
+          <button type="submit" className="gray_button">書き込み</button>
+        </div>
+      </form>
+      <Link to="/help" className={styles["help-button"]}></Link>
+    </div>
+  );
+};
+
+export default Help;

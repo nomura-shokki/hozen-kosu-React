@@ -15,6 +15,7 @@ from functools import partial
 urlpatterns = [
   path('login/', main_views.Login.as_view(), name='login'),
   path('logout/', main_views.Logout.as_view(), name='logout'),
+  path('help/', main_views.Help.as_view(), name='help'),
   path('main_menu/', main_views.Menu.as_view(), name='main_menu'),
   path('kosu_menu/', main_views.KosuMenu.as_view(), name='kosu_menu'),
   path('kosu_new/', kosu_views.KosuNew.as_view(), name='kosu_new'),

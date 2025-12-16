@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import './styles/global.css';
 import Login from './MainPage/Login';
+import Help from './MainPage/Help';
 import MainMenu from './MainPage/MainMenu';
 import KosuMenu from './KosuPage/KosuMenu';
 import KosuNew from './KosuPage/KosuNew';
@@ -55,6 +56,7 @@ const App: React.FC = () => {
   React.useEffect(() => {
     const routeTitles: { [key: string]: string } = {
       "/login": "ログイン - 業務工数システム",
+      "/help": "ヘルプ - 業務工数システム",
       "/": "Main Menu - 業務工数システム",
       "/kosu-menu": "工数Menu - 業務工数システム",
       "/kosu-new": "工数入力 - 業務工数システム",
@@ -107,6 +109,7 @@ const App: React.FC = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/help" element={<Help />} />
       <Route path="/" element={<MainMenu />} />
       <Route path="/kosu-menu" element={<KosuMenu />} />
       <Route path="/kosu-new" element={<KosuNew />} />

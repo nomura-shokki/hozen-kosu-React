@@ -11,13 +11,13 @@
 
 .admin-update-wrapper {
   animation: fadeInUp 1s ease-out;
-  display: flex; /* 子要素をフレックスレイアウトにする */
-  flex-direction: column; /* 縦方向に要素を並べる */
+  display: flex;
+  flex-direction: column;
   justify-content: top;
-  align-items: center; /* 横方向の中央に配置 */
-  height: 100vh; /* 画面の高さいっぱいにする */
+  align-items: center;
+  height: 100vh;
   width: 100%;
-  margin: 0 auto; /* 横方向の中央寄せ */
+  margin: 0 auto;
   -webkit-overflow-scrolling: touch;
 }
 

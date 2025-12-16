@@ -72,6 +72,7 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
+  max-width: 25%;
 }
 
 .search-bar button:focus {
@@ -93,7 +94,7 @@
 
 .th-collar{
   background-color: #656565;
-  color: #FFF; /* 文字色を白に */
+  color: #FFF;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
@@ -186,9 +187,8 @@
     height: 40px;
   }
 
-  /* search-bar内の修正 */
   .search-bar {
-    flex-direction: column; /* 縦並び維持 */
+    flex-direction: column;
     gap: 10px;
     padding: 10px;
     box-sizing: border-box;
@@ -212,6 +212,12 @@
   .search-group input[type="text"] {
     box-sizing: border-box;
     margin-bottom: 5px;
+  }
+
+  .search-bar input,
+  .search-bar select {
+    max-width: 100%;
+    min-width: 100%;
   }
 
   .search-group button {

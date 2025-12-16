@@ -201,27 +201,27 @@ const HistoryDetail: React.FC = () => {
             <tbody>
               <tr>
                 <th className={styles["th-collar"]}>操作日時</th>
-                <td>{formData.timestamp}</td>
+                <td className={styles["td-position"]}>{formData.timestamp}</td>
               </tr>
               <tr>
                 <th className={styles["th-collar"]}>操作種類</th>
-                <td>{formData.operation}</td>
+                <td className={styles["td-position"]}>{formData.operation}</td>
               </tr>
               <tr>
                 <th className={styles["th-collar"]}>テーブル名</th>
-                <td>{formData.table_name}</td>
+                <td className={styles["td-position"]}>{formData.table_name}</td>
               </tr>
               <tr>
                 <th className={styles["th-collar"]}>レコードID</th>
-                <td>{formData.record_id}</td>
+                <td className={styles["td-position"]}>{formData.record_id}</td>
               </tr>
               <tr>
                 <th className={styles["th-collar"]}>従業員番号</th>
-                <td>{formData.login_No}</td>
+                <td className={styles["td-position"]}>{formData.login_No}</td>
               </tr>
               <tr>
                 <th className={styles["th-collar"]}>編集内容</th>
-                <td>
+                <td className={styles["td-position"]}>
                   {renderChanges(formData.changes)}
                 </td>
               </tr>
