@@ -54,27 +54,20 @@ const MainMenu: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-
-  // ローカルストレージから showLogConsole の状態を取得
   const [showLogConsole, setShowLogConsole] = useState<boolean>(() => {
     const cachedValue = localStorage.getItem(LOG_CONSOLE_VISIBILITY_KEY);
-    // ローカルストレージの値が 'true' なら true、それ以外は false
     return cachedValue === 'true'; 
   });
 
-  // ローカルストレージの変更を監視するためのリスナー設定
   useEffect(() => {
-    // storageイベントハンドラ
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === LOG_CONSOLE_VISIBILITY_KEY) {
-        // ローカルストレージの値が変更されたら状態を更新
         setShowLogConsole(event.newValue === 'true');
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
 
-    // クリーンアップ関数
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
@@ -91,32 +84,30 @@ const MainMenu: React.FC = () => {
         setLoading(false);
       })
       .catch((err) => {
-        if (err.response?.status === 401) {
-          // ユーザーが未認証の場合はログイン画面にリダイレクト
-          navigate("/login");
-        } else {
-          setError(err.message);
-        }
-        setLoading(false);
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 404) navigate("/login");
+          else setError(err.message);
+        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+          setLoading(false);
       });
   }, [navigate]);
 
-  const handleLogout = async () => {
-    try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/logout/`, {}, {withCredentials: true});
-      navigate("/login");
-    } catch (error) {
-      console.error("ログアウト中にエラーが発生しました。", error);
-    }
+  const handleLogout = () => {
+    axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/logout/`, {}, {withCredentials: true})
+      .then(() => {
+        navigate("/login");
+      })
+      .catch((err) => {
+        if (err.response && err.response.data) {
+          setError(err.response.data.error);
+        } else {
+          setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+        }
+      });
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className={styles["page-container"]}>

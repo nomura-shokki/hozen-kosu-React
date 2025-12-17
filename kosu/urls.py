@@ -89,8 +89,8 @@ urlpatterns = [
   path('History_backup/', asynchronous_views.backup, name='History_backup'),
   path('History_delet/', asynchronous_views.backup, name='History_delet'),
 
-  path('check_backup_status', asynchronous_views.check_task_status, name='check_member_backup_status'),
-  path('download_backup', asynchronous_views.download_file, name='download_member_backup'),
+  path('check_backup_status/', asynchronous_views.check_task_status, name='check_member_backup_status'),
+  path('download_backup/', asynchronous_views.download_file, name='download_member_backup'),
 
   path('web_console_log/', main_views.WebConsoleLogView.as_view(), name='web_console_log'),
 ]

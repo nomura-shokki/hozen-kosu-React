@@ -81,16 +81,10 @@ const AdministratorTaskList: React.FC = () => {
 
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError("予期しないエラーが発生しました");
-      }
+        if (err.response?.status === 404) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.message);
+      } else setError("予期しないエラーが発生しました");
     } finally {
       setLoading(false);
     }

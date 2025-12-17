@@ -37,8 +37,7 @@ const LogConsole: React.FC = () => {
     <div className={styles.consoleContainer}>
       {loading && <div className={styles.loading}>Loading log...</div>}
       {error && <div className={styles.error}>{error}</div>}
-      
-      {/* ログを整形して表示 */}
+
       <pre className={styles.consoleOutput}>
         {logContent || (loading ? "" : "ログファイルは空です。")}
       </pre>

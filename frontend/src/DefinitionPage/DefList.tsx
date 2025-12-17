@@ -20,60 +20,47 @@ const DefList: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
   const navigate = useNavigate();
 
-  // データを取得する関数
   const fetchData = useCallback(async () => {
-    setLoading(true); // ローディング状態を開始
+    setLoading(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/def_list/`, {
-        params: {
-          page: currentPage, // 現在のページ番号
-        },
-        withCredentials: true, // クッキーを使用するリクエストを許可
+        params: {page: currentPage},
+        withCredentials: true,
       });
 
-      // レスポンスデータを構造的に処理
       const results = response.data.results || [];
       const pageSize = response.data.page_size || 20;
       setData(results);
-      setTotalPages(Math.ceil(response.data.count / pageSize)); // 総ページ数を計算
+      setTotalPages(Math.ceil(response.data.count / pageSize));
     } catch (err) {
-      // エラー処理
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) {
-          navigate("/login"); // 未認証の場合、ログイン画面へ
-        } else if (err.response?.status === 403) {
-          navigate("/"); // アクセス拒否の場合、ホーム画面へ
-        } else {
-          setError(err.message); // その他のエラーを設定
-        }
-      } else {
-        setError("予期しないエラーが発生しました"); // 予期しないエラーの場合
-      }
+        if (err.response?.status === 404) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
       setLoading(false);
     }
   }, [currentPage, navigate]);
 
-  // コンポーネントマウント時と `currentPage` の変更時に fetchData を実行
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // ページング関数
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1); // 次のページへ
+      setCurrentPage(currentPage + 1);
     }
   };
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1); // 前のページへ
+      setCurrentPage(currentPage - 1);
     }
   };
 
   const handleFirstPage = () => {
-    setCurrentPage(1); // 最初のページへ
+    setCurrentPage(1);
   };
 
   const handleLastPage = () => {
@@ -86,28 +73,22 @@ const DefList: React.FC = () => {
     };
 
     updateMaxHeight();
-  
-    // ウィンドウサイズが変更された際にも最大高さを再計算。
     window.addEventListener("resize", updateMaxHeight);
-  
-    // コンポーネントがアンマウントされる際にリサイズイベントリスナーを削除し、メモリリークを防ぐ。
     return () => window.removeEventListener("resize", updateMaxHeight);
   }, []);
 
-  // テーブル幅を更新
   useEffect(() => {
     const updateTableWidth = () => {
       if (tableRef.current) {
-        setTableWidth(tableRef.current.offsetWidth); // 現在のテーブル幅をセット
+        setTableWidth(tableRef.current.offsetWidth);
       }
     };
 
     updateTableWidth();
-    window.addEventListener("resize", updateTableWidth); // リサイズ時にテーブル幅を再計算
-    return () => window.removeEventListener("resize", updateTableWidth); // クリーンアップ
+    window.addEventListener("resize", updateTableWidth);
+    return () => window.removeEventListener("resize", updateTableWidth);
   }, [data]);
 
-  // エラー表示
   if (error) return <div>Error: {error}</div>;
 
   return (

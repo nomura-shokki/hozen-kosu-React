@@ -5,10 +5,9 @@ import Loading from "../components/Loading";
 import LogConsole from "../components/LogConsole";
 import styles from "../styles/AdministratorPage/AdministratorUpdate.module.css";
 
-// ローカルストレージで使用するキー
+// ローカルストレージキー
 const LOG_CONSOLE_VISIBILITY_KEY = "showLogConsole";
 
-// 型定義
 interface Admin {
   menu_row: number;
   administrator_employee_no1: number | null; 
@@ -16,7 +15,6 @@ interface Admin {
   administrator_employee_no3: number | null;
 }
 
-// メンバー情報の型定義
 interface Member {
   employee_no: number;
   name: string;
@@ -25,20 +23,17 @@ interface Member {
   administrator: boolean;
 }
 
-// APIからのレスポンスデータの型定義を更新
 interface Response {
-  admin_data: Admin; // 問い合わせデータ本体
-  login_data: Member; // ログインユーザーのメンバー情報
+  admin_data: Admin;
+  login_data: Member;
 }
 
-// KosuEditコンポーネントの定義
 const AdminUpdate: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<Admin | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { id } = useParams<{ id: string }>();
-
   const [showLogConsole, setShowLogConsole] = useState<boolean>(() => {
     const cachedValue = localStorage.getItem(LOG_CONSOLE_VISIBILITY_KEY);
     return cachedValue === 'true'; 
@@ -49,18 +44,16 @@ const AdminUpdate: React.FC = () => {
       .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, { withCredentials: true })
       .then((response) => {
         const { admin_data } = response.data;
-        setFormData(admin_data); // フォームデータをセット（変換後の名前付き）
-        setLoading(false); // ローディング終了
+        setFormData(admin_data);
+        setLoading(false);
       })
       .catch((err) => {
-        console.error("APIエラー:", err);
-        // 認証エラー (401) の場合はログイン画面へ遷移
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else {
-          setError(err.message); // その他のエラーをセット
-        }
-        setLoading(false); // ローディング終了
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 404) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
+          else setErrorMessage(err.message);
+        } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+        setLoading(false);
       });
   }, [id, navigate]);
 
@@ -102,10 +95,10 @@ const AdminUpdate: React.FC = () => {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError(null);
+    setErrorMessage(null);
 
     if (!formData) {
-      setError("データがありません。");
+      setErrorMessage("データがありません。");
       return;
     }
 
@@ -116,23 +109,16 @@ const AdminUpdate: React.FC = () => {
         navigate("/"); 
       })
       .catch((err) => {
-        console.error(error);
-        // サーバーが返すエラーメッセージを表示
         if (err.response && err.response.data) {
-          setError(err.response.data.error);
+          setErrorMessage(err.response.data.error);
         } else {
-          setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
         }
       });
   };
 
-  // ローディング中またはエラー、データがない場合の表示
-  if (loading) {
-    return <div><Loading isLoading={loading} /></div>;
-  }
-  if (!formData) {
-    return <div>データが見つかりません</div>;
-  }
+  if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (!formData) return <div>データが見つかりません</div>;
 
   // レンダリング
   return (
@@ -144,8 +130,8 @@ const AdminUpdate: React.FC = () => {
           <Link to="/manager-menu">管理者MENU</Link>
         </nav>
 
-      {error && (
-        <div role="alert">{error}</div>
+      {errorMessage && (
+        <div role="alert">{errorMessage}</div>
       )}
 
         <form

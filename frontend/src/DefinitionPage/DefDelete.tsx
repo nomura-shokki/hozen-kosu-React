@@ -48,13 +48,11 @@ const DefDelete: React.FC = () => {
         setLoading(false);
       })
       .catch((err) => {
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 404) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
+          else setError(err.message);
+        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
         setLoading(false);
       });
   }, [id, navigate]);
@@ -93,8 +91,7 @@ const DefDelete: React.FC = () => {
         alert("削除が完了しました");
         navigate("/def-menu");
       })
-      .catch((error) => {
-        console.error(error);
+      .catch((err) => {
         alert("削除時にエラーが発生しました");
       });
   };

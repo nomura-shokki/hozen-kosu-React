@@ -141,13 +141,13 @@ const AdministratorKosuUpdate: React.FC = () => {
         setLoading(false);
         setChoices(choices);
       })
-      .catch((error) => {
-        if (error.response?.status === 401) {
-          navigate("/login");
-        } else if (error.response?.status === 403) {
-          navigate("/");
-        }
-        setLoading(false);
+      .catch((err) => {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 404) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
+          else setErrorMessage(err.message);
+        } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+          setLoading(false);
       });
   }, [id, navigate]);
 
@@ -230,7 +230,6 @@ const AdministratorKosuUpdate: React.FC = () => {
     }
   };
 
-
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -238,20 +237,16 @@ const AdministratorKosuUpdate: React.FC = () => {
 
     setErrorMessage(null);
 
-    // 1. 従業員番号のチェック
     if (!formData.employee_no3 || formData.employee_no3 === 0) {
         setErrorMessage("従業員番号は必須です。空欄や0は許可されません。");
         return;
     }
 
-    // 2. 就業日のチェック
     if (!formData.work_day2) {
         setErrorMessage("就業日は必須です。空欄は許可されません。");
         return;
     }
 
-
-    // 3. detail_workのセグメント（$区切り）数チェック
     for (let i = 0; i < detailWorkSegments.length; i++) {
       const segment = detailWorkSegments[i];
       const dollarCount = (segment.match(/\$/g) || []).length;
@@ -262,7 +257,6 @@ const AdministratorKosuUpdate: React.FC = () => {
       }
     }
 
-    // 4. 休憩時間フィールドのチェック
     const breakTimeFields: Array<[keyof Kosu, string]> = [
       ["breaktime", "昼休憩時間"],
       ["breaktime_over1", "残業休憩時間1"],
@@ -279,7 +273,6 @@ const AdministratorKosuUpdate: React.FC = () => {
       }
     }
 
-
     const updatedTimeWork = joinTimeWorkSegments(timeWorkSegments);
     const updatedDetailWork = joinDetailWorkSegments(detailWorkSegments);
     const dataToSubmit = { 
@@ -294,10 +287,10 @@ const AdministratorKosuUpdate: React.FC = () => {
         alert("データが更新されました！");
         navigate("/manager-kosu");
       })
-      .catch((error) => {
-        console.error(error);
-        if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.error);
+      .catch((err) => {
+        console.error(err);
+        if (err.response && err.response.data) {
+          setErrorMessage(err.response.data.error);
         } else {
           setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
         }
@@ -319,29 +312,18 @@ const AdministratorKosuUpdate: React.FC = () => {
         alert("データが削除されました！");
         navigate("/manager-kosu");
       })
-      .catch((error) => {
-        console.error(error);
-        if (error.response?.status === 401) {
-          navigate("/login");
-        } else if (error.response?.status === 403) {
-          navigate("/");
-        } else if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.error);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
+      .catch((err) => {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 404) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
+          else  setErrorMessage(err.message);
+        } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+        setLoading(false);
       });
   };
 
-  // ローディング中の表示
-  if (loading) {
-    return <div><Loading isLoading={loading} /></div>;
-  }
-
-  // データが存在しない場合
-  if (!formData) {
-    return <div>データが見つかりません</div>;
-  }
+  if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (!formData) return <div>データが見つかりません</div>;
 
   return (
     <>

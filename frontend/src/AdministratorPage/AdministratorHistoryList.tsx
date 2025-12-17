@@ -13,7 +13,6 @@ interface History {
   timestamp: string;
 }
 
-// タイムスタンプを「年-月-日(時:分)」形式に整形する関数
 const formatTimestamp = (timestamp: string): string => {
   if (!timestamp) return "";
   try {
@@ -35,16 +34,14 @@ const AdministratorHistoryList: React.FC = () => {
   const [data, setData] = useState<History[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // 検索用入力ステートの統合
+
   const [searchFields, setSearchFields] = useState({
     day: "",
     id: "",
     no: "",
     table: ""
   });
-  
-  // 確定した検索条件
+
   const [queries, setQueries] = useState({
     day: "",
     id: "",
@@ -97,12 +94,10 @@ const AdministratorHistoryList: React.FC = () => {
 
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) navigate("/login");
+        if (err.response?.status === 404) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
         else setError(err.message);
-      } else {
-        setError("予期しないエラーが発生しました");
-      }
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
       setLoading(false);
     }

@@ -21,30 +21,23 @@ const DefMenu: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/def_menu/`, {
-        withCredentials: true,
-      })
+      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/def_menu/`, {withCredentials: true,})
       .then((response) => {
         setData(response.data);
         setLoading(false);
       })
       .catch((err) => {
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else {
-          setError(err.message);
-        }
-        setLoading(false);
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 404) navigate("/login");
+          else setError(err.message);
+        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+          setLoading(false);
       });
   }, [navigate]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  if (loading) return <div>Loading...</div>;
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className={styles["menu-wrapper"]}>
