@@ -6,22 +6,38 @@ import styles from "../styles/MainPage/Help.module.css";
 const Help: React.FC = () => {
   // 1. チェックボックスの状態を管理するステートを追加
   const [isMemberReset, setIsMemberReset] = useState<boolean>(false);
+  // 新しいステートを追加
+  const [isDefReset, setIsDefReset] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
 
-  // 2. チェックボックスの変更を検知するハンドラー
+  // 2. チェックボックスの変更を検知するハンドラーを更新
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setIsMemberReset(event.target.checked);
+    const { id, checked } = event.target;
+    if (id === "member-reset") {
+      setIsMemberReset(checked);
+    } else if (id === "def-reset") {
+      setIsDefReset(checked);
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setErrorMessage("");
 
+    if (!isMemberReset && !isDefReset) {
+        setErrorMessage("リセットするデータを選択してください。");
+        return;
+    }
+
+    if (!window.confirm("チェックを入れたデータは全て削除され、初期状態に戻します。本当に実行しますか？")) {
+      return;
+    }
+
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/api/help/`,
-        { memberReset: isMemberReset },
+        { memberReset: isMemberReset, defReset: isDefReset },
         { withCredentials: true }
       );
     } catch (error: any) {
@@ -60,6 +76,17 @@ const Help: React.FC = () => {
                 id="member-reset"
                 name="member-reset"
                 checked={isMemberReset}
+                onChange={handleCheckboxChange}
+              />
+              <span className={styles["toggle-slider"]}></span>
+            </label>
+            <label htmlFor="def-reset">工数区分定義データリセット:</label>
+            <label className={styles["toggle-switch"]}>
+              <input
+                type="checkbox"
+                id="def-reset"
+                name="def-reset"
+                checked={isDefReset}
                 onChange={handleCheckboxChange}
               />
               <span className={styles["toggle-slider"]}></span>
