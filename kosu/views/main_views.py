@@ -111,7 +111,41 @@ class Help(APIView):
   def post(self, request):
     post_data = request.data
     memberReset = post_data.get('memberReset')
-    print(memberReset)
+    defReset = post_data.get('defReset')
+    settingReset = post_data.get('settingReset')
+
+    if memberReset:
+      member.objects.all().delete()
+      default_member = member(employee_no=12345,
+                              name='admin',
+                              shop='その他',
+                              authority=True,
+                              administrator=True,
+                              break_time1='#11401240',
+                              break_time1_over1='#17201735',
+                              break_time1_over2='#23350035',
+                              break_time1_over3='#04350450',
+                              break_time2='#14101510',
+                              break_time2_over1='#22002215',
+                              break_time2_over2='#04150515',
+                              break_time2_over3='#09150930',
+                              break_time3='#23500050',
+                              break_time3_over1='#06400655',
+                              break_time3_over2='#12551355',
+                              break_time3_over3='#17551810',
+                              break_time4='#12001300',
+                              break_time4_over1='#19001915',
+                              break_time4_over2='#01150215',
+                              break_time4_over3='#06150630',
+                              break_time5='#10401130',
+                              break_time5_over1='#15101520',
+                              break_time5_over2='#20202110',
+                              break_time5_over3='#01400150',
+                              break_time6='#21202210',
+                              break_time6_over1='#01500200',
+                              break_time6_over2='#07000750',
+                              break_time6_over3='#12201230',
+                              )
     return Response({'status': 'success', 'message': 'OK'})
 
 
