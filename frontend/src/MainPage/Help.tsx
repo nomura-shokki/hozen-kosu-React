@@ -8,6 +8,8 @@ const Help: React.FC = () => {
   const [isDefReset, setIsDefReset] = useState<boolean>(false);
   const [isSettingReset, setIsSettingReset] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,6 +21,28 @@ const Help: React.FC = () => {
     } else if (id === "setting-reset") {
       setIsSettingReset(checked);
     }
+  };
+
+  const handlePasswordSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setErrorMessage("");
+
+    axios
+      .post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/help_pass/`,
+        { password },
+        { withCredentials: true }
+      )
+      .then((res) => {
+        if (res.data === true || res.data.result === true) {
+          setIsAuthenticated(true);
+        } else {
+          setErrorMessage("認証に失敗しました。");
+        }
+      })
+      .catch(() => {
+        setErrorMessage("認証エラーが発生しました。");
+      });
   };
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -36,7 +60,7 @@ const Help: React.FC = () => {
 
     axios
       .post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/help/`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/help//`,
         { 
           memberReset: isMemberReset, 
           defReset: isDefReset,
@@ -45,7 +69,11 @@ const Help: React.FC = () => {
         { withCredentials: true }
       )
       .then(() => {
-        alert("リセットが完了しました。");
+        if (isMemberReset) {
+          alert("リセットが完了しました。従業員番号：12345でログイン可能です。");
+        } else {
+          alert("リセットが完了しました。");
+        }
         setErrorMessage("");
         navigate("/login");
       })
@@ -58,6 +86,31 @@ const Help: React.FC = () => {
       });
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className={styles["help-wrapper"]}>
+        <h1 className={styles["h1-collar"]}>認証</h1>
+        <nav className={styles["help-nav"]}>
+          <Link to="/login">ログイン</Link>
+        </nav>
+        {errorMessage && (
+          <div role="alert" style={{ color: "red" }}>{errorMessage}</div>
+        )}
+        <form onSubmit={handlePasswordSubmit}>
+          <div className={styles["search-bar"]}>
+            <input
+              type="password"
+              placeholder="パスワードを入力してください"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button type="submit" className="gray_button">認証</button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className={styles["help-wrapper"]}>
       <h1 className={styles["h1-collar"]}>ヘルプ</h1>
@@ -68,6 +121,9 @@ const Help: React.FC = () => {
       {errorMessage && (
         <div role="alert" style={{ color: "red" }}>{errorMessage}</div>
       )}
+
+      <p>下記データの内、リセットの必要のあるデータを選択して下さい。</p>
+      <p>(選択したデータは全て消え、デフォルトのデータが1件入ります。)</p>
 
       <form 
         onSubmit={handleSubmit}

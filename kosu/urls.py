@@ -8,7 +8,6 @@ from .views import inquiry_views
 from kosu.views import asynchronous_views
 from django.conf import settings
 from django.conf.urls.static import static
-from functools import partial
 
 
 
@@ -16,6 +15,7 @@ urlpatterns = [
   path('login/', main_views.Login.as_view(), name='login'),
   path('logout/', main_views.Logout.as_view(), name='logout'),
   path('help/', main_views.Help.as_view(), name='help'),
+  path('help_pass/', main_views.HelpPass.as_view(), name='help_pass'),
   path('main_menu/', main_views.Menu.as_view(), name='main_menu'),
   path('kosu_menu/', main_views.KosuMenu.as_view(), name='kosu_menu'),
   path('kosu_new/', kosu_views.KosuNew.as_view(), name='kosu_new'),
@@ -89,8 +89,8 @@ urlpatterns = [
   path('History_backup/', asynchronous_views.backup, name='History_backup'),
   path('History_delet/', asynchronous_views.backup, name='History_delet'),
 
-  path('check_backup_status/', asynchronous_views.check_task_status, name='check_member_backup_status'),
-  path('download_backup/', asynchronous_views.download_file, name='download_member_backup'),
+  path('check_backup_status', asynchronous_views.check_task_status, name='check_member_backup_status'),
+  path('download_backup', asynchronous_views.download_file, name='download_member_backup'),
 
   path('web_console_log/', main_views.WebConsoleLogView.as_view(), name='web_console_log'),
 ]

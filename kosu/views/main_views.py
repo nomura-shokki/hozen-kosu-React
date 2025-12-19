@@ -1,9 +1,11 @@
 from django.shortcuts import render
 from django.http import JsonResponse
+from pathlib import Path
 import datetime
 import os
 import sys
 import logging
+import environ
 from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, AsyncTask
 
 
@@ -114,39 +116,82 @@ class Help(APIView):
     defReset = post_data.get('defReset')
     settingReset = post_data.get('settingReset')
 
-    if memberReset:
-      member.objects.all().delete()
-      default_member = member(employee_no=12345,
-                              name='admin',
-                              shop='その他',
-                              authority=True,
-                              administrator=True,
-                              break_time1='#11401240',
-                              break_time1_over1='#17201735',
-                              break_time1_over2='#23350035',
-                              break_time1_over3='#04350450',
-                              break_time2='#14101510',
-                              break_time2_over1='#22002215',
-                              break_time2_over2='#04150515',
-                              break_time2_over3='#09150930',
-                              break_time3='#23500050',
-                              break_time3_over1='#06400655',
-                              break_time3_over2='#12551355',
-                              break_time3_over3='#17551810',
-                              break_time4='#12001300',
-                              break_time4_over1='#19001915',
-                              break_time4_over2='#01150215',
-                              break_time4_over3='#06150630',
-                              break_time5='#10401130',
-                              break_time5_over1='#15101520',
-                              break_time5_over2='#20202110',
-                              break_time5_over3='#01400150',
-                              break_time6='#21202210',
-                              break_time6_over1='#01500200',
-                              break_time6_over2='#07000750',
-                              break_time6_over3='#12201230',
-                              )
-    return Response({'status': 'success', 'message': 'OK'})
+    try:
+      if memberReset:
+        member.objects.all().delete()
+        default_member = member(employee_no=12345,
+                                name='admin',
+                                shop='その他',
+                                authority=True,
+                                administrator=True,
+                                break_time1='#11401240',
+                                break_time1_over1='#17201735',
+                                break_time1_over2='#23350035',
+                                break_time1_over3='#04350450',
+                                break_time2='#14101510',
+                                break_time2_over1='#22002215',
+                                break_time2_over2='#04150515',
+                                break_time2_over3='#09150930',
+                                break_time3='#23500050',
+                                break_time3_over1='#06400655',
+                                break_time3_over2='#12551355',
+                                break_time3_over3='#17551810',
+                                break_time4='#12001300',
+                                break_time4_over1='#19001915',
+                                break_time4_over2='#01150215',
+                                break_time4_over3='#06150630',
+                                break_time5='#10401130',
+                                break_time5_over1='#15101520',
+                                break_time5_over2='#20202110',
+                                break_time5_over3='#01400150',
+                                break_time6='#21202210',
+                                break_time6_over1='#01500200',
+                                break_time6_over2='#07000750',
+                                break_time6_over3='#12201230',
+                                )
+        default_member.save()
+
+      if defReset:
+        kosu_division.objects.all().delete()
+        default_def = kosu_division(kosu_name='default',
+                                    kosu_title_1='A',
+                                    kosu_division_1_1='A',
+                                    kosu_division_2_1='A',
+                                    kosu_title_2='B',
+                                    kosu_division_1_2='B',
+                                    kosu_division_2_2='B',
+                                    kosu_title_3='C',
+                                    kosu_division_1_3='C',
+                                    kosu_division_2_3='C',
+                                    )
+        default_def.seve()
+
+      if settingReset:
+        administrator_data.objects.all().delete()
+        default_administrator = administrator_data(menu_row='20')
+        default_administrator.seve()
+
+      return Response({'status': 'success', 'message': 'OK'}, status=status.HTTP_200_OK)
+    except Exception as e:
+      return Response({'status': 'error', 'error': 'データの初期化中にエラーが発生しました。'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+# ヘルプ画面パスワード判定
+class HelpPass(APIView):
+  # POST処理
+  def post(self, request):
+    # ルートディレクトリを取得
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    # 環境変数ファイルを読み込む
+    env = environ.Env()
+    env.read_env(os.path.join(BASE_DIR, '.env'))
+
+      # パスワード判定
+    if request.data.get('password') == env('HELP_PATH'):
+      return Response(True, status=status.HTTP_200_OK)
+    else:
+      return Response(False, status=status.HTTP_403_FORBIDDEN)
 
 
 
