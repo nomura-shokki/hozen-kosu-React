@@ -1,90 +1,81 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
-import axios from "axios"; // HTTPクライアント
-import { Link, useNavigate } from "react-router-dom"; // 画面遷移に使用
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
 import ItemSelect from "../components/ItemSelect";
-import styles from "../styles/InquirPage/InquirNew.module.css"; // CSSモジュール
+import Loading from "../components/Loading";
+import styles from "../styles/InquirPage/InquirNew.module.css";
 
-// フォームで取り扱うデータ型を定義
 interface FormData {
   content_choice: string;
   inquiry: string;
 }
 
 const InquirNew: React.FC = () => {
-  // 初期フォーム値と状態管理
   const [formData, setFormData] = useState<FormData>({
     content_choice: "",
     inquiry: "",
   });
 
-  // エラーメッセージ表示用の状態
+  const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // ページ遷移用のフック
   const navigate = useNavigate();
 
-  // 初回マウント時、ログインチェック（セッション確認）
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_new/`, { withCredentials: true })
+      .then(() => {
+        setLoading(false);
+      })
       .catch((err) => {
-        // 未認証や権限不足の場合のリダイレクト処理
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          console.error("不明なエラー:", err);
-        }
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 404) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
+          else setErrorMessage(err.message);
+        } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+          setLoading(false);
       });
   }, [navigate]);
 
-  // フォーム入力値の変更ハンドラー
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
-    // name属性に基づいてformDataを更新
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
   };
-  
-  // ItemSelect（内容）の変更ハンドラー
+
   const handleContentChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
     setFormData((prevData) => ({
       ...prevData,
-      content_choice: value, // content_choiceを更新
+      content_choice: value,
     }));
   };
 
-  // フォーム送信時の処理
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setErrorMessage(null); // エラーリセット
+    setErrorMessage(null);
 
-    // content_choice（内容）と inquiry（作業詳細）を含む formData を送信
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_new/`, formData, { withCredentials: true })
       .then(() => {
         alert("登録完了！");
 
-        // フォームをリセット
         setFormData({
           content_choice: "",
           inquiry: "",
         });
       })
       .catch((error) => {
-        console.error(error);
-        // サーバーが返すエラーメッセージを表示
         if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.error || "登録中にエラーが発生しました。");
+          setErrorMessage(error.response.data.error);
         } else {
           setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
         }
       });
   };
+
+  if (loading) return <div><Loading isLoading={loading} /></div>;
 
   return (
     <div className={styles["inquir-new-wrapper"]}>

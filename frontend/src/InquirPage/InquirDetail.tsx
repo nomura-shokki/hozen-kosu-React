@@ -4,7 +4,6 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../components/Loading";
 import styles from "../styles/InquirPage/InquirDetail.module.css";
 
-// 型定義
 interface Inquir {
   employee_no2: number;
   name: string;
@@ -13,7 +12,6 @@ interface Inquir {
   answer: string;
 }
 
-// メンバー情報の型定義 (一部省略)
 interface Member {
   employee_no: number;
   name: string;
@@ -22,16 +20,14 @@ interface Member {
   administrator: boolean;
 }
 
-// APIからのレスポンスデータの型定義を更新
 interface Response {
-  inquir_data: Inquir; // 問い合わせデータ
-  login_data: Member; // ログインユーザーデータ
-  inquir_member_data: Member; // 質問者のメンバーデータ
-  next_id: number | null; // 次の問い合わせID (Noneの場合はnullが返ると想定)
-  before_id: number | null; // 前の問い合わせID (Noneの場合はnullが返ると想定)
+  inquir_data: Inquir;
+  login_data: Member;
+  inquir_member_data: Member;
+  next_id: number | null;
+  before_id: number | null;
 }
 
-// KosuEditコンポーネントの定義
 const InquirDetail: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<Inquir | null>(null);
@@ -44,7 +40,7 @@ const InquirDetail: React.FC = () => {
   const [nextId, setNextId] = useState<number | null>(null);
   const [beforeId, setBeforeId] = useState<number | null>(null);
 
-  const fetchData = useCallback(async (idToFetch: string | undefined = currentId) => {
+  const fetchData = useCallback((idToFetch: string | undefined = currentId) => {
     if (!idToFetch) {
       setError("問い合わせIDが指定されていません。");
       setLoading(false);
@@ -52,38 +48,31 @@ const InquirDetail: React.FC = () => {
     }
 
     setLoading(true);
-    try {
-      // APIエンドポイントにGETリクエストを送信
-      const response = await axios.get<Response>(
+    axios
+      .get<Response>(
         `${process.env.REACT_APP_API_BASE_URL}/api/inquir_detail/${idToFetch}/`,
         { withCredentials: true }
-      );
+      )
+      .then((response) => {
+        const { inquir_data, login_data, inquir_member_data, next_id, before_id } = response.data;
 
-      const { inquir_data, login_data, inquir_member_data, next_id, before_id } = response.data;
-
-      setFormData(inquir_data);
-      setMemberData(login_data);
-      setInquirMemberData(inquir_member_data);
-      setNextId(next_id);
-      setBeforeId(before_id);
-      
-    } catch (err) {
-      // エラーハンドリング（省略なし）
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-      } else {
-        console.error("予期しないエラー:", err);
-        setError("予期しないエラーが発生しました");
-      }
-    } finally {
-      setLoading(false); // ローディング状態を解除
-    }
+        setFormData(inquir_data);
+        setMemberData(login_data);
+        setInquirMemberData(inquir_member_data);
+        setNextId(next_id);
+        setBeforeId(before_id);
+      })
+      .catch((err) => {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 404) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
+          else setError(err.message);
+        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+          setLoading(false);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [currentId, navigate]);
 
   useEffect(() => {
@@ -91,24 +80,13 @@ const InquirDetail: React.FC = () => {
   }, [fetchData]);
 
   const handleNavigate = useCallback((id: number | null) => {
-    if (id !== null) {
-      navigate(`/inquir-detail/${id}`);
-    }
+    if (id !== null) navigate(`/inquir-detail/${id}`);
   }, [navigate]);
 
+  if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!formData) return <div>データが見つかりません</div>;
 
-  // ローディング中またはエラー、データがない場合の表示（省略なし）
-  if (loading) {
-    return <div><Loading isLoading={loading} /></div>;
-  }
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-  if (!formData) {
-    return <div>データが見つかりません</div>;
-  }
-
-  // レンダリング
   return (
     <>
       <Loading isLoading={loading} />

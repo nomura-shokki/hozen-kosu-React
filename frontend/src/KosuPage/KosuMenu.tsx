@@ -35,13 +35,8 @@ const KosuMenu: React.FC = () => {
       });
   }, [navigate]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className={styles["menu-wrapper"]}>
