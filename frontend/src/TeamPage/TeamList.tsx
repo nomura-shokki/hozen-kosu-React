@@ -5,7 +5,6 @@ import Loading from "../components/Loading";
 import TeamMemberSelect from "../components/TeamMemberSelect";
 import styles from "../styles/TeamPage/TeamList.module.css";
 
-// 工数データ型定義
 interface Kosu {
   id: number;
   employee_no3: number;
@@ -15,14 +14,12 @@ interface Kosu {
   judgement: boolean;
 }
 
-// 班員メンバー選択プルダウン型定義
 interface TeamMember {
   id: number;
   employee_no: number;
   name: string;
 }
 
-// 直データを日本語変換
 const formatTyoku = (value: string | number): string => {
   switch (Number(value)) {
     case 1: return "1直";
@@ -35,7 +32,6 @@ const formatTyoku = (value: string | number): string => {
   }
 };
 
-// 日付から曜日取得
 const getDayOfWeek = (dateStr: string): string => {
   const days = ["日", "月", "火", "水", "木", "金", "土"];
   const date = new Date(dateStr);
@@ -43,7 +39,6 @@ const getDayOfWeek = (dateStr: string): string => {
 };
 
 const TeamList: React.FC = () => {
-  // 状態管理フック
   const [data, setData] = useState<Kosu[]>([]); // 表示する工数データ
   const [loading, setLoading] = useState<boolean>(true); // データ読み込み中の状態
   const [error, setError] = useState<string | null>(null); // エラーメッセージ
@@ -55,149 +50,86 @@ const TeamList: React.FC = () => {
   const [tableWidth, setTableWidth] = useState<number>(0); // テーブル幅
   const [teamMemberOptions, setTeamMemberOptions] = useState<TeamMember[]>([]); // 班員選択プルダウン選択肢
   const [selectedMember, setSelectedMember] = useState<string>(""); // 選択メンバー従業員番号
-
-  // DOM要素への参照フック
   const tableRef = useRef<HTMLTableElement>(null); // テーブル要素参照
   const dateInputRef = useRef<HTMLInputElement>(null); // 日付入力参照
 
-  // --- ルーティングのためのフック ---
   const location = useLocation();
   const navigate = useNavigate();
 
-  // --- APIからデータを取得するための関数 ---
-  // `useCallback`を使って、`currentPage`, `Maps`, `searchByMonth`, `searchDay`, `selectedMember`が変わったときにのみ関数を再生成します。
-  // これにより、不要な再レンダリングを防ぎ、パフォーマンスを向上させます。
-  // 修正: `selectedMember`を依存配列に追加
-  const fetchData = useCallback(async (targetMode: boolean | null = null) => {
+  const fetchData = useCallback((targetMode: boolean | null = null) => {
     setLoading(true);
-    try {
-      // APIエンドポイントにGETリクエストを送信
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_list/`, {
-        params: {
-          page: currentPage,
-          // `searchDay`が存在する場合、検索関連のパラメータを追加します。
-          // `...()`は、条件付きでオブジェクトのプロパティを追加するJavaScriptの記法です。
-          ...(searchDay && {
-            day: searchDay,
-            mode: targetMode !== null ? (targetMode ? "month" : "day") : (searchByMonth ? "month" : "day"),
-            filter: "true",
-          }),
-          // 修正: メンバー選択の値をパラメータとして追加
-          ...(selectedMember && {
-            member_id: selectedMember,
-          }),
-        },
-        withCredentials: true, // クッキーを送信するために必要
-      });
-
-      // レスポンスからデータとページネーション情報を取得
+    axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_list/`, {
+      params: {
+        page: currentPage,
+        ...(searchDay && {
+          day: searchDay,
+          mode: targetMode !== null ? (targetMode ? "month" : "day") : (searchByMonth ? "month" : "day"),
+          filter: "true",
+        }),
+        ...(selectedMember && {
+          member_id: selectedMember,
+        }),
+      },
+      withCredentials: true,
+    })
+    .then((response) => {
       const paginationData = response.data?.pagination_data || {};
       const results = paginationData.results || [];
       const pageSize = response.data.page_size || 20;
       const memberOptions = response.data?.team_member_select || [];
-
-      // 1. メンバーIDを名前に変換するためのマップを作成
       const memberNameMap: { [key: number]: string } = {};
       memberOptions.forEach((member: TeamMember) => {
         memberNameMap[member.employee_no] = member.name;
       });
 
-      // 2. 取得したデータ（results）のnameを従業員番号から名前に変換
       const transformedData = results.map((item: Kosu) => ({
         ...item,
-        // item.employee_no3をキーとしてmemberNameMapから名前を取得
         name: memberNameMap[item.employee_no3] || `Unknown (${item.employee_no3})`,
       }));
 
-      // 状態を更新
-      setData(transformedData); // 現在表示するデータ
-      setTeamMemberOptions(memberOptions); // メンバー選択肢
-      setTotalPages(Math.ceil(paginationData.count / pageSize)); // 総ページ数を計算
-    } catch (err) {
-      // エラーハンドリング
+      setData(transformedData);
+      setTeamMemberOptions(memberOptions);
+      setTotalPages(Math.ceil(paginationData.count / pageSize));
+    })
+    .catch((err) => {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) {
-          // 認証エラー（トークン切れなど）の場合はログインページへ遷移
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          // 権限エラーの場合はトップページへ遷移
-          navigate("/");
-        } else {
-          // その他のAPIエラー
-          setError(err.message);
-        }
-      } else {
-        // Axios以外の予期せぬエラー
-        console.error("予期しないエラー:", err);
-        setError("予期しないエラーが発生しました");
-      }
-    } finally {
-      // ローディング状態を解除
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+    })
+    .finally(() => {
       setLoading(false);
-    }
-    // 修正: `selectedMember`を依存配列に追加
+    });
   }, [currentPage, navigate, searchByMonth, searchDay, selectedMember]);
 
-  // --- 副作用のためのuseEffectフック ---
-
-  // ルートが変更されたときに検索状態をリセット
   useEffect(() => {
     setSearchDay("");
     setSearchByMonth(false);
     setCurrentPage(1);
     setSelectedMember("");
-    // `location.pathname`を依存配列に入れることで、URLパスが変わるたびにこのエフェクトが実行されます。
   }, [location.pathname]);
 
-  // `fetchData`が変更されたときにデータを取得
   useEffect(() => {
     fetchData();
-    // `fetchData`を依存配列に入れることで、`fetchData`が再生成される（=`currentPage`などが変わる）たびに実行されます。
   }, [fetchData]);
 
-  // 選択されたメンバーに応じてデータをフィルタリング
-  // 修正: バックエンドでフィルタリングするため、このローカルフィルタリングのロジックは不要になりました。
-  // ただし、オリジナルコードには残っていたので、データ変換処理を維持するために`setOriginalData`を削除して`setData`の更新のみに変更します。
-  /*
   useEffect(() => {
-    // 修正: バックエンドでフィルタリングを行うため、このuseEffectは削除または変更します。
-    // 今回はselectedMemberが変更されたらページを1に戻す動作に変更します。
-    // if (selectedMember) {
-    //   // `selectedMember`が選択されている場合、`originalData`から該当メンバーのデータのみを抽出
-    //   const filteredData = originalData.filter(
-    //     (item) => item.employee_no3.toString() === selectedMember
-    //   );
-    //   setData(filteredData);
-    // } else {
-    //   // 選択されていない場合は、元の全データを表示
-    //   setData(originalData);
-    // }
-    // `selectedMember`が変わるたびに実行されます。
-  }, [selectedMember, originalData]);
-  */
-  // メンバー選択時にページをリセットし、APIを再呼び出し
-  useEffect(() => {
-    // メンバーが選択・解除されたら、ページを1に戻してfetchDataをトリガー
     setCurrentPage(1);
-    // fetchDataはselectedMemberに依存しているので、自動的に再実行されます。
   }, [selectedMember]);
 
 
-  // 画面リサイズ時にテーブルの最大高さを更新
   useEffect(() => {
     const updateMaxHeight = () => {
-      // ヘッダーや検索バーの高さを取得し、画面の高さから引いてテーブルの最大高さを計算します。
       const searchBarHeight = (document.querySelector(".search-bar") as HTMLElement)?.offsetHeight || 0;
       const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
       setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40);
     };
 
     updateMaxHeight();
-    // リサイズイベントリスナーを追加
     window.addEventListener("resize", updateMaxHeight);
-    // クリーンアップ関数を返し、コンポーネントがアンマウントされる際にイベントリスナーを削除します。
     return () => window.removeEventListener("resize", updateMaxHeight);
-  }, []); // 依存配列が空なので、コンポーネントのマウント時とアンマウント時にのみ実行されます。
+  }, []); 
 
   // 画面リサイズ時にテーブルの幅を更新
   useEffect(() => {
@@ -211,59 +143,47 @@ const TeamList: React.FC = () => {
     updateTableWidth();
     window.addEventListener("resize", updateTableWidth);
     return () => window.removeEventListener("resize", updateTableWidth);
-  }, [data]); // `data`が変わったときに実行され、テーブル幅を再計算します。
+  }, [data]);
 
-  // --- イベントハンドラー ---
-
-  // 日付・月検索ボタンのクリックハンドラー
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);
     fetchData(isMonthSearch);
-    setCurrentPage(1); // 検索実行時は常に1ページ目に戻る
+    setCurrentPage(1);
   };
 
-  // 次ページへの遷移
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
   };
 
-  // 前ページへの遷移
   const handlePreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
   };
 
-  // 最初のページへの遷移
   const handleFirstPage = () => {
     setCurrentPage(1);
   };
 
-  // 最後のページへの遷移
   const handleLastPage = () => {
     setCurrentPage(totalPages);
   };
 
-  // メンバー選択プルダウンの変更ハンドラー
-  // 修正: メンバー変更時にcurrentPageを1にリセットします。fetchDataはselectedMemberを依存に持つため、自動的に再実行されます。
   const handleMemberChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setSelectedMember(event.target.value);
-    setCurrentPage(1); // メンバー選択が変わったとき、ページネーションをリセット
+    setCurrentPage(1);
   };
 
-  // エラーが発生した場合の表示
   if (error) return <div>Error: {error}</div>;
 
   // コンポーネントレンダリング
   return (
     <>
       <Loading isLoading={loading} />
-      {/* 全体をラップするコンテナ */}
       <div className={styles["team-list-wrapper"]}>
         <h1 className={styles["h1-collar"]}>班員工数履歴</h1>
-        {/* ナビゲーションリンク */}
         <nav className={styles["team-nav"]}>
           <Link to="/team-menu">班員MENU</Link>
         </nav>
@@ -277,7 +197,6 @@ const TeamList: React.FC = () => {
             onChange={(e) => setSearchDay(e.target.value)}
             placeholder="日付を選択"
           />
-          {/* 検索ボタンのグループ */}
           <div className={styles["button-group"]}>
             <button
               onClick={() => handleSearch(true)}
@@ -293,7 +212,6 @@ const TeamList: React.FC = () => {
             </button>
           </div>
         </div>
-        {/* メンバー選択検索バー */}
         <div className={styles["search-bar"]}>
           <label htmlFor="team-member-select"></label>
           <TeamMemberSelect
@@ -304,11 +222,9 @@ const TeamList: React.FC = () => {
             options={teamMemberOptions}
           />
         </div>
-        {/* データが存在しない場合のメッセージ */}
         {data.length === 0 ? (
           <p>No data found.</p>
         ) : (
-          /* データが存在する場合のテーブル表示 */
           <div
             className={styles["table-wrapper"]}
             style={{
@@ -328,7 +244,6 @@ const TeamList: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {/* `data`配列をマップして各行を生成 */}
                 {data.map((item) => (
                   <tr key={item.id}>
                     <td>{item.name}</td>
@@ -344,7 +259,6 @@ const TeamList: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            {/* ページネーションコントロール */}
             <div className={styles["pagination"]}>
               <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handleFirstPage}>
                 最初

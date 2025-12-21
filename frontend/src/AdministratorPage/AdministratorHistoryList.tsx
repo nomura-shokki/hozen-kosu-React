@@ -59,7 +59,7 @@ const AdministratorHistoryList: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const fetchData = useCallback(async (
+  const fetchData = useCallback((
     page: number,
     day: string,
     mode: boolean,
@@ -68,19 +68,18 @@ const AdministratorHistoryList: React.FC = () => {
     loginNo: string,
   ) => {
     setLoading(true);
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_history/`, {
-        params: {
-          page: page,
-          record_id: id,
-          day: day,
-          mode: mode ? "month" : "day",
-          table_name: table,
-          login_No: loginNo,
-        },
-        withCredentials: true,
-      });
-
+    axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_history/`, {
+      params: {
+        page: page,
+        record_id: id,
+        day: day,
+        mode: mode ? "month" : "day",
+        table_name: table,
+        login_No: loginNo,
+      },
+      withCredentials: true,
+    })
+    .then((response) => {
       const historyData = response.data?.history_data || {};
       const ModelChoices = response.data?.model_choices || {};
 
@@ -91,16 +90,17 @@ const AdministratorHistoryList: React.FC = () => {
       const pageSize = results.length > 0 ? historyData.count / Math.ceil(historyData.count / results.length) : 20;
       setTotalPages(Math.ceil(count / pageSize));
       setData(results);
-
-    } catch (err) {
+    })
+    .catch((err) => {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 404) navigate("/login");
+        if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
         else setError(err.message);
       } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-    } finally {
+    })
+    .finally(() => {
       setLoading(false);
-    }
+    });
   }, [navigate]);
 
   useEffect(() => {

@@ -42,7 +42,7 @@ const HistoryDetail: React.FC = () => {
       })
       .catch((err) => {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
+          if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
           else setError(err.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
@@ -73,17 +73,9 @@ const HistoryDetail: React.FC = () => {
     };
   }, [formData]);
 
-  if (loading) {
-    return <div><Loading isLoading={loading} /></div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-  if (!formData) {
-    return <div>データが見つかりません</div>;
-  }
+  if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!formData) return <div>データが見つかりません</div>;
 
   const handleDelete = () => {
     const confirmed = window.confirm("削除しますか？");
@@ -102,31 +94,25 @@ const HistoryDetail: React.FC = () => {
       });
   };
 
-  // changesをパースして表示用の要素に変換する処理（データ形式エラー対応済み）
   const renderChanges = (changesString: string) => {
     if (!changesString || String(changesString).trim().length === 0) {
-        return <div>変更なし</div>; // または return null;
+        return <div>変更なし</div>;
     }
     try {
       let validJsonString = changesString.replace(/'([^']+)':/g, '"$1":');
       validJsonString = validJsonString.replace(/True/g, 'true');
       validJsonString = validJsonString.replace(/False/g, 'false');
-
       validJsonString = validJsonString.replace(/None/g, 'null');
-
       validJsonString = validJsonString.replace(/'/g, '"'); 
 
-      // JSON文字列をパース
       const changes: ChangesObject = JSON.parse(validJsonString);
       
-      // changesがパースの結果 null になった場合もここで処理（例えば changesStringが "null" という文字列だった場合）
       if (changes === null || typeof changes !== 'object' || Array.isArray(changes) || Object.keys(changes).length === 0) {
           return <div>変更なし</div>;
       }
 
       const keys = Object.keys(changes);
 
-      // 値を整形する関数
       const formatValue = (data: any) => {
         if (data === null) {
             return 'None';
@@ -137,41 +123,34 @@ const HistoryDetail: React.FC = () => {
         return String(data);
       };
 
-      // 各変更項目を改行して表示
       return (
         <>
           {keys.map((key) => {
             const value = changes[key];
 
-            // 変更履歴の形式（{'old':..., 'new':...}）であるかチェック
             if (typeof value === 'object' && value !== null && !Array.isArray(value) && value.old !== undefined && value.new !== undefined) {
-                // 変更履歴形式の場合
-                return (
-                    <div key={key}>
-                        {/* 変更箇所: whiteSpace: "pre-wrap" を "nowrap" に変更して、同項目での改行を防ぐ */}
-                        <p style={{ margin: "0", whiteSpace: "nowrap" }}>
-                            <strong style={{ fontWeight: "bold" }}>{key}</strong>
-                            : &#123;'old': {formatValue(value.old)}, 'new': {formatValue(value.new)}&#125;
-                        </p>
-                    </div>
-                );
+              return (
+                <div key={key}>
+                  <p style={{ margin: "0", whiteSpace: "nowrap" }}>
+                    <strong style={{ fontWeight: "bold" }}>{key}</strong>
+                    : &#123;'old': {formatValue(value.old)}, 'new': {formatValue(value.new)}&#125;
+                  </p>
+                </div>
+              );
             } else {
-                // レコード全体など、単一の値の場合
-                return (
-                    <div key={key}>
-                        {/* 変更箇所: whiteSpace: "pre-wrap" を "nowrap" に変更して、同項目での改行を防ぐ */}
-                        <p style={{ margin: "0", whiteSpace: "nowrap" }}>
-                            <strong style={{ fontWeight: "bold" }}>{key}</strong>
-                            : {formatValue(value)}
-                        </p>
-                    </div>
-                );
+              return (
+                <div key={key}>
+                  <p style={{ margin: "0", whiteSpace: "nowrap" }}>
+                    <strong style={{ fontWeight: "bold" }}>{key}</strong>
+                    : {formatValue(value)}
+                  </p>
+                </div>
+              );
             }
           })}
         </>
       );
     } catch (e) {
-      // JSONのパースに失敗した場合、エラーメッセージと元の文字列を表示
       console.error("Failed to parse changes JSON (after conversion attempts):", e);
       return <div><span style={{ color: 'red' }}>[パースエラー]</span> {changesString}</div>;
     }

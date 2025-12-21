@@ -137,7 +137,7 @@ const AdministratorLoading: React.FC = () => {
         setLoading(false);
       })
       .catch((err: AxiosError) => {
-        if (err.response?.status === 404) navigate("/login");
+        if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
         else setErrorStates(prev => ({ ...prev, MemberError: err.message }));
           setLoading(false);

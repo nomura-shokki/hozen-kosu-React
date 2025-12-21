@@ -1074,18 +1074,18 @@ class TeamNew(APIView):
   def get(self, request):
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '該当するデータが見つかりません'}, status=404)
+      return Response({'status': 'error', 'message': '該当するデータが見つかりません'}, status=status.HTTP_404_NOT_FOUND)
 
     if not member_data.authority:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=403)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
     team_filter = team_member.objects.filter(employee_no5=login_no)
     if team_filter.count() > 1:
-      return Response({'error': '複数の班員データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'error': '複数の班員データが存在します。'}, status=status.HTTP_404_NOT_FOUND)
     
     if team_filter.exists():
       team_data = team_filter.first()
@@ -1129,7 +1129,7 @@ class TeamNew(APIView):
     data = request.data
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
     team_data, created = team_member.objects.get_or_create(
       employee_no5=login_no,
@@ -1161,7 +1161,7 @@ class TeamList(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
 
     try:
       # ログインユーザーのデータ取得
@@ -1250,9 +1250,9 @@ class TeamDetail(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
     if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # 班員データ確認
     member_query_set = member.objects.filter(employee_no=kosu_instance.employee_no3)

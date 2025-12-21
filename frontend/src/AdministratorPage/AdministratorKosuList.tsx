@@ -64,7 +64,7 @@ const AdministratorKosuList: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const fetchData = useCallback(async (
+  const fetchData = useCallback((
     page: number,
     day: string,
     mode: boolean,
@@ -75,24 +75,23 @@ const AdministratorKosuList: React.FC = () => {
     judgement: string,
   ) => {
     setLoading(true);
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu/`, {
-        params: {
-          page: page,
-          ...(day || member || shop || tyoku || work || judgement ? {
-            day: day,
-            mode: mode ? "month" : "day",
-            filter: "true",
-            member: member,
-            shop: shop,
-            tyoku: tyoku,
-            work: work,
-            judgement: judgement,
-          } : {}),
-        },
-        withCredentials: true,
-      });
-
+    axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu/`, {
+      params: {
+        page: page,
+        ...(day || member || shop || tyoku || work || judgement ? {
+          day: day,
+          mode: mode ? "month" : "day",
+          filter: "true",
+          member: member,
+          shop: shop,
+          tyoku: tyoku,
+          work: work,
+          judgement: judgement,
+        } : {}),
+      },
+      withCredentials: true,
+    })
+    .then((response) => {
       const kosuData = response.data?.kosu_data || {};
       const results = kosuData.results || [];
       const count = kosuData.count || 0;
@@ -111,15 +110,17 @@ const AdministratorKosuList: React.FC = () => {
       }));
       setData(transformedData);
       setMemberOptions(memberOptions);
-    } catch (err) {
+    })
+    .catch((err) => {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 404) navigate("/login");
+        if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
         else setError(err.message);
       } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-    } finally {
+    })
+    .finally(() => {
       setLoading(false);
-    }
+    });
   }, [navigate]);
 
   useEffect(() => {
@@ -133,7 +134,6 @@ const AdministratorKosuList: React.FC = () => {
     setCurrentPage(1);
   }, [location.pathname]);
 
-  // 全てのフィルタリング条件の変更時にデータを再取得する
   useEffect(() => {
     fetchData(currentPage, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement);
   }, [currentPage, fetchData, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement]);
@@ -147,42 +147,33 @@ const AdministratorKosuList: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // searchDayの変更ハンドラ
   const handleSearchDayChange = (e: ChangeEvent<HTMLInputElement>) => {
     handleGenericChange(setSearchDay, e);
   };
 
-  // メンバー変更ハンドラ
   const handleMemberChange = (event: ChangeEvent<HTMLSelectElement>) => {
     handleGenericChange(setSelectedMemberInput, event);
   };
 
-  // ShopSelectの変更ハンドラ
   const handleShopChange = (event: ChangeEvent<HTMLSelectElement>) => {
     handleGenericChange(setSearchShop, event);
   };
 
-  // TyokuSelectの変更ハンドラ
   const handleTyokuChange = (event: ChangeEvent<HTMLSelectElement>) => {
     handleGenericChange(setSearchTyoku, event);
   };
 
-  // WorkSelectの変更ハンドラ
   const handleWorkChange = (event: ChangeEvent<HTMLSelectElement>) => {
     handleGenericChange(setSearchWork, event);
   };
 
-  // JudgementSelectの変更ハンドラ
   const handleJudgementChange = (event: ChangeEvent<HTMLSelectElement>) => {
     handleGenericChange(setSearchJudgement, event);
   };
 
-
-  // 日付指定検索ボタンのハンドラ
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);
     setCurrentPage(1);
-    // fetchDataの呼び出しはuseEffectに任せるため、ここでは行わない
   };
 
   const handleNextPage = () => {
