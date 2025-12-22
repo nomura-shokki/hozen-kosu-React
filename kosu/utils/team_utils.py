@@ -21,7 +21,7 @@ def excel_function(employee_no_data, wb, request):
   member_obj = get_object_or_404(member, employee_no=employee_no_data)
 
   # POSTされた値を日付に設定
-  day_data = datetime.datetime.strptime(request.POST['work_day'], '%Y-%m-%d')
+  day_data = datetime.datetime.strptime(request.data.get('day'), '%Y-%m-%d')
   year, month = day_data.year, day_data.month
 
   # 最終日取得
@@ -82,7 +82,7 @@ def excel_function(employee_no_data, wb, request):
       member_sheet.cell(row=(8 + i + i2), column=(day * 2) - 1, value=item[0])
       member_sheet.cell(row=(8 + i + i2), column=day * 2, value=item[1])
 
-  return time_display_list
+  return wb
 
 
 

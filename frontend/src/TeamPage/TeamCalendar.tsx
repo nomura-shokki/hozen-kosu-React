@@ -36,7 +36,6 @@ const TeamCalendar: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
   const navigate = useNavigate();
 
-  // 日付文字列 (YYYY-MM-DD) から Date オブジェクトを作成し、直近の日曜日を計算するヘルパー関数
   const getNearestSunday = (dateString: string): Date => {
     const date = new Date(dateString);
     // getDay() は日曜日を 0、月曜日を 1 ... 土曜日を 6 として返す
@@ -49,58 +48,59 @@ const TeamCalendar: React.FC = () => {
   // 引数 forceRefetch を追加し、POST後に強制的に再取得を行うために使用
   const fetchData = useCallback(async () => {
     setLoading(true); // ローディング状態を開始
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_calendar/`, { withCredentials: true });
+    axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_calendar/`, { withCredentials: true })
+      .then((response) => {
+        const results = response.data.kosu_data || [];
+        const searchDayString: string = response.data.Search_day; // ここで日付データを取得
+        const memberNameList: [number, string][] = response.data.member_name_list || []; // ここで班員名リストを取得
+        setMemberNames(memberNameList); // 班員名リストをstateに設定
 
-      const results = response.data.kosu_data || [];
-      const searchDayString: string = response.data.Search_day; // ここで日付データを取得
-      const memberNameList: [number, string][] = response.data.member_name_list || []; // ここで班員名リストを取得
-      setMemberNames(memberNameList); // 班員名リストをstateに設定
+        // 1. 直近の日曜日を計算
+        if (searchDayString) {
+          // 検索日で選択した日付のstateを更新
+          setSelectedDay(searchDayString);
 
-      // 1. 直近の日曜日を計算
-      if (searchDayString) {
-        // 検索日で選択した日付のstateを更新
-        setSelectedDay(searchDayString);
+          const sunday = getNearestSunday(searchDayString);
+          const sevenDays: string[] = [];
 
-        const sunday = getNearestSunday(searchDayString);
-        const sevenDays: string[] = [];
+          // 2. 日曜日から始まる7日間の日付を作成
+          for (let i = 0; i < 7; i++) {
+            const date = new Date(sunday);
+            date.setDate(sunday.getDate() + i);
 
-        // 2. 日曜日から始まる7日間の日付を作成
-        for (let i = 0; i < 7; i++) {
-          const date = new Date(sunday);
-          date.setDate(sunday.getDate() + i);
-
-          // YYYY-MM-DD 形式にフォーマット
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
-          sevenDays.push(`${year}-${month}-${day}`);
+            // YYYY-MM-DD 形式にフォーマット
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            sevenDays.push(`${year}-${month}-${day}`);
+          }
+          setSearchDays(sevenDays); // stateに設定
         }
-        setSearchDays(sevenDays); // stateに設定
-      }
 
-      // 取得したKosuデータをマップ形式に変換
-      const newKosuMap: KosuMap = results.reduce((acc: KosuMap, item: Kosu) => {
-        acc[`${item.employee_no3}_${item.work_day2}`] = item;
-        return acc;
-      }, {});
-      setKosuMap(newKosuMap);
-      setData(results);
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401 || err.response?.status === 404) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
+        // 取得したKosuデータをマップ形式に変換
+        const newKosuMap: KosuMap = results.reduce((acc: KosuMap, item: Kosu) => {
+          acc[`${item.employee_no3}_${item.work_day2}`] = item;
+          return acc;
+        }, {});
+        setKosuMap(newKosuMap);
+        setData(results);
+      })
+      .catch((err) => {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 401 || err.response?.status === 404) {
+            navigate("/login");
+          } else if (err.response?.status === 403) {
+            navigate("/");
+          } else {
+            setError(err.message);
+          }
         } else {
-          setError(err.message);
+          setError("予期しないエラーが発生しました");
         }
-      } else {
-        setError("予期しないエラーが発生しました");
-      }
-    } finally {
-      setLoading(false);
-    }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [navigate]);
 
   const postData = async (day: string) => {
@@ -113,9 +113,9 @@ const TeamCalendar: React.FC = () => {
         { day: day },
         { withCredentials: true }
       );
-      
+      
       // POST成功後、GET処理を再度実行
-      await fetchData(); 
+      await fetchData(); 
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401 || err.response?.status === 404) {
@@ -159,6 +159,34 @@ const TeamCalendar: React.FC = () => {
         }
       } else {
         setError(`予期しない${errorPrefix}が発生しました`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Excel出力ハンドラ
+  const handleExport = async () => {
+    if (!selectedDay) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/team_export/`,
+        { day: selectedDay },
+        { withCredentials: true }
+      );
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401 || err.response?.status === 404) {
+          navigate("/login");
+        } else if (err.response?.status === 403) {
+          navigate("/");
+        } else {
+          setError(`Excel出力エラー: ${err.message}`);
+        }
+      } else {
+        setError("予期しないExcel出力エラーが発生しました");
       }
     } finally {
       setLoading(false);
@@ -289,7 +317,7 @@ const TeamCalendar: React.FC = () => {
               onChange={handleDateChange}
               required
             />
-            <button 
+            <button 
               type="button"
               onClick={handleSubmit}
               disabled={loading}
@@ -299,7 +327,7 @@ const TeamCalendar: React.FC = () => {
             </button>
           </div>
           <div className={styles["select-row"]}>
-            <button 
+            <button 
               type="button"
               onClick={() => handleWeekJump('B')}
               disabled={loading}
@@ -307,13 +335,23 @@ const TeamCalendar: React.FC = () => {
             >
               前週
             </button>
-            <button 
+            <button 
               type="button"
               onClick={() => handleWeekJump('A')}
               disabled={loading}
               className="orange_button"
             >
               次週
+            </button>
+          </div>
+          <div className={styles["select-row"]}>
+            <button 
+              type="button"
+              onClick={handleExport}
+              disabled={loading}
+              className="orange_button"
+            >
+              Excelに出力
             </button>
           </div>
         </div>
@@ -340,10 +378,10 @@ const TeamCalendar: React.FC = () => {
               <tr>
                 <th colSpan={2} className={styles["th-collar1"]}>日付</th>
                 {searchDays.map((date, index) => {
-                  const className = index === 0 
-                    ? styles["th-collar3"] 
-                    : index === 6 
-                    ? styles["th-collar2"] 
+                  const className = index === 0 
+                    ? styles["th-collar3"] 
+                    : index === 6 
+                    ? styles["th-collar2"] 
                     : styles["th-collar1"];
                   return (
                     <th key={index} className={className}>

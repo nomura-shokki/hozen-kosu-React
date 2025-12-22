@@ -1393,6 +1393,70 @@ class TeamCalendarWeekJump(APIView):
 
 
 
+# 工数入力状況出力関数
+class TeamExport(APIView):
+  # POST処理
+  def post(self, request):
+    # セッション値取得
+    login_no = request.session.get('login_No')
+
+    # セッション値なしエラー
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # 指定日の年,月取得し記録
+    today = datetime.datetime.strptime(request.data.get('day'), '%Y-%m-%d')
+    year, month = today.year, today.month
+    request.session['display_day'] = request.data.get('day')
+
+    # 新しいExcelブック作成
+    wb = openpyxl.Workbook()
+
+    # 班員データ取得
+    team_data = team_member.objects.get(employee_no5=login_no)
+
+    # 班員リスト作成
+    member_numbers = [
+      team_data.member1, team_data.member2, team_data.member3,
+      team_data.member4, team_data.member5, team_data.member6,
+      team_data.member7, team_data.member8, team_data.member9,
+      team_data.member10, team_data.member11, team_data.member12,
+      team_data.member13, team_data.member14, team_data.member15
+    ]
+    valid_member_numbers = [
+      num for num in member_numbers if num is not None and num != ''
+    ]
+    employee_no_nums = []
+    for m in valid_member_numbers:
+      employee_no_nums.append(m)
+
+    # 班員毎にExcelに書き込み
+    for ind, employee_no_num in enumerate(employee_no_nums):
+      wb = excel_function(employee_no_num, wb, request)
+    # 不要なシート削除
+    del wb['Sheet']
+
+    # メモリ上にExcelファイルを作成し、BytesIOオブジェクトに保存
+    excel_file = BytesIO()
+    wb.save(excel_file)
+    excel_file.seek(0)
+
+    # URLエンコーディングされたファイル名を生成
+    filename = f'班員の{year}年{month}月度業務工数入力状況.xlsx'
+    quoted_filename = urllib.parse.quote(filename)
+
+    # HttpResponseを作成してファイルをダウンロードさせる
+    response = HttpResponse(
+      excel_file.read(),
+      content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    # Content-Dispositionヘッダーを設定
+    response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{quoted_filename}'
+    return Response(status=status.HTTP_200_OK)
+
+
+
+
 class TeamOverTime(APIView):
   # GET処理
   def get(self, request):

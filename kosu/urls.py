@@ -53,6 +53,7 @@ urlpatterns = [
   path('team_detail/<int:pk>/', team_views.TeamDetail.as_view(), name='team_detail'),
   path('team_calendar/', team_views.TeamCalendar.as_view(), name='team_calendar'),
   path('team_calendar_week_jump/', team_views.TeamCalendarWeekJump.as_view(), name='team_calendar_week_jump'),
+  path('team_export/', team_views.TeamExport.as_view(), name='team_export'),
   path('team_overtime/', team_views.TeamOverTime.as_view(), name='team_overtime'),
   path('team_view/', team_views.TeamView.as_view(), name='team_view'),
   path('team_shop_select/', team_views.TeamShopSelect.as_view(), name='team_shop_select/'),
