@@ -12,9 +12,9 @@ class DefVer(APIView):
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=401)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データベースから全ての工数区分データを取得
     divisions = kosu_division.objects.all()
@@ -50,12 +50,12 @@ class DefList(APIView):
     # ログイン情報をセッションから取得
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     if not member_data.administrator:
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
@@ -76,14 +76,14 @@ class DefSearch(APIView):
     login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=401)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=401)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データベースから全ての工数区分データを取得
     divisions = kosu_division.objects.filter(kosu_name=def_ver)
@@ -102,14 +102,14 @@ class DefNew(APIView):
     def_ver = request.session.get('input_def')
 
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     if not member_data.administrator:
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
@@ -145,11 +145,11 @@ class DefUpdate(APIView):
   def get(self, request, pk):
     def_instance = self.get_object(pk)
     if not def_instance:
-      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     member_data = member.objects.get(employee_no=login_no)
     if not member_data.administrator:
@@ -161,7 +161,7 @@ class DefUpdate(APIView):
   def put(self, request, pk):
     def_instance = self.get_object(pk)
     if not def_instance:
-      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
     data = request.data
     serializer = DefSerializer(def_instance, data=data)
@@ -187,19 +187,19 @@ class DefDelete(APIView):
   def delete(self, request, pk):
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ログイン情報が正しくありません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': 'ログイン情報が正しくありません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     if not member_data.administrator:
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
     def_instance = self.get_object(pk)
     if def_instance is None:
-      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
     def_instance.delete()
     return Response({'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
 

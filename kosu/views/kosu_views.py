@@ -1992,7 +1992,7 @@ class ScheduleView(View):
   def post(self, request):
     # 非AJAXリクエストの場合、エラーを返す
     if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
-      return JsonResponse({'error': 'Invalid request'}, status=400)
+      return JsonResponse({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
 
     # 共通部分のコンテキスト継承
     context_data = self.get_common_context(request)
@@ -2844,15 +2844,15 @@ class KosuList(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 検索パラメータの取得
     search_day = request.query_params.get('day')
@@ -2888,9 +2888,9 @@ class KosuNew(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 就業日取得
     day = request.session.get('day')
@@ -2901,7 +2901,7 @@ class KosuNew(APIView):
     # ログイン者データ確認
     member_query_set = member.objects.filter(employee_no=login_no)
     if not member_query_set.exists():
-      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     elif member_query_set.count() > 1:
       return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     member_data = member_query_set.first()
@@ -2915,7 +2915,7 @@ class KosuNew(APIView):
     # 工数区分定義確認
     def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
     if not def_query_set.exists():
-      return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     elif def_query_set.count() > 1:
       return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     def_data = def_query_set.first()
@@ -3186,9 +3186,9 @@ class TodayBreakTime(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 就業日取得
     day = request.session.get('day')
@@ -3228,7 +3228,7 @@ class TodayBreakTime(APIView):
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
       # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 工数データ取得
     kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
@@ -3314,16 +3314,16 @@ class BreakTime(APIView):
 
     # セッションない場合エラー出力
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       # ログインユーザーのデータ取得
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
       # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # シリアライザーによるシリアライズ処理
     member_serializer = MemberSerializer(member_data, many=False)
@@ -3344,16 +3344,16 @@ class BreakTime(APIView):
 
     # セッションない場合エラー出力
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       # ログインユーザーのデータ取得
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
       # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # JSTタイムゾーンの作成
     jst = datetime.timezone(datetime.timedelta(hours=9))
@@ -3426,7 +3426,7 @@ class KosuUpdate(APIView):
     # 工数データ取得
     kosu_instance = self.get_object(pk)
     if not kosu_instance:
-      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # セッション値、日付取得
     login_no = request.session.get('login_No')
@@ -3435,14 +3435,14 @@ class KosuUpdate(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     member_query_set = member.objects.filter(employee_no=login_no)
     if not member_query_set.exists():
-      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     elif member_query_set.count() > 1:
       return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     member_data = member_query_set.first()
@@ -3451,14 +3451,14 @@ class KosuUpdate(APIView):
     if kosu_instance.def_ver2:
       def_query_set = kosu_division.objects.filter(kosu_name=kosu_instance.def_ver2)
       if not def_query_set.exists():
-        return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
       elif def_query_set.count() > 1:
         return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
       def_instance = def_query_set.first()
     else:
       def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
       if not def_query_set.exists():
-        return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
       elif def_query_set.count() > 1:
         return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
       def_instance = def_query_set.first()
@@ -3483,7 +3483,7 @@ class KosuUpdate(APIView):
     # 工数データ取得
     kosu_instance = self.get_object(pk)
     if not kosu_instance:
-      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # セッション値、日付、ログイン者データ取得
     def_ver = request.session.get('input_def')
@@ -3493,11 +3493,11 @@ class KosuUpdate(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not day:
-      return Response({'error': '編集前の就業日データがありませんでした。IT担当者に連絡してください。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': '編集前の就業日データがありませんでした。IT担当者に連絡してください。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 工数区分定義設定エラー
     if kosu_instance.def_ver2:
@@ -3575,7 +3575,7 @@ class DayUpdate(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     # 日付取得
     if not day:
       request.session['day'] = ""
@@ -3608,7 +3608,7 @@ class ItemDlete(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 工数データ確認
     obj_filter = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
@@ -3622,10 +3622,10 @@ class ItemDlete(APIView):
         detail_list = obj_get.detail_work.split('$')
       # 作業内容がない場合エ、エラー
       else:
-        return Response({'error': '工数データが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': '工数データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
     # 工数データがない場合、エラー
     else:
-      return Response({'error': '工数データが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': '工数データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 項目番号から削除時間取得
     jst = datetime.timezone(datetime.timedelta(hours=9))
@@ -3682,12 +3682,12 @@ class KosuDelete(APIView):
     login_no = request.session.get('login_No')
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 削除対象のオブジェクトを取得
     kosu_instance = self.get_object(pk)
     if kosu_instance is None:
-      return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # レコードを削除
     kosu_instance.delete()
@@ -3706,7 +3706,7 @@ class KosuCalendar(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # アクセス権限取得
     try:
@@ -3714,7 +3714,7 @@ class KosuCalendar(APIView):
       if not member_data.authority:
         return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 工数履歴データの取得
     Search_month = str(datetime.date(year, month , 1))
@@ -3755,12 +3755,12 @@ class KosuWorkWrite(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     member_query_set = member.objects.filter(employee_no=login_no)
     if not member_query_set.exists():
-      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     elif member_query_set.count() > 1:
       return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     member_data = member_query_set.first()
@@ -3840,12 +3840,12 @@ class WorkDefault(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     member_query_set = member.objects.filter(employee_no=login_no)
     if not member_query_set.exists():
-      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     elif member_query_set.count() > 1:
       return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     member_data = member_query_set.first()
@@ -3909,12 +3909,12 @@ class TyokuDefault(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     member_query_set = member.objects.filter(employee_no=login_no)
     if not member_query_set.exists():
-      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     elif member_query_set.count() > 1:
       return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     member_data = member_query_set.first()
@@ -3981,7 +3981,7 @@ class KosuTotal(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 就業日取得
     day = request.session.get('day')
@@ -3992,7 +3992,7 @@ class KosuTotal(APIView):
     # ログイン者データ確認
     member_query_set = member.objects.filter(employee_no=login_no)
     if not member_query_set.exists():
-      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     elif member_query_set.count() > 1:
       return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     member_data = member_query_set.first()
@@ -4014,7 +4014,7 @@ class KosuTotal(APIView):
     # 工数区分定義確認
     def_query_set = kosu_division.objects.filter(kosu_name=kosu_data.def_ver2 if kosu_data.def_ver2 else def_ver_session)
     if not def_query_set.exists():
-      return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     elif def_query_set.count() > 1:
       return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     def_data = def_query_set.first()
@@ -4042,7 +4042,7 @@ class KosuTotal(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 就業日取得
     day = request.data.get('date')
@@ -4054,7 +4054,7 @@ class KosuTotal(APIView):
     # ログイン者データ確認
     member_query_set = member.objects.filter(employee_no=login_no)
     if not member_query_set.exists():
-      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     elif member_query_set.count() > 1:
       return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     member_data = member_query_set.first()
@@ -4097,7 +4097,7 @@ class KosuTotal(APIView):
         def_ver_to_filter = def_ver_session
     def_query_set = kosu_division.objects.filter(kosu_name=def_ver_to_filter)
     if not def_query_set.exists():
-      return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
+      return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     elif def_query_set.count() > 1:
       return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     def_data = def_query_set.first()

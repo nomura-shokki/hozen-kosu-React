@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Loading from "../components/Loading";
 import styles from "../styles/AdministratorPage/AdministratorTaskList.module.css";
 
@@ -13,7 +13,6 @@ interface Task {
   updated_at: string;
 }
 
-// タイムスタンプを「年-月-日(時:分)」形式に整形する関数
 const formatTimestamp = (timestamp: string): string => {
   if (!timestamp) return "";
   try {
@@ -93,7 +92,6 @@ const AdministratorTaskList: React.FC = () => {
     fetchData(currentPage, searchDay, searchByMonth);
   }, [currentPage, fetchData, searchDay, searchByMonth]); 
 
-  // searchDayの変更ハンドラ
   const handleSearchDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDay = e.target.value;
     setSearchDay(newDay);
@@ -101,7 +99,6 @@ const AdministratorTaskList: React.FC = () => {
     fetchData(1, newDay, searchByMonth);
   };
 
-  // 日付指定検索ボタンのハンドラ
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);
     setCurrentPage(1);

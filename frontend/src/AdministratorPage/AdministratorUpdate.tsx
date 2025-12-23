@@ -120,7 +120,6 @@ const AdminUpdate: React.FC = () => {
   if (loading) return <div><Loading isLoading={loading} /></div>;
   if (!formData) return <div>データが見つかりません</div>;
 
-  // レンダリング
   return (
     <div className={styles["page-container"]}>
       <Loading isLoading={loading} />
