@@ -69,30 +69,29 @@ const AdministratorHistoryList: React.FC = () => {
   ) => {
     setLoading(true);
     try {
-      await axios
-        .get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_history/`, {
-          params: {
-            page: page,
-            record_id: id,
-            day: day,
-            mode: mode ? "month" : "day",
-            table_name: table,
-            login_No: loginNo,
-          },
-          withCredentials: true,
-        })
-        .then((response) => {
-          const historyData = response.data?.history_data || {};
-          const ModelChoices = response.data?.model_choices || {};
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_history/`, {
+        params: {
+          page: page,
+          record_id: id,
+          day: day,
+          mode: mode ? "month" : "day",
+          table_name: table,
+          login_No: loginNo,
+        },
+        withCredentials: true,
+      });
 
-          if (Array.isArray(ModelChoices)) setModelChoices(ModelChoices);
+      const historyData = response.data?.history_data || {};
+      const ModelChoices = response.data?.model_choices || {};
 
-          const results = historyData.results || [];
-          const count = historyData.count || 0;
-          const pageSize = results.length > 0 ? historyData.count / Math.ceil(historyData.count / results.length) : 20;
-          setTotalPages(Math.ceil(count / pageSize));
-          setData(results);
-        });
+      if (Array.isArray(ModelChoices)) setModelChoices(ModelChoices);
+
+      const results = historyData.results || [];
+      const count = historyData.count || 0;
+      const pageSize = results.length > 0 ? historyData.count / Math.ceil(historyData.count / results.length) : 20;
+      setTotalPages(Math.ceil(count / pageSize));
+      setData(results);
+
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
