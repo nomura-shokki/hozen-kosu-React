@@ -131,24 +131,29 @@ const AdministratorKosuUpdate: React.FC = () => {
   const [detailWorkSegments, setDetailWorkSegments] = useState<string[]>(Array(24).fill(""));
 
   useEffect(() => {
-    axios
-      .get<KosuResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`, { withCredentials: true })
-      .then((response) => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get<KosuResponse>(
+          `${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`,
+          { withCredentials: true }
+        );
         const { kosu_data, choices } = response.data;
         setFormData(kosu_data);
         setTimeWorkSegments(splitTimeWork(kosu_data.time_work));
         setDetailWorkSegments(splitDetailWork(kosu_data.detail_work));
-        setLoading(false);
         setChoices(choices);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
           else setErrorMessage(err.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-          setLoading(false);
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [id, navigate]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -230,7 +235,7 @@ const AdministratorKosuUpdate: React.FC = () => {
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!formData) return;
@@ -281,23 +286,25 @@ const AdministratorKosuUpdate: React.FC = () => {
       detail_work: updatedDetailWork,
     };
 
-    axios
-      .put(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`, dataToSubmit, { withCredentials: true })
-      .then(() => {
-        alert("データが更新されました！");
-        navigate("/manager-kosu");
-      })
-      .catch((err) => {
-        console.error(err);
-        if (err.response && err.response.data) {
-          setErrorMessage(err.response.data.error);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
-      });
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`,
+        dataToSubmit,
+        { withCredentials: true }
+      );
+      alert("データが更新されました！");
+      navigate("/manager-kosu");
+    } catch (err: any) {
+      console.error(err);
+      if (err.response && err.response.data) {
+        setErrorMessage(err.response.data.error);
+      } else {
+        setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      }
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!id) return;
 
     if (!window.confirm("このデータを完全に削除してもよろしいですか？この操作は元に戻せません。")) {
@@ -306,20 +313,23 @@ const AdministratorKosuUpdate: React.FC = () => {
 
     setErrorMessage(null);
 
-    axios
-      .delete(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`, { withCredentials: true })
-      .then(() => {
-        alert("データが削除されました！");
-        navigate("/manager-kosu");
-      })
-      .catch((err) => {
-        if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
-          else if (err.response?.status === 403) navigate("/");
-          else  setErrorMessage(err.message);
-        } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        setLoading(false);
-      });
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`,
+        { withCredentials: true }
+      );
+      alert("データが削除されました！");
+      navigate("/manager-kosu");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 404) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setErrorMessage(err.message);
+      } else {
+        setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      }
+      setLoading(false);
+    }
   };
 
   if (loading) return <div><Loading isLoading={loading} /></div>;

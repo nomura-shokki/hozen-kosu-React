@@ -61,10 +61,9 @@ const AdministratorKosuList: React.FC = () => {
   const [tableWidth, setTableWidth] = useState<number>(0);
   const tableRef = useRef<HTMLTableElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
-  const location = useLocation();
   const navigate = useNavigate();
 
-  const fetchData = useCallback((
+  const fetchData = useCallback(async (
     page: number,
     day: string,
     mode: boolean,
@@ -75,23 +74,24 @@ const AdministratorKosuList: React.FC = () => {
     judgement: string,
   ) => {
     setLoading(true);
-    axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu/`, {
-      params: {
-        page: page,
-        ...(day || member || shop || tyoku || work || judgement ? {
-          day: day,
-          mode: mode ? "month" : "day",
-          filter: "true",
-          member: member,
-          shop: shop,
-          tyoku: tyoku,
-          work: work,
-          judgement: judgement,
-        } : {}),
-      },
-      withCredentials: true,
-    })
-    .then((response) => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu/`, {
+        params: {
+          page: page,
+          ...(day || member || shop || tyoku || work || judgement ? {
+            day: day,
+            mode: mode ? "month" : "day",
+            filter: "true",
+            member: member,
+            shop: shop,
+            tyoku: tyoku,
+            work: work,
+            judgement: judgement,
+          } : {}),
+        },
+        withCredentials: true,
+      });
+
       const kosuData = response.data?.kosu_data || {};
       const results = kosuData.results || [];
       const count = kosuData.count || 0;
@@ -110,29 +110,16 @@ const AdministratorKosuList: React.FC = () => {
       }));
       setData(transformedData);
       setMemberOptions(memberOptions);
-    })
-    .catch((err) => {
+    } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
         else setError(err.message);
       } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-    })
-    .finally(() => {
+    } finally {
       setLoading(false);
-    });
+    }
   }, [navigate]);
-
-  useEffect(() => {
-    setSearchDay("");
-    setSelectedMemberInput("");
-    setSearchShop("");
-    setSearchTyoku("");
-    setSearchWork("");
-    setSearchJudgement("");
-    setSearchByMonth(false);
-    setCurrentPage(1);
-  }, [location.pathname]);
 
   useEffect(() => {
     fetchData(currentPage, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement);

@@ -34,21 +34,14 @@ const AdministratorHistoryList: React.FC = () => {
   const [data, setData] = useState<History[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [searchFields, setSearchFields] = useState({
-    day: "",
-    id: "",
-    no: "",
-    table: ""
-  });
-
-  const [queries, setQueries] = useState({
-    day: "",
-    id: "",
-    no: "",
-    table: ""
-  });
-
+  const [searchDay, setSearchDay] = useState<string>("");
+  const [searchId, setSearchId] = useState<string>("");
+  const [searchNo, setSearchNo] = useState<string>("");
+  const [searchTable, setSearchTable] = useState<string>("");
+  const [currentFilterDay, setCurrentFilterDay] = useState<string>("");
+  const [currentFilterId, setCurrentFilterId] = useState<string>("");
+  const [currentFilterNo, setCurrentFilterNo] = useState<string>("");
+  const [currentFilterTable, setCurrentFilterTable] = useState<string>("");
   const [searchByMonth, setSearchByMonth] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
@@ -56,7 +49,6 @@ const AdministratorHistoryList: React.FC = () => {
   const [tableWidth, setTableWidth] = useState<number>(0);
   const [modelChoices, setModelChoices] = useState<string[]>([]);
   const tableRef = useRef<HTMLTableElement>(null);
-  const location = useLocation();
   const navigate = useNavigate();
 
   const fetchData = useCallback(async (
@@ -91,7 +83,6 @@ const AdministratorHistoryList: React.FC = () => {
       const pageSize = results.length > 0 ? historyData.count / Math.ceil(historyData.count / results.length) : 20;
       setTotalPages(Math.ceil(count / pageSize));
       setData(results);
-
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
@@ -106,30 +97,20 @@ const AdministratorHistoryList: React.FC = () => {
   }, [navigate]);
 
   useEffect(() => {
-    setSearchFields({ day: "", id: "", no: "", table: "" });
-    setQueries({ day: "", id: "", no: "", table: "" });
-    setSearchByMonth(false);
-    setCurrentPage(1);
-  }, [location.pathname]);
-
-  useEffect(() => {
-    fetchData(currentPage, queries.day, searchByMonth, queries.id, queries.table, queries.no);
-  }, [currentPage, fetchData, queries, searchByMonth]);
-
-  // 入力ハンドラの統合
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setSearchFields(prev => ({ ...prev, [name]: value }));
-  };
+    fetchData(currentPage, currentFilterDay, searchByMonth, currentFilterId, currentFilterTable, currentFilterNo);
+  }, [currentPage, fetchData, currentFilterDay, currentFilterId, currentFilterNo, currentFilterTable, searchByMonth]);
 
   const handleDaySearchClick = (isMonthSearch: boolean) => {
-    setQueries(prev => ({ ...prev, day: searchFields.day }));
+    setCurrentFilterDay(searchDay);
     setSearchByMonth(isMonthSearch);
     setCurrentPage(1);
   };
 
   const handleIDAndTableSearchClick = () => {
-    setQueries({ ...searchFields });
+    setCurrentFilterDay(searchDay);
+    setCurrentFilterId(searchId);
+    setCurrentFilterNo(searchNo);
+    setCurrentFilterTable(searchTable);
     setCurrentPage(1);
   };
 
@@ -179,8 +160,8 @@ const AdministratorHistoryList: React.FC = () => {
               type="date"
               id="searchDayInput"
               name="day"
-              value={searchFields.day}
-              onChange={handleInputChange}
+              value={searchDay}
+              onChange={(e) => setSearchDay(e.target.value)}
               placeholder="日付を選択"
             />
             <button onClick={() => handleDaySearchClick(true)} className="gray_button">
@@ -194,14 +175,14 @@ const AdministratorHistoryList: React.FC = () => {
             <input
               type="text"
               name="id"
-              value={searchFields.id}
-              onChange={handleInputChange}
+              value={searchId}
+              onChange={(e) => setSearchId(e.target.value)}
               placeholder="レコードID"
             />
             <select
               name="table"
-              value={searchFields.table}
-              onChange={handleInputChange}
+              value={searchTable}
+              onChange={(e) => setSearchTable(e.target.value)}
             >
               <option value="">-- 操作テーブル選択 --</option>
               {modelChoices.map((table, index) => (
@@ -211,8 +192,8 @@ const AdministratorHistoryList: React.FC = () => {
             <input
               type="text"
               name="no"
-              value={searchFields.no}
-              onChange={handleInputChange}
+              value={searchNo}
+              onChange={(e) => setSearchNo(e.target.value)}
               placeholder="操作者従業員番号"
             />
             <button onClick={handleIDAndTableSearchClick} className="gray_button">検索</button>

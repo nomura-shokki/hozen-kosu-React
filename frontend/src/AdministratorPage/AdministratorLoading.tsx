@@ -63,23 +63,22 @@ const useTaskMonitor = (
   const monitorTaskStatus = useCallback((taskId: string) => {
     const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/check_backup_status?task_id=${taskId}`;
 
-    const interval = setInterval(() => {
-      fetch(endpoint)
-        .then(response => response.json())
-        .then(data => {
-          if (data.status === 'success') {
-            clearInterval(interval);
-            handleSuccess(data);
-          } else if (data.status === 'error') {
-            clearInterval(interval);
-            handleError(data);
-          }
-        })
-        .catch(err => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await axios.get(endpoint);
+        const data = response.data;
+        if (data.status === 'success') {
           clearInterval(interval);
-          console.error('Network Error:', err);
-          handleError({ message: "ネットワークエラーが発生しました。" });
-        });
+          handleSuccess(data);
+        } else if (data.status === 'error') {
+          clearInterval(interval);
+          handleError(data);
+        }
+      } catch (err) {
+        clearInterval(interval);
+        console.error('Network Error:', err);
+        handleError({ message: "ネットワークエラーが発生しました。" });
+      }
     }, 1000);
 
     return () => clearInterval(interval);
@@ -219,16 +218,10 @@ const AdministratorLoading: React.FC = () => {
     try {
       const bodyData = isDateRanged ? { start_day: startDay, end_day: endDay } : {};
 
-      if (isDateRanged) {
-        headers['Content-Type'] = 'application/json';
-      }
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: headers,
-        body: isDateRanged ? JSON.stringify(bodyData) : undefined,
+      const response = await axios.post(endpoint, isDateRanged ? bodyData : undefined, {
+        headers: headers
       });
-      const data = await response.json();
+      const data = response.data;
 
       if (data.taskId || (data.status === 'success' && data.task_id)) {
         const taskId = data.taskId || data.task_id;
@@ -272,15 +265,14 @@ const AdministratorLoading: React.FC = () => {
     isRunningSetter(true);
 
     try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
+      const response = await axios.post(endpoint, formData, {
         headers: {
-          'X-CSRFToken': getCsrfToken()
+          'X-CSRFToken': getCsrfToken(),
+          'Content-Type': 'multipart/form-data'
         },
-        body: formData,
       });
 
-      const data = await response.json();
+      const data = response.data;
 
       if (data.taskId || (data.status === 'success' && data.task_id)) {
         const taskId = data.taskId || data.task_id;

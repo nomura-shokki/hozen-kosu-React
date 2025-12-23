@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, ChangeEvent } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Loading from "../components/Loading";
@@ -91,17 +91,11 @@ const AdministratorTaskList: React.FC = () => {
   }, [navigate]); 
 
   useEffect(() => {
-    setSearchDay("");
-    setSearchByMonth(false);
-    setCurrentPage(1);
-  }, [location.pathname]);
-
-  useEffect(() => {
     fetchData(currentPage, searchDay, searchByMonth);
   }, [currentPage, fetchData, searchDay, searchByMonth]); 
 
   // searchDayの変更ハンドラ
-  const handleSearchDayChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleSearchDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDay = e.target.value;
     setSearchDay(newDay);
     setCurrentPage(1);
