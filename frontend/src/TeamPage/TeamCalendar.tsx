@@ -139,14 +139,12 @@ const TeamCalendar: React.FC = () => {
     const errorPrefix = direction === 'B' ? '前週移動エラー' : '次週移動エラー';
     
     try {
-      // 'B' (Before: 前週) または 'A' (After: 次週) を week パラメータとしてPOST
       await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/api/team_calendar_week_jump/`,
-        { week: direction }, // 引数 direction を使用
+        { week: direction },
         { withCredentials: true }
       );
-      
-      // POST成功後、GET処理を再度実行して新しい週のデータを取得
+
       await fetchData(); 
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -165,26 +163,38 @@ const TeamCalendar: React.FC = () => {
     }
   };
 
-  // Excel出力ハンドラ
   const handleExport = async () => {
     if (!selectedDay) return;
     setLoading(true);
     setError(null);
     try {
-      await axios.post(
+      const response = await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/api/team_export/`,
         { day: selectedDay },
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          responseType: 'blob'
+        }
       );
+
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+
+      const filename = `班員の${selectedDay.substring(0, 7)}月度工数.xlsx`;
+      link.setAttribute('download', filename);
+      
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401 || err.response?.status === 404) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(`Excel出力エラー: ${err.message}`);
-        }
+        setError(`Excel出力エラー: ${err.message}`);
       } else {
         setError("予期しないExcel出力エラーが発生しました");
       }

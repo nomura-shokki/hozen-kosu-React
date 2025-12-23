@@ -1445,15 +1445,13 @@ class TeamExport(APIView):
     filename = f'班員の{year}年{month}月度業務工数入力状況.xlsx'
     quoted_filename = urllib.parse.quote(filename)
 
-    # HttpResponseを作成してファイルをダウンロードさせる
     response = HttpResponse(
       excel_file.read(),
       content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    # Content-Dispositionヘッダーを設定
     response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{quoted_filename}'
-    return Response(status=status.HTTP_200_OK)
 
+    return response
 
 
 
