@@ -48,7 +48,6 @@ const AdministratorTaskList: React.FC = () => {
   const [tableWidth, setTableWidth] = useState<number>(0);
   const tableRef = useRef<HTMLTableElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
-  const location = useLocation();
   const navigate = useNavigate();
 
   const fetchData = useCallback(async (
