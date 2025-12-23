@@ -494,21 +494,6 @@ class AdministratorUpdate(APIView):
 
   # PUT処理
   def put(self, request):
-    # セッションからデータ取得
-    login_no = request.session.get('login_No')
-
-    # 未ログインや定義が未定義の場合はログイン画面へ
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # ログイン者データ確認
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
-
     # 設定データ確認
     try:
       admin_data = administrator_data.objects.order_by("id").last()
@@ -691,7 +676,7 @@ class AdministratorKosuUpdate(APIView):
     if not member_data.administrator:
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
 
-    # ログイン者情報取得
+    # 工数データ人員情報取得
     try:
       kosu_member = member.objects.get(employee_no=kosu_instance.employee_no3)
     except member.DoesNotExist:

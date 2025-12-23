@@ -28,22 +28,24 @@ const TaskDetail: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
 
   useEffect(() => {
-    axios
-      .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_task_detail/${id}/`, { withCredentials: true })
-      .then((response) => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_task_detail/${id}/`, { withCredentials: true });
         const { task_data } = response.data;
         setFormData(task_data); 
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
+          if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
           else setError(err.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-          setLoading(false);
-      });
-  }, [id, navigate]);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [navigate]);
 
   useEffect(() => {
     const updateMaxHeight = () => {
@@ -68,34 +70,30 @@ const TaskDetail: React.FC = () => {
     };
   }, [formData]);
 
-  if (loading) {
-    return <div><Loading isLoading={loading} /></div>;
-  }
+  if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!formData) return <div>データが見つかりません</div>;
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-  if (!formData) {
-    return <div>データが見つかりません</div>;
-  }
-
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const confirmed = window.confirm("削除しますか？");
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
+    if (!id) return;
 
-    axios
-      .delete(`${process.env.REACT_APP_API_BASE_URL}/api/manager_task_detail/${id}/`, { withCredentials: true })
-      .then(() => {
-        alert("削除が完了しました");
-        navigate("/manager-task");
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("削除時にエラーが発生しました");
-      });
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_API_BASE_URL}/api/manager_task_detail/${id}/`,
+        { withCredentials: true }
+      );
+      alert("削除が完了しました");
+      navigate("/manager-task");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      setLoading(false);
+    }
   };
 
   return (

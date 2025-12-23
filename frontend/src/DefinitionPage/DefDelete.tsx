@@ -26,9 +26,12 @@ const DefDelete: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
 
   useEffect(() => {
-    axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`, { withCredentials: true })
-      .then((response) => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`,
+          { withCredentials: true }
+        );
         const rawData = response.data;
 
         const kosu_definitions = Array.from({ length: 50 }, (_, i) => {
@@ -46,15 +49,17 @@ const DefDelete: React.FC = () => {
         });
 
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
+          if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
           else setError(err.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
         setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, [id, navigate]);
 
   useEffect(() => {
@@ -81,19 +86,25 @@ const DefDelete: React.FC = () => {
     return () => window.removeEventListener("resize", updateTableWidth);
   }, [formData]);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const confirmed = window.confirm("この工数区分定義を削除しますか？関連する工数入力に影響が出る可能性があります。");
     if (!confirmed) return;
 
-    axios
-      .delete(`${process.env.REACT_APP_API_BASE_URL}/api/def_delete/${id}/`, { withCredentials: true })
-      .then(() => {
-        alert("削除が完了しました");
-        navigate("/def-menu");
-      })
-      .catch((err) => {
-        alert("削除時にエラーが発生しました");
-      });
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_API_BASE_URL}/api/def_delete/${id}/`,
+        { withCredentials: true }
+      );
+      alert("削除が完了しました");
+      navigate("/def-menu");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      setLoading(false);
+    }
   };
 
   if (error) return <div role="alert">Error: {error}</div>;

@@ -25,9 +25,12 @@ const DefEdit: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`, { withCredentials: true })
-      .then((response) => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`, 
+          { withCredentials: true }
+        );
         const rawData = response.data;
 
         const kosu_definitions = Array.from({ length: 50 }, (_, i) => {
@@ -40,17 +43,18 @@ const DefEdit: React.FC = () => {
         });
 
         setFormData({ kosu_name: rawData.kosu_name || "", kosu_definitions });
-
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
+          if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
           else setErrorMessage(err.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-          setLoading(false);
-      });
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [id, navigate]);
 
   const handleChange = (
@@ -70,7 +74,7 @@ const DefEdit: React.FC = () => {
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!formData) return;
 
@@ -90,19 +94,21 @@ const DefEdit: React.FC = () => {
       convertedData[`kosu_division_2_${idx}`] = def.division2;
     });
 
-    axios
-      .put(`${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`, convertedData, { withCredentials: true })
-      .then(() => {
-        alert("更新完了！");
-        navigate("/def-list");
-      })
-      .catch((err) => {
-        if (err.response && err.response.data) {
-          setErrorMessage(err.response.data.error);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
-      });
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`, 
+        convertedData, 
+        { withCredentials: true }
+      );
+      alert("更新完了！");
+      navigate("/def-list");
+    } catch (err: any) {
+      if (err.response && err.response.data) {
+        setErrorMessage(err.response.data.error);
+      } else {
+        setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      }
+    }
   };
 
   if (!formData || !formData.kosu_definitions) return <div>データが見つかりません</div>;

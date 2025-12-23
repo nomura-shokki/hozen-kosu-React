@@ -5,7 +5,8 @@ import Loading from "../components/Loading";
 import LogConsole from "../components/LogConsole";
 import styles from "../styles/AdministratorPage/AdministratorUpdate.module.css";
 
-// ローカルストレージキー
+
+
 const LOG_CONSOLE_VISIBILITY_KEY = "showLogConsole";
 
 interface Admin {
@@ -33,29 +34,33 @@ const AdminUpdate: React.FC = () => {
   const [formData, setFormData] = useState<Admin | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { id } = useParams<{ id: string }>();
   const [showLogConsole, setShowLogConsole] = useState<boolean>(() => {
     const cachedValue = localStorage.getItem(LOG_CONSOLE_VISIBILITY_KEY);
     return cachedValue === 'true'; 
   });
 
   useEffect(() => {
-    axios
-      .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, { withCredentials: true })
-      .then((response) => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get<Response>(
+          `${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`,
+          { withCredentials: true }
+        );
         const { admin_data } = response.data;
         setFormData(admin_data);
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
+          if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
           else setErrorMessage(err.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
         setLoading(false);
-      });
-  }, [id, navigate]);
+      }
+    };
+
+    fetchData();
+  }, [navigate]);
 
   useEffect(() => {
     localStorage.setItem(LOG_CONSOLE_VISIBILITY_KEY, String(showLogConsole));
@@ -93,7 +98,7 @@ const AdminUpdate: React.FC = () => {
     });
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
 
@@ -102,19 +107,21 @@ const AdminUpdate: React.FC = () => {
       return;
     }
 
-    axios
-      .put(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, formData, { withCredentials: true })
-      .then(() => {
-        alert("登録完了！");
-        navigate("/"); 
-      })
-      .catch((err) => {
-        if (err.response && err.response.data) {
-          setErrorMessage(err.response.data.error);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
-      });
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`,
+        formData,
+        { withCredentials: true }
+      );
+      alert("登録完了！");
+      navigate("/");
+    } catch (err: any) {
+      if (err.response && err.response.data) {
+        setErrorMessage(err.response.data.error);
+      } else {
+        setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      }
+    }
   };
 
   if (loading) return <div><Loading isLoading={loading} /></div>;

@@ -130,17 +130,22 @@ const AdministratorLoading: React.FC = () => {
   const [settingFile, setSettingFile] = useState<File | null>(null);
 
   useEffect(() => {
-    axios
-      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_Loading/`, {withCredentials: true})
-      .then(() => {
+    const checkAuth = async () => {
+      try {
+        await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_Loading/`, {
+          withCredentials: true
+        });
         setLoading(false);
-      })
-      .catch((err: AxiosError) => {
-        if (err.response?.status === 401) navigate("/login");
-        else if (err.response?.status === 403) navigate("/");
-        else setErrorStates(prev => ({ ...prev, MemberError: err.message }));
-          setLoading(false);
-      });
+      } catch (err) {
+        const axiosError = err as AxiosError;
+        if (axiosError.response?.status === 401) navigate("/login");
+        else if (axiosError.response?.status === 403) navigate("/");
+        else setErrorStates(prev => ({ ...prev, MemberError: axiosError.message }));
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, [navigate]);
 
   const createSetter = useCallback((key: keyof typeof initialTaskStates) => (value: boolean) => {

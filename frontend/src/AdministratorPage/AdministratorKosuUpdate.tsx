@@ -7,7 +7,8 @@ import WorkSelect from "../components/WorkSelect";
 import TyokuSelect from "../components/TyokuSelect";
 import styles from "../styles/AdministratorPage/AdministratorKosuUpdate.module.css";
 
-// サーバーから取得・送信される人員データの型定義
+
+
 interface Kosu {
   employee_no3: number;
   work_day2: string;
@@ -36,7 +37,7 @@ interface DefData {
   kosu_name: string;
 }
 
-interface KosuResponse {
+interface Response {
   kosu_data: Kosu;
   member_data: Member;
   choices: DefData[];
@@ -82,10 +83,7 @@ const isValidTimeFormat = (timeStr: string): boolean => {
   const hour = parseInt(timeStr.substring(0, 2), 10);
   const minute = parseInt(timeStr.substring(2, 4), 10);
 
-  // 時のチェック (00〜23)
   if (hour < 0 || hour > 23) return false;
-  
-  // 分のチェック (00〜59、かつ5分刻み)
   if (minute < 0 || minute > 59 || minute % 5 !== 0) return false;
 
   return true;
@@ -93,11 +91,9 @@ const isValidTimeFormat = (timeStr: string): boolean => {
 
 const validateBreakTime = (breakTimeValue: string, fieldName: string): string | null => {
   if (breakTimeValue === "") {
-    // 空欄は許可すると仮定します。もし必須であればこのチェックを変更してください。
     return null; 
   }
 
-  // フォーマットチェック: # + 8桁の数字
   const regex = /^#(\d{8})$/;
   const match = breakTimeValue.match(regex);
   
@@ -109,7 +105,6 @@ const validateBreakTime = (breakTimeValue: string, fieldName: string): string | 
   const startTimeStr = timeNumbers.substring(0, 4);
   const endTimeStr = timeNumbers.substring(4, 8);
 
-  // 時刻の妥当性チェック
   if (!isValidTimeFormat(startTimeStr)) {
     return `${fieldName} の開始時刻 ${startTimeStr} が無効な時刻（00:00〜23:55、5分刻み）です。`;
   }
@@ -133,7 +128,7 @@ const AdministratorKosuUpdate: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<KosuResponse>(
+        const response = await axios.get<Response>(
           `${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`,
           { withCredentials: true }
         );
@@ -322,7 +317,7 @@ const AdministratorKosuUpdate: React.FC = () => {
       navigate("/manager-kosu");
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 404) navigate("/login");
+        if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
         else setErrorMessage(err.message);
       } else {

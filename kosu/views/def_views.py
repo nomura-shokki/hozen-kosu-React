@@ -142,6 +142,7 @@ class DefUpdate(APIView):
     except kosu_division.DoesNotExist:
       return None
 
+
   def get(self, request, pk):
     def_instance = self.get_object(pk)
     if not def_instance:
@@ -183,6 +184,7 @@ class DefDelete(APIView):
       return kosu_division.objects.get(id=pk)
     except kosu_division.DoesNotExist:
       return None
+
 
   def delete(self, request, pk):
     login_no = request.session.get('login_No')

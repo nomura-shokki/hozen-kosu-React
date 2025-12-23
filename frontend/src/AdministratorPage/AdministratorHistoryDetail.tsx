@@ -95,7 +95,12 @@ const HistoryDetail: React.FC = () => {
       alert("削除しました");
       navigate("/manager-history");
     } catch (err) {
-      alert("削除時にエラーが発生しました");
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      setLoading(false);
     }
   };
 
