@@ -64,7 +64,7 @@ const DefList: React.FC = () => {
   };
 
   const handleLastPage = () => {
-    setCurrentPage(totalPages); // 最後のページへ
+    setCurrentPage(totalPages);
   };
 
   useEffect(() => {
@@ -90,6 +90,7 @@ const DefList: React.FC = () => {
   }, [data]);
 
   if (error) return <div>Error: {error}</div>;
+  if (loading) return <div><Loading isLoading={loading} /></div>;
 
   return (
     <>
@@ -102,21 +103,20 @@ const DefList: React.FC = () => {
         </nav>
 
         {data.length === 0 ? (
-          <p>No data found.</p> // データがない場合
+          <p>No data found.</p>
         ) : (
           <div
             className={styles["table-wrapper"]}
             style={{
-              maxHeight: `${maxHeight}px`, // 最大高さ
-              overflowY: "auto", // 縦スクロールを有効化
-              width: `${tableWidth + 5}px`, // テーブル幅
+              maxHeight: `${maxHeight}px`,
+              overflowY: "auto",
+              width: `${tableWidth + 5}px`,
             }}
           >
-            {/* データテーブル */}
+
             <table ref={tableRef}>
               <thead>
                 <tr>
-                  {/* テーブルヘッダー */}
                   <th className={styles["th-collar"]}>工数区分定義Ver</th>
                   <th className={styles["th-collar"]}>編集</th>
                   <th className={styles["th-collar"]}>削除</th>
@@ -137,7 +137,6 @@ const DefList: React.FC = () => {
               </tbody>
             </table>
 
-            {/* ページング */}
             <div className={styles["pagination"]}>
               <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handleFirstPage}>
                 最初

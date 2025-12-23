@@ -35,7 +35,7 @@ class DefVer(APIView):
 
     # 未選択時のエラーハンドリング
     if not selected_version:
-      return Response({'error': 'Versionchoice is required.'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'status': 'error', 'message': 'Versionchoice is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
     # セッションに工数区分定義保存
     request.session['input_def'] = selected_version
@@ -102,9 +102,9 @@ class DefNew(APIView):
     def_ver = request.session.get('input_def')
 
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       member_data = member.objects.get(employee_no=login_no)
@@ -122,10 +122,10 @@ class DefNew(APIView):
     data = request.data
 
     if not data.get('kosu_name'):
-      return Response({'error': '工数区分定義Ver名を入力してください'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'status': 'error', 'message': '工数区分定義Ver名を入力してください'}, status=status.HTTP_400_BAD_REQUEST)
 
     if kosu_division.objects.filter(kosu_name=data.get('kosu_name')).exists():
-      return Response({'error': '同一の工数区分定義Ver名が既に登録されています'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'status': 'error', 'message': '同一の工数区分定義Ver名が既に登録されています'}, status=status.HTTP_400_BAD_REQUEST)
 
     serializer = DefSerializer(data=data)
     if serializer.is_valid():
@@ -146,7 +146,7 @@ class DefUpdate(APIView):
   def get(self, request, pk):
     def_instance = self.get_object(pk)
     if not def_instance:
-      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
     login_no = request.session.get('login_No')
     if not login_no:
@@ -162,14 +162,14 @@ class DefUpdate(APIView):
   def put(self, request, pk):
     def_instance = self.get_object(pk)
     if not def_instance:
-      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
     data = request.data
     serializer = DefSerializer(def_instance, data=data)
     if serializer.is_valid():
       if data.get('kosu_name') != def_instance.kosu_name and kosu_division.objects.filter(kosu_name=data.get('kosu_name')).exists():
         return Response(
-          {'error': '入力した工数区分定義Ver名はすでに登録されています'},
+          {'status': 'error', 'message': '入力した工数区分定義Ver名はすでに登録されています'},
           status=status.HTTP_400_BAD_REQUEST
         )
       serializer.save()
@@ -201,9 +201,9 @@ class DefDelete(APIView):
 
     def_instance = self.get_object(pk)
     if def_instance is None:
-      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
     def_instance.delete()
-    return Response({'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+    return Response({'status': 'error', 'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
 
 
 

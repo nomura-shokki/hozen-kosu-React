@@ -78,7 +78,7 @@ class MemberNew(APIView):
 
     if member.objects.filter(employee_no=data.get('employee_no')).exists():
       return Response(
-        {'error': '入力した従業員番号はすでに登録されています'},
+        {'status': 'error', 'message': '入力した従業員番号はすでに登録されています'},
         status=status.HTTP_400_BAD_REQUEST
       )
 
@@ -172,7 +172,7 @@ class MemberUpdate(APIView):
     # 指定された従業員データを取得
     member_instance = self.get_object(pk)
     if member_instance is None:
-      return Response({'error': 'error', 'message': '人員データが確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'error', 'message': '人員データが確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データをシリアライズして返却
     serializer = MemberSerializer(member_instance)
@@ -183,7 +183,7 @@ class MemberUpdate(APIView):
     # 特定の従業員データを取得
     member_instance = self.get_object(pk)
     if member_instance is None:
-      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # クライアントから送られてきたデータをシリアライズ
     data = request.data
@@ -191,7 +191,7 @@ class MemberUpdate(APIView):
     if serializer.is_valid():
       # 従業員番号の一意性確認
       if data.get('employee_no') != pk and member.objects.filter(employee_no=data.get('employee_no')).exists():
-        return Response({'error': '入力した従業員番号はすでに登録されています'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status': 'error', 'message': '入力した従業員番号はすでに登録されています'},status=status.HTTP_400_BAD_REQUEST)
       serializer.save()
       return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -224,9 +224,9 @@ class MemberDelete(APIView):
     # 削除対象のオブジェクトを取得
     member_instance = self.get_object(pk)
     if member_instance is None:
-      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # レコードを削除
     member_instance.delete()
-    return Response({'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+    return Response({'status': 'error', 'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
 

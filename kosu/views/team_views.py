@@ -28,7 +28,7 @@ class TeamNew(APIView):
       return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
     team_filter = team_member.objects.filter(employee_no5=login_no)
     if team_filter.count() > 1:
-      return Response({'error': '複数の班員データが存在します。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '複数の班員データが存在します。'}, status=status.HTTP_401_UNAUTHORIZED)
     
     if team_filter.exists():
       team_data = team_filter.first()
@@ -185,7 +185,7 @@ class TeamDetail(APIView):
     # 工数データ取得
     kosu_instance = self.get_object(pk)
     if not kosu_instance:
-      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # セッション値取得
     login_no = request.session.get('login_No')
@@ -193,32 +193,32 @@ class TeamDetail(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 班員データ確認
     member_query_set = member.objects.filter(employee_no=kosu_instance.employee_no3)
     if not member_query_set.exists():
-      return Response({'error': 'メンバーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'メンバーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     elif member_query_set.count() > 1:
-      return Response({'error': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'status': 'error', 'message': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     member_data = member_query_set.first()
 
     # 工数区分定義確認
     if kosu_instance.def_ver2:
       def_query_set = kosu_division.objects.filter(kosu_name=kosu_instance.def_ver2)
       if not def_query_set.exists():
-        return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
       elif def_query_set.count() > 1:
-        return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
       def_instance = def_query_set.first()
     else:
       def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
       if not def_query_set.exists():
-        return Response({'error': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
       elif def_query_set.count() > 1:
-        return Response({'error': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
       def_instance = def_query_set.first()
 
     # データ変換

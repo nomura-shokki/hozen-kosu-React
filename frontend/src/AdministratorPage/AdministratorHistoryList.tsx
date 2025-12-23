@@ -143,6 +143,7 @@ const AdministratorHistoryList: React.FC = () => {
   }, [data]);
 
   if (error) return <div>Error: {error}</div>;
+  if (loading) return <div><Loading isLoading={loading} /></div>;
 
   return (
     <>

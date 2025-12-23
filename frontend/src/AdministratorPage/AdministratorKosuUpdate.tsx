@@ -238,13 +238,13 @@ const AdministratorKosuUpdate: React.FC = () => {
     setErrorMessage(null);
 
     if (!formData.employee_no3 || formData.employee_no3 === 0) {
-        setErrorMessage("従業員番号は必須です。空欄や0は許可されません。");
-        return;
+      setErrorMessage("従業員番号は必須です。空欄や0は許可されません。");
+      return;
     }
 
     if (!formData.work_day2) {
-        setErrorMessage("就業日は必須です。空欄は許可されません。");
-        return;
+      setErrorMessage("就業日は必須です。空欄は許可されません。");
+      return;
     }
 
     for (let i = 0; i < detailWorkSegments.length; i++) {
@@ -289,13 +289,11 @@ const AdministratorKosuUpdate: React.FC = () => {
       );
       alert("データが更新されました！");
       navigate("/manager-kosu");
-    } catch (err: any) {
-      console.error(err);
-      if (err.response && err.response.data) {
-        setErrorMessage(err.response.data.error);
-      } else {
-        setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-      }
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setErrorMessage(err.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
     }
   };
 

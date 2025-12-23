@@ -45,7 +45,7 @@ const TaskDetail: React.FC = () => {
     };
 
     fetchData();
-  }, [navigate]);
+  }, [navigate, id]);
 
   useEffect(() => {
     const updateMaxHeight = () => {

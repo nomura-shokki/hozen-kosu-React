@@ -1,22 +1,22 @@
-from django.shortcuts import render
-from django.http import JsonResponse
-from pathlib import Path
 import datetime
 import os
 import sys
 import logging
 import environ
-from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, AsyncTask, History
+import json
+from pathlib import Path
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.views import View
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.http import JsonResponse
-from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer, \
-                          DefSerializer, TaskSerializer, HistorySerializer
+from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, AsyncTask, History
+from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer, DefSerializer, TaskSerializer, HistorySerializer
 from ..utils.main_utils import CustomPagination, get_all_model_names_in_myapp
-import json
-from django.views import View
-from django.conf import settings
+
+
 
 
 # 専用ロガー取得('views_logger'という名前のカスタムロガーを使用しログメッセージ記録)
@@ -499,29 +499,13 @@ class AdministratorUpdate(APIView):
     serializer = AdministratorSerializer(admin_data, data=request.data)
     # バリテーション成功時
     if serializer.is_valid():
-      try:
-        # 問い合わせ担当者バリテーション
-        administrator_employee_no1_value = int(request.data.get('administrator_employee_no1'))
-        if not isinstance(administrator_employee_no1_value, int) or administrator_employee_no1_value <= 0:
-          return Response({'error': '問い合わせ担当者従業員番号1は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
-      except (TypeError, ValueError):
-        pass
-      try:
-        administrator_employee_no2_value = int(request.data.get('administrator_employee_no2'))
-        if not isinstance(administrator_employee_no2_value, int) or administrator_employee_no2_value <= 0:
-          return Response({'error': '問い合わせ担当者従業員番号2は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
-      except (TypeError, ValueError):
-        pass
-      try:
-        administrator_employee_no3_value = int(request.data.get('administrator_employee_no3'))
-        if not isinstance(administrator_employee_no3_value, int) or administrator_employee_no3_value <= 0:
-          return Response({'error': '問い合わせ担当者従業員番号3は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
-      except (TypeError, ValueError):
-        pass
-      # 一覧表示数バリテーション
-      menu_row_value = int(request.data.get('menu_row'))
-      if not isinstance(menu_row_value, int) or menu_row_value <= 0:
-        return Response({'error': '一覧表示項目数は自然数で入力して下さい'}, status=status.HTTP_400_BAD_REQUEST)
+      # 問い合わせ担当者情報取得
+      emp_keys = ['administrator_employee_no1', 'administrator_employee_no2', 'administrator_employee_no3']
+      # 社員番号の存在チェック
+      for key in emp_keys:
+        emp_no = request.data.get(key)
+        if not member.objects.filter(employee_no=emp_no).exists():
+          return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
       # データ保存
       serializer.save()
@@ -649,7 +633,7 @@ class AdministratorKosuUpdate(APIView):
     # 工数データ取得
     kosu_instance = self.get_object(pk)
     if not kosu_instance:
-      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # セッション値、編集前の日付、従業員番号取得
     login_no = request.session.get('login_No')
@@ -659,9 +643,9 @@ class AdministratorKosuUpdate(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'error': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
@@ -701,18 +685,11 @@ class AdministratorKosuUpdate(APIView):
     # 工数データ取得
     kosu_instance = self.get_object(pk)
     if not kosu_instance:
-      return Response({'error': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # セッション値、日付、人員データ取得
-    login_no = request.session.get('login_No')
     day = request.session.get('day')
     employee_no = request.session.get('employee_no')
-
-    # セッション値なしエラー
-    if not login_no:
-      return Response({'error': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not day:
-      return Response({'error': '編集前の就業日データがありませんでした。IT担当者に連絡してください。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # クライアントから送られてきたデータをシリアライズ
     data = request.data
@@ -720,33 +697,20 @@ class AdministratorKosuUpdate(APIView):
 
     if serializer.is_valid():
       if not member.objects.filter(employee_no=data.get('employee_no3')).exists():
-        return Response({'error': '入力した従業員番号は登録されていません。'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status': 'error', 'message': '入力した従業員番号は登録されていません。'},status=status.HTTP_400_BAD_REQUEST)
       if (day != data.get('work_day2') or int(employee_no) != data.get('employee_no3')) and Business_Time_graph.objects.filter(employee_no3=data.get('employee_no3'), work_day2=data.get('work_day2')).exists():
-        return Response({'error': '入力した就業日には既に工数データがあります。'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status': 'error', 'message': '入力した就業日には既に工数データがあります。'},status=status.HTTP_400_BAD_REQUEST)
 
       serializer.save()
       return Response({'status': 'success', 'message': 'データが更新されました。'}, status=status.HTTP_200_OK)
-    return Response({'error': 'バリテーションエラー'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'status': 'error', 'message': 'バリテーションエラー。'}, status=status.HTTP_400_BAD_REQUEST)
 
 
   def delete(self, request, pk):
-    # セッションからログイン情報を取得
-    login_no = request.session.get('login_No')
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
-
     # 削除対象のオブジェクトを取得
     kosu_instance = self.get_object(pk)
     if kosu_instance is None:
-      return Response({'error': 'データがありません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'データがありません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # レコードを削除
     kosu_instance.delete()
@@ -823,7 +787,7 @@ class AdministratorTaskDetail(APIView):
     # 削除対象のオブジェクトを取得
     task_instance = self.get_object(pk)
     if task_instance is None:
-      return Response({'error': 'データがありません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'データがありません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     serializer = TaskSerializer(task_instance)
 
@@ -850,7 +814,7 @@ class AdministratorTaskDetail(APIView):
     # 削除対象のオブジェクトを取得
     task_instance = self.get_object(pk)
     if task_instance is None:
-      return Response({'error': 'データがありません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'データがありません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # レコードを削除
     task_instance.delete()
@@ -943,7 +907,7 @@ class AdministratorHistoryDetail(APIView):
     history_instance = self.get_object(pk)
 
     if history_instance is None:
-      return Response({'error': 'データがありません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'データがありません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     serializer = HistorySerializer(history_instance)
 
@@ -954,23 +918,10 @@ class AdministratorHistoryDetail(APIView):
 
 
   def delete(self, request, pk):
-    # セッションからログイン情報を取得
-    login_no = request.session.get('login_No')
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
-
     # 削除対象のオブジェクトを取得
     history_instance = self.get_object(pk)
     if history_instance is None:
-      return Response({'error': 'データがありません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'データがありません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # レコードを削除
     history_instance.delete()

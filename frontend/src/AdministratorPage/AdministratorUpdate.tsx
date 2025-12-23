@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import axios from "axios";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Loading from "../components/Loading";
 import LogConsole from "../components/LogConsole";
 import styles from "../styles/AdministratorPage/AdministratorUpdate.module.css";
@@ -53,7 +53,7 @@ const AdminUpdate: React.FC = () => {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
-          else setErrorMessage(err.message);
+          else setErrorMessage(err.response?.data.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
         setLoading(false);
       }
@@ -72,8 +72,8 @@ const AdminUpdate: React.FC = () => {
     const checked = isCheckbox && (event.target as HTMLInputElement).checked;
 
     if (name === LOG_CONSOLE_VISIBILITY_KEY && isCheckbox) {
-      setShowLogConsole(checked); // checkedの値を使用
-      return; // 他の formData の更新は行わない
+      setShowLogConsole(checked);
+      return;
     }
 
     const isNumberField = [
@@ -102,9 +102,25 @@ const AdminUpdate: React.FC = () => {
     event.preventDefault();
     setErrorMessage(null);
 
-    if (!formData) {
-      setErrorMessage("データがありません。");
+    if (!formData) return;
+
+    if (formData.menu_row === null || formData.menu_row <= 0) {
+      setErrorMessage("一覧表示項目数は自然数で入力してください。");
       return;
+    }
+
+    const employeeNumbers = [
+      { key: "administrator_employee_no1", label: "担当者1" },
+      { key: "administrator_employee_no2", label: "担当者2" },
+      { key: "administrator_employee_no3", label: "担当者3" },
+    ] as const;
+
+    for (const field of employeeNumbers) {
+      const val = formData[field.key];
+      if (val !== null && val <= 0) {
+        setErrorMessage(`問い合わせ担当者従業員番号${field.label.slice(-1)}は自然数で入力してください。`);
+        return;
+      }
     }
 
     try {
@@ -115,12 +131,13 @@ const AdminUpdate: React.FC = () => {
       );
       alert("登録完了！");
       navigate("/");
-    } catch (err: any) {
-      if (err.response && err.response.data) {
-        setErrorMessage(err.response.data.error);
-      } else {
-        setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-      }
+    } catch (err) {
+      console.log(err)
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      setLoading(false);
     }
   };
 
