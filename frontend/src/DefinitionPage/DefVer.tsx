@@ -2,6 +2,7 @@ import React, { useState, FormEvent, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/DefinitionPage/DefVer.module.css";
+import Loading from "../components/Loading";
 import DefVersionSelect from "../components/DefVersionSelect"; 
 
 interface DefData {
@@ -25,85 +26,84 @@ const DefVer: React.FC = () => {
   const [selectedVersion, setSelectedVersion] = useState<string>("");
 
   useEffect(() => {
-    axios
-      .get<DefVerResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/def_ver/`, {withCredentials: true,})
-      .then((response) => {
+    const fetchVerData = async () => {
+      try {
+        const response = await axios.get<DefVerResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/def_ver/`, {withCredentials: true,});
         setChoices(response.data.choices);
         setCurrentVersion(response.data.current_version);
         setSelectedVersion(response.data.current_version);
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
-          else setErrorMessage(err.message);
+          if (err.response?.status === 401) navigate("/login");
+          else setErrorMessage(err.response?.data.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-          setLoading(false);
-      });
+        setLoading(false);
+      }
+    };
+    fetchVerData();
   }, [navigate]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    axios
-      .post(
+    try {
+      await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/api/def_ver/`,
         { versionchoice: selectedVersion },
         { withCredentials: true }
-      )
-      .then(() => {
-        setCurrentVersion(selectedVersion);
-        alert("切り替え完了！");
-        setErrorMessage(null);
-      })
-      .catch((err) => {
-        if (err.response && err.response.data) {
-          setErrorMessage(err.response.data.error);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
-      });
+      );
+      setCurrentVersion(selectedVersion);
+      alert("切り替え完了！");
+      setErrorMessage(null);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      setLoading(false);
+    }
   };
 
   const handleChangeVersion = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedVersion(e.target.value);
   };
 
-  // ローディング中
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  if (loading) return <div><Loading isLoading={loading} /></div>;
 
   return (
-    <div className={styles["defver-wrapper"]}>
-      <h1 className={styles["h1-collar"]}>工数区分定義切り替え</h1>
-      <nav className={styles["def-nav"]}>
-        <Link to="/def-menu">工数区分定義MENU</Link>
-      </nav>
-      {errorMessage && (
-        <div role="alert">{errorMessage}</div>
-      )}
-      <p>現在の工数区分のVerは "{currentVersion}" です</p>
-      <form 
-        onSubmit={handleSubmit}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
-            e.preventDefault();
-            (e.target as HTMLInputElement).blur();
-          }
-        }}
-      >
-        <label htmlFor="versionchoice">工数区分の選択:</label>
-        <DefVersionSelect 
-          choices={choices}
-          selectedVersion={selectedVersion}
-          onChange={handleChangeVersion}
-        />
-        <div className={styles["search-button-row"]}>
-          <button type="submit" className="green_button">工数区分定義切り替え</button>
-        </div>
-      </form>
-    </div>
+    <>
+      <Loading isLoading={loading} />
+      <div className={styles["defver-wrapper"]}>
+        <h1 className={styles["h1-collar"]}>工数区分定義切り替え</h1>
+        <nav className={styles["def-nav"]}>
+          <Link to="/def-menu">工数区分定義MENU</Link>
+        </nav>
+        {errorMessage && (
+          <div role="alert">{errorMessage}</div>
+        )}
+        <p>現在の工数区分のVerは "{currentVersion}" です</p>
+        <form 
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
+              e.preventDefault();
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+        >
+          <label htmlFor="versionchoice">工数区分の選択:</label>
+          < DefVersionSelect 
+            choices={choices}
+            selectedVersion={selectedVersion}
+            onChange={handleChangeVersion}
+          />
+          <div className={styles["search-button-row"]}>
+            <button type="submit" className="green_button">工数区分定義切り替え</button>
+          </div>
+        </form>
+      </div>
+    </>
   );
 };
 

@@ -210,21 +210,21 @@ class Menu(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 設定データ確認
     try:
       admin_data = administrator_data.objects.order_by("id").last()
     except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データ変換
     login_serializer = MemberSerializer(member_data, many=False)
@@ -248,17 +248,17 @@ class MemberMenu(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データ変換
     serializer = MemberSerializer(member_data, many=False)
@@ -276,15 +276,15 @@ class DefMenu(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データ変換
     serializer = MemberSerializer(member_data, many=False)
@@ -302,15 +302,15 @@ class KosuMenu(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データ変換
     serializer = MemberSerializer(member_data, many=False)
@@ -327,15 +327,15 @@ class TeamMenu(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 班員フォローメッセージ作成
     follow_message_list = []
@@ -397,15 +397,15 @@ class InquirMenu(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     try:
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データ変換
     serializer = MemberSerializer(member_data, many=False)
@@ -422,21 +422,21 @@ class AdministratorMenu(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.administrator:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 設定データ確認
     try:
       admin_data = administrator_data.objects.order_by("id").last()
     except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データ変換
     login_serializer = MemberSerializer(member_data, many=False)
@@ -459,21 +459,21 @@ class AdministratorUpdate(APIView):
 
     # 未ログインや定義が未定義の場合はログイン画面へ
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # 設定データ確認
     try:
       admin_data = administrator_data.objects.order_by("id").last()
     except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データ変換
     login_serializer = MemberSerializer(member_data, many=False)
@@ -493,7 +493,7 @@ class AdministratorUpdate(APIView):
     try:
       admin_data = administrator_data.objects.order_by("id").last()
     except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データ更新&変換
     serializer = AdministratorSerializer(admin_data, data=request.data)
@@ -523,15 +523,15 @@ class AdministratorLoading(APIView):
 
     # 未ログインや定義が未定義の場合はログイン画面へ
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # データ変換
     login_serializer = MemberSerializer(member_data, many=False)
@@ -554,17 +554,17 @@ class AdministratorKosuList(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # 検索パラメータの取得
     search_day = request.query_params.get('day')
@@ -651,15 +651,15 @@ class AdministratorKosuUpdate(APIView):
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # 工数データ人員情報取得
     try:
       kosu_member = member.objects.get(employee_no=kosu_instance.employee_no3)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '工数データのユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '工数データのユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データベースから全ての工数区分データを取得
     divisions = kosu_division.objects.all()
@@ -726,15 +726,15 @@ class AdministratorTaskList(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # 検索パラメータの取得
     search_day = request.query_params.get('day')
@@ -774,15 +774,15 @@ class AdministratorTaskDetail(APIView):
     # セッションからログイン情報を取得
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # 削除対象のオブジェクトを取得
     task_instance = self.get_object(pk)
@@ -801,15 +801,15 @@ class AdministratorTaskDetail(APIView):
     # セッションからログイン情報を取得
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # 削除対象のオブジェクトを取得
     task_instance = self.get_object(pk)
@@ -830,15 +830,15 @@ class AdministratorHistoryList(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # 検索パラメータの取得
     search_day = request.query_params.get('day')
@@ -893,15 +893,15 @@ class AdministratorHistoryDetail(APIView):
     # セッションからログイン情報を取得
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # 削除対象のオブジェクトを取得
     history_instance = self.get_object(pk)

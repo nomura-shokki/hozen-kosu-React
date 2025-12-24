@@ -27,19 +27,20 @@ const DefNew: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, { withCredentials: true })
-      .then(() => {
+    const fetchData = async () => {
+      try {
+        await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, { withCredentials: true });
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
+          if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
-          else setErrorMessage(err.message);
+          else setErrorMessage(err.response?.data.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-          setLoading(false);
-      });
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [navigate]);
 
   const handleChange = (
@@ -68,18 +69,15 @@ const DefNew: React.FC = () => {
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null); 
 
     const confirmed = window.confirm(
       "工数区分定義を追加すると全人員の工数入力に影響します。課内に変更を展開した上で土日など工数入力がない時間に登録することを推奨します。"
     );
-    if (!confirmed) {
-      return; // ユーザーがキャンセルした場合は処理終了
-    }
+    if (!confirmed) return;
 
-    // API送信用に形式を変換：key-value 形式へ
     const convertedData: { [key: string]: string } = {
       kosu_name: formData.kosu_name,
     };
@@ -91,19 +89,18 @@ const DefNew: React.FC = () => {
       convertedData[`kosu_division_2_${idx}`] = def.division2;
     });
 
-    axios
-      .post(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, convertedData, { withCredentials: true })
-      .then(() => {
-        alert("登録完了！");
-        navigate("/def-menu");
-      })
-      .catch((err) => {
-        if (err.response && err.response.data) {
-          setErrorMessage(err.response.data.error);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
-      });
+    try {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, convertedData, { withCredentials: true });
+      alert("登録完了！");
+      navigate("/def-menu");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      setLoading(false);
+    }
   };
 
   if (loading) return <div><Loading isLoading={loading} /></div>;
@@ -132,7 +129,6 @@ const DefNew: React.FC = () => {
           <div className={styles["search-bar"]}>
             <button type="submit" className="green_button">登録</button>
 
-            {/* 工数定義Ver名入力 */}
             <label htmlFor="kosu_name">工数区分定義Ver名:</label>
             <input
               type="text"
@@ -142,7 +138,6 @@ const DefNew: React.FC = () => {
               onChange={handleChange}
             />
 
-            {/* 50件分の工数区分の定義ブロックをレンダリング */}
             {formData.kosu_definitions.map((def, index) => (
               <div key={index} className={styles["definition-block"]}>
                 <label htmlFor={`kosu_title_${index + 1}`}>{`工数区分名${index + 1}:`}</label>

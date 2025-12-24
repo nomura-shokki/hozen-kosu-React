@@ -31,15 +31,15 @@ class KosuList(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 検索パラメータの取得
     search_day = request.query_params.get('day')
@@ -415,7 +415,7 @@ class TodayBreakTime(APIView):
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
       # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 工数データ取得
     kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
@@ -460,10 +460,10 @@ class TodayBreakTime(APIView):
     for ind, time_inds in enumerate(time_data):
       if ind in [0, 2]:
         if (time_inds[0] < time_inds[1] and time_inds[1] - time_inds[0] > 12) or (time_inds[0] > time_inds[1] and time_inds[1] - time_inds[0] + 288 > 12):
-          return Response({'status': 'error', 'message': '昼休憩及び残業休憩2は60分を越える時間を設定できません'}, status=status.HTTP_400_BAD_REQUEST)
+          return Response({'status': 'error', 'message': '昼休憩及び残業休憩2は60分を越える時間を設定できません。'}, status=status.HTTP_400_BAD_REQUEST)
       else:
         if (time_inds[0] < time_inds[1] and time_inds[1] - time_inds[0] > 3) or (time_inds[0] > time_inds[1] and time_inds[1] - time_inds[0] + 288 > 3):
-          return Response({'status': 'error', 'message': '残業休憩1及び残業休憩3は15分を越える時間を設定できません'}, status=status.HTTP_400_BAD_REQUEST)
+          return Response({'status': 'error', 'message': '残業休憩1及び残業休憩3は15分を越える時間を設定できません。'}, status=status.HTTP_400_BAD_REQUEST)
       if time_inds[0] < time_inds[1]:
         if kosu_list[time_inds[1]] != '#':
           for k in range(time_inds[0], time_inds[1]):
@@ -510,7 +510,7 @@ class BreakTime(APIView):
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
       # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # シリアライザーによるシリアライズ処理
     member_serializer = MemberSerializer(member_data, many=False)
@@ -540,7 +540,7 @@ class BreakTime(APIView):
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
       # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # JSTタイムゾーンの作成
     jst = datetime.timezone(datetime.timedelta(hours=9))
@@ -563,10 +563,10 @@ class BreakTime(APIView):
     for ind, time_inds in enumerate(time_data):
       if ind % 2 == 0:
         if (time_inds[0] < time_inds[1] and time_inds[1] - time_inds[0] > 12) or (time_inds[0] > time_inds[1] and time_inds[1] - time_inds[0] + 288 > 12):
-          return Response({'status': 'error', 'message': '昼休憩及び残業休憩2は60分を越える時間を設定できません'}, status=status.HTTP_400_BAD_REQUEST)
+          return Response({'status': 'error', 'message': '昼休憩及び残業休憩2は60分を越える時間を設定できません。'}, status=status.HTTP_400_BAD_REQUEST)
       else:
         if (time_inds[0] < time_inds[1] and time_inds[1] - time_inds[0] > 3) or (time_inds[0] > time_inds[1] and time_inds[1] - time_inds[0] + 288 > 3):
-          return Response({'status': 'error', 'message': '残業休憩1及び残業休憩3は15分を越える時間を設定できません'}, status=status.HTTP_400_BAD_REQUEST)
+          return Response({'status': 'error', 'message': '残業休憩1及び残業休憩3は15分を越える時間を設定できません。'}, status=status.HTTP_400_BAD_REQUEST)
 
     member_data.break_time1 = time_str_list[0]
     member_data.break_time1_over1 = time_str_list[1]
@@ -869,7 +869,7 @@ class KosuDelete(APIView):
     login_no = request.session.get('login_No')
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 削除対象のオブジェクトを取得
     kosu_instance = self.get_object(pk)
@@ -893,15 +893,15 @@ class KosuCalendar(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # アクセス権限取得
     try:
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 工数履歴データの取得
     Search_month = str(datetime.date(year, month , 1))
@@ -942,7 +942,7 @@ class KosuWorkWrite(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     member_query_set = member.objects.filter(employee_no=login_no)
@@ -1027,7 +1027,7 @@ class WorkDefault(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     member_query_set = member.objects.filter(employee_no=login_no)
@@ -1096,7 +1096,7 @@ class TyokuDefault(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     member_query_set = member.objects.filter(employee_no=login_no)

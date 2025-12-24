@@ -132,7 +132,6 @@ const AdminUpdate: React.FC = () => {
       alert("登録完了！");
       navigate("/");
     } catch (err) {
-      console.log(err)
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
         else setErrorMessage(err.response?.data.message);

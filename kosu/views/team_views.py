@@ -17,15 +17,15 @@ class TeamNew(APIView):
   def get(self, request):
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '該当するデータが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '該当するデータが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     if not member_data.authority:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     team_filter = team_member.objects.filter(employee_no5=login_no)
     if team_filter.count() > 1:
       return Response({'status': 'error', 'message': '複数の班員データが存在します。'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -72,7 +72,7 @@ class TeamNew(APIView):
     data = request.data
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     team_data, created = team_member.objects.get_or_create(
       employee_no5=login_no,
@@ -104,24 +104,24 @@ class TeamList(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       # ログインユーザーのデータ取得
       member_data = member.objects.get(employee_no=login_no)
       # 権限がない場合はMenu画面へ
       if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
       # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 班員情報取得
     try:
       team_data = team_member.objects.get(employee_no5=login_no)
     except team_member.DoesNotExist:
       # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '班員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '班員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 班員の従業員番号をリストにまとめる
     member_numbers = [
@@ -245,15 +245,15 @@ class TeamCalendar(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # アクセス権限取得
     try:
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 表示日取得
     day = request.session.get('day')
@@ -273,7 +273,7 @@ class TeamCalendar(APIView):
       team_data = team_member.objects.get(employee_no5=login_no)
     except team_member.DoesNotExist:
       # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '班員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '班員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 班員の従業員番号をリストにまとめる
     member_numbers = [
@@ -345,7 +345,7 @@ class TeamExport(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 指定日の年,月取得し記録
     today = datetime.datetime.strptime(request.data.get('day'), '%Y-%m-%d')
@@ -408,22 +408,22 @@ class TeamOverTime(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # アクセス権限取得
     try:
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 班員情報取得
     try:
       team_data = team_member.objects.get(employee_no5=login_no)
     except team_member.DoesNotExist:
       # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '班員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '班員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 班員の従業員番号をリストにまとめる
     member_numbers = [
@@ -478,15 +478,15 @@ class TeamView(APIView):
 
     # セッション値なしエラー
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # アクセス権限取得
     try:
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     shop = request.session.get('shop', member_data.shop)
     team_shop = list(member.objects.filter(shop=shop).values_list('employee_no', flat=True))

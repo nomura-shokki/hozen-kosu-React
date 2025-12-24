@@ -18,17 +18,17 @@ class InquirList(APIView):
 
     # 未ログインや定義が未定義の場合はログイン画面へ
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     try:
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # クエリパラメータで絞り込み条件を取得
     item = request.query_params.get('item')
@@ -70,15 +70,15 @@ class InquirNew(APIView):
 
     # 未ログインや定義が未定義の場合はログイン画面へ
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     try:
       member_data = member.objects.get(employee_no=login_no)
       if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data)
@@ -91,7 +91,7 @@ class InquirNew(APIView):
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     data = request.data
 
@@ -111,7 +111,7 @@ class InquirNew(APIView):
     try:
       admin_data = administrator_data.objects.order_by("id").last()
     except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     inquiry_data_id = inquiry_data.objects.order_by('id').last()
     # ポップアップ書き込み処理
@@ -153,24 +153,24 @@ class InquirDetail(APIView):
 
     # 未ログインや定義が未定義の場合はログイン画面へ
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 質問者データ確認
     try:
       inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '質問者の人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '質問者の人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       admin_data = administrator_data.objects.order_by("id").last()
     except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 個人ポップアップ削除処理
     for i in range(1, 6):
@@ -287,22 +287,22 @@ class InquirUpdate(APIView):
 
     # 未ログインや定義が未定義の場合はログイン画面へ
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       admin_data = administrator_data.objects.order_by("id").last()
     except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     if int(login_no) != int(inquir_instance.employee_no2) or \
       int(login_no) in [admin_data.administrator_employee_no1, admin_data.administrator_employee_no2, admin_data.administrator_employee_no3]:
-      return Response({'status': 'error', 'message': '権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': '権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
 
     # データ変換
@@ -324,13 +324,13 @@ class InquirUpdate(APIView):
 
     # 未ログインや定義が未定義の場合はログイン画面へ
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 問い合わせデータ取得
     inquir_instance = self.get_object(pk)
@@ -343,7 +343,7 @@ class InquirUpdate(APIView):
     try:
       admin_data = administrator_data.objects.order_by("id").last()
     except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     if serializer.is_valid():
       changed_fields = set() 
@@ -402,12 +402,12 @@ class InquirUpdate(APIView):
     try:
       inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '質問者の人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '質問者の人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       admin_data = administrator_data.objects.order_by("id").last()
     except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
     # 削除する問い合わせに関する通知を削除

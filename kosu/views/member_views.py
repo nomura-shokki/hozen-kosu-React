@@ -18,19 +18,19 @@ class MemberList(APIView):
 
     # 未ログインや定義が未定義の場合はログイン画面へ
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       # ログインユーザーのデータ取得
       member_data = member.objects.get(employee_no=login_no)
       # 権限がない場合はMenu画面へ
       if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
       # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '人員情報が見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # クエリパラメータで絞り込み条件を取得
     search_number = request.query_params.get('employee_no', None)
@@ -59,15 +59,15 @@ class MemberNew(APIView):
   def get(self, request):
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       member_data = member.objects.get(employee_no=login_no)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '該当するデータが見つかりません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '該当するデータが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     if not member_data.authority:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data)
@@ -78,7 +78,7 @@ class MemberNew(APIView):
 
     if member.objects.filter(employee_no=data.get('employee_no')).exists():
       return Response(
-        {'status': 'error', 'message': '入力した従業員番号はすでに登録されています'},
+        {'status': 'error', 'message': '入力した従業員番号はすでに登録されています。'},
         status=status.HTTP_400_BAD_REQUEST
       )
 
@@ -160,7 +160,7 @@ class MemberUpdate(APIView):
     # セッションからログイン情報を取得
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログインユーザーの権限を確認
     try:
@@ -168,12 +168,12 @@ class MemberUpdate(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': '権限確認中にエラーが発生しました'}, status=status.HTTP_403_FORBIDDEN)
     if not member_data.authority:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # 指定された従業員データを取得
     member_instance = self.get_object(pk)
     if member_instance is None:
-      return Response({'status': 'error', 'message': 'error', 'message': '人員データが確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'error', 'message': '人員データが確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データをシリアライズして返却
     serializer = MemberSerializer(member_instance)
@@ -192,7 +192,7 @@ class MemberUpdate(APIView):
     if serializer.is_valid():
       # 従業員番号の一意性確認
       if data.get('employee_no') != pk and member.objects.filter(employee_no=data.get('employee_no')).exists():
-        return Response({'status': 'error', 'message': '入力した従業員番号はすでに登録されています'},status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status': 'error', 'message': '入力した従業員番号はすでに登録されています。'},status=status.HTTP_400_BAD_REQUEST)
       serializer.save()
       return Response(serializer.data, status=status.HTTP_200_OK)
     return Response({'status': 'error', 'message': 'バリテーションエラー'}, status=status.HTTP_400_BAD_REQUEST)
@@ -213,7 +213,7 @@ class MemberDelete(APIView):
     # セッションからログイン情報を取得
     login_no = request.session.get('login_No')
     if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
     try:
@@ -221,7 +221,7 @@ class MemberDelete(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': '権限確認中にエラーが発生しました'}, status=status.HTTP_403_FORBIDDEN)
     if not member_data.authority:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません'}, status=status.HTTP_403_FORBIDDEN)
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # 削除対象のオブジェクトを取得
     member_instance = self.get_object(pk)

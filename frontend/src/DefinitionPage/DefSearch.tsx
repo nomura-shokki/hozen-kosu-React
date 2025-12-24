@@ -24,22 +24,21 @@ const DefSearch: React.FC = () => {
   const [selectedDef2, setSelectedDef2] = useState<string | null>("");
 
   useEffect(() => {
-    axios
-      .get<DivisionData[]>(`${process.env.REACT_APP_API_BASE_URL}/api/def_search/`, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        console.log(response.data);
+    const fetchData = async () => {
+      try {
+        const response = await axios.get<DivisionData[]>(`${process.env.REACT_APP_API_BASE_URL}/api/def_search//`, {withCredentials: true});
         setDivisions(response.data);
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
-          else setError(err.message);
+          if (err.response?.status === 401) navigate("/login");
+          else setError(err.response?.data.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-          setLoading(false);
-      });
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [navigate]);
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
