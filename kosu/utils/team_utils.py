@@ -8,13 +8,6 @@ import datetime
 
 
 
-
-
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
 # 班員入力工数Excel出力関数
 def excel_function(employee_no_data, wb, request):
   # 人員データ取得
@@ -83,72 +76,4 @@ def excel_function(employee_no_data, wb, request):
       member_sheet.cell(row=(8 + i + i2), column=day * 2, value=item[1])
 
   return wb
-
-
-
-
-
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
-
-# 班員情報取得関数
-def team_member_name_get(member_no):
-
-  # 班員の従業員番号が空でない場合の処理
-  if member_no != '':
-    # 従業員番号の人員がいるか確認
-    member_obj_filter = member.objects.filter(employee_no__contains = member_no)
-
-    # 従業員番号の人員がいる場合の処理
-    if member_obj_filter.count() == 1:
-      # 班員の人員情報取得
-      member_obj_get = member_obj_filter.first()
-
-    # 班員の従業員番号の人員がいない場合の処理
-    else:
-      # 班員情報に空を入れる
-      member_obj_get = ''
-
-  # 従業員番号が空の場合の処理
-  else:
-    # 班員情報に空を入れる
-    member_obj_get = ''
-
-  return member_obj_get
-
-
-
-
-
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
-
-# 指定日取得
-def day_get(request):
-  # セッションに表示日の指定がない場合の処理
-  if request.session.get('display_day', None) == None:
-    # 今日の日付取得
-    today = datetime.date.today()
-    # 取得した値をセッションに登録
-    request.session['display_day'] = str(today)[0: 10]
-    today = datetime.datetime.strptime(request.session['display_day'], '%Y-%m-%d')
-
-  # セッションに表示日の指定がある場合の処理
-  else:
-    # 表示日にセッションの値を入れる
-    today = datetime.datetime.strptime(request.session['display_day'], '%Y-%m-%d')
-
-  return today
-
-
-
-
-
-#--------------------------------------------------------------------------------------------------------
 

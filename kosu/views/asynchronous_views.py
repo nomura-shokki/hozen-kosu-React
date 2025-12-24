@@ -1,34 +1,22 @@
-from django.http import JsonResponse, FileResponse
 import os
 import threading
 import uuid
-from ..tasks import generate_kosu_backup, generate_prediction, delete_kosu_data, load_kosu_file, \
+import datetime
+import time
+import tempfile
+from ..tasks import generate_kosu_backup, delete_kosu_data, load_kosu_file, \
                     generate_member_backup, load_member_file, generate_team_backup, load_team_file, \
                     generate_def_backup, load_def_file, generate_inquiry_backup, load_inquiry_file, \
                     generate_setting_backup, load_setting_file, generate_AsyncTask_backup, \
                     delete_AsyncTask_data, generate_History_backup ,delete_History_data
 from ..models import AsyncTask
-
-
-
-
-
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
-from rest_framework.decorators import api_view
-from django.urls import resolve
-import datetime
-import threading
-import uuid
-import time
-from django.http import JsonResponse
+from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, JSONParser, FormParser
-import tempfile
-import os
+from django.urls import resolve
+from django.http import JsonResponse, FileResponse
+
+
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser, JSONParser, FormParser])
@@ -181,7 +169,7 @@ def backup(request):
     task_function = delete_History_data
     args = (start_day, end_day)
   else:
-    return JsonResponse({'status': 'error', 'message': '無効なタスクタイプです。'}, status=400)
+    return JsonResponse({'status': 'error', 'message': '無効なタスクタイプです。'}, status=status.HTTP_400_BAD_REQUEST)
 
   thread = threading.Thread(target=handle_task, args=(task_id, task_function, *args))
   thread.start()
@@ -195,18 +183,18 @@ def backup(request):
 def validate_dates(start_day, end_day):
   today_str = datetime.date.today().strftime('%Y-%m-%d')
   if not start_day or not end_day:
-    return JsonResponse({'status': 'error', 'message': '日付を指定してください。'}, status=400)
+    return JsonResponse({'status': 'error', 'message': '日付を指定してください。'}, status=status.HTTP_400_BAD_REQUEST)
 
   try:
     end_date_obj = datetime.date.fromisoformat(end_day)
     today_date_obj = datetime.date.fromisoformat(today_str)
     start_date_obj = datetime.date.fromisoformat(start_day)
   except ValueError:
-    return JsonResponse({'status': 'error', 'message': '日付の形式が不正です。'}, status=400)
+    return JsonResponse({'status': 'error', 'message': '日付の形式が不正です。'}, status=status.HTTP_400_BAD_REQUEST)
   if end_date_obj >= today_date_obj:
-    return JsonResponse({'status': 'error', 'message': '昨日の日付までしか指定できません。'}, status=400)
+    return JsonResponse({'status': 'error', 'message': '昨日の日付までしか指定できません。'}, status=status.HTTP_400_BAD_REQUEST)
   if start_date_obj > end_date_obj:
-    return JsonResponse({'status': 'error', 'message': '開始日が終了日を超えています。'}, status=400)
+    return JsonResponse({'status': 'error', 'message': '開始日が終了日を超えています。'}, status=status.HTTP_400_BAD_REQUEST)
   return None
 
 
@@ -217,7 +205,7 @@ def check_task_status(request):
 
   # タスクIDがない場合、エラーを返す
   if not task_id:
-    return JsonResponse({'status': 'error', 'message': 'タスクIDが指定されていません。'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'タスクIDが指定されていません。'}, status=status.HTTP_400_BAD_REQUEST)
 
   try:
     # データベースからタスクIDに対応する状態を取得し返す
@@ -230,7 +218,7 @@ def check_task_status(request):
       return JsonResponse({'status': 'pending'}, status=202)
 
   except AsyncTask.DoesNotExist:
-    return JsonResponse({'status': 'error', 'message': '無効なタスクIDです。'}, status=404)
+    return JsonResponse({'status': 'error', 'message': '無効なタスクIDです。'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

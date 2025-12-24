@@ -6,8 +6,17 @@ import os
 import sys
 import logging
 import environ
-from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, AsyncTask
-
+from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, AsyncTask, History
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.http import JsonResponse
+from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer, \
+                          DefSerializer, TaskSerializer, HistorySerializer
+from ..utils.main_utils import CustomPagination, get_all_model_names_in_myapp
+import json
+from django.views import View
+from django.conf import settings
 
 
 # 専用ロガー取得('views_logger'という名前のカスタムロガーを使用しログメッセージ記録)
@@ -44,20 +53,6 @@ def get_logs(request):
 #--------------------------------------------------------------------------------------------------------
 
 
-
-from ..models import member, Business_Time_graph, kosu_division, team_member, \
-                      administrator_data, History
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.http import JsonResponse
-from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer, \
-                          DefSerializer, TaskSerializer, HistorySerializer
-from ..utils.main_utils import CustomPagination, get_all_model_names_in_myapp
-import json
-import os
-from django.views import View
-from django.conf import settings
 
 
 # Reactメインページ呼び出し
@@ -1002,8 +997,4 @@ class WebConsoleLogView(View):
     except Exception as e:
       # 読み込みエラーが発生した場合
       return JsonResponse({"error": str(e)}, status=500)
-
-
-
-
 
