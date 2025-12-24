@@ -505,12 +505,12 @@ class AdministratorUpdate(APIView):
       for key in emp_keys:
         emp_no = request.data.get(key)
         if not member.objects.filter(employee_no=emp_no).exists():
-          return Response({'status': 'error', 'message': 'ユーザーが存在しません'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+          return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
       # データ保存
       serializer.save()
       return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'status': 'error', 'message': 'バリテーションエラー'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

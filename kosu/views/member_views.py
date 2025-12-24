@@ -142,7 +142,8 @@ class MemberNew(APIView):
       serializer.save()
       return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'status': 'error', 'message': 'バリテーションエラー'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
@@ -194,7 +195,8 @@ class MemberUpdate(APIView):
         return Response({'status': 'error', 'message': '入力した従業員番号はすでに登録されています'},status=status.HTTP_400_BAD_REQUEST)
       serializer.save()
       return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'status': 'error', 'message': 'バリテーションエラー'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 

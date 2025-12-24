@@ -48,7 +48,7 @@ const DefEdit: React.FC = () => {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
-          else setErrorMessage(err.message);
+          else setErrorMessage(err.response?.data.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
         setLoading(false);
       }
@@ -102,12 +102,13 @@ const DefEdit: React.FC = () => {
       );
       alert("更新完了！");
       navigate("/def-list");
-    } catch (err: any) {
-      if (err.response && err.response.data) {
-        setErrorMessage(err.response.data.error);
-      } else {
-        setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-      }
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      setLoading(false);
     }
   };
 

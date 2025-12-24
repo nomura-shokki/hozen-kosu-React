@@ -38,7 +38,7 @@ const TaskDetail: React.FC = () => {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
-          else setError(err.message);
+          else setError(err.response?.data.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
         setLoading(false);
       }
@@ -90,7 +90,7 @@ const TaskDetail: React.FC = () => {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
-        else setError(err.message);
+        else setError(err.response?.data.message);
       } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
       setLoading(false);
     }
