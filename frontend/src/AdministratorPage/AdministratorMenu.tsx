@@ -19,13 +19,13 @@ const AdministratorMenu: React.FC = () => {
     const fetchData = async () => {
       try {
         await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_menu/`, {withCredentials: true,});
-        setLoading(false);
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
           else setError(err.response?.data.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      }finally {
         setLoading(false);
       }
     };

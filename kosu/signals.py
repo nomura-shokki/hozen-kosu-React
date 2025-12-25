@@ -32,12 +32,18 @@ def get_instance_cache():
 def get_changes(instance, created):
   changes = {}
   
+  # 1. キャッシュを取得
+  old_instance = get_instance_cache()
+
+  # 【修正】キャッシュが存在しても、現在のインスタンスと型やPKが違う場合は、誤った比較を避けるためNoneにする
+  if old_instance and (not isinstance(old_instance, type(instance)) or old_instance.pk != instance.pk):
+    old_instance = None
+
   # モデルの全フィールド処理
   for field in instance._meta.fields:
     field_name = field.name
     
     # 値取得
-    old_instance = get_instance_cache()
     new_value = getattr(instance, field_name)
 
     # 新規作成時、全て変更として処理
@@ -50,7 +56,15 @@ def get_changes(instance, created):
         old_value = getattr(old_instance, field_name)
         is_changed = (old_value != new_value)
       else:
-        continue
+        # 【修正】pre_saveでのキャッシュ漏れやスレッドの混同対策としてDBから直接取得を試みる
+        try:
+          old_db_instance = type(instance).objects.get(pk=instance.pk)
+          old_value = getattr(old_db_instance, field_name)
+          is_changed = (old_value != new_value)
+          # 以降の処理（Relation等）で使うためキャッシュを一時的に更新
+          old_instance = old_db_instance
+        except type(instance).DoesNotExist:
+          continue
 
     # 変更or新規作成
     if is_changed:

@@ -140,7 +140,6 @@ class InquirDetail(APIView):
     except inquiry_data.DoesNotExist:
       return None
 
-
   # GET時の動作
   def get(self, request, pk):
     # 問い合わせデータ取得
@@ -173,72 +172,64 @@ class InquirDetail(APIView):
       return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 個人ポップアップ削除処理
+    inquir_member_changed = False
     for i in range(1, 6):
       pop_up_id_field = f'pop_up_id{i}'
       pop_up_field = f'pop_up{i}'
       if str(getattr(inquir_member, pop_up_id_field)) == str(pk):
-        member.objects.update_or_create(
-          employee_no=inquir_instance.employee_no2,
-          defaults={pop_up_id_field: '', pop_up_field: ''}
-        )
-        # メンバー情報再取得
-        inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
+        setattr(inquir_member, pop_up_id_field, '')
+        setattr(inquir_member, pop_up_field, '')
+        inquir_member_changed = True
         break
 
     # 個人ポップアップ移行処理(ポップアップデータを前詰め)
-    for i in range(1, 5):
-      pop_up_id_field = f'pop_up_id{i}'
-      pop_up_field = f'pop_up{i}'
-      next_pop_up_id_field = f'pop_up_id{i+1}'
-      next_pop_up_field = f'pop_up{i+1}'
-
-      if getattr(inquir_member, pop_up_field) in ['', None]:
-        member.objects.update_or_create(
-          employee_no=inquir_instance.employee_no2,
-          defaults={
-            pop_up_id_field: getattr(inquir_member, next_pop_up_id_field),
-            pop_up_field: getattr(inquir_member, next_pop_up_field),
-            next_pop_up_id_field: '',
-            next_pop_up_field: ''
-          }
-        )
-        # メンバー情報再取得
-        inquir_member = member.objects.get(employee_no=inquir_member.employee_no)
-
-    # 管理者通知ポップアップ削除処理
-    if admin_data.administrator_employee_no1 == str(login_no) or \
-      admin_data.administrator_employee_no2 == str(login_no) or \
-      admin_data.administrator_employee_no3 == str(login_no):
-      for i in range(1, 6):
-        pop_up_id_field = f'pop_up_id{i}'
-        pop_up_field = f'pop_up{i}'
-        if str(getattr(admin_data, pop_up_id_field)) == str(pk):
-          administrator_data.objects.update_or_create(
-            id=admin_data.id, defaults={pop_up_id_field: '', pop_up_field: ''}
-          )
-          # 設定データ再取得
-          admin_data = administrator_data.objects.order_by('id').last()
-          break
-
-      # 管理者通知ポップアップ移行処理(ポップアップデータを前詰め)
+    if inquir_member_changed:
       for i in range(1, 5):
         pop_up_id_field = f'pop_up_id{i}'
         pop_up_field = f'pop_up{i}'
         next_pop_up_id_field = f'pop_up_id{i+1}'
         next_pop_up_field = f'pop_up{i+1}'
 
-        if getattr(admin_data, pop_up_id_field) in ['', None]:
-          administrator_data.objects.update_or_create(
-            id=admin_data.id,
-            defaults={
-              pop_up_id_field: getattr(admin_data, next_pop_up_id_field),
-              pop_up_field: getattr(admin_data, next_pop_up_field),
-              next_pop_up_id_field: '',
-              next_pop_up_field: ''
-            }
-          )
-          # 設定データ再取得
-          admin_data = administrator_data.objects.order_by('id').last()
+        if getattr(inquir_member, pop_up_field) in ['', None]:
+          setattr(inquir_member, pop_up_id_field, getattr(inquir_member, next_pop_up_id_field))
+          setattr(inquir_member, pop_up_field, getattr(inquir_member, next_pop_up_field))
+          setattr(inquir_member, next_pop_up_id_field, '')
+          setattr(inquir_member, next_pop_up_field, '')
+      
+      # 最後に一度だけ保存
+      inquir_member.save()
+
+    # 管理者通知ポップアップ削除処理
+    if admin_data and (admin_data.administrator_employee_no1 == str(login_no) or \
+      admin_data.administrator_employee_no2 == str(login_no) or \
+      admin_data.administrator_employee_no3 == str(login_no)):
+      
+      admin_data_changed = False
+      for i in range(1, 6):
+        pop_up_id_field = f'pop_up_id{i}'
+        pop_up_field = f'pop_up{i}'
+        if str(getattr(admin_data, pop_up_id_field)) == str(pk):
+          setattr(admin_data, pop_up_id_field, '')
+          setattr(admin_data, pop_up_field, '')
+          admin_data_changed = True
+          break
+
+      # 管理者通知ポップアップ移行処理(ポップアップデータを前詰め)
+      if admin_data_changed:
+        for i in range(1, 5):
+          pop_up_id_field = f'pop_up_id{i}'
+          pop_up_field = f'pop_up{i}'
+          next_pop_up_id_field = f'pop_up_id{i+1}'
+          next_pop_up_field = f'pop_up{i+1}'
+
+          if getattr(admin_data, pop_up_id_field) in ['', None]:
+            setattr(admin_data, pop_up_id_field, getattr(admin_data, next_pop_up_id_field))
+            setattr(admin_data, pop_up_field, getattr(admin_data, next_pop_up_field))
+            setattr(admin_data, next_pop_up_id_field, '')
+            setattr(admin_data, next_pop_up_field, '')
+        
+        # 最後に一度だけ保存
+        admin_data.save()
 
     # 次・前のデータの取得
     next_record_obj = inquiry_data.objects.filter(id__gt=pk).order_by('id').first()

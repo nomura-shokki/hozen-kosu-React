@@ -48,13 +48,13 @@ const AdminUpdate: React.FC = () => {
         );
         const { admin_data } = response.data;
         setFormData(admin_data);
-        setLoading(false);
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
           else setErrorMessage(err.response?.data.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      }finally {
         setLoading(false);
       }
     };
@@ -136,6 +136,7 @@ const AdminUpdate: React.FC = () => {
         if (err.response?.status === 401) navigate("/login");
         else setErrorMessage(err.response?.data.message);
       } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    }finally {
       setLoading(false);
     }
   };

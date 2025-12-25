@@ -34,50 +34,35 @@ const InquirDetail: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const params = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
   const currentId = params.id;
   const [memberData, setMemberData] = useState<Member | null>(null);
   const [inquirMemberData, setInquirMemberData] = useState<Member | null>(null);
   const [nextId, setNextId] = useState<number | null>(null);
   const [beforeId, setBeforeId] = useState<number | null>(null);
 
-  const fetchData = useCallback((idToFetch: string | undefined = currentId) => {
-    if (!idToFetch) {
-      setError("問い合わせIDが指定されていません。");
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    axios
-      .get<Response>(
-        `${process.env.REACT_APP_API_BASE_URL}/api/inquir_detail/${idToFetch}/`,
-        { withCredentials: true }
-      )
-      .then((response) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_detail/${id}/`,{withCredentials: true});
         const { inquir_data, login_data, inquir_member_data, next_id, before_id } = response.data;
-
         setFormData(inquir_data);
         setMemberData(login_data);
         setInquirMemberData(inquir_member_data);
         setNextId(next_id);
         setBeforeId(before_id);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
-          else if (err.response?.status === 403) navigate("/");
-          else setError(err.message);
+          if (err.response?.status === 401) navigate("/login");
+          else setError(err.response?.data.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-          setLoading(false);
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
-  }, [currentId, navigate]);
+      }
+    };
 
-  useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [id, navigate]);
 
   const handleNavigate = useCallback((id: number | null) => {
     if (id !== null) navigate(`/inquir-detail/${id}`);
