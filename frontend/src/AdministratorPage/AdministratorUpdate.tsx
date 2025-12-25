@@ -42,10 +42,7 @@ const AdminUpdate: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<Response>(
-          `${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`,
-          { withCredentials: true }
-        );
+        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, {withCredentials: true});
         const { admin_data } = response.data;
         setFormData(admin_data);
       } catch (err) {
@@ -54,7 +51,7 @@ const AdminUpdate: React.FC = () => {
           else if (err.response?.status === 403) navigate("/");
           else setErrorMessage(err.response?.data.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-      }finally {
+      } finally {
         setLoading(false);
       }
     };
@@ -124,11 +121,7 @@ const AdminUpdate: React.FC = () => {
     }
 
     try {
-      await axios.put(
-        `${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`,
-        formData,
-        { withCredentials: true }
-      );
+      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, formData, {withCredentials: true});
       alert("登録完了！");
       navigate("/");
     } catch (err) {
@@ -136,7 +129,7 @@ const AdminUpdate: React.FC = () => {
         if (err.response?.status === 401) navigate("/login");
         else setErrorMessage(err.response?.data.message);
       } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-    }finally {
+    } finally {
       setLoading(false);
     }
   };

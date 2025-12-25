@@ -132,15 +132,13 @@ const AdministratorLoading: React.FC = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_Loading/`, {
-          withCredentials: true
-        });
+        await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_Loading/`, {withCredentials: true});
       } catch (err) {
         const axiosError = err as AxiosError;
         if (axiosError.response?.status === 401) navigate("/login");
         else if (axiosError.response?.status === 403) navigate("/");
         else setErrorStates(prev => ({ ...prev, MemberError: axiosError.message }));
-      }finally {
+      } finally {
         setLoading(false);
       }
     };

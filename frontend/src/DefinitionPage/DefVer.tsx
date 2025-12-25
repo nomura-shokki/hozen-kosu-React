@@ -32,12 +32,12 @@ const DefVer: React.FC = () => {
         setChoices(response.data.choices);
         setCurrentVersion(response.data.current_version);
         setSelectedVersion(response.data.current_version);
-        setLoading(false);
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
           else setErrorMessage(err.response?.data.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
         setLoading(false);
       }
     };

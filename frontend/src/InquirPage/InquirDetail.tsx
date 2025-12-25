@@ -44,7 +44,7 @@ const InquirDetail: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_detail/${id}/`,{withCredentials: true});
+        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_detail/${id}/`, {withCredentials: true});
         const { inquir_data, login_data, inquir_member_data, next_id, before_id } = response.data;
         setFormData(inquir_data);
         setMemberData(login_data);

@@ -39,7 +39,7 @@ const TaskDetail: React.FC = () => {
           else if (err.response?.status === 403) navigate("/");
           else setError(err.response?.data.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-      }finally {
+      } finally {
         setLoading(false);
       }
     };

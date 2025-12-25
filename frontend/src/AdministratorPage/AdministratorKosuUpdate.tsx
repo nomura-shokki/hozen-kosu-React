@@ -129,9 +129,7 @@ const AdministratorKosuUpdate: React.FC = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get<Response>(
-          `${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`,
-          { withCredentials: true }
-        );
+          `${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`, {withCredentials: true});
         const { kosu_data, choices } = response.data;
         setFormData(kosu_data);
         setTimeWorkSegments(splitTimeWork(kosu_data.time_work));

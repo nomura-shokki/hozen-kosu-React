@@ -35,10 +35,7 @@ const HistoryDetail: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<Response>(
-          `${process.env.REACT_APP_API_BASE_URL}/api/manager_history_detail/${id}/`,
-          { withCredentials: true }
-        );
+        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_history_detail/${id}/`, {withCredentials: true});
         const { history_data } = response.data;
         setFormData(history_data);
       } catch (err) {
@@ -49,7 +46,7 @@ const HistoryDetail: React.FC = () => {
         } else {
           setError("不明なエラーが発生しました。IT担当者に連絡してください。");
         }
-      }finally {
+      } finally {
         setLoading(false);
       }
     };
@@ -99,7 +96,7 @@ const HistoryDetail: React.FC = () => {
         if (err.response?.status === 401) navigate("/login");
         else setError(err.response?.data.message);
       } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-    }finally {
+    } finally {
       setLoading(false);
     }
   };

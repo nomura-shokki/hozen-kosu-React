@@ -36,22 +36,25 @@ const InquirUpdate: React.FC = () => {
   const [memberData, setMemberData] = useState<Member | null>(null);
 
   useEffect(() => {
-    axios
-      .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true })
-      .then((response) => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true });
         const { inquir_data, login_data } = response.data;
         setFormData(inquir_data);
         setMemberData(login_data);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
-          else setError(err.message);
+          if (err.response?.status === 401) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
+          else setError(err.response?.data.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-          setLoading(false);
-      });
-  }, [id, navigate]); 
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, navigate]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
@@ -75,7 +78,7 @@ const InquirUpdate: React.FC = () => {
     });
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
 
@@ -84,37 +87,40 @@ const InquirUpdate: React.FC = () => {
       return;
     }
 
-    axios
-      .put(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, formData, { withCredentials: true })
-      .then(() => {
-        alert("登録完了！");
-        navigate("/inquir-list"); 
-      })
-      .catch((err) => {
-        if (err.response && err.response.data) {
-          setError(err.response.data.error);
-        } else {
-          setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
-      });
+    try {
+      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, formData, { withCredentials: true });
+      alert("登録完了！");
+      navigate("/inquir-list");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const confirmed = window.confirm("削除すると戻せません。削除しますか？");
     if (!confirmed) {
       return;
     }
 
-    axios
-      .delete(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true })
-      .then(() => {
-        alert("削除が完了しました");
-        navigate("/inquir-list");
-      })
-      .catch((error) => {
-        console.error(error);
-        alert("削除時にエラーが発生しました");
-      });
+    try {
+      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true });
+      alert("削除が完了しました");
+      navigate("/inquir-list");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) return <div><Loading isLoading={loading} /></div>;

@@ -21,19 +21,20 @@ const InquirNew: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_new/`, { withCredentials: true })
-      .then(() => {
-        setLoading(false);
-      })
-      .catch((err) => {
+    const fetchData = async () => {
+      try {
+        await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_new/`, { withCredentials: true });
+      } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
+          if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
-          else setErrorMessage(err.message);
+          else setErrorMessage(err.response?.data.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-          setLoading(false);
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [navigate]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -52,27 +53,27 @@ const InquirNew: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
 
-    axios
-      .post(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_new/`, formData, { withCredentials: true })
-      .then(() => {
-        alert("登録完了！");
+    try {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_new/`, formData, {withCredentials: true});
+      alert("登録完了！");
 
-        setFormData({
-          content_choice: "",
-          inquiry: "",
-        });
-      })
-      .catch((error) => {
-        if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.error);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
+      setFormData({
+        content_choice: "",
+        inquiry: "",
       });
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) return <div><Loading isLoading={loading} /></div>;

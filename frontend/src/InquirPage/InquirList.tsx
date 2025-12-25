@@ -38,10 +38,10 @@ const TeamList: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
-    axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_list/`, {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_list/`, {
         params: {
           page: currentPage,
           ...(searchMemberId && {
@@ -52,36 +52,35 @@ const TeamList: React.FC = () => {
           }),
         },
         withCredentials: true,
-      })
-      .then((response) => {
-        const paginationData = response.data?.inquir_data || {};
-        const results = paginationData.results || [];
-        const pageSize = response.data.page_size || 20;
-        const memberOptions = response.data?.member_data || [];
-        const memberNameMap: { [key: number]: string } = {};
-        memberOptions.forEach((member: InquirMember) => {
-          memberNameMap[member.employee_no] = member.name;
-        });
-
-        const transformedData = results.map((item: Inquir) => ({
-          ...item,
-          name: memberNameMap[item.employee_no2] || `Unknown (${item.employee_no2})`,
-        }));
-
-        setData(transformedData);
-        setMemberOptions(memberOptions);
-        setTotalPages(Math.ceil(paginationData.count / pageSize));
-      })
-      .catch((err) => {
-        if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
-          else if (err.response?.status === 403) navigate("/");
-          else setError(err.message);
-        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-      })
-      .finally(() => {
-        setLoading(false);
       });
+
+      const paginationData = response.data?.inquir_data || {};
+      const results = paginationData.results || [];
+      const pageSize = response.data.page_size || 20;
+      const memberOptions = response.data?.member_data || [];
+      const memberNameMap: { [key: number]: string } = {};
+      
+      memberOptions.forEach((member: InquirMember) => {
+        memberNameMap[member.employee_no] = member.name;
+      });
+
+      const transformedData = results.map((item: Inquir) => ({
+        ...item,
+        name: memberNameMap[item.employee_no2] || `Unknown (${item.employee_no2})`,
+      }));
+
+      setData(transformedData);
+      setMemberOptions(memberOptions);
+      setTotalPages(Math.ceil(paginationData.count / pageSize));
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+    } finally {
+      setLoading(false);
+    }
   }, [currentPage, navigate, searchMemberId, searchItem]);
 
   useEffect(() => {

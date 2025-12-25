@@ -313,10 +313,6 @@ class InquirUpdate(APIView):
     # セッションからデータ取得
     login_no = request.session.get('login_No')
 
-    # 未ログインや定義が未定義の場合はログイン画面へ
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # ログイン者データ確認
     try:
       member_data = member.objects.get(employee_no=login_no)
@@ -353,13 +349,9 @@ class InquirUpdate(APIView):
           pop_up_attr = f'pop_up{i}'
           pop_up_id_attr = f'pop_up_id{i}'
           if getattr(admin_data, pop_up_attr) in ['', None]:
-            administrator_data.objects.update_or_create(
-              id=admin_data.id,
-              defaults={
-                pop_up_attr: f'ID{pk}の問い合わせが編集されました。',
-                pop_up_id_attr: pk,
-              }
-            )
+            setattr(admin_data, pop_up_attr, f'ID{pk}の問い合わせが編集されました。')
+            setattr(admin_data, pop_up_id_attr, pk)
+            admin_data.save()
             break
 
       # 回答に変更があった場合
@@ -369,13 +361,9 @@ class InquirUpdate(APIView):
           pop_up_attr = f'pop_up{i}'
           pop_up_id_attr = f'pop_up_id{i}'
           if getattr(member_data, pop_up_attr) in ['', None]:
-            member.objects.update_or_create(
-              employee_no=login_no,
-              defaults={
-                pop_up_attr: f'ID{pk}の問い合わせに回答が来ています。',
-                pop_up_id_attr: pk,
-              },
-            )
+            setattr(member_data, pop_up_attr, f'ID{pk}の問い合わせに回答が来ています。')
+            setattr(member_data, pop_up_id_attr, pk)
+            member_data.save()
             break
 
       serializer.save()
@@ -401,19 +389,15 @@ class InquirUpdate(APIView):
       return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-    # 削除する問い合わせに関する通知を削除
+    # 削除する問い合わせに関する通知を削除（メモリ上で処理）
     for i in range(1, 6):
       pop_up_id_attr = f'pop_up_id{i}'
       pop_up_attr = f'pop_up{i}'
       if getattr(inquir_member, pop_up_id_attr) == str(pk):
-        member.objects.update_or_create(
-          employee_no=inquir_instance.employee_no2,
-          defaults={pop_up_id_attr: '', pop_up_attr: ''}
-        )
-    # 問い合わせ者の人員情報再取得
-    inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
+        setattr(inquir_member, pop_up_id_attr, '')
+        setattr(inquir_member, pop_up_attr, '')
 
-    # 問い合わせ者の通知情報整理
+    # 問い合わせ者の通知情報整理（メモリ上で詰め処理）
     for i in range(1, 5):
       pop_up_attr = f'pop_up{i}'
       pop_up_id_attr = f'pop_up_id{i}'
@@ -421,57 +405,37 @@ class InquirUpdate(APIView):
       next_pop_up_id_attr = f'pop_up_id{i + 1}'
 
       if getattr(inquir_member, pop_up_attr) in ['', None]:
-        member.objects.update_or_create(
-          employee_no=inquir_instance.employee_no2,
-          defaults={
-            pop_up_attr: getattr(inquir_member, next_pop_up_attr),
-            pop_up_id_attr: getattr(inquir_member, next_pop_up_id_attr),
-            next_pop_up_attr: '',
-            next_pop_up_id_attr: ''
-          }
-        )
-        # 問い合わせ者の人員情報再取得
-        inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
+        setattr(inquir_member, pop_up_attr, getattr(inquir_member, next_pop_up_attr))
+        setattr(inquir_member, pop_up_id_attr, getattr(inquir_member, next_pop_up_id_attr))
+        setattr(inquir_member, next_pop_up_attr, '')
+        setattr(inquir_member, next_pop_up_id_attr, '')
+    
+    # 最後に一度だけ保存
+    inquir_member.save()
 
-    # 削除する問い合わせに関する通知を削除
+    # 管理者用：削除する問い合わせに関する通知を削除（メモリ上で処理）
     for i in range(1, 6):
       pop_up_id_attr = f"pop_up_id{i}"
       pop_up_attr = f"pop_up{i}"
       if getattr(admin_data, pop_up_id_attr) == str(pk):
-        administrator_data.objects.update_or_create(
-          id=admin_data.id,
-          defaults={pop_up_id_attr: '', pop_up_attr: ''}
-        )
-    # 設定再取得
-    admin_data = administrator_data.objects.order_by('id').last()
+        setattr(admin_data, pop_up_id_attr, '')
+        setattr(admin_data, pop_up_attr, '')
 
-    # 管理者用通知整理
+    # 管理者用通知整理（メモリ上で詰め処理）
     for i in range(1, 5):
       pop_up_attr = f"pop_up{i}"
       pop_up_id_attr = f"pop_up_id{i}"
       next_pop_up_attr = f"pop_up{i + 1}"
       next_pop_up_id_attr = f"pop_up_id{i + 1}"
       if getattr(admin_data, pop_up_attr) in ["", None]:
-        administrator_data.objects.update_or_create(
-          id=admin_data.id,
-          defaults={
-            pop_up_attr: getattr(admin_data, next_pop_up_attr),
-            pop_up_id_attr: getattr(admin_data, next_pop_up_id_attr),
-            next_pop_up_attr: '',
-            next_pop_up_id_attr: ''
-          }
-        )
+        setattr(admin_data, pop_up_attr, getattr(admin_data, next_pop_up_attr))
+        setattr(admin_data, pop_up_id_attr, getattr(admin_data, next_pop_up_id_attr))
+        setattr(admin_data, next_pop_up_attr, '')
+        setattr(admin_data, next_pop_up_id_attr, '')
+
+    # 最後に一度だけ保存
+    admin_data.save()
 
     # レコードを削除
     inquir_instance.delete()
     return Response({'status': 'error', 'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
-
-
-
-
-
-
-
-
-
-

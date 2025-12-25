@@ -30,13 +30,13 @@ const DefNew: React.FC = () => {
     const fetchData = async () => {
       try {
         await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, { withCredentials: true });
-        setLoading(false);
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
           else setErrorMessage(err.response?.data.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
         setLoading(false);
       }
     };
@@ -99,6 +99,7 @@ const DefNew: React.FC = () => {
         else if (err.response?.status === 403) navigate("/");
         else setErrorMessage(err.response?.data.message);
       } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    } finally {
       setLoading(false);
     }
   };

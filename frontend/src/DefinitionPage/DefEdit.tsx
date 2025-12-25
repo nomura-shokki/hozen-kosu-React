@@ -27,12 +27,8 @@ const DefEdit: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`, 
-          { withCredentials: true }
-        );
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`, {withCredentials: true});
         const rawData = response.data;
-
         const kosu_definitions = Array.from({ length: 50 }, (_, i) => {
           const idx = i + 1;
           return {
@@ -43,13 +39,13 @@ const DefEdit: React.FC = () => {
         });
 
         setFormData({ kosu_name: rawData.kosu_name || "", kosu_definitions });
-        setLoading(false);
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
           else if (err.response?.status === 403) navigate("/");
           else setErrorMessage(err.response?.data.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
         setLoading(false);
       }
     };
@@ -95,11 +91,7 @@ const DefEdit: React.FC = () => {
     });
 
     try {
-      await axios.put(
-        `${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`, 
-        convertedData, 
-        { withCredentials: true }
-      );
+      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`, convertedData, {withCredentials: true});
       alert("更新完了！");
       navigate("/def-list");
     } catch (err) {
@@ -108,6 +100,7 @@ const DefEdit: React.FC = () => {
         else if (err.response?.status === 403) navigate("/");
         else setErrorMessage(err.response?.data.message);
       } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    } finally {
       setLoading(false);
     }
   };
