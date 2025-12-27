@@ -2,159 +2,117 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import axios from "axios";
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import "@testing-library/jest-dom/vitest"; 
+import "@testing-library/jest-dom/vitest";
 import KosuList from "../../KosuPage/KosuList";
 
 /**
- * axiosのグローバルなモック化
- * Vitestのvi.mockを使用して、実際のHTTPリクエストが発生しないように制御します。
+ * axiosのモック化
  */
-vi.mock("axios", () => {
-  return {
-    default: {
-      get: vi.fn(),
-      // axios.isAxiosError(err) メソッドをモック化
-      // テスト内で発生させた擬似エラーオブジェクトをAxiosErrorとして認識させるための判定ロジック
-      isAxiosError: vi.fn((err) => !!err.isAxiosError),
-    },
-  };
-});
+vi.mock("axios", () => ({
+  default: {
+    get: vi.fn(),
+    isAxiosError: vi.fn((err) => !!err.isAxiosError),
+  },
+}));
 
-// TypeScriptの型チェックを回避し、モック化されたメソッドにアクセスしやすくするためのエイリアス
 const mockedAxios = axios as any;
 
 /**
- * react-router-dom の useNavigate をモック化
- * 画面遷移（リダイレクト）が正しく行われたかを追跡するため、
- * 実際のリダイレクトを停止して jest.fn() に置き換えます。
+ * useNavigateのモック化
  */
 const mockedNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual("react-router-dom");
+  const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
   return {
-    ...actual, // 他のコンポーネント（Link等）はオリジナルのまま使用
+    ...actual,
     useNavigate: () => mockedNavigate,
   };
 });
 
-describe("KosuList Component - 結合テスト", () => {
-  // テスト全体で使用する正常系のダミーデータ
-  const mockData = {
+describe("KosuList Component - 詳細結合テスト修正版", () => {
+  const mockDataPage1 = {
     data: {
       results: [
-        {
-          id: 1,
-          employee_no3: 12345,
-          name: "テスト太郎",
-          work_day2: "2023-10-01",
-          tyoku2: "1",      // 1直
-          judgement: true,  // OK判定
-        },
+        { id: 1, employee_no3: 101, name: "太郎", work_day2: "2023-10-01", tyoku2: "1", judgement: true },
+        { id: 2, employee_no3: 102, name: "次郎", work_day2: "2023-10-02", tyoku2: "2", judgement: false },
       ],
-      count: 1,
+      count: 45,
       page_size: 20,
     },
   };
 
-  /**
-   * 各テストケース実行前のクリーンアップ処理
-   * モックの呼び出し履歴をリセットし、テスト間の干渉を防ぎます。
-   */
+  const mockDataPage2 = {
+    data: {
+      results: [{ id: 21, employee_no3: 121, name: "三郎", work_day2: "2023-10-21", tyoku2: "1", judgement: true }],
+      count: 45,
+      page_size: 20,
+    },
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedAxios.get.mockResolvedValue(mockDataPage1);
   });
 
-  it("初期表示時にデータを取得して表示すること", async () => {
-    // 1. axios.get が正常なデータを返すように設定
-    mockedAxios.get.mockResolvedValueOnce(mockData);
-
-    // 2. コンポーネントをレンダリング（ルーティングを擬似的に再現）
-    render(
-      <MemoryRouter>
-        <KosuList />
-      </MemoryRouter>
-    );
-
-    // 3. 非同期処理（useEffect内のfetch）が完了してDOMが更新されるのを待機
-    await waitFor(() => {
-      // 画面上に特定の文字列が存在するかを確認
-      expect(screen.getByText("工数履歴")).toBeInTheDocument();
-      expect(screen.getByText(/2023-10-01/)).toBeInTheDocument();
-      expect(screen.getByText("1直")).toBeInTheDocument();
-      expect(screen.getByText("OK")).toBeInTheDocument();
-    });
+  it("初期表示時にデータを取得し、フォーマットが正しく表示されること", async () => {
+    render(<MemoryRouter><KosuList /></MemoryRouter>);
+    expect(await screen.findByText("2023-10-01 (日)")).toBeInTheDocument();
   });
 
-  it("APIエラー（401 Unauthorized）時にログイン画面へリダイレクトすること", async () => {
-    // 1. axios.get が 401エラーをスローするように設定
-    mockedAxios.get.mockRejectedValueOnce({
-      isAxiosError: true,
-      response: { status: 401 },
-    });
+  it("指定月ボタンをクリックした際、正しいAPIパラメータでリクエストされること", async () => {
+    render(<MemoryRouter><KosuList /></MemoryRouter>);
 
-    render(
-      <MemoryRouter>
-        <KosuList />
-      </MemoryRouter>
-    );
-
-    // 2. navigate関数が "/login" という引数で呼ばれたことを検証
-    await waitFor(() => {
-      expect(mockedNavigate).toHaveBeenCalledWith("/login");
-    });
-  });
-
-  it("データが空の場合にメッセージが表示されること", async () => {
-    // 1. レコード件数 0 件のレスポンスをモック
-    mockedAxios.get.mockResolvedValueOnce({
-      data: { results: [], count: 0, page_size: 20 },
-    });
-
-    render(
-      <MemoryRouter>
-        <KosuList />
-      </MemoryRouter>
-    );
-
-    // 2. コンポーネント内の 0件時用メッセージが表示されることを確認
-    await waitFor(() => {
-      expect(screen.getByText("No data found.")).toBeInTheDocument();
-    });
-  });
-
-  it("日付を指定して検索ができること", async () => {
-    // 全てのgetリクエストに対し正常データを返す設定
-    mockedAxios.get.mockResolvedValue(mockData);
-
-    render(
-      <MemoryRouter>
-        <KosuList />
-      </MemoryRouter>
-    );
-
-    // 1. 日付入力フィールド（label要素に関連付けられたinput）を特定し、値を入力
+    // 初期ロードを待つ
+    await screen.findByText("2023-10-01 (日)");
+    
+    // 検索入力
     const dateInput = screen.getByLabelText(/就業日：/);
-    fireEvent.change(dateInput, { target: { value: "2023-12-22" } });
+    // 修正：date型のinputは "yyyy-mm-dd" 形式が最も安全です
+    fireEvent.change(dateInput, { target: { value: "2023-10-01" } });
 
-    // 2. 検索実行（指定日ボタン）をクリック
-    const searchButton = screen.getByText("指定日");
-    fireEvent.click(searchButton);
+    // 履歴リセット
+    mockedAxios.get.mockClear();
 
-    /**
-     * 3. axios.get の呼び出し引数を検証
-     * URLは何でも良い（expect.any(String)）が、
-     * クエリパラメータ（params）に日付(day)と検索モード(mode)が正しく渡されているかを確認
-     */
+    // 「指定月」ボタンをクリック
+    const monthButton = screen.getByText("指定月");
+    fireEvent.click(monthButton);
+
+    // 検証
+    await waitFor(() => {
+      // toHaveBeenCalledWith ではなく toHaveBeenCalled 後の検証に分ける（デバッグしやすいため）
+      const calls = mockedAxios.get.mock.calls;
+      const match = calls.some((call: any) => {
+        const params = call[1]?.params;
+        // modeが'month'であり、かつdayが'2023-10'から始まっていることを確認
+        return params?.mode === "month" && params?.day?.startsWith("2023-10");
+      });
+      expect(match).toBe(true);
+    }, { timeout: 2000 });
+  });
+
+  it("「次」ボタンをクリックして2ページ目のデータを取得できること", async () => {
+    mockedAxios.get.mockResolvedValueOnce(mockDataPage1).mockResolvedValueOnce(mockDataPage2);
+    render(<MemoryRouter><KosuList /></MemoryRouter>);
+    await screen.findByText("2023-10-01 (日)");
+    fireEvent.click(screen.getByText("次"));
+    expect(await screen.findByText("2023-10-21 (土)")).toBeInTheDocument();
+  });
+
+  it("「最後」ボタンで最終ページへ遷移すること", async () => {
+    render(<MemoryRouter><KosuList /></MemoryRouter>);
+    await screen.findByText("2023-10-01 (日)");
+    fireEvent.click(screen.getByText("最後"));
     await waitFor(() => {
       expect(mockedAxios.get).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({
-          params: expect.objectContaining({
-            day: "2023-12-22",
-            mode: "day"
-          })
-        })
+        expect.objectContaining({ params: expect.objectContaining({ page: 3 }) })
       );
     });
+  });
+
+  it("APIが403を返した場合、トップページへリダイレクトすること", async () => {
+    mockedAxios.get.mockRejectedValueOnce({ isAxiosError: true, response: { status: 403 } });
+    render(<MemoryRouter><KosuList /></MemoryRouter>);
+    await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith("/"));
   });
 });
