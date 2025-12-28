@@ -461,13 +461,7 @@ class TodayBreakTime(APIView):
     except ValueError as e:
       return Response({'status': 'error', 'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    for ind, time_inds in enumerate(time_data):
-      if ind in [0, 2]:
-        if (time_inds[0] < time_inds[1] and time_inds[1] - time_inds[0] > 12) or (time_inds[0] > time_inds[1] and time_inds[1] - time_inds[0] + 288 > 12):
-          return Response({'status': 'error', 'message': '昼休憩及び残業休憩2は60分を越える時間を設定できません。'}, status=status.HTTP_400_BAD_REQUEST)
-      else:
-        if (time_inds[0] < time_inds[1] and time_inds[1] - time_inds[0] > 3) or (time_inds[0] > time_inds[1] and time_inds[1] - time_inds[0] + 288 > 3):
-          return Response({'status': 'error', 'message': '残業休憩1及び残業休憩3は15分を越える時間を設定できません。'}, status=status.HTTP_400_BAD_REQUEST)
+    for time_inds in time_data:
       if time_inds[0] < time_inds[1]:
         if kosu_list[time_inds[1]] != '#':
           for k in range(time_inds[0], time_inds[1]):
@@ -556,14 +550,6 @@ class BreakTime(APIView):
         time_str_list.append(time_str)
     except ValueError as e:
       return Response({'status': 'error', 'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-    for ind, time_inds in enumerate(time_data):
-      if ind % 2 == 0:
-        if (time_inds[0] < time_inds[1] and time_inds[1] - time_inds[0] > 12) or (time_inds[0] > time_inds[1] and time_inds[1] - time_inds[0] + 288 > 12):
-          return Response({'status': 'error', 'message': '昼休憩及び残業休憩2は60分を越える時間を設定できません。'}, status=status.HTTP_400_BAD_REQUEST)
-      else:
-        if (time_inds[0] < time_inds[1] and time_inds[1] - time_inds[0] > 3) or (time_inds[0] > time_inds[1] and time_inds[1] - time_inds[0] + 288 > 3):
-          return Response({'status': 'error', 'message': '残業休憩1及び残業休憩3は15分を越える時間を設定できません。'}, status=status.HTTP_400_BAD_REQUEST)
 
     member_data.break_time1 = time_str_list[0]
     member_data.break_time1_over1 = time_str_list[1]

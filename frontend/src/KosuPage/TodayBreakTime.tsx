@@ -39,7 +39,7 @@ const TodayBreakTime: React.FC = () => {
   };
 
   const parseBreakTime = (breaktime: string | null): [Date | null, Date | null] => {
-    const validBreaktime = breaktime || "#00000000"; // nullならデフォルト値適用
+    const validBreaktime = breaktime || "#00000000";
 
     if (validBreaktime.length === 9 && validBreaktime.startsWith("#")) {
       const time1 = new Date();
@@ -89,7 +89,6 @@ const TodayBreakTime: React.FC = () => {
         setBreakTime8(initialTime8);
 
         setSessionDay(response.data.session_day || null);
-
         setLoading(false);
       })
       .catch((error) => {
@@ -103,42 +102,67 @@ const TodayBreakTime: React.FC = () => {
     event.preventDefault();
     setErrorMessage(null);
 
-    axios
-    .post(
-      `${process.env.REACT_APP_API_BASE_URL}/api/today_break_time/`,
-      {
-        breakTime1: breakTime1 ? breakTime1.toISOString() : null,
-        breakTime2: breakTime2 ? breakTime2.toISOString() : null,
-        breakTime3: breakTime3 ? breakTime3.toISOString() : null,
-        breakTime4: breakTime4 ? breakTime4.toISOString() : null,
-        breakTime5: breakTime5 ? breakTime5.toISOString() : null,
-        breakTime6: breakTime6 ? breakTime6.toISOString() : null,
-        breakTime7: breakTime7 ? breakTime7.toISOString() : null,
-        breakTime8: breakTime8 ? breakTime8.toISOString() : null,
-        sessionDay: sessionDay,
-      },
-      { withCredentials: true }
-    )
-    .then(() => {
-      const formattedDate = sessionDay
-        ? new Date(sessionDay)
-            .toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" })
-            .replace(/\//g, "年")
-            .replace(/月/, "月") + "日"
-        : "日付未設定";
+    // バリデーションチェック
+    const breakConfigs = [
+      { start: breakTime1, end: breakTime2, label: "昼休憩", limit: 60 },
+      { start: breakTime3, end: breakTime4, label: "残業休憩1", limit: 15 },
+      { start: breakTime5, end: breakTime6, label: "残業休憩2", limit: 60 },
+      { start: breakTime7, end: breakTime8, label: "残業休憩3", limit: 15 },
+    ];
 
-      alert(`${formattedDate} 休憩時間変更完了！`);
-      navigate("/kosu-new");
-    })
-    .catch((error) => {
-      console.error(error);
-      if (error.response && error.response.data) {
-        setErrorMessage(error.response.data.error);
-      } else {
-        setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    for (const config of breakConfigs) {
+      if (config.start && config.end) {
+        const diffMin = (config.end.getTime() - config.start.getTime()) / (1000 * 60);
+        if (diffMin > config.limit) {
+          setErrorMessage(`${config.label}が${config.limit}分を超えています。`);
+          return;
+        }
       }
-    });
+    }
+
+    axios
+      .post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/today_break_time/`,
+        {
+          breakTime1: breakTime1 ? breakTime1.toISOString() : null,
+          breakTime2: breakTime2 ? breakTime2.toISOString() : null,
+          breakTime3: breakTime3 ? breakTime3.toISOString() : null,
+          breakTime4: breakTime4 ? breakTime4.toISOString() : null,
+          breakTime5: breakTime5 ? breakTime5.toISOString() : null,
+          breakTime6: breakTime6 ? breakTime6.toISOString() : null,
+          breakTime7: breakTime7 ? breakTime7.toISOString() : null,
+          breakTime8: breakTime8 ? breakTime8.toISOString() : null,
+          sessionDay: sessionDay,
+        },
+        { withCredentials: true }
+      )
+      .then(() => {
+        const formattedDate = sessionDay
+          ? new Date(sessionDay)
+              .toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" })
+              .replace(/\//g, "年")
+              .replace(/月/, "月") + "日"
+          : "日付未設定";
+
+        alert(`${formattedDate} 休憩時間変更完了！`);
+        navigate("/kosu-new");
+      })
+      .catch((error) => {
+        console.error(error);
+        if (error.response && error.response.data) {
+          setErrorMessage(error.response.data.error);
+        } else {
+          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+        }
+      });
   };
+
+  const breakLabels = [
+    { label: "昼休憩", start: breakTime1, setStart: setBreakTime1, end: breakTime2, setEnd: setBreakTime2 },
+    { label: "残業休憩1", start: breakTime3, setStart: setBreakTime3, end: breakTime4, setEnd: setBreakTime4 },
+    { label: "残業休憩2", start: breakTime5, setStart: setBreakTime5, end: breakTime6, setEnd: setBreakTime6 },
+    { label: "残業休憩3", start: breakTime7, setStart: setBreakTime7, end: breakTime8, setEnd: setBreakTime8 },
+  ];
 
   return (
     <>
@@ -156,142 +180,50 @@ const TodayBreakTime: React.FC = () => {
           休憩時間に置き換わり消えます
         </p>
 
-        {errorMessage && <div role="alert">{errorMessage}</div>}
+        {errorMessage && <div role="alert" style={{ color: "red", fontWeight: "bold" }}>{errorMessage}</div>}
 
         <form
           onSubmit={handleSubmit}
           onKeyDown={(e) => {
-            if (
-              e.key === "Enter" &&
-              e.target instanceof HTMLInputElement &&
-              e.target.type !== "textarea"
-            ) {
+            if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
               e.preventDefault();
               (e.target as HTMLInputElement).blur();
             }
           }}
         >
           <div className={styles["search-bar"]}>
-            <label>昼休憩:</label>
-            <div className={styles["time-picker-wrapper"]}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <MobileTimePicker
-                  className={styles["time-picker"]}
-                  value={breakTime1}
-                  onChange={(newValue) => setBreakTime1(newValue)}
-                  ampm={false}
-                  minutesStep={5}
-                  onAccept={() => {
-                    const rootElement = document.getElementById("root");
-                    if (rootElement) rootElement.removeAttribute("aria-hidden");
-                  }}
-                />
-              </LocalizationProvider>
-              <span>〜</span>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <MobileTimePicker
-                  className={styles["time-picker"]}
-                  value={breakTime2}
-                  onChange={(newValue) => setBreakTime2(newValue)}
-                  ampm={false}
-                  minutesStep={5}
-                  onAccept={() => {
-                    const rootElement = document.getElementById("root");
-                    if (rootElement) rootElement.removeAttribute("aria-hidden");
-                  }}
-                />
-              </LocalizationProvider>
-            </div>
-            <label>残業休憩1:</label>
-            <div className={styles["time-picker-wrapper"]}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <MobileTimePicker
-                  className={styles["time-picker"]}
-                  value={breakTime3}
-                  onChange={(newValue) => setBreakTime3(newValue)}
-                  ampm={false}
-                  minutesStep={5}
-                  onAccept={() => {
-                    const rootElement = document.getElementById("root");
-                    if (rootElement) rootElement.removeAttribute("aria-hidden");
-                  }}
-                />
-              </LocalizationProvider>
-              <span>〜</span>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <MobileTimePicker
-                  className={styles["time-picker"]}
-                  value={breakTime4}
-                  onChange={(newValue) => setBreakTime4(newValue)}
-                  ampm={false}
-                  minutesStep={5}
-                  onAccept={() => {
-                    const rootElement = document.getElementById("root");
-                    if (rootElement) rootElement.removeAttribute("aria-hidden");
-                  }}
-                />
-              </LocalizationProvider>
-            </div>
-            <label>残業休憩2:</label>
-            <div className={styles["time-picker-wrapper"]}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <MobileTimePicker
-                  className={styles["time-picker"]}
-                  value={breakTime5}
-                  onChange={(newValue) => setBreakTime5(newValue)}
-                  ampm={false}
-                  minutesStep={5}
-                  onAccept={() => {
-                    const rootElement = document.getElementById("root");
-                    if (rootElement) rootElement.removeAttribute("aria-hidden");
-                  }}
-                />
-              </LocalizationProvider>
-              <span>〜</span>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <MobileTimePicker
-                  className={styles["time-picker"]}
-                  value={breakTime6}
-                  onChange={(newValue) => setBreakTime6(newValue)}
-                  ampm={false}
-                  minutesStep={5}
-                  onAccept={() => {
-                    const rootElement = document.getElementById("root");
-                    if (rootElement) rootElement.removeAttribute("aria-hidden");
-                  }}
-                />
-              </LocalizationProvider>
-            </div>
-            <label>残業休憩3:</label>
-            <div className={styles["time-picker-wrapper"]}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <MobileTimePicker
-                  className={styles["time-picker"]}
-                  value={breakTime7}
-                  onChange={(newValue) => setBreakTime7(newValue)}
-                  ampm={false}
-                  minutesStep={5}
-                  onAccept={() => {
-                    const rootElement = document.getElementById("root");
-                    if (rootElement) rootElement.removeAttribute("aria-hidden");
-                  }}
-                />
-              </LocalizationProvider>
-              <span>〜</span>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <MobileTimePicker
-                  className={styles["time-picker"]}
-                  value={breakTime8}
-                  onChange={(newValue) => setBreakTime8(newValue)}
-                  ampm={false}
-                  minutesStep={5}
-                  onAccept={() => {
-                    const rootElement = document.getElementById("root");
-                    if (rootElement) rootElement.removeAttribute("aria-hidden");
-                  }}
-                />
-              </LocalizationProvider>
-            </div>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              {breakLabels.map((item) => (
+                <React.Fragment key={item.label}>
+                  <label>{item.label}:</label>
+                  <div className={styles["time-picker-wrapper"]}>
+                    <MobileTimePicker
+                      className={styles["time-picker"]}
+                      value={item.start}
+                      onChange={(newValue) => item.setStart(newValue)}
+                      ampm={false}
+                      minutesStep={5}
+                      onAccept={() => {
+                        const rootElement = document.getElementById("root");
+                        if (rootElement) rootElement.removeAttribute("aria-hidden");
+                      }}
+                    />
+                    <span>〜</span>
+                    <MobileTimePicker
+                      className={styles["time-picker"]}
+                      value={item.end}
+                      onChange={(newValue) => item.setEnd(newValue)}
+                      ampm={false}
+                      minutesStep={5}
+                      onAccept={() => {
+                        const rootElement = document.getElementById("root");
+                        if (rootElement) rootElement.removeAttribute("aria-hidden");
+                      }}
+                    />
+                  </div>
+                </React.Fragment>
+              ))}
+            </LocalizationProvider>
             <button type="submit" className="light_blue_button">登録</button>
           </div>
         </form>
