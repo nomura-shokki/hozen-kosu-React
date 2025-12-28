@@ -365,6 +365,14 @@ class OverTime(APIView):
 
 # 当日休憩変更
 class TodayBreakTime(APIView):
+  # 指定工数データ取得
+  def get_object(self, login_no, day):
+    try:
+      return Business_Time_graph.objects.get(employee_no3=login_no, work_day2=day)
+    except Business_Time_graph.DoesNotExist:
+      return None
+
+
   # GET処理
   def get(self, request, *args, **kwargs):
     # セッション値取得
@@ -384,13 +392,12 @@ class TodayBreakTime(APIView):
       request.session['day'] = day
 
     # 工数データ取得
-    kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
-    if kosu_query_set.count() > 1:
-      return Response({'status': 'error', 'message': '複数の工数データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
-    kosu_data = kosu_query_set.first()
+    kosu_instance = self.get_object(login_no, day)
+    if not kosu_instance:
+      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # データ変換
-    kosu_serializer = KosuSerializer(kosu_data, many=False)
+    kosu_serializer = KosuSerializer(kosu_instance, many=False)
 
     # 送信データ
     response_data = {
@@ -418,13 +425,9 @@ class TodayBreakTime(APIView):
       return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 工数データ取得
-    kosu_query_set = Business_Time_graph.objects.filter(employee_no3=login_no, work_day2=day)
-    if kosu_query_set.count() > 1:
-      return Response({'status': 'error', 'message': '複数の工数データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
-    elif kosu_query_set.exists():
-      kosu_obj = kosu_query_set.first()
-    else:
-      kosu_obj = Business_Time_graph(
+    kosu_instance = self.get_object(login_no, day)
+    if not kosu_instance:
+      kosu_instance = Business_Time_graph(
         employee_no3=login_no, 
         name=member.objects.get(employee_no=login_no), 
         work_day2=day, 
@@ -435,8 +438,9 @@ class TodayBreakTime(APIView):
         judgement=False, 
         over_time=0, 
         )
-    kosu_list = list(kosu_obj.time_work)
-    detail_list = kosu_obj.detail_work.split('$')
+
+    kosu_list = list(kosu_instance.time_work)
+    detail_list = kosu_instance.detail_work.split('$')
 
     # JSTタイムゾーンの作成
     jst = datetime.timezone(datetime.timedelta(hours=9))
@@ -478,15 +482,15 @@ class TodayBreakTime(APIView):
             kosu_list[k] = '$'
             detail_list[k] = ''
 
-    kosu_obj.time_work = ''.join(kosu_list)
-    kosu_obj.detail_work = detail_list_summarize(detail_list)
-    kosu_obj.breaktime = time_str_list[0]
-    kosu_obj.breaktime_over1 = time_str_list[1]
-    kosu_obj.breaktime_over2 = time_str_list[2]
-    kosu_obj.breaktime_over3 = time_str_list[3]
-    kosu_obj.judgement = judgement_check(kosu_list, kosu_obj.work_time, kosu_obj.tyoku2, member_data, kosu_obj.over_time)
+    kosu_instance.time_work = ''.join(kosu_list)
+    kosu_instance.detail_work = detail_list_summarize(detail_list)
+    kosu_instance.breaktime = time_str_list[0]
+    kosu_instance.breaktime_over1 = time_str_list[1]
+    kosu_instance.breaktime_over2 = time_str_list[2]
+    kosu_instance.breaktime_over3 = time_str_list[3]
+    kosu_instance.judgement = judgement_check(kosu_list, kosu_instance.work_time, kosu_instance.tyoku2, member_data, kosu_instance.over_time)
 
-    kosu_obj.save()
+    kosu_instance.save()
     return Response({'status': 'success', 'message': f'{day}の休憩時間が更新されました'})
 
 
@@ -526,14 +530,7 @@ class BreakTime(APIView):
 # POST処理
   def post(self, request):
     login_no = request.session.get('login_No')
-    def_ver = request.session.get('input_def')
     post_data = request.data
-
-    # セッションない場合エラー出力
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not def_ver:
-      return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
       # ログインユーザーのデータ取得
