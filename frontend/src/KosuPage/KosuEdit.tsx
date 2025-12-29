@@ -70,30 +70,28 @@ const KosuEdit: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    axios
-      .get<KosuResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, { withCredentials: true })
-      .then((response) => {
-        const { kosu_data } = response.data;
+    const fetchData = async () => {
+      try {
+        const response = await axios.get<KosuResponse>(
+          `${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`,
+          { withCredentials: true }
+        );
+        const { kosu_data, def_data, member_data } = response.data;
         setFormData(kosu_data);
-        const def_data = response.data.def_data || {};
         setDefData(def_data);
-        const member_data = response.data.member_data;
-        if (member_data?.shop) {
-          setMemberShop(member_data.shop);
-        }
+        setMemberShop(member_data.shop);
         setInitialTimeWork(kosu_data.time_work);
         setInitialTyoku(kosu_data.tyoku2);
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 401) navigate("/login");
+          else setError(err.response?.data.message);
+        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        console.error("APIエラー:", err);
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else {
-          setError(err.message);
-        }
-        setLoading(false);
-      });
+      }
+    };
+    fetchData();
   }, [id, navigate]);
 
   useEffect(() => {
@@ -205,16 +203,6 @@ const KosuEdit: React.FC = () => {
     }
   }, [formData, defData, timeData.length, memberShop]);
 
-  if (loading) {
-    return <div><Loading isLoading={loading} /></div>;
-  }
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-  if (!formData) {
-    return <div>データが見つかりません</div>;
-  }
-
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
     index?: number,
@@ -268,7 +256,7 @@ const KosuEdit: React.FC = () => {
     setIsWorkTyokuDisabled((prev) => !prev);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const submittedData = timeData.reduce((acc, item, index) => {
@@ -316,16 +304,16 @@ const KosuEdit: React.FC = () => {
       return;
     }
 
-    axios
-      .put(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, updatedFormData, { withCredentials: true })
-      .then(() => {
-        alert("データが更新されました！");
-        navigate("/kosu-list");
-      })
-      .catch((error) => {
-        console.error("工数データ編集エラー:", error);
-        handleError(error, "工数データ編集で想定外のエラーが発生しました。");
-      });
+    try {
+      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, updatedFormData, {withCredentials: true});
+      alert("データが更新されました！");
+      navigate("/kosu-list");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+    }
   };
 
   const handleIncrement = (field: keyof Kosu) => {
@@ -348,7 +336,8 @@ const KosuEdit: React.FC = () => {
     }
   };
 
-  const handleDeleteItem = (index: number) => {
+  const handleDeleteItem = async (index: number) => {
+    if (!formData) return;
     const itemToDelete = timeData[index];
 
     if (!itemToDelete) {
@@ -362,32 +351,32 @@ const KosuEdit: React.FC = () => {
       work_day2: formData.work_day2, 
     };
 
-    axios
-      .post(`${process.env.REACT_APP_API_BASE_URL}/api/item_delete/`, requestData, { withCredentials: true })
-      .then(() => {
-        alert(`行 ${index + 1} が削除されました！`);
-        setTimeData((prevTimeData) =>
-          prevTimeData.filter((_, i) => i !== index)
-        );
-      })
-      .catch((error) => {
-        console.error("削除中にエラーが発生しました:", error);
-        setErrorMessage("削除リクエストでエラーが発生しました。");
-      });
+    try {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/item_delete/`, requestData, {withCredentials: true});
+      alert(`行 ${index + 1} が削除されました！`);
+      setTimeData((prevTimeData) =>
+        prevTimeData.filter((_, i) => i !== index)
+      );
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+    }
   };
 
-  const handleSendDayUpdate = () => {
+  const handleSendDayUpdate = async () => {
     if (!formData) return;
 
-    axios
-      .put(`${process.env.REACT_APP_API_BASE_URL}/api/day_update/`, formData, { withCredentials: true })
-      .then(() => {
-        alert("日付編集を送信しました！");
-      })
-      .catch((error) => {
-        console.error("日付変更エラー:", error);
-        handleError(error, "日付変更で想定外のエラーが発生しました。");
-      });
+    try {
+      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/day_update/`, formData, {withCredentials: true});
+      alert("日付編集を送信しました！");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+    }
   };
 
   const addEmptyForm = () => {
@@ -404,7 +393,6 @@ const KosuEdit: React.FC = () => {
         detail: '',
       }
     ]);
-    // 新しい行が追加されたら、その行は非アクティブに設定
     setIsDisabled((prevIsDisabled) => [...prevIsDisabled, true]);
   };
 
@@ -415,10 +403,13 @@ const KosuEdit: React.FC = () => {
         updatedTimeData.pop();
         return updatedTimeData;
       });
-      // 最後の行が削除されたら、isDisabledからも対応する要素を削除
       setIsDisabled((prevIsDisabled) => prevIsDisabled.slice(0, -1));
     }
   };
+
+  if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!formData) return <div>データが見つかりません</div>;
 
   return (
     <>

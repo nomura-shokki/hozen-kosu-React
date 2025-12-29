@@ -30,14 +30,6 @@ const TodayBreakTime: React.FC = () => {
   const [sessionDay, setSessionDay] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleError = (error: any, defaultMessage: string) => {
-    if (error.response && error.response.data && error.response.data.error) {
-      setErrorMessage(error.response.data.error);
-    } else {
-      setErrorMessage(defaultMessage);
-    }
-  };
-
   const parseBreakTime = (breaktime: string | null): [Date | null, Date | null] => {
     const validBreaktime = breaktime || "#00000000";
 
@@ -61,9 +53,8 @@ const TodayBreakTime: React.FC = () => {
   };
 
   useEffect(() => {
-    axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/api/today_break_time/`, { withCredentials: true })
-      .then((response) => {
+    const fetchData = async () => {
+      try {const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/today_break_time/`, {withCredentials: true,});
         const kosu_data: Kosu = response.data.kosu_data || {
           employee_no3: 0,
           breaktime: "#00000000",
@@ -89,20 +80,23 @@ const TodayBreakTime: React.FC = () => {
         setBreakTime8(initialTime8);
 
         setSessionDay(response.data.session_day || null);
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 401) navigate("/login");
+          else setErrorMessage(err.response?.data.message);
+        } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
         setLoading(false);
-      })
-      .catch((error) => {
-        console.error("データ取得エラー:", error);
-        handleError(error, "データの取得で想定外のエラーが発生しました");
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, [navigate]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
 
-    // バリデーションチェック
     const breakConfigs = [
       { start: breakTime1, end: breakTime2, label: "昼休憩", limit: 60 },
       { start: breakTime3, end: breakTime4, label: "残業休憩1", limit: 15 },
@@ -120,9 +114,8 @@ const TodayBreakTime: React.FC = () => {
       }
     }
 
-    axios
-      .post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/today_break_time/`,
+    try {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/today_break_time/`,
         {
           breakTime1: breakTime1 ? breakTime1.toISOString() : null,
           breakTime2: breakTime2 ? breakTime2.toISOString() : null,
@@ -135,26 +128,25 @@ const TodayBreakTime: React.FC = () => {
           sessionDay: sessionDay,
         },
         { withCredentials: true }
-      )
-      .then(() => {
-        const formattedDate = sessionDay
-          ? new Date(sessionDay)
-              .toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" })
-              .replace(/\//g, "年")
-              .replace(/月/, "月") + "日"
-          : "日付未設定";
+      );
 
-        alert(`${formattedDate} 休憩時間変更完了！`);
-        navigate("/kosu-new");
-      })
-      .catch((error) => {
-        console.error(error);
-        if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.error);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
-      });
+      const formattedDate = sessionDay
+        ? new Date(sessionDay)
+            .toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" })
+            .replace(/\//g, "年")
+            .replace(/月/, "月") + "日"
+        : "日付未設定";
+
+      alert(`${formattedDate} 休憩時間変更完了！`);
+      navigate("/kosu-new");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const breakLabels = [
@@ -163,6 +155,8 @@ const TodayBreakTime: React.FC = () => {
     { label: "残業休憩2", start: breakTime5, setStart: setBreakTime5, end: breakTime6, setEnd: setBreakTime6 },
     { label: "残業休憩3", start: breakTime7, setStart: setBreakTime7, end: breakTime8, setEnd: setBreakTime8 },
   ];
+
+  if (loading) return <div><Loading isLoading={loading} /></div>;
 
   return (
     <>
@@ -224,6 +218,9 @@ const TodayBreakTime: React.FC = () => {
                 </React.Fragment>
               ))}
             </LocalizationProvider>
+
+            {errorMessage && <div role="alert" style={{ color: "red", fontWeight: "bold" }}>{errorMessage}</div>}
+
             <button type="submit" className="light_blue_button">登録</button>
           </div>
         </form>

@@ -34,18 +34,15 @@ const KosuCalendar: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
   const navigate = useNavigate();
 
-  // データを取得する関数
   const fetchData = useCallback(async () => {
-    setLoading(true); // ローディング状態を開始
+    setLoading(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_calendar/`, { withCredentials: true });
-
-      // レスポンスデータを構造的に処理
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_calendar/`, {withCredentials: true});
       const results = response.data.kosu_data || [];
       setData(results);
       setSessionYear(response.data.session_year);
       setSessionMonth(response.data.session_month);
-      const initialFormData: { [key: string]: { work_time: string; tyoku2: string } } = {}; // weekを削除
+      const initialFormData: { [key: string]: { work_time: string; tyoku2: string } } = {};
       results.forEach((item: Kosu) => {
         initialFormData[item.work_day2] = {
           work_time: item.work_time,
@@ -56,25 +53,16 @@ const KosuCalendar: React.FC = () => {
       setDefaultTyokuValues([]);
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401 || err.response?.status === 404) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError("予期しないエラーが発生しました");
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
       setLoading(false);
     }
   }, [navigate]);
 
-  // dataが変更されたときに合計残業時間を計算
   useEffect(() => {
     const totalMinutes = data.reduce((sum, item) => {
-      // over_timeが有効な数値であることを確認して加算
       return sum + (item.over_time ? Number(item.over_time) : 0);
     }, 0);
     setTotalOverTime(totalMinutes);
@@ -98,7 +86,6 @@ const KosuCalendar: React.FC = () => {
     });
   };
 
-  // 年と月をPOSTしてデータを再取得する関数
   const postYearMonth = useCallback(async (year: number, month: number) => {
     setLoading(true);
     try {
@@ -109,16 +96,9 @@ const KosuCalendar: React.FC = () => {
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401 || err.response?.status === 404) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError("予期しないエラーが発生しました");
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
       setLoading(false);
     }
@@ -128,20 +108,12 @@ const KosuCalendar: React.FC = () => {
     setIsPostingWorkWrite(true);
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_work_write/`, formData, { withCredentials: true });
-      console.log("Post successful:", response.data);
-      fetchData(); // 成功時にデータを再取得
+      fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401 || err.response?.status === 404) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError("予期しないエラーが発生しました");
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
       setIsPostingWorkWrite(false);
     }
@@ -154,16 +126,9 @@ const KosuCalendar: React.FC = () => {
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401 || err.response?.status === 404) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError("予期しないエラーが発生しました");
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
       setIsPostingWorkDefault(false);
     }
@@ -171,31 +136,21 @@ const KosuCalendar: React.FC = () => {
 
   const handleDefaultTyokuPost = async () => {
     try {
-      // 修正: 配列をオブジェクトに変換
       const postData: { [key: string]: string } = defaultTyokuValues.reduce((acc: { [key: string]: string }, tyoku, index) => {
         acc[`default_tyoku${index + 1}`] = tyoku;
         return acc;
       }, {});
   
       await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/tyoku_default/`, postData, { withCredentials: true });
-      fetchData(); // 成功時にデータを再取得
+      fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401 || err.response?.status === 404) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError("予期しないエラーが発生しました");
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     }
   };
 
-
-  // dayをクリックした際にPOSTする新しい関数
   const handleDayClick = async (dayValue: string) => {
     try {
       await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_link/`, {
@@ -204,20 +159,12 @@ const KosuCalendar: React.FC = () => {
       navigate("/kosu-new");
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401 || err.response?.status === 404) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError("予期しないエラーが発生しました");
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     }
   };
 
-  // コンポーネントマウント時に fetchData を実行
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -229,27 +176,23 @@ const KosuCalendar: React.FC = () => {
 
     updateMaxHeight();
 
-    // ウィンドウサイズが変更された際にも最大高さを再計算。
     window.addEventListener("resize", updateMaxHeight);
 
-    // コンポーネントがアンマウントされる際にリサイズイベントリスナーを削除し、メモリリークを防ぐ。
     return () => window.removeEventListener("resize", updateMaxHeight);
   }, []);
 
-  // テーブル幅を更新
   useEffect(() => {
     const updateTableWidth = () => {
       if (tableRef.current) {
-        setTableWidth(tableRef.current.offsetWidth); // 現在のテーブル幅をセット
+        setTableWidth(tableRef.current.offsetWidth);
       }
     };
 
     updateTableWidth();
-    window.addEventListener("resize", updateTableWidth); // リサイズ時にテーブル幅を再計算
-    return () => window.removeEventListener("resize", updateTableWidth); // クリーンアップ
+    window.addEventListener("resize", updateTableWidth);
+    return () => window.removeEventListener("resize", updateTableWidth);
   }, [data]);
 
-  // カレンダーの日付データを生成する関数
   const generateCalendar = (year: number, month: number) => {
     const firstDayOfMonth = new Date(year, month - 1, 1);
     const lastDayOfMonth = new Date(year, month, 0);
@@ -327,7 +270,6 @@ const KosuCalendar: React.FC = () => {
       }
     }
 
-    // 常に4行表示するように調整
     const paddedRanges = timeRanges.slice(0, 4);
     while (paddedRanges.length < 4) {
       paddedRanges.push("　");
@@ -338,7 +280,6 @@ const KosuCalendar: React.FC = () => {
     ));
   };
 
-  // 年と月のフォーム変更ハンドラー
   const handleYearMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name === "year" && sessionMonth !== null) {
@@ -348,7 +289,6 @@ const KosuCalendar: React.FC = () => {
     }
   };
 
-  // 年の選択肢を生成
   const getYears = () => {
     const currentYear = new Date().getFullYear();
     const years = [];
@@ -361,6 +301,7 @@ const KosuCalendar: React.FC = () => {
   const calendarRows = sessionYear && sessionMonth ? generateCalendar(sessionYear, sessionMonth) : [];
 
   if (error) return <div>Error: {error}</div>;
+  if (loading) return <div><Loading isLoading={loading} /></div>;
 
   return (
     <>

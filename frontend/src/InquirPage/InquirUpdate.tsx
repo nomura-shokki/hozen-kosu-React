@@ -82,10 +82,7 @@ const InquirUpdate: React.FC = () => {
     event.preventDefault();
     setError(null);
 
-    if (!formData) {
-      setError("フォームデータがありません。");
-      return;
-    }
+    if (!formData) return;
 
     try {
       await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, formData, { withCredentials: true });
@@ -104,9 +101,7 @@ const InquirUpdate: React.FC = () => {
 
   const handleDelete = async () => {
     const confirmed = window.confirm("削除すると戻せません。削除しますか？");
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
       await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true });

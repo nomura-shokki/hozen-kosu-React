@@ -41,33 +41,28 @@ const KosuDelete: React.FC = () => {
   const [tableWidth, setTableWidth] = useState<number>(0);
 
   useEffect(() => {
-    axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, { withCredentials: true })
-      .then((response) => {
-        const kosu_data = response.data.kosu_data;
-        const def_data = response.data.def_data || {};
-        const member_data = response.data.member_data;
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, {withCredentials: true});
+        const { kosu_data, member_data, def_data } = response.data;
 
         setRecord(kosu_data);
         setDefData(def_data);
-
-        if (member_data?.shop) {
-          setMemberShop(member_data.shop);
-        }
-
+        setMemberShop(member_data.shop);
         setInitialTimeWork(kosu_data.time_work);
         setInitialWorkDetail(kosu_data.detail_work);
         setInitialTyoku(kosu_data.tyoku2);
+      } catch (err: any) {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 401) navigate("/login");
+          else setError(err.response?.data.message);
+        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else {
-          setError(err.message);
-        }
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, [id, navigate]);
 
   useEffect(() => {
@@ -76,7 +71,6 @@ const KosuDelete: React.FC = () => {
       setMaxHeight(window.innerHeight - headerHeight - 40);
     };
 
-    // テーブルの幅を更新
     const updateTableWidth = () => {
       if (tableRef.current) {
         setTableWidth(tableRef.current.offsetWidth + 5);
@@ -94,33 +88,20 @@ const KosuDelete: React.FC = () => {
     };
   }, [record]);
 
-  if (loading) {
-    return <div><Loading isLoading={loading} /></div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-  if (!record) {
-    return <div>データが見つかりません</div>;
-  }
-
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const confirmed = window.confirm("削除すると戻せません。削除しますか？");
-    if (!confirmed) {
-      return;
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_delete/${id}/`, {withCredentials: true});
+      alert("削除が完了しました");
+      navigate("/kosu-list");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     }
-    axios
-      .delete(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_delete/${id}/`, { withCredentials: true })
-      .then(() => {
-        alert("削除が完了しました");
-        navigate("/kosu-list");
-      })
-      .catch((error) => {
-        console.error(error);
-        alert("削除時にエラーが発生しました");
-      });
   };
 
   const tyokuMapping: { [key: string]: string } = {
@@ -131,6 +112,10 @@ const KosuDelete: React.FC = () => {
     "5": "連1直",
     "6": "連2直",
   };
+
+  if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!record) return <div>データが見つかりません</div>;
 
   return (
     <>

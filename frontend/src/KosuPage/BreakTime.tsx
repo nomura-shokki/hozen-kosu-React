@@ -105,7 +105,6 @@ const BreakTime: React.FC = () => {
     event.preventDefault();
     setErrorMessage(null);
 
-    // バリデーション
     const groups = ["1直", "2直", "3直", "常昼", "連1直", "連2直"];
     const breaks = ["昼休憩", "残業休憩1", "残業休憩2", "残業休憩3"];
 
@@ -146,13 +145,14 @@ const BreakTime: React.FC = () => {
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
-        else if (err.response?.status === 403) navigate("/");
         else setErrorMessage(err.response?.data.message);
       } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
       setLoading(false);
     }
   };
+
+  if (loading) return <div><Loading isLoading={loading} /></div>;
 
   return (
     <>
