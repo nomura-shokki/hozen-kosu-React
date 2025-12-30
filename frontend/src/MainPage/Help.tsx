@@ -23,29 +23,28 @@ const Help: React.FC = () => {
     }
   };
 
-  const handlePasswordSubmit = (event: React.FormEvent) => {
+  const handlePasswordSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setErrorMessage("");
 
-    axios
-      .post(
+    try {
+      const res = await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/api/help_pass/`,
         { password },
         { withCredentials: true }
-      )
-      .then((res) => {
-        if (res.data === true || res.data.result === true) {
-          setIsAuthenticated(true);
-        } else {
-          setErrorMessage("認証に失敗しました。");
-        }
-      })
-      .catch(() => {
-        setErrorMessage("認証エラーが発生しました。");
-      });
+      );
+
+      if (res.data === true || res.data.result === true) {
+        setIsAuthenticated(true);
+      } else {
+        setErrorMessage("認証に失敗しました。");
+      }
+    } catch (error) {
+      setErrorMessage("認証エラーが発生しました。");
+    }
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setErrorMessage("");
 
@@ -58,32 +57,29 @@ const Help: React.FC = () => {
       return;
     }
 
-    axios
-      .post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/help//`,
+    try {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/help//`,
         { 
           memberReset: isMemberReset, 
           defReset: isDefReset,
           settingReset: isSettingReset 
         },
         { withCredentials: true }
-      )
-      .then(() => {
-        if (isMemberReset) {
-          alert("リセットが完了しました。従業員番号：12345でログイン可能です。");
-        } else {
-          alert("リセットが完了しました。");
-        }
-        setErrorMessage("");
-        navigate("/login");
-      })
-      .catch((err) => {
-        if (err.response && err.response.data) {
-          setErrorMessage(err.response.data.error);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
-      });
+      );
+
+      if (isMemberReset) {
+        alert("リセットが完了しました。従業員番号：12345でログイン可能です。");
+      } else {
+        alert("リセットが完了しました。");
+      }
+      setErrorMessage("");
+      navigate("/login");
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    }
   };
 
   if (!isAuthenticated) {

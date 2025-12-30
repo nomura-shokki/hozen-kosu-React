@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import Loading from "../components/Loading";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -12,6 +10,8 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import axios from "axios";
+import Loading from "../components/Loading";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import styles from "../styles/KosuPage/KosuTotal.module.css";
 
@@ -36,7 +36,6 @@ interface ApiResponseData {
   session_day: string;
 }
 
-// processDataForChartの戻り値の型を定義
 interface ChartDataWithElements {
   labels: string[];
   datasets: {
@@ -70,12 +69,10 @@ const KosuTotal: React.FC = () => {
 
   const navigate = useNavigate();
 
-  // POSTリクエストを処理する関数（フォーム変更時）
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/kosu_total/`,
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_total/`,
         {
           date: selectedDate,
           period: selectedPeriod,
@@ -86,29 +83,19 @@ const KosuTotal: React.FC = () => {
       setLoading(false);
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401 || err.response?.status === 404) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError("データの取得中にエラーが発生しました。");
-        }
-      } else {
-        setError("予期しないエラーが発生しました。");
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+    } finally {
       setLoading(false);
     }
   }, [navigate, selectedDate, selectedPeriod]);
 
-  // 初回データ取得（コンポーネントマウント時）
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/api/kosu_total/`,
-          { withCredentials: true }
-        );
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_total/`, { withCredentials: true });
         setApiData(response.data);
         if (response.data.session_day) {
           setSelectedDate(response.data.session_day);
@@ -116,25 +103,17 @@ const KosuTotal: React.FC = () => {
         setLoading(false);
       } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 401 || err.response?.status === 404) {
-            navigate("/login");
-          } else if (err.response?.status === 403) {
-            navigate("/");
-          } else {
-            setError("データの取得中にエラーが発生しました。");
-          }
-        } else {
-          setError("予期しないエラーが発生しました。");
-        }
+          if (err.response?.status === 401) navigate("/login");
+          else setError(err.response?.data.message);
+        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
         setLoading(false);
       }
     };
     fetchInitialData();
   }, [navigate]);
 
-  // 日付または期間が変更された時のみデータを再取得
   useEffect(() => {
-    // 初回レンダリング時には実行しないようにする
     if (selectedDate) {
       fetchData();
     }
@@ -144,12 +123,9 @@ const KosuTotal: React.FC = () => {
     const { kosu_data, def_data } = data;
     let aggregatedTimeWork = "";
 
-    // kosu_dataが配列か単一のオブジェクトかを確認
     if (Array.isArray(kosu_data)) {
-      // 配列の場合は、time_workをすべて連結
       aggregatedTimeWork = kosu_data.map(item => item.time_work).join("");
     } else {
-      // 単一のオブジェクトの場合は、そのtime_workを使用
       aggregatedTimeWork = kosu_data.time_work || "";
     }
 
@@ -235,11 +211,9 @@ const KosuTotal: React.FC = () => {
         formatter: (value: number) => {
           return value > 0 ? value.toString() : "";
         },
-        // ここから追加・修正
-        color: '#ffffff', // ラベルの文字色を白に設定
-        textStrokeColor: '#000000', // ラベルの輪郭色を黒に設定
-        textStrokeWidth: 2, // 輪郭の太さを設定
-        // ここまで
+        color: '#ffffff',
+        textStrokeColor: '#000000',
+        textStrokeWidth: 2,
         font: (context: any) => {
           const chartWidth = context.chart.width;
           let fontSize = 12;
@@ -298,17 +272,9 @@ const KosuTotal: React.FC = () => {
     setSelectedOrder(e.target.value);
   };
 
-  if (loading) {
-    return <Loading isLoading={true} />;
-  }
-
-  if (error) {
-    return <div className={styles.error}>{error}</div>;
-  }
-
-  if (!apiData) {
-    return <div className={styles.noData}>データがありません。</div>;
-  }
+  if (loading) return <Loading isLoading={true} />;
+  if (error) return <div className={styles.error}>{error}</div>;
+  if (!apiData) return <div className={styles.noData}>データがありません。</div>;
 
   const chartData = processDataForChart(apiData);
 

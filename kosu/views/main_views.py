@@ -93,13 +93,13 @@ class Login(APIView):
 
       # 取得した工数区分定義をセッションに保存
       if not def_Ver:
-        return JsonResponse({'status': 'error', 'message': '利用可能な工数区分がありません。ERROR052'})
+        return JsonResponse({'status': 'error', 'message': '利用可能な工数区分がありません。ERROR052'}, status=status.HTTP_400_BAD_REQUEST)
       else:
         request.session['input_def'] = def_Ver.kosu_name
         return JsonResponse({'status': 'success'})
 
     else:
-      return JsonResponse({'status': 'error', 'message': '入力された従業員番号は登録がありません。ERROR048'})
+      return JsonResponse({'status': 'error', 'message': '入力された従業員番号は登録がありません。ERROR048'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

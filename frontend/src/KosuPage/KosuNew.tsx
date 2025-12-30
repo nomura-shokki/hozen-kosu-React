@@ -1,5 +1,8 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent, useCallback, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { MobileTimePicker } from "@mui/x-date-pickers";
 import axios from "axios";
 import Loading from "../components/Loading";
 import TyokuSelect from "../components/TyokuSelect";
@@ -9,9 +12,6 @@ import KosuDisplay from "../components/KosuDisplay";
 import KosuBarChart from "../components/KosuBarChart";
 import DefTable from "../components/DefTable";
 import styles from "../styles/KosuPage/KosuNew.module.css";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { MobileTimePicker } from "@mui/x-date-pickers";
 
 interface Kosu {
   id: string;
@@ -42,6 +42,7 @@ const roundToNearestFiveMinutes = (date: Date, workDay: Date): Date => {
 
 const KosuNew: React.FC = () => {
   // 状態管理
+  const navigate = useNavigate();
   const [data, setData] = useState<Kosu | null>(null); // 工数データ
   const [defData, setDefData] = useState<DefData>({}); // 工数区分定義データ
   const [loading, setLoading] = useState(true); // ローディング状態
@@ -83,58 +84,51 @@ const KosuNew: React.FC = () => {
     if (time2) localStorage.setItem("time2", time2.toISOString());
   };
 
-  const handleError = useCallback((error: any, defaultMessage: string) => {
-    if (error.response && error.response.data && error.response.data.error) {
-      setErrorMessage(error.response.data.error);
-    } else {
-      setErrorMessage(defaultMessage);
-    }
-  }, []);
-
-  const fetchData = useCallback(() => {
-    axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, { withCredentials: true })
-      .then((response) => {
-        setWarningMessage(response.data.warning || null);
-        const kosu_data = response.data.kosu_data || {
-          employee_no3: 0,
-          work_day2: "",
-          tyoku2: "",
-          time_work: "",
-          detail_work: "",
-          over_time: 0,
-          work_time: "",
-          judgement: false,
-          break_change: false,
-        };
-        const sessionDay = response.data.session_day || "";
-        setData({
-          ...kosu_data,
-          work_day2: sessionDay,
-          time_work: "",
-          detail_work: "",
-        });
-        const def_data = response.data.def_data || {};
-        setDefData(def_data);
-        const member_data = response.data.member_data;
-        if (member_data?.name) {
-          setMemberName(member_data.name);
-        }
-        if (member_data?.shop) {
-          setMemberShop(member_data.shop);
-        }
-        setInitialTimeWork(kosu_data.time_work);
-        setInitialWorkDetail(kosu_data.detail_work);
-        setInitialTyoku(kosu_data.tyoku2);
-        setLoading(false);
-      })
-      .catch((error) => {
-        handleError(error, "データの取得で想定外のエラーが発生しました");
-        setLoading(false);
+  const fetchData = useCallback(async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, { withCredentials: true });
+      setWarningMessage(response.data.warning || null);
+      const kosu_data = response.data.kosu_data || {
+        employee_no3: 0,
+        work_day2: "",
+        tyoku2: "",
+        time_work: "",
+        detail_work: "",
+        over_time: 0,
+        work_time: "",
+        judgement: false,
+        break_change: false,
+      };
+      const sessionDay = response.data.session_day || "";
+      setData({
+        ...kosu_data,
+        work_day2: sessionDay,
+        time_work: "",
+        detail_work: "",
       });
-  }, [handleError]);
+      const def_data = response.data.def_data || {};
+      setDefData(def_data);
+      const member_data = response.data.member_data;
+      if (member_data?.name) {
+        setMemberName(member_data.name);
+      }
+      if (member_data?.shop) {
+        setMemberShop(member_data.shop);
+      }
+      setInitialTimeWork(kosu_data.time_work);
+      setInitialWorkDetail(kosu_data.detail_work);
+      setInitialTyoku(kosu_data.tyoku2);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate]);
 
-  const handleChange = (
+  const handleChange = async (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = event.target;
@@ -146,19 +140,18 @@ const KosuNew: React.FC = () => {
       });
 
       if (name === "work_day2") {
-        axios
-          .post(
-            `${process.env.REACT_APP_API_BASE_URL}/api/set_day/`,
+        try {
+          await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/set_day/`,
             { day: value || "" },
             { withCredentials: true }
-          )
-          .then(() => {
-            fetchData();
-          })
-          .catch((error) => {
-            console.error("エラーが発生しました:", error);
-            handleError(error, "日付切り替えで想定外のエラーが発生しました");
-          });
+          );
+          fetchData();
+        } catch (err) {
+          if (axios.isAxiosError(err)) {
+            if (err.response?.status === 401) navigate("/login");
+            else setErrorMessage(err.response?.data.message);
+          } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+        }
       }
     }
   };
@@ -176,7 +169,7 @@ const KosuNew: React.FC = () => {
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!data) return;
 
@@ -252,40 +245,40 @@ const KosuNew: React.FC = () => {
       break_change: isBreakChangeChecked,
     };
 
-    axios
-      .post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, updatedData, { withCredentials: true })
-      .then(() => {
-        alert("更新が成功しました！");
-        updateCachedTimes(selectedTimes.time1, selectedTimes.time2);
-        fetchData();
+    try {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, updatedData, { withCredentials: true });
+      alert("更新が成功しました！");
+      updateCachedTimes(selectedTimes.time1, selectedTimes.time2);
+      fetchData();
 
-        if (formattedTime2) {
-          const workDay = new Date(data.work_day2);
-          setSelectedTimes({
-            time1: new Date(formattedTime2),
-            time2: roundToNearestFiveMinutes(new Date(formattedTime2), workDay),
-          });
-          localStorage.setItem("time1", formattedTime2);
-          localStorage.setItem("time2", formattedTime2);
-        }
-
-        setData({
-          ...data,
-          time_work: "",
-          detail_work: "",
-          over_time: 0,
-          judgement: false,
-          break_change: false,
+      if (formattedTime2) {
+        const workDay = new Date(data.work_day2);
+        setSelectedTimes({
+          time1: new Date(formattedTime2),
+          time2: roundToNearestFiveMinutes(new Date(formattedTime2), workDay),
         });
-        setErrorMessage(null);
-      })
-      .catch((error) => {
-        console.error("更新エラー:", error);
-        handleError(error, "更新に失敗しました。再試行してください。");
+        localStorage.setItem("time1", formattedTime2);
+        localStorage.setItem("time2", formattedTime2);
+      }
+
+      setData({
+        ...data,
+        time_work: "",
+        detail_work: "",
+        over_time: 0,
+        judgement: false,
+        break_change: false,
       });
+      setErrorMessage(null);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    }
   };
 
-  const handleSendOverTime = () => {
+  const handleSendOverTime = async () => {
     if (!data) return;
 
     const overTime = data.over_time || 0;
@@ -299,15 +292,15 @@ const KosuNew: React.FC = () => {
       return;
     }
 
-    axios
-      .post(`${process.env.REACT_APP_API_BASE_URL}/api/over_time/`, data, { withCredentials: true })
-      .then(() => {
-        alert("残業情報を送信しました！");
-      })
-      .catch((error) => {
-        console.error("残業送信エラー:", error);
-        handleError(error, "残業情報送信でエラーが発生しました。");
-      });
+    try {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/over_time/`, data, { withCredentials: true });
+      alert("残業情報を送信しました！");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    }
   };
 
   const handleIncrement = (field: keyof Kosu) => {

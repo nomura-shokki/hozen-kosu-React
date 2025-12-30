@@ -27,7 +27,7 @@ const DefEdit: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`, {withCredentials: true});
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`, { withCredentials: true });
         const rawData = response.data;
         const kosu_definitions = Array.from({ length: 50 }, (_, i) => {
           const idx = i + 1;
@@ -91,7 +91,7 @@ const DefEdit: React.FC = () => {
     });
 
     try {
-      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`, convertedData, {withCredentials: true});
+      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`, convertedData, { withCredentials: true });
       alert("更新完了！");
       navigate("/def-list");
     } catch (err) {

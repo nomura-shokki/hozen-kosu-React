@@ -1191,10 +1191,6 @@ class KosuTotal(APIView):
     login_no = request.session.get('login_No')
     def_ver_session = request.session.get('input_def')
 
-    # セッション値なしエラー
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # 就業日取得
     day = request.data.get('date')
     if not day:

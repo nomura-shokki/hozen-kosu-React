@@ -43,7 +43,7 @@ const KosuDelete: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, {withCredentials: true});
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, { withCredentials: true });
         const { kosu_data, member_data, def_data } = response.data;
 
         setRecord(kosu_data);
@@ -52,7 +52,7 @@ const KosuDelete: React.FC = () => {
         setInitialTimeWork(kosu_data.time_work);
         setInitialWorkDetail(kosu_data.detail_work);
         setInitialTyoku(kosu_data.tyoku2);
-      } catch (err: any) {
+      } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
           else setError(err.response?.data.message);
@@ -93,7 +93,7 @@ const KosuDelete: React.FC = () => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_delete/${id}/`, {withCredentials: true});
+      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_delete/${id}/`, { withCredentials: true });
       alert("削除が完了しました");
       navigate("/kosu-list");
     } catch (err) {

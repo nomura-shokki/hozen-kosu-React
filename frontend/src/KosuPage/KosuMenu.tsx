@@ -16,8 +16,8 @@ const KosuMenu: React.FC = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_menu/`, {withCredentials: true});
-      } catch (err: any) {
+        await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_menu/`, { withCredentials: true });
+      } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
           else setError(err.response?.data.message);

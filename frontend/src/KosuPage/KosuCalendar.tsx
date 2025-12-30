@@ -37,7 +37,7 @@ const KosuCalendar: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_calendar/`, {withCredentials: true});
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_calendar/`, { withCredentials: true });
       const results = response.data.kosu_data || [];
       setData(results);
       setSessionYear(response.data.session_year);

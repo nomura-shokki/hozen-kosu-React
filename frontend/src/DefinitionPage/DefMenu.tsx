@@ -22,7 +22,7 @@ const DefMenu: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/def_menu/`, {withCredentials: true});
+        const response = await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/def_menu/`, { withCredentials: true });
         setData(response.data);
       } catch (err) {
         if (axios.isAxiosError(err)) {

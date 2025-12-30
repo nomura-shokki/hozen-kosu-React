@@ -18,7 +18,7 @@ const InquirMenu: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_menu/`, {withCredentials: true});
+        await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_menu/`, { withCredentials: true });
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");

@@ -75,35 +75,35 @@ const MainMenu: React.FC = () => {
 
 
   useEffect(() => {
-    axios
-      .get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/main_menu/`, {withCredentials: true})
-      .then((response) => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/main_menu/`, { withCredentials: true });
         const { login_data, admin_data } = response.data;
         setData(login_data);
-        setAdminData(admin_data)
-        setLoading(false);
-      })
-      .catch((err) => {
+        setAdminData(admin_data);
+      } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) navigate("/login");
-          else setError(err.message);
+          if (err.response?.status === 401) navigate("/login");
+          else setError(err.response?.data.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-          setLoading(false);
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [navigate]);
 
-  const handleLogout = () => {
-    axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/logout/`, {}, {withCredentials: true})
-      .then(() => {
-        navigate("/login");
-      })
-      .catch((err) => {
-        if (err.response && err.response.data) {
-          setError(err.response.data.error);
-        } else {
-          setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
-      });
+  const handleLogout = async () => {
+    try {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/logout/`, {}, { withCredentials: true });
+      navigate("/login");
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+    }
   };
 
   if (loading) return <div>Loading...</div>;

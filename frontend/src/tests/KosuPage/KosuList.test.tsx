@@ -67,7 +67,7 @@ describe("KosuList Component - 詳細結合テスト修正版", () => {
     
     // 検索入力
     const dateInput = screen.getByLabelText(/就業日：/);
-    // 修正：date型のinputは "yyyy-mm-dd" 形式が最も安全です
+
     fireEvent.change(dateInput, { target: { value: "2023-10-01" } });
 
     // 履歴リセット

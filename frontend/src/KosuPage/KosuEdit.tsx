@@ -305,7 +305,7 @@ const KosuEdit: React.FC = () => {
     }
 
     try {
-      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, updatedFormData, {withCredentials: true});
+      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, updatedFormData, { withCredentials: true });
       alert("データが更新されました！");
       navigate("/kosu-list");
     } catch (err) {
@@ -352,7 +352,7 @@ const KosuEdit: React.FC = () => {
     };
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/item_delete/`, requestData, {withCredentials: true});
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/item_delete/`, requestData, { withCredentials: true });
       alert(`行 ${index + 1} が削除されました！`);
       setTimeData((prevTimeData) =>
         prevTimeData.filter((_, i) => i !== index)
@@ -369,7 +369,7 @@ const KosuEdit: React.FC = () => {
     if (!formData) return;
 
     try {
-      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/day_update/`, formData, {withCredentials: true});
+      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/day_update/`, formData, { withCredentials: true });
       alert("日付編集を送信しました！");
     } catch (err) {
       if (axios.isAxiosError(err)) {

@@ -54,7 +54,8 @@ const TodayBreakTime: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/today_break_time/`, {withCredentials: true,});
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/today_break_time/`, {withCredentials: true,});
         const kosu_data: Kosu = response.data.kosu_data || {
           employee_no3: 0,
           breaktime: "#00000000",

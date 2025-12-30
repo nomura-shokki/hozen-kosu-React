@@ -42,7 +42,7 @@ const AdminUpdate: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, {withCredentials: true});
+        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, { withCredentials: true });
         const { admin_data } = response.data;
         setFormData(admin_data);
       } catch (err) {
@@ -121,7 +121,7 @@ const AdminUpdate: React.FC = () => {
     }
 
     try {
-      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, formData, {withCredentials: true});
+      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, formData, { withCredentials: true });
       alert("登録完了！");
       navigate("/");
     } catch (err) {

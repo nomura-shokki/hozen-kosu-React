@@ -58,7 +58,7 @@ const InquirNew: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_new/`, formData, {withCredentials: true});
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_new/`, formData, { withCredentials: true });
       alert("登録完了！");
 
       setFormData({

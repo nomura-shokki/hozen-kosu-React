@@ -11,21 +11,21 @@ const Login: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setErrorMessage("");
 
-    axios.post(
-      `${process.env.REACT_APP_API_BASE_URL}/api/login/`,
-      { employee_no: Number(employee_no) },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      }
-    )
-    .then((response) => {
+    try {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/login/`,
+        { employee_no: Number(employee_no) },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
       const data = response.data;
 
       if (data.status === "success") {
@@ -33,14 +33,12 @@ const Login: React.FC = () => {
       } else {
         setErrorMessage(data.message || "サーバーエラーが発生しました。");
       }
-    })
-    .catch((err) => {
-      if (err.response && err.response.data) {
-        setErrorMessage(err.response.data.error);
-      } else {
-        setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-      }
-    });
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    }
   };
 
   return (
