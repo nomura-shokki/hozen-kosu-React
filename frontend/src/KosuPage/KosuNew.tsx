@@ -57,9 +57,6 @@ const KosuNew: React.FC = () => {
   const [memberShop, setMemberShop] = useState<string>(""); // メンバーの所属部署
   const [isTomorrowChecked, setIsTomorrowChecked] = useState<boolean>(false); // 翌日チェックボックスの状態
   const [isBreakChangeChecked, setIsBreakChangeChecked] = useState<boolean>(false); // 休憩変更チェックボックスの状態
-
-  // 作業開始・終了時刻の状態管理。
-  // ローカルストレージにキャッシュされた値を初期値として使用し、ない場合は現在時刻を5分単位に丸めた値を使う。
   const [selectedTimes, setSelectedTimes] = useState<{
     time1: Date | null;
     time2: Date | null;
@@ -93,8 +90,6 @@ const KosuNew: React.FC = () => {
     if (time2) localStorage.setItem("time2", time2.toISOString());
   };
 
-  // エラーを処理する汎用的な関数。
-  // バックエンドからのエラーメッセージがあればそれを使用し、なければデフォルトメッセージを使用する。
   const handleError = useCallback((error: any, defaultMessage: string) => {
     if (error.response && error.response.data && error.response.data.error) {
       setErrorMessage(error.response.data.error);
@@ -103,8 +98,6 @@ const KosuNew: React.FC = () => {
     }
   }, []);
 
-  // バックエンドからデータを取得する関数。
-  // useCallbackでメモ化し、依存配列が変更されない限り関数が再生成されないようにする。
   const fetchData = useCallback(() => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, { withCredentials: true })
@@ -149,7 +142,6 @@ const KosuNew: React.FC = () => {
       });
   }, [handleError]);
 
-  // フォーム入力の変更を処理する関数。
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -161,7 +153,6 @@ const KosuNew: React.FC = () => {
         [name]: updatedValue,
       });
 
-      // 就業日を変更した場合、バックエンドにその日付を送信し、データを再取得する。
       if (name === "work_day2") {
         axios
           .post(
@@ -180,8 +171,6 @@ const KosuNew: React.FC = () => {
     }
   };
 
-  // 終了時刻を現在時刻に設定する関数。
-  // 開始時刻よりも早い場合、翌日チェックボックスを自動的にオンにする。
   const setTime2ToCurrentRounded = () => {
     if (data) {
       const workDay = new Date(data.work_day2);
@@ -195,13 +184,10 @@ const KosuNew: React.FC = () => {
     }
   };
 
-  // フォーム送信時の処理。
-  // 各種バリデーションを実行し、問題がなければバックエンドにデータを送信する。
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!data) return;
 
-    // 作業日の日付を時刻に適用する。
     const workDay = new Date(data.work_day2);
     if (selectedTimes.time1) {
       selectedTimes.time1.setFullYear(workDay.getFullYear());
@@ -218,7 +204,6 @@ const KosuNew: React.FC = () => {
     const formattedTime2 = selectedTimes.time2?.toISOString();
     const overTime = data.over_time || 0;
 
-    // バリデーションチェック
     if (!data.work_time || !data.tyoku2 || !data.time_work || !formattedTime1 || !formattedTime2) {
       setErrorMessage("入力必要項目が入力されていません。");
       return;
@@ -275,7 +260,6 @@ const KosuNew: React.FC = () => {
       break_change: isBreakChangeChecked,
     };
 
-    // バックエンドへのPOSTリクエスト。
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, updatedData, { withCredentials: true })
       .then(() => {
@@ -283,7 +267,6 @@ const KosuNew: React.FC = () => {
         updateCachedTimes(selectedTimes.time1, selectedTimes.time2);
         fetchData();
 
-        // 成功後、次の入力のために開始時刻を直前の終了時刻に設定する。
         if (formattedTime2) {
           const workDay = new Date(data.work_day2);
           setSelectedTimes({
@@ -294,7 +277,6 @@ const KosuNew: React.FC = () => {
           localStorage.setItem("time2", formattedTime2);
         }
 
-        // フォームをリセットする。
         setData({
           ...data,
           time_work: "",
@@ -311,13 +293,12 @@ const KosuNew: React.FC = () => {
       });
   };
 
-  // 残業時間のみを送信する関数。
   const handleSendOverTime = () => {
     if (!data) {
       return;
     }
     const overTime = data.over_time || 0;
-    // 残業時間のバリデーション
+
     if (data.work_time !== "休出" && overTime % 15 !== 0) {
       setErrorMessage("残業の最小単位は15分です。確認してください。");
       return;
@@ -326,7 +307,7 @@ const KosuNew: React.FC = () => {
       setErrorMessage("休出時の残業は(15n+5)分です。確認してください。");
       return;
     }
-    // バックエンドへのPOSTリクエスト。
+
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/over_time/`, data, { withCredentials: true })
       .then(() => {
@@ -338,7 +319,6 @@ const KosuNew: React.FC = () => {
       });
   };
 
-  // 残業時間の増減ボタンを処理する関数。
   const handleIncrement = (field: keyof Kosu) => {
     if (data) {
       setData({ ...data, [field]: (data[field] as number || 0) + 15 });
@@ -360,12 +340,10 @@ const KosuNew: React.FC = () => {
     }
   };
 
-  // コンポーネントがマウントされた時にデータを取得する。
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // `data.tyoku2` が変更された場合に時刻を更新する `useEffect`
   useEffect(() => {
     if (prevTyokuRef.current !== null && data?.tyoku2 && data.tyoku2 !== prevTyokuRef.current) {
       const workDay = data ? new Date(data.work_day2) : new Date();
@@ -400,6 +378,8 @@ const KosuNew: React.FC = () => {
       prevTyokuRef.current = data.tyoku2;
     }
   }, [data?.tyoku2, memberShop, data?.work_day2, data]);
+
+  if (loading) return <div><Loading isLoading={loading} /></div>;
 
   return (
     <>

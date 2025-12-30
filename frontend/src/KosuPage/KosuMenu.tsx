@@ -3,8 +3,6 @@ import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import styles from "../styles/KosuPage/KosuMenu.module.css";
 
-
-
 interface Member {
   employee_no: number;
   name: string;
@@ -16,23 +14,20 @@ const KosuMenu: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios
-      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_menu/`, {
-        withCredentials: true,
-      })
-      .then(() => {
+    const fetchMenu = async () => {
+      try {
+        await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_menu/`, {withCredentials: true});
+      } catch (err: any) {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 401) navigate("/login");
+          else setError(err.response?.data.message);
+        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchMenu();
   }, [navigate]);
 
   if (loading) return <div>Loading...</div>;

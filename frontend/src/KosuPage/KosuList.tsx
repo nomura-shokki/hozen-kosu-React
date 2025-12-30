@@ -71,16 +71,9 @@ const KosuList: React.FC = () => {
       setTotalPages(Math.ceil(response.data.count / pageSize));
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError("予期しないエラーが発生しました");
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
       setLoading(false);
     }
@@ -146,6 +139,7 @@ const KosuList: React.FC = () => {
     return () => window.removeEventListener("resize", updateTableWidth);
   }, [data]);
 
+  if (loading) return <div><Loading isLoading={loading} /></div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
