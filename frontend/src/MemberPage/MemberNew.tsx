@@ -1,11 +1,10 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
-import axios from "axios"; // HTTPクライアント
-import ShopSelect from "../components/ShopSelect"; // ショップ選択コンポーネント
-import { Link, useNavigate } from "react-router-dom"; // 画面遷移に使用
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import ShopSelect from "../components/ShopSelect";
 import Loading from "../components/Loading";
-import styles from "../styles/MemberPage/MemberNew.module.css"; // CSSモジュール
+import styles from "../styles/MemberPage/MemberNew.module.css";
 
-// フォームで取り扱うデータ型を定義
 interface FormData {
   employee_no: number;
   name: string;
@@ -41,9 +40,10 @@ interface FormData {
 }
 
 const MemberNew: React.FC = () => {
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-  // 初期フォーム値と状態管理
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     employee_no: 0,
     name: "",
@@ -78,13 +78,6 @@ const MemberNew: React.FC = () => {
     def_prediction: false,
   });
 
-  // エラーメッセージ表示用の状態
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // ページ遷移用のフック
-  const navigate = useNavigate();
-
-  // 初回マウント時、ログインチェック（セッション確認）
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, { withCredentials: true })
@@ -104,19 +97,16 @@ const MemberNew: React.FC = () => {
       });
   }, [navigate]);
 
-  // 入力項目が変更されたときの処理
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = event.target;
 
     if (type === "checkbox") {
-      // チェックボックスのときは checked を利用
       const { checked } = event.target as HTMLInputElement;
       setFormData((prev) => ({
         ...prev,
         [name]: checked,
       }));
     } else {
-      // テキストやセレクトボックスなどは value を反映
       setFormData((prev) => ({
         ...prev,
         [name]: value,
@@ -124,17 +114,15 @@ const MemberNew: React.FC = () => {
     }
   };
 
-  // フォーム送信時の処理
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setErrorMessage(null); // エラーリセット
+    setErrorMessage(null);
 
     axios
       .post(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, formData, { withCredentials: true })
       .then((response) => {
         alert("登録完了！");
 
-        // フォームをリセット
         setFormData({
           employee_no: 0,
           name: "",
@@ -170,8 +158,6 @@ const MemberNew: React.FC = () => {
         });
       })
       .catch((error) => {
-        console.error(error);
-        // サーバーが返すエラーメッセージを表示
         if (error.response && error.response.data) {
           setErrorMessage(error.response.data.error);
         } else {
@@ -180,15 +166,8 @@ const MemberNew: React.FC = () => {
       });
   };
 
-  // ローディング中の表示
-  if (loading) {
-    return <div><Loading isLoading={loading} /></div>;
-  }
-
-  // エラー時の表示
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (errorMessage) return <div>Error: {errorMessage}</div>;
 
   return (
     <div className={styles["member-new-wrapper"]}>

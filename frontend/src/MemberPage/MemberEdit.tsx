@@ -5,7 +5,6 @@ import Loading from "../components/Loading";
 import ShopSelect from "../components/ShopSelect"; 
 import styles from "../styles/MemberPage/MemberEdit.module.css"; 
 
-// サーバーから取得・送信される人員データの型定義
 interface Member {
   employee_no: number;
   name: string;
@@ -51,52 +50,31 @@ interface Member {
 }
 
 const MemberEdit: React.FC = () => {
-  // URLパラメータから従業員番号（文字列）を取得 → 数値に変換
+  const navigate = useNavigate();
   const { employee_no } = useParams<{ employee_no: string }>();
   const employeeNo = Number(employee_no);
-
-  const navigate = useNavigate(); // 画面遷移用フック
-
-  // 各ステート定義（人員情報、ロード状態、エラー表示など）
   const [formData, setFormData] = useState<Member | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // 初回マウント時に該当従業員のデータを取得
   useEffect(() => {
-    axios
-      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, { withCredentials: true })
-      .then((response) => {
-        setFormData(response.data); // 取得したデータをステートに格納
+    const fetchMember = async () => {
+      try {
+        const response = await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, { withCredentials: true });
+        setFormData(response.data);
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 401) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
+          else setErrorMessage(err.response?.data.message);
+        } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchMember();
   }, [employeeNo, navigate]);
-
-  // ローディング中の表示
-  if (loading) {
-    return <div><Loading isLoading={loading} /></div>;
-  }
-
-  // エラー時の表示
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-  // データが存在しない場合
-  if (!formData) {
-    return <div>データが見つかりません</div>;
-  }
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -123,28 +101,28 @@ const MemberEdit: React.FC = () => {
     }
   };
 
-  // フォーム送信時（PUTで更新）
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // ページリロード防止
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-    axios
-      .put(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, formData, { withCredentials: true })
-      .then(() => {
-        alert("データが更新されました！");
-        navigate("/member-list"); // 更新完了後は一覧ページへ
-      })
-      .catch((error) => {
-        console.error(error);
-        // エラー内容を表示
-        if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.error);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
-      });
+    try {
+      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`,
+        formData,
+        { withCredentials: true }
+      );
+      alert("データが更新されました！");
+      navigate("/member-list");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    }
   };
 
-  // JSXで画面描画
+  if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (errorMessage) return <div>Error: {errorMessage}</div>;
+  if (!formData) return <div>データが見つかりません</div>;
+
   return (
     <>
       <Loading isLoading={loading} />

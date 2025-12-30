@@ -13,9 +13,9 @@ interface Member {
 }
 
 const MemberDelete: React.FC = () => {
+  const navigate = useNavigate();
   const { employee_no } = useParams<{ employee_no: string }>();
   const employeeNo = Number(employee_no);
-  const navigate = useNavigate();
   const [record, setRecord] = useState<Member | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,22 +24,22 @@ const MemberDelete: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
 
   useEffect(() => {
-    axios
-      .get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, { withCredentials: true })
-      .then((response) => {
-        setRecord(response.data); 
+    const fetchMember = async () => {
+      try {
+        const response = await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, { withCredentials: true });
+        setRecord(response.data);
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 401) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
+          else setError(err.response?.data.message);
+        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchMember();
   }, [employeeNo, navigate]);
 
   useEffect(() => {
@@ -48,7 +48,6 @@ const MemberDelete: React.FC = () => {
       setMaxHeight(window.innerHeight - headerHeight - 40);
     };
 
-    // テーブルの幅を更新
     const updateTableWidth = () => {
       if (tableRef.current) {
         setTableWidth(tableRef.current.offsetWidth + 5);
@@ -66,35 +65,27 @@ const MemberDelete: React.FC = () => {
     };
   }, [record]);
 
-  if (loading) {
-    return <div><Loading isLoading={loading} /></div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-  if (!record) {
-    return <div>データが見つかりません</div>;
-  }
-
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const confirmed = window.confirm("人員情報を削除すると該当人員の工数入力が見えなくなります。特別な意図がない場合は人員情報の編集でショップ選択を退社に変えるのみにして下さい。削除しますか？");
     if (!confirmed) {
       return;
     }
 
-    axios
-      .delete(`${process.env.REACT_APP_API_BASE_URL}/api/member_delete/${employeeNo}/`, { withCredentials: true })
-      .then(() => {
-        alert("削除が完了しました");
-        navigate("/member-list");
-      })
-      .catch((error) => {
-        console.error(error);
-        alert("削除時にエラーが発生しました");
-      });
+    try {
+      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/member_delete/${employeeNo}/`, { withCredentials: true });
+      alert("削除が完了しました");
+      navigate("/member-list");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+    }
   };
+
+  if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!record) return <div>データが見つかりません</div>;
 
   return (
     <>

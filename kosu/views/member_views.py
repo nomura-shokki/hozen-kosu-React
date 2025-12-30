@@ -146,7 +146,6 @@ class MemberNew(APIView):
 
 
 
-
 # 人員データ編集動作
 class MemberUpdate(APIView):
   def get_object(self, pk):
@@ -210,19 +209,6 @@ class MemberDelete(APIView):
 
 
   def delete(self, request, pk):
-    # セッションからログイン情報を取得
-    login_no = request.session.get('login_No')
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '権限確認中にエラーが発生しました'}, status=status.HTTP_403_FORBIDDEN)
-    if not member_data.authority:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
-
     # 削除対象のオブジェクトを取得
     member_instance = self.get_object(pk)
     if member_instance is None:

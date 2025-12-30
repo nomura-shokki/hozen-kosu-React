@@ -5,9 +5,7 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import KosuList from "../../KosuPage/KosuList";
 
-/**
- * axiosのモック化
- */
+// axiosのモック化
 vi.mock("axios", () => ({
   default: {
     get: vi.fn(),
@@ -17,9 +15,7 @@ vi.mock("axios", () => ({
 
 const mockedAxios = axios as any;
 
-/**
- * useNavigateのモック化
- */
+// useNavigateのモック化
 const mockedNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");

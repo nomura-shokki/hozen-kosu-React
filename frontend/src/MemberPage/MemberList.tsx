@@ -1,68 +1,57 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import Loading from "../components/Loading";
 import ShopSelect from "../components/ShopSelect";
 import styles from "../styles/MemberPage/MemberList.module.css";
 
-// Member 型定義。従業員情報のデータ構造を示す
 interface Member {
-  employee_no: number; // 従業員番号
-  name: string; // 氏名
-  shop: string; // ショップ名
-  authority: boolean; // 権限の有無
-  administrator: boolean; // 管理者権限の有無
+  employee_no: number;
+  name: string;
+  shop: string;
+  authority: boolean;
+  administrator: boolean;
 }
 
 const MemberList: React.FC = () => {
-  // useStateフックで状態管理: 各種データ、エラー情報、ローディング状態など
-  const [data, setData] = useState<Member[]>([]); // 従業員データ
-  const [loading, setLoading] = useState<boolean>(true); // データロード中状態
-  const [error, setError] = useState<string | null>(null); // エラーメッセージ
-  const [searchNumber, setSearchNumber] = useState<string>(""); // 従業員番号の検索条件
-  const [searchShop, setSearchShop] = useState<string>(""); // ショップ名の検索条件
-  const [currentFilterNumber, setCurrentFilterNumber] = useState<string>(""); // 現在適用中の従業員番号フィルター
-  const [currentFilterShop, setCurrentFilterShop] = useState<string>(""); // 現在適用中のショップフィルター
-  const [currentPage, setCurrentPage] = useState<number>(1); // 現在のページ番号
-  const [totalPages, setTotalPages] = useState<number>(0); // 全ページ数
-  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight); // テーブルの最大高さ
-  const [tableWidth, setTableWidth] = useState<number>(0); // テーブルの幅
-  const tableRef = useRef<HTMLTableElement>(null); // テーブル要素の参照
-  const navigate = useNavigate(); // ルートナビゲーション用
+  const [data, setData] = useState<Member[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchNumber, setSearchNumber] = useState<string>("");
+  const [searchShop, setSearchShop] = useState<string>("");
+  const [currentFilterNumber, setCurrentFilterNumber] = useState<string>("");
+  const [currentFilterShop, setCurrentFilterShop] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
+  const [tableWidth, setTableWidth] = useState<number>(0);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const navigate = useNavigate();
 
-  // データをAPIから取得する関数。useCallbackで最適化
   const fetchData = useCallback(async () => {
-    setLoading(true); // ローディング状態をtrueに設定
+    setLoading(true);
     try {
-      // APIコールでデータを取得
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/member_list/`, {
         params: {
           page: currentPage, // 現在のページ番号を使用
           employee_no: currentFilterNumber,
           shop: currentFilterShop,
         },
-        withCredentials: true, // クッキーを含めたリクエスト
+        withCredentials: true,
       });
 
-      const results = response.data.results || []; // 結果データの取得（デフォルト空配列）
-      const pageSize = response.data.page_size || 20; // 1ページのデータ数（デフォルト20）
-      setData(results); // データをステートに保存
-      setTotalPages(Math.ceil(response.data.count / pageSize)); // 全ページ数を計算して設定
+      const results = response.data.results || [];
+      const pageSize = response.data.page_size || 20;
+      setData(results);
+      setTotalPages(Math.ceil(response.data.count / pageSize));
     } catch (err) {
-      // エラーハンドリング
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) {
-          navigate("/login"); // 認証エラーでログイン画面へリダイレクト
-        } else if (err.response?.status === 403) {
-          navigate("/"); // 権限エラーでホームにリダイレクト
-        } else {
-          setError(err.message); // それ以外のエラーはメッセージを表示
-        }
-      } else {
-        setError("予期しないエラーが発生しました"); // その他の捕捉エラー
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
-      setLoading(false); // ローディング状態を終了
+      setLoading(false);
     }
   }, [currentPage, navigate, currentFilterNumber, currentFilterShop]);
 
@@ -70,7 +59,6 @@ const MemberList: React.FC = () => {
     fetchData();
   }, [currentPage, fetchData]);
 
-  // 検索条件を適用してデータを再取得
   const handleSearch = () => {
     setCurrentFilterNumber(searchNumber);
     setCurrentFilterShop(searchShop);
@@ -82,28 +70,26 @@ const MemberList: React.FC = () => {
     }
   };
 
-  // ページ送り関連のハンドラ (変更なし)
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1); // 次ページに進む
+      setCurrentPage(currentPage + 1);
     }
   };
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1); // 前ページに戻る
+      setCurrentPage(currentPage - 1);
     }
   };
 
   const handleFirstPage = () => {
-    setCurrentPage(1); // 最初のページに移動
+    setCurrentPage(1);
   };
 
   const handleLastPage = () => {
-    setCurrentPage(totalPages); // 最後のページに移動
+    setCurrentPage(totalPages);
   };
 
-  // ウィンドウサイズ変更時にテーブルの最大高さを再計算
   useEffect(() => {
     const updateMaxHeight = () => {
       const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0;
@@ -112,11 +98,10 @@ const MemberList: React.FC = () => {
     };
 
     updateMaxHeight();
-    window.addEventListener("resize", updateMaxHeight); // リサイズイベントのリスナー追加
-    return () => window.removeEventListener("resize", updateMaxHeight); // クリーンアップ
+    window.addEventListener("resize", updateMaxHeight);
+    return () => window.removeEventListener("resize", updateMaxHeight);
   }, []);
 
-  // テーブルの幅を更新するuseEffect
   useEffect(() => {
     const updateTableWidth = () => {
       if (tableRef.current) {
@@ -126,25 +111,21 @@ const MemberList: React.FC = () => {
 
     updateTableWidth();
     window.addEventListener("resize", updateTableWidth);
-    return () => window.removeEventListener("resize", updateTableWidth); // リサイズイベント
+    return () => window.removeEventListener("resize", updateTableWidth);
   }, [data]);
 
-  // エラーが発生した場合はエラーメッセージを表示
   if (error) return <div>Error: {error}</div>;
   if (loading) return <div><Loading isLoading={loading} /></div>;
 
   return (
     <>
       <Loading isLoading={loading} />
-      {/* コンテンツ全体のラッパー */}
       <div className={styles["member-list-wrapper"]}>
         <h1 className={styles["h1-collar"]}>人員データ一覧</h1>
         <nav className={styles["member-nav"]}>
-          {/* 人員MENUへのリンク */}
           <Link to="/member-menu">人員MENU</Link>
         </nav>
         <div className={styles["search-bar"]}>
-          {/* 検索用のフィルター入力 */}
           <label>
             従業員番号：
             <input
@@ -170,16 +151,14 @@ const MemberList: React.FC = () => {
           <div
             className={styles["table-wrapper"]}
             style={{
-              maxHeight: `${maxHeight}px`, // テーブルの縦サイズを設定
+              maxHeight: `${maxHeight}px`,
               overflowY: "auto",
-              width: `${tableWidth + 20}px`, // テーブル横サイズを設定
+              width: `${tableWidth + 20}px`,
             }}
           >
-            {/* データ表示用のテーブル */}
             <table ref={tableRef}>
               <thead>
                 <tr>
-                  {/* テーブルヘッダ */}
                   <th className={styles["th-collar"]}>従業員番号</th>
                   <th className={styles["th-collar"]}>氏名</th>
                   <th className={styles["th-collar"]}>ショップ</th>
@@ -190,7 +169,6 @@ const MemberList: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {/* データ一覧を表示 */}
                 {data.map((item) => (
                   <tr key={item.employee_no}>
                     <td>{item.employee_no}</td>
@@ -198,7 +176,6 @@ const MemberList: React.FC = () => {
                     <td>{item.shop}</td>
                     <td>{item.authority ? "有" : "無"}</td>
                     <td>{item.administrator ? "有" : "無"}</td>
-                    {/* 編集・削除リンク */}
                     <td>
                       <Link to={`/member-update/${item.employee_no}`} className={styles["a-collar"]}>編集</Link>
                     </td>
@@ -209,7 +186,6 @@ const MemberList: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            {/* ページネーション */}
             <div className={styles["pagination"]}>
               <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handleFirstPage}>
                 最初
