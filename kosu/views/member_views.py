@@ -62,12 +62,14 @@ class MemberNew(APIView):
       return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     try:
+      # ログインユーザーのデータ取得
       member_data = member.objects.get(employee_no=login_no)
+      # 権限がない場合はMenu画面へ
+      if not member_data.authority:
+        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '該当するデータが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    if not member_data.authority:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+      # 人員情報取得できない場合エラー
+      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data)
@@ -77,10 +79,7 @@ class MemberNew(APIView):
     data = request.data
 
     if member.objects.filter(employee_no=data.get('employee_no')).exists():
-      return Response(
-        {'status': 'error', 'message': '入力した従業員番号はすでに登録されています。'},
-        status=status.HTTP_400_BAD_REQUEST
-      )
+      return Response({'status': 'error', 'message': '入力した従業員番号はすでに登録されています。'}, status=status.HTTP_400_BAD_REQUEST)
 
     if data.get('shop') in ['W1', 'W2', 'A1', 'A2', 'J', '組長以上(W,A)']:
       data.update({
@@ -195,7 +194,6 @@ class MemberUpdate(APIView):
       serializer.save()
       return Response(serializer.data, status=status.HTTP_200_OK)
     return Response({'status': 'error', 'message': 'バリテーションエラー'}, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 

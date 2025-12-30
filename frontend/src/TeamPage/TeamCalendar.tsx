@@ -21,11 +21,13 @@ type KosuMap = {
 };
 
 const TeamCalendar: React.FC = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState<Kosu[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
   const [tableWidth, setTableWidth] = useState<number>(0);
+  const tableRef = useRef<HTMLTableElement>(null);
   const [searchDays, setSearchDays] = useState<string[]>([]);
   const [memberNames, setMemberNames] = useState<[number, string][]>([]);
   const [kosuMap, setKosuMap] = useState<KosuMap>({});
@@ -33,51 +35,39 @@ const TeamCalendar: React.FC = () => {
     new Date().toISOString().substring(0, 10)
   );
 
-  const tableRef = useRef<HTMLTableElement>(null);
-  const navigate = useNavigate();
-
   const getNearestSunday = (dateString: string): Date => {
     const date = new Date(dateString);
-    // getDay() は日曜日を 0、月曜日を 1 ... 土曜日を 6 として返す
-    // 日付から現在の日を引いて、日曜日（0）に調整する
     date.setDate(date.getDate() - date.getDay());
     return date;
   };
 
-  // データを取得する関数
-  // 引数 forceRefetch を追加し、POST後に強制的に再取得を行うために使用
   const fetchData = useCallback(async () => {
-    setLoading(true); // ローディング状態を開始
+    setLoading(true);
     axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_calendar/`, { withCredentials: true })
       .then((response) => {
         const results = response.data.kosu_data || [];
-        const searchDayString: string = response.data.Search_day; // ここで日付データを取得
-        const memberNameList: [number, string][] = response.data.member_name_list || []; // ここで班員名リストを取得
-        setMemberNames(memberNameList); // 班員名リストをstateに設定
+        const searchDayString: string = response.data.Search_day;
+        const memberNameList: [number, string][] = response.data.member_name_list || [];
+        setMemberNames(memberNameList);
 
-        // 1. 直近の日曜日を計算
         if (searchDayString) {
-          // 検索日で選択した日付のstateを更新
           setSelectedDay(searchDayString);
 
           const sunday = getNearestSunday(searchDayString);
           const sevenDays: string[] = [];
 
-          // 2. 日曜日から始まる7日間の日付を作成
           for (let i = 0; i < 7; i++) {
             const date = new Date(sunday);
             date.setDate(sunday.getDate() + i);
 
-            // YYYY-MM-DD 形式にフォーマット
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
             sevenDays.push(`${year}-${month}-${day}`);
           }
-          setSearchDays(sevenDays); // stateに設定
+          setSearchDays(sevenDays);
         }
 
-        // 取得したKosuデータをマップ形式に変換
         const newKosuMap: KosuMap = results.reduce((acc: KosuMap, item: Kosu) => {
           acc[`${item.employee_no3}_${item.work_day2}`] = item;
           return acc;
@@ -104,17 +94,14 @@ const TeamCalendar: React.FC = () => {
   }, [navigate]);
 
   const postData = async (day: string) => {
-    setLoading(true); // ローディング状態を開始
-    setError(null); // エラーをリセット
+    setLoading(true);
+    setError(null);
     try {
-      // 選択された日付を 'day' パラメータとしてPOST
-      await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/team_calendar/`,
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_calendar/`,
         { day: day },
         { withCredentials: true }
       );
-      
-      // POST成功後、GET処理を再度実行
+
       await fetchData(); 
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -134,13 +121,12 @@ const TeamCalendar: React.FC = () => {
   };
 
   const handleWeekJump = async (direction: 'B' | 'A') => {
-    setLoading(true); // ローディング状態を開始
-    setError(null); // エラーをリセット
+    setLoading(true);
+    setError(null);
     const errorPrefix = direction === 'B' ? '前週移動エラー' : '次週移動エラー';
     
     try {
-      await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/team_calendar_week_jump/`,
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_calendar_week_jump/`,
         { week: direction },
         { withCredentials: true }
       );
@@ -168,8 +154,7 @@ const TeamCalendar: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/team_export/`,
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_export/`,
         { day: selectedDay },
         { 
           withCredentials: true,
@@ -203,19 +188,16 @@ const TeamCalendar: React.FC = () => {
     }
   };
 
-  // 日付選択フォームの変更ハンドラ
   const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSelectedDay(e.target.value);
   };
 
-  // フォーム送信ハンドラ
   const handleSubmit = () => {
     if (selectedDay) {
       postData(selectedDay);
     }
   };
 
-  // コンポーネントマウント時に fetchData を実行
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -227,24 +209,21 @@ const TeamCalendar: React.FC = () => {
 
     updateMaxHeight();
 
-    // ウィンドウサイズが変更された際にも最大高さを再計算。
     window.addEventListener("resize", updateMaxHeight);
 
-    // コンポーネントがアンマウントされる際にリサイズイベントリスナーを削除し、メモリリークを防ぐ。
     return () => window.removeEventListener("resize", updateMaxHeight);
   }, []);
 
-  // テーブル幅を更新
   useEffect(() => {
     const updateTableWidth = () => {
       if (tableRef.current) {
-        setTableWidth(tableRef.current.offsetWidth); // 現在のテーブル幅をセット
+        setTableWidth(tableRef.current.offsetWidth);
       }
     };
 
     updateTableWidth();
-    window.addEventListener("resize", updateTableWidth); // リサイズ時にテーブル幅を再計算
-    return () => window.removeEventListener("resize", updateTableWidth); // クリーンアップ
+    window.addEventListener("resize", updateTableWidth);
+    return () => window.removeEventListener("resize", updateTableWidth);
   }, [data]);
 
   const formatTimeWork = (timeWorkString: string) => {
@@ -287,7 +266,6 @@ const TeamCalendar: React.FC = () => {
       }
     }
 
-    // 常に4行表示するように調整
     const paddedRanges = timeRanges.slice(0, 4);
     while (paddedRanges.length < 4) {
       paddedRanges.push("　");
@@ -298,15 +276,13 @@ const TeamCalendar: React.FC = () => {
     ));
   };
 
-
-  if (error) return <div>Error: {error}</div>;
-
-  // 日付を表示形式 (MM/DD) に変換するヘルパー関数
   const displayDate = (dateString: string) => {
     const parts = dateString.split('-');
-    // YYYY-MM-DD から MM/DD を抽出
     return `${parts[1]}/${parts[2]}`;
   };
+
+  if (error) return <div>Error: {error}</div>;
+  if (loading) return <div><Loading isLoading={loading} /></div>;
 
   return (
     <>

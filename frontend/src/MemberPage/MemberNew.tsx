@@ -42,7 +42,6 @@ interface FormData {
 const MemberNew: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     employee_no: 0,
@@ -79,22 +78,21 @@ const MemberNew: React.FC = () => {
   });
 
   useEffect(() => {
-    axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, { withCredentials: true })
-      .then(() => {
+    const checkAuth = async () => {
+      try {
+        await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, { withCredentials: true });
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 401) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
+          else setErrorMessage(err.response?.data.message);
+        } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        // 未認証や権限不足の場合のリダイレクト処理
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-        setLoading(false);
-      });
+      }
+    };
+
+    checkAuth();
   }, [navigate]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -114,60 +112,58 @@ const MemberNew: React.FC = () => {
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
 
-    axios
-      .post(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, formData, { withCredentials: true })
-      .then((response) => {
-        alert("登録完了！");
+    try {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, formData, { withCredentials: true });
+      alert("登録完了！");
 
-        setFormData({
-          employee_no: 0,
-          name: "",
-          shop: "",
-          authority: false,
-          administrator: false,
-          break_time1: "#00000000",
-          break_time1_over1: "#00000000",
-          break_time1_over2: "#00000000",
-          break_time1_over3: "#00000000",
-          break_time2: "#00000000",
-          break_time2_over1: "#00000000",
-          break_time2_over2: "#00000000",
-          break_time2_over3: "#00000000",
-          break_time3: "#00000000",
-          break_time3_over1: "#00000000",
-          break_time3_over2: "#00000000",
-          break_time3_over3: "#00000000",
-          break_time4: "#00000000",
-          break_time4_over1: "#00000000",
-          break_time4_over2: "#00000000",
-          break_time4_over3: "#00000000",
-          break_time5: "#00000000",
-          break_time5_over1: "#00000000",
-          break_time5_over2: "#00000000",
-          break_time5_over3: "#00000000",
-          break_time6: "#00000000",
-          break_time6_over1: "#00000000",
-          break_time6_over2: "#00000000",
-          break_time6_over3: "#00000000",
-          break_check: false,
-          def_prediction: false,
-        });
-      })
-      .catch((error) => {
-        if (error.response && error.response.data) {
-          setErrorMessage(error.response.data.error);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
+      setFormData({
+        employee_no: 0,
+        name: "",
+        shop: "",
+        authority: false,
+        administrator: false,
+        break_time1: "#00000000",
+        break_time1_over1: "#00000000",
+        break_time1_over2: "#00000000",
+        break_time1_over3: "#00000000",
+        break_time2: "#00000000",
+        break_time2_over1: "#00000000",
+        break_time2_over2: "#00000000",
+        break_time2_over3: "#00000000",
+        break_time3: "#00000000",
+        break_time3_over1: "#00000000",
+        break_time3_over2: "#00000000",
+        break_time3_over3: "#00000000",
+        break_time4: "#00000000",
+        break_time4_over1: "#00000000",
+        break_time4_over2: "#00000000",
+        break_time4_over3: "#00000000",
+        break_time5: "#00000000",
+        break_time5_over1: "#00000000",
+        break_time5_over2: "#00000000",
+        break_time5_over3: "#00000000",
+        break_time6: "#00000000",
+        break_time6_over1: "#00000000",
+        break_time6_over2: "#00000000",
+        break_time6_over3: "#00000000",
+        break_check: false,
+        def_prediction: false,
       });
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    }
   };
 
   if (loading) return <div><Loading isLoading={loading} /></div>;
-  if (errorMessage) return <div>Error: {errorMessage}</div>;
+  if (errorMessage && !formData.name) return <div>Error: {errorMessage}</div>;
 
   return (
     <div className={styles["member-new-wrapper"]}>
