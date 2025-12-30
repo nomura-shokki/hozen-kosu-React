@@ -13,7 +13,6 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { MobileTimePicker } from "@mui/x-date-pickers";
 
-// 工数データの型定義
 interface Kosu {
   id: string;
   employee_no3: number;
@@ -28,12 +27,10 @@ interface Kosu {
   break_change: boolean;
 }
 
-// 工数区分定義データの型定義
 interface DefData {
   [key: string]: string | undefined;
 }
 
-// 時刻を最も近い5分単位に丸める関数。
 const roundToNearestFiveMinutes = (date: Date, workDay: Date): Date => {
   const minutes = Math.floor(date.getMinutes() / 5) * 5;
   date.setMinutes(minutes, 0, 0);
@@ -57,6 +54,7 @@ const KosuNew: React.FC = () => {
   const [memberShop, setMemberShop] = useState<string>(""); // メンバーの所属部署
   const [isTomorrowChecked, setIsTomorrowChecked] = useState<boolean>(false); // 翌日チェックボックスの状態
   const [isBreakChangeChecked, setIsBreakChangeChecked] = useState<boolean>(false); // 休憩変更チェックボックスの状態
+  const prevTyokuRef = useRef<string | null>(null);
   const [selectedTimes, setSelectedTimes] = useState<{
     time1: Date | null;
     time2: Date | null;
@@ -73,10 +71,6 @@ const KosuNew: React.FC = () => {
     })(),
   });
 
-  // `tyoku2` の以前の値を追跡するための ref
-  const prevTyokuRef = useRef<string | null>(null);
-
-  // 時刻ピッカーの変更を処理する関数。
   const handleTimeChange = (
     field: "time1" | "time2",
     newTime: Date | null
@@ -84,7 +78,6 @@ const KosuNew: React.FC = () => {
     setSelectedTimes((prev) => ({ ...prev, [field]: newTime }));
   };
 
-  // 時刻をローカルストレージに保存するヘルパー関数。
   const updateCachedTimes = (time1: Date | null, time2: Date | null) => {
     if (time1) localStorage.setItem("time1", time1.toISOString());
     if (time2) localStorage.setItem("time2", time2.toISOString());
@@ -136,7 +129,6 @@ const KosuNew: React.FC = () => {
         setLoading(false);
       })
       .catch((error) => {
-        console.error("データ取得エラー:", error);
         handleError(error, "データの取得で想定外のエラーが発生しました");
         setLoading(false);
       });
@@ -294,9 +286,8 @@ const KosuNew: React.FC = () => {
   };
 
   const handleSendOverTime = () => {
-    if (!data) {
-      return;
-    }
+    if (!data) return;
+
     const overTime = data.over_time || 0;
 
     if (data.work_time !== "休出" && overTime % 15 !== 0) {
