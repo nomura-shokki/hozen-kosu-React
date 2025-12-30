@@ -4,8 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/TeamPage/TeamNew.module.css";
 import TeamMemberSelect from "../components/TeamMemberSelect";
 import ShopSelect from "../components/ShopSelect";
+import Loading from "../components/Loading";
 
-// フォームで取り扱うデータ型を定義
 interface FormData {
   employee_no5: number;
   member1: string;
@@ -54,12 +54,14 @@ const TeamNew: React.FC = () => {
   const [teamMemberOptions, setTeamMemberOptions] = useState<{ employee_no: number; name: string; shop: string }[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loggedInShop, setLoggedInShop] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios
-      .get(`${process.env.REACT_APP_API_BASE_URL}/api/team_new/`, { withCredentials: true })
-      .then((response) => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_new/`, { withCredentials: true });
         const memberSelectData =
           response.data.member_select.map(
             (member: { employee_no: number; name: string; shop: string }) => ({
@@ -82,7 +84,7 @@ const TeamNew: React.FC = () => {
           shop1: "",
           shop2: "",
         };
-        // member1-15 の初期値設定
+
         teamDefaultData.forEach((member: { employee_no: number }, index: number) => {
           const memberKey = `member${index + 1}` as keyof FormData;
           initialFields[memberKey] = String(member.employee_no);
@@ -103,17 +105,18 @@ const TeamNew: React.FC = () => {
             shop2: "", 
           };
         });
-      })
-      .catch((err) => {
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          console.error("不明なエラー:", err);
-          setErrorMessage("データ取得中にエラーが発生しました。");
-        }
-      });
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 401) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
+          else setErrorMessage(err.response?.data.message);
+        } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [navigate]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -133,37 +136,30 @@ const TeamNew: React.FC = () => {
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
+    setLoading(true);
 
-    axios
-      .post(`${process.env.REACT_APP_API_BASE_URL}/api/team_new/`, formData, { withCredentials: true })
-      .then(() => {
-        alert("データが更新されました！");
-        navigate("/team-menu");
-      })
-      .catch((error) => {
-        console.error(error);
-        if (error.response && error.response.data) {
-          const errors = error.response.data;
-          const errorMessages = Object.keys(errors)
-            .map((key) => `${key}: ${errors[key]}`)
-            .join("\n");
-          setErrorMessage(errorMessages);
-        } else {
-          setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
-      });
+    try {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_new/`, formData, { withCredentials: true });
+      alert("データが更新されました！");
+      navigate("/team-menu");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setErrorMessage(err.response?.data.message);
+      } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // メンバー選択コンポーネントの動的生成
   const renderMemberSelects = () => {
     const selects = [];
-    // 選択されたshop1とshop2の値を取得
     const selectedShops = [formData.shop1, formData.shop2].filter(Boolean);
 
-    // フィルタリングされたメンバーオプションを作成
     const filteredMemberOptions = teamMemberOptions.filter((member) =>
       selectedShops.length === 0 || selectedShops.includes(member.shop)
     );
@@ -188,74 +184,79 @@ const TeamNew: React.FC = () => {
     return selects;
   };
 
-  // フィルターを表示する対象のショップを定義
   const shopsWithFilter = ["組長以上(P,R,T,その他)", "組長以上(W,A)"];
 
+  if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (errorMessage) return <div>Error: {errorMessage}</div>;
+
   return (
-    <div className={styles["team-new-wrapper"]}>
-      <h1 className={styles["h1-collar"]}>班員登録</h1>
-      <nav className={styles["team-nav"]}>
-        <Link to="/team-menu">班員MENU</Link>
-      </nav>
+    <>
+      <Loading isLoading={loading} />
+      <div className={styles["team-new-wrapper"]}>
+        <h1 className={styles["h1-collar"]}>班員登録</h1>
+        <nav className={styles["team-nav"]}>
+          <Link to="/team-menu">班員MENU</Link>
+        </nav>
 
-      {errorMessage && <div role="alert">{errorMessage}</div>}
-      {loggedInShop && shopsWithFilter.includes(loggedInShop) && (
-        <div className={styles["paling"]}>
+        {errorMessage && <div role="alert">{errorMessage}</div>}
+        {loggedInShop && shopsWithFilter.includes(loggedInShop) && (
+          <div className={styles["paling"]}>
+            <div className={styles["search-bar"]}>
+              <div className={styles["shop-label-wrapper"]}>
+                <label>ショップ絞り込み:</label>
+              </div>
+              <div className={styles["shop-select-container"]}>
+                <ShopSelect
+                  id="shop-select-1"
+                  name="shop1"
+                  value={formData.shop1}
+                  onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
+                />
+                <ShopSelect
+                  id="shop-select-2"
+                  name="shop2"
+                  value={formData.shop2}
+                  onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        <form
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
+              e.preventDefault();
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+          className={styles["form-width"]}
+        >
           <div className={styles["search-bar"]}>
-            <div className={styles["shop-label-wrapper"]}>
-              <label>ショップ絞り込み:</label>
+            <div className={styles["switch-wrapper"]}>
+              <label htmlFor="follow-checkbox">フォローON/OFF:</label>
+              <label className={styles["toggle-switch"]}>
+                <input
+                  type="checkbox"
+                  id="follow-checkbox"
+                  name="follow"
+                  checked={formData.follow}
+                  onChange={handleChange}
+                />
+                <span className={styles["toggle-slider"]}></span>
+              </label>
             </div>
-            <div className={styles["shop-select-container"]}>
-              <ShopSelect
-                id="shop-select-1"
-                name="shop1"
-                value={formData.shop1}
-                onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
-              />
-              <ShopSelect
-                id="shop-select-2"
-                name="shop2"
-                value={formData.shop2}
-                onChange={(event) => handleChange(event as ChangeEvent<HTMLSelectElement>)}
-              />
-            </div>
+
+            {renderMemberSelects()}
+
+            <button type="submit" className="orange_button">
+              登録
+            </button>
           </div>
-        </div>
-      )}
-
-      <form
-        onSubmit={handleSubmit}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "textarea") {
-            e.preventDefault();
-            (e.target as HTMLInputElement).blur();
-          }
-        }}
-        className={styles["form-width"]}
-      >
-        <div className={styles["search-bar"]}>
-          <div className={styles["switch-wrapper"]}>
-            <label htmlFor="follow-checkbox">フォローON/OFF:</label>
-            <label className={styles["toggle-switch"]}>
-              <input
-                type="checkbox"
-                id="follow-checkbox"
-                name="follow"
-                checked={formData.follow}
-                onChange={handleChange}
-              />
-              <span className={styles["toggle-slider"]}></span>
-            </label>
-          </div>
-
-          {renderMemberSelects()}
-
-          <button type="submit" className="orange_button">
-            登録
-          </button>
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
+    </>
   );
 };
 

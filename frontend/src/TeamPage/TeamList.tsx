@@ -39,40 +39,40 @@ const getDayOfWeek = (dateStr: string): string => {
 };
 
 const TeamList: React.FC = () => {
-  const [data, setData] = useState<Kosu[]>([]); // 表示する工数データ
-  const [loading, setLoading] = useState<boolean>(true); // データ読み込み中の状態
-  const [error, setError] = useState<string | null>(null); // エラーメッセージ
-  const [searchDay, setSearchDay] = useState<string>(""); // 日付入力値
-  const [searchByMonth, setSearchByMonth] = useState<boolean>(false); // 月検索フラグ
-  const [currentPage, setCurrentPage] = useState<number>(1); // 現在ページ
-  const [totalPages, setTotalPages] = useState<number>(0); // 総ページ数
-  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight); // テーブル最大高さ
-  const [tableWidth, setTableWidth] = useState<number>(0); // テーブル幅
-  const [teamMemberOptions, setTeamMemberOptions] = useState<TeamMember[]>([]); // 班員選択プルダウン選択肢
-  const [selectedMember, setSelectedMember] = useState<string>(""); // 選択メンバー従業員番号
-  const tableRef = useRef<HTMLTableElement>(null); // テーブル要素参照
-  const dateInputRef = useRef<HTMLInputElement>(null); // 日付入力参照
-
+  const [data, setData] = useState<Kosu[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchDay, setSearchDay] = useState<string>("");
+  const [searchByMonth, setSearchByMonth] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
+  const [tableWidth, setTableWidth] = useState<number>(0);
+  const [teamMemberOptions, setTeamMemberOptions] = useState<TeamMember[]>([]);
+  const [selectedMember, setSelectedMember] = useState<string>("");
+  const tableRef = useRef<HTMLTableElement>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const fetchData = useCallback((targetMode: boolean | null = null) => {
+  const fetchData = useCallback(async (targetMode: boolean | null = null) => {
     setLoading(true);
-    axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_list/`, {
-      params: {
-        page: currentPage,
-        ...(searchDay && {
-          day: searchDay,
-          mode: targetMode !== null ? (targetMode ? "month" : "day") : (searchByMonth ? "month" : "day"),
-          filter: "true",
-        }),
-        ...(selectedMember && {
-          member_id: selectedMember,
-        }),
-      },
-      withCredentials: true,
-    })
-    .then((response) => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_list/`, {
+        params: {
+          page: currentPage,
+          ...(searchDay && {
+            day: searchDay,
+            mode: targetMode !== null ? (targetMode ? "month" : "day") : (searchByMonth ? "month" : "day"),
+            filter: "true",
+          }),
+          ...(selectedMember && {
+            member_id: selectedMember,
+          }),
+        },
+        withCredentials: true,
+      });
+
       const paginationData = response.data?.pagination_data || {};
       const results = paginationData.results || [];
       const pageSize = response.data.page_size || 20;
@@ -90,17 +90,15 @@ const TeamList: React.FC = () => {
       setData(transformedData);
       setTeamMemberOptions(memberOptions);
       setTotalPages(Math.ceil(paginationData.count / pageSize));
-    })
-    .catch((err) => {
+    } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
-        else setError(err.message);
+        else setError(err.response?.data.message);
       } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-    })
-    .finally(() => {
+    } finally {
       setLoading(false);
-    });
+    }
   }, [currentPage, navigate, searchByMonth, searchDay, selectedMember]);
 
   useEffect(() => {
@@ -131,10 +129,8 @@ const TeamList: React.FC = () => {
     return () => window.removeEventListener("resize", updateMaxHeight);
   }, []); 
 
-  // 画面リサイズ時にテーブルの幅を更新
   useEffect(() => {
     const updateTableWidth = () => {
-      // `tableRef.current`が存在する場合にテーブルの幅を取得します。
       if (tableRef.current) {
         setTableWidth(tableRef.current.offsetWidth);
       }
@@ -177,8 +173,8 @@ const TeamList: React.FC = () => {
   };
 
   if (error) return <div>Error: {error}</div>;
+  if (loading) return <div><Loading isLoading={loading} /></div>;
 
-  // コンポーネントレンダリング
   return (
     <>
       <Loading isLoading={loading} />

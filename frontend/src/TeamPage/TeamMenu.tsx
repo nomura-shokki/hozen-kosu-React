@@ -15,37 +15,28 @@ const TeamMenu: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios
-      .get<TeamMenuData>(`${process.env.REACT_APP_API_BASE_URL}/api/team_menu/`, {withCredentials: true})
-      .then((response) => {
-        setTeamMenuData(response.data); 
-        setLoading(false);
-      })
-      .catch((err) => {
+    const fetchMenuData = async () => {
+      try {
+        const response = await axios.get<TeamMenuData>(`${process.env.REACT_APP_API_BASE_URL}/api/team_menu/`, { withCredentials: true });
+        setTeamMenuData(response.data);
+      } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 401) {
-            navigate("/login");
-          } else if (err.response?.status === 403) {
-            navigate("/");
-          } else {
-            setError(err.message);
-          }
-        } else {
-          setError("予期しないエラーが発生しました");
-        }
+          if (err.response?.status === 401) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
+          else setError(err.response?.data.message);
+        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchMenuData();
   }, [navigate]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
   const followMessages = teamMenuData?.follow_message_list || [];
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className={styles["menu-wrapper"]}>

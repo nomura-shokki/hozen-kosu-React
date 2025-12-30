@@ -33,16 +33,13 @@ const TeamOverTime: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
   const navigate = useNavigate();
 
-  // データを取得する関数
-  // 引数 forceRefetch を追加し、POST後に強制的に再取得を行うために使用
   const fetchData = useCallback(async () => {
-    setLoading(true); // ローディング状態を開始
+    setLoading(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_overtime/`, { withCredentials: true });
-
       const results = response.data.kosu_data || [];
-      const memberNameList: [number, string][] = response.data.member_name_list || []; // ここで班員名リストを取得
-      setMemberNames(memberNameList); // 班員名リストをstateに設定
+      const memberNameList: [number, string][] = response.data.member_name_list || [];
+      setMemberNames(memberNameList);
 
       const year = response.data.session_year;
       const month = response.data.session_month;
@@ -51,7 +48,6 @@ const TeamOverTime: React.FC = () => {
         setSessionMonth(month);
       }
 
-      // 取得したKosuデータをマップ形式に変換
       const newKosuMap: KosuMap = results.reduce((acc: KosuMap, item: Kosu) => {
         acc[`${item.employee_no3}_${item.work_day2}`] = item;
         return acc;
@@ -60,16 +56,10 @@ const TeamOverTime: React.FC = () => {
       setData(results);
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401 || err.response?.status === 404) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError("予期しないエラーが発生しました");
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
       setLoading(false);
     }
@@ -85,16 +75,10 @@ const TeamOverTime: React.FC = () => {
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401 || err.response?.status === 404) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError("予期しないエラーが発生しました");
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
       setLoading(false);
     }
@@ -108,30 +92,23 @@ const TeamOverTime: React.FC = () => {
     const updateMaxHeight = () => {
       setMaxHeight(window.innerHeight);
     };
-
     updateMaxHeight();
-
-    // ウィンドウサイズが変更された際にも最大高さを再計算。
     window.addEventListener("resize", updateMaxHeight);
 
-    // コンポーネントがアンマウントされる際にリサイズイベントリスナーを削除し、メモリリークを防ぐ。
     return () => window.removeEventListener("resize", updateMaxHeight);
   }, []);
 
-  // テーブル幅を更新
   useEffect(() => {
     const updateTableWidth = () => {
       if (tableRef.current) {
-        setTableWidth(tableRef.current.offsetWidth); // 現在のテーブル幅をセット
+        setTableWidth(tableRef.current.offsetWidth);
       }
     };
 
     updateTableWidth();
-    window.addEventListener("resize", updateTableWidth); // リサイズ時にテーブル幅を再計算
-    return () => window.removeEventListener("resize", updateTableWidth); // クリーンアップ
+    window.addEventListener("resize", updateTableWidth);
+    return () => window.removeEventListener("resize", updateTableWidth);
   }, [data]);
-
-  if (error) return <div>Error: {error}</div>;
 
   const generateDatesAndWeekdays = (year: number, month: number) => {
     const dateList: { day: number, weekday: string, fullDate: string }[] = [];
@@ -181,6 +158,9 @@ const TeamOverTime: React.FC = () => {
     }
     return years;
   };
+
+  if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <>

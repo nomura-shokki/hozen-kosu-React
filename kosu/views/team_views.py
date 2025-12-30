@@ -71,8 +71,6 @@ class TeamNew(APIView):
   def post(self, request):
     data = request.data
     login_no = request.session.get('login_No')
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     team_data, created = team_member.objects.get_or_create(
       employee_no5=login_no,
@@ -516,7 +514,7 @@ class TeamView(APIView):
     # セッション値取得
     request.session['year'] = request.data.get('year')
     request.session['month'] = request.data.get('month')
-    return Response({'status': 'success', 'message': 'カレンダーが更新されました。'})
+    return Response({'status': 'success', 'message': 'カレンダーが更新されました。'}, status=status.HTTP_200_OK)
 
 
 
@@ -525,7 +523,7 @@ class TeamShopSelect(APIView):
   def post(self, request):
     # セッション値取得
     request.session['shop'] = request.data.get('shop_default')
-    return Response({'status': 'success', 'message': '表示ショップが更新されました。'})
+    return Response({'status': 'success', 'message': '表示ショップが更新されました。'}, status=status.HTTP_200_OK)
 
 
 

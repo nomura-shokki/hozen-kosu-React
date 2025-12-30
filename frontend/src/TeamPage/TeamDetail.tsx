@@ -50,28 +50,28 @@ const TeamDetail: React.FC = () => {
   const [initialWorkDetail, setInitialWorkDetail] = useState<string | null>(null);
 
   useEffect(() => {
-    axios
-      .get<KosuResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/team_detail/${id}/`, { withCredentials: true })
-      .then((response) => {
-        const { kosu_data } = response.data;
+    const fetchTeamDetail = async () => {
+      try {
+        const response = await axios.get<KosuResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/team_detail/${id}/`,{ withCredentials: true });
+        const { kosu_data, def_data, member_data } = response.data;
         setFormData(kosu_data);
-        const def_data = response.data.def_data || {};
-        setDefData(def_data);
-        const member_data = response.data.member_data;
+        setDefData(def_data || {});
         setMemberData(member_data);
         setInitialTimeWork(kosu_data.time_work);
         setInitialWorkDetail(kosu_data.detail_work);
         setInitialTyoku(kosu_data.tyoku2);
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 401) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
+          else setError(err.response?.data.message);
+        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        if (err.response?.status === 401) {
-          navigate("/login");
-        } else {
-          setError(err.message);
-        }
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchTeamDetail();
   }, [id, navigate]);
 
   const tyokuMapping: { [key: string]: string } = {
@@ -82,8 +82,6 @@ const TeamDetail: React.FC = () => {
     "5": "連1直",
     "6": "連2直",
   };
-
-  const tyokuDisplayName = tyokuMapping[formData.tyoku2] || formData.tyoku2;
 
   const formatWorkDay = (dateString: string): string => {
     const date = new Date(dateString);
@@ -100,12 +98,14 @@ const TeamDetail: React.FC = () => {
 
     return `${year}年${month}月${day}日(${dayOfWeek})`;
   };
-  
-  const displayDate = formatWorkDay(formData.work_day2);
 
   if (loading) return <div><Loading isLoading={loading} /></div>;
   if (error) return <div>Error: {error}</div>;
   if (!formData) return <div>データが見つかりません</div>;
+
+  const tyokuDisplayName = tyokuMapping[formData.tyoku2] || formData.tyoku2;
+  const displayDate = formatWorkDay(formData.work_day2);
+
   return (
     <>
       <Loading isLoading={loading} />
