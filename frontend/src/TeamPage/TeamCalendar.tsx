@@ -43,54 +43,46 @@ const TeamCalendar: React.FC = () => {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_calendar/`, { withCredentials: true })
-      .then((response) => {
-        const results = response.data.kosu_data || [];
-        const searchDayString: string = response.data.Search_day;
-        const memberNameList: [number, string][] = response.data.member_name_list || [];
-        setMemberNames(memberNameList);
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_calendar/`, { withCredentials: true });
+      const results = response.data.kosu_data || [];
+      const searchDayString: string = response.data.Search_day;
+      const memberNameList: [number, string][] = response.data.member_name_list || [];
+      setMemberNames(memberNameList);
 
-        if (searchDayString) {
-          setSelectedDay(searchDayString);
+      if (searchDayString) {
+        setSelectedDay(searchDayString);
 
-          const sunday = getNearestSunday(searchDayString);
-          const sevenDays: string[] = [];
+        const sunday = getNearestSunday(searchDayString);
+        const sevenDays: string[] = [];
 
-          for (let i = 0; i < 7; i++) {
-            const date = new Date(sunday);
-            date.setDate(sunday.getDate() + i);
+        for (let i = 0; i < 7; i++) {
+          const date = new Date(sunday);
+          date.setDate(sunday.getDate() + i);
 
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            sevenDays.push(`${year}-${month}-${day}`);
-          }
-          setSearchDays(sevenDays);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          sevenDays.push(`${year}-${month}-${day}`);
         }
+        setSearchDays(sevenDays);
+      }
 
-        const newKosuMap: KosuMap = results.reduce((acc: KosuMap, item: Kosu) => {
-          acc[`${item.employee_no3}_${item.work_day2}`] = item;
-          return acc;
-        }, {});
-        setKosuMap(newKosuMap);
-        setData(results);
-      })
-      .catch((err) => {
-        if (axios.isAxiosError(err)) {
-          if (err.response?.status === 401 || err.response?.status === 404) {
-            navigate("/login");
-          } else if (err.response?.status === 403) {
-            navigate("/");
-          } else {
-            setError(err.message);
-          }
-        } else {
-          setError("予期しないエラーが発生しました");
-        }
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      const newKosuMap: KosuMap = results.reduce((acc: KosuMap, item: Kosu) => {
+        acc[`${item.employee_no3}_${item.work_day2}`] = item;
+        return acc;
+      }, {});
+      setKosuMap(newKosuMap);
+      setData(results);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+    } finally {
+      setLoading(false);
+    }
   }, [navigate]);
 
   const postData = async (day: string) => {
@@ -105,16 +97,10 @@ const TeamCalendar: React.FC = () => {
       await fetchData(); 
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401 || err.response?.status === 404) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(`POSTエラー: ${err.message}`);
-        }
-      } else {
-        setError("予期しないPOSTエラーが発生しました");
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
       setLoading(false);
     }
@@ -134,16 +120,10 @@ const TeamCalendar: React.FC = () => {
       await fetchData(); 
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401 || err.response?.status === 404) {
-          navigate("/login");
-        } else if (err.response?.status === 403) {
-          navigate("/");
-        } else {
-          setError(`${errorPrefix}: ${err.message}`);
-        }
-      } else {
-        setError(`予期しない${errorPrefix}が発生しました`);
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
       setLoading(false);
     }
@@ -179,10 +159,10 @@ const TeamCalendar: React.FC = () => {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        setError(`Excel出力エラー: ${err.message}`);
-      } else {
-        setError("予期しないExcel出力エラーが発生しました");
-      }
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
       setLoading(false);
     }

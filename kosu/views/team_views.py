@@ -312,7 +312,7 @@ class TeamCalendar(APIView):
   # POST処理
   def post(self, request):
     request.session['day'] = request.data.get('day',str(datetime.date.today()))
-    return Response({'status': 'success', 'message': '日付セッションを更新しました。'})
+    return Response({'status': 'success', 'message': '日付セッションを更新しました。'}, status=status.HTTP_200_OK)
 
 
 
@@ -332,7 +332,7 @@ class TeamCalendarWeekJump(APIView):
       date_object = datetime_object.date() + datetime.timedelta(days=7)
     request.session['day'] = str(date_object)
 
-    return Response({'status': 'success', 'message': '日付セッションを更新しました。'})
+    return Response({'status': 'success', 'message': '日付セッションを更新しました。'}, status=status.HTTP_200_OK)
 
 
 
@@ -342,10 +342,6 @@ class TeamExport(APIView):
   def post(self, request):
     # セッション値取得
     login_no = request.session.get('login_No')
-
-    # セッション値なしエラー
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 指定日の年,月取得し記録
     today = datetime.datetime.strptime(request.data.get('day'), '%Y-%m-%d')

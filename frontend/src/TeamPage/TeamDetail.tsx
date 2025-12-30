@@ -1,98 +1,78 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import KosuBarChart from "../components/KosuBarChart"; // 工数データを視覚化するカスタムコンポーネント
+import KosuBarChart from "../components/KosuBarChart";
 import KosuDisplay from "../components/KosuDisplay";
-import DefTable from "../components/DefTable"; // 定義データを表示するカスタムコンポーネント
-import Loading from "../components/Loading"; // ローディング画面を表示するカスタムコンポーネント
+import DefTable from "../components/DefTable";
+import Loading from "../components/Loading";
 import styles from "../styles/TeamPage/TeamDetail.module.css";
 
-// 工数データの型定義
 interface Kosu {
-  employee_no3: number; // 従業員番号
+  employee_no3: number;
   name: string;
-  work_day2: string; // 就業日 (YYYY-MM-DD形式の文字列)
-  tyoku2: string; // 直 (勤務シフト)
-  time_work: string; // 作業時間データ (文字列、おそらくエンコードされた形式)
-  detail_work: string; // 作業詳細データ
-  over_time: number; // 残業時間 (分単位)
-  work_time: string; // 勤務形態
-  def_ver2: string; // 定義バージョン
-  judgement: boolean; // 判定結果 (OK/NG)
-  break_change: boolean; // 休憩変更フラグ
+  work_day2: string;
+  tyoku2: string;
+  time_work: string;
+  detail_work: string;
+  over_time: number;
+  work_time: string;
+  def_ver2: string; 
+  judgement: boolean;
+  break_change: boolean;
 }
 
-// 定義データの型定義
 interface DefData {
   [key: string]: string | undefined;
 }
 
-// メンバー情報の型定義
 interface Member {
-  employee_no: number; // 従業員番号
-  name: string; // 氏名
-  shop: string; // 所属部署/職場
+  employee_no: number;
+  name: string;
+  shop: string;
 }
 
-// APIからのレスポンスデータの型定義
 interface KosuResponse {
-  kosu_data: Kosu; // 工数データ本体
-  def_data: DefData; // 定義データ
-  member_data: Member; // メンバー情報
+  kosu_data: Kosu;
+  def_data: DefData;
+  member_data: Member;
 }
 
-// KosuEditコンポーネントの定義
 const TeamDetail: React.FC = () => {
-  const navigate = useNavigate(); // 画面遷移のためのフック
-  const [formData, setFormData] = useState<Kosu | null>(null); // 編集対象の工数データ
-  const [loading, setLoading] = useState<boolean>(true); // ローディング状態
-  const [error, setError] = useState<string | null>(null); // フェッチ時のエラーメッセージ
-  const { id } = useParams<{ id: string }>(); // URLパラメータから工数データのIDを取得
-  const [defData, setDefData] = useState<DefData>({}); // 定義データ (作業内容の名称など)
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<Kosu | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const { id } = useParams<{ id: string }>();
+  const [defData, setDefData] = useState<DefData>({});
   const [memberData, setMemberData] = useState<Member | null>(null);
-  const [initialTimeWork, setInitialTimeWork] = useState<string | null>(null); // 初期表示用のtime_work (チャート用)
-  const [initialTyoku, setInitialTyoku] = useState<string | null>(null); // 初期表示用のtyoku2 (チャート用)
-  const [initialWorkDetail, setInitialWorkDetail] = useState<string | null>(null); // 初期の作業詳細
+  const [initialTimeWork, setInitialTimeWork] = useState<string | null>(null);
+  const [initialTyoku, setInitialTyoku] = useState<string | null>(null);
+  const [initialWorkDetail, setInitialWorkDetail] = useState<string | null>(null);
 
-  // データ取得のためのuseEffect
   useEffect(() => {
-    // APIエンドポイントにGETリクエストを送信し、工数データと関連データを取得
     axios
       .get<KosuResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/team_detail/${id}/`, { withCredentials: true })
       .then((response) => {
         const { kosu_data } = response.data;
-        setFormData(kosu_data); // フォームデータをセット
+        setFormData(kosu_data);
         const def_data = response.data.def_data || {};
-        setDefData(def_data); // 定義データをセット
+        setDefData(def_data);
         const member_data = response.data.member_data;
         setMemberData(member_data);
-        setInitialTimeWork(kosu_data.time_work); // 初期表示用のtime_workをセット
+        setInitialTimeWork(kosu_data.time_work);
         setInitialWorkDetail(kosu_data.detail_work);
-        setInitialTyoku(kosu_data.tyoku2); // 初期表示用のtyoku2をセット
-        setLoading(false); // ローディング終了
+        setInitialTyoku(kosu_data.tyoku2);
+        setLoading(false);
       })
       .catch((err) => {
-        console.error("APIエラー:", err);
-        // 認証エラー (401) の場合はログイン画面へ遷移
         if (err.response?.status === 401) {
           navigate("/login");
         } else {
-          setError(err.message); // その他のエラーをセット
+          setError(err.message);
         }
-        setLoading(false); // ローディング終了
+        setLoading(false);
       });
-  }, [id, navigate]); // 依存配列: idとnavigateが変更されたときのみ実行
-
-  // ローディング中またはエラー、データがない場合の表示
-  if (loading) {
-    return <div><Loading isLoading={loading} /></div>;
-  }
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-  if (!formData) {
-    return <div>データが見つかりません</div>;
-  }
+  }, [id, navigate]);
 
   const tyokuMapping: { [key: string]: string } = {
     "1": "1直",
@@ -106,28 +86,26 @@ const TeamDetail: React.FC = () => {
   const tyokuDisplayName = tyokuMapping[formData.tyoku2] || formData.tyoku2;
 
   const formatWorkDay = (dateString: string): string => {
-    // YYYY-MM-DD 形式から Date オブジェクトを作成
     const date = new Date(dateString);
-  
-    // Date が無効な場合は元の文字列を返す
+
     if (isNaN(date.getTime())) {
       return dateString;
     }
-  
-    // 曜日を取得するための配列
+
     const days = ["日", "月", "火", "水", "木", "金", "土"];
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();
     const dayOfWeek = days[date.getDay()];
-  
-    // "2025年10月6日(月)" の形式で文字列を構築
+
     return `${year}年${month}月${day}日(${dayOfWeek})`;
   };
   
   const displayDate = formatWorkDay(formData.work_day2);
 
-  // レンダリング
+  if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!formData) return <div>データが見つかりません</div>;
   return (
     <>
       <Loading isLoading={loading} />
