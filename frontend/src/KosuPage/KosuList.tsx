@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import TableContainer from "../Components/TableContainer";
@@ -40,7 +40,6 @@ const KosuList: React.FC = () => {
   const [searchByMonth, setSearchByMonth] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
-  const dateInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -125,16 +124,14 @@ const KosuList: React.FC = () => {
           <Link to="/kosu-menu">工数MENU</Link>
         </nav>
         <div className={styles["search-bar"]}>
-          <label onClick={() => dateInputRef.current?.showPicker?.()}>
-            就業日：
-            <input
-              type="date"
-              ref={dateInputRef}
-              value={searchDay}
-              onChange={(e) => setSearchDay(e.target.value)}
-              placeholder="日付を選択"
-            />
-          </label>
+          <label htmlFor="search-day-input"></label>
+          <input
+            id="search-day-input"
+            type="date"
+            value={searchDay}
+            onChange={(e) => setSearchDay(e.target.value)}
+            placeholder="日付を選択"
+          />
 
           <div className={styles["button-group"]}>
             <button
