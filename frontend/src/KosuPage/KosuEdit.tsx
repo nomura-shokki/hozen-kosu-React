@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent, ChangeEvent, useCallback } from "react";
+import React, { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import TyokuSelect from "../components/TyokuSelect";
@@ -60,14 +60,6 @@ const KosuEdit: React.FC = () => {
   }[]>([]);
   const [isDisabled, setIsDisabled] = useState<boolean[]>([]);
   const [isWorkTyokuDisabled, setIsWorkTyokuDisabled] = useState<boolean>(true);
-
-  const handleError = useCallback((error: any, defaultMessage: string) => {
-    if (error.response && error.response.data && error.response.data.error) {
-      setErrorMessage(error.response.data.error);
-    } else {
-      setErrorMessage(defaultMessage);
-    }
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {

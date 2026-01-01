@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "../img/MenuRogo.png";
+import Logo from "../img/MenuRogo.png";
+import Note from "../img/Note.png";
+import Balance from "../img/Balance.png";
+import Personnel from "../img/Personnel.png";
+import Team from "../img/Team.png";
+import Mail from "../img/Mail.png";
+import Setting from "../img/Setting.png";
 import LogConsole from "../components/LogConsole";
 import styles from "../styles/MainPage/MainMenu.module.css";
 
-// ローカルストレージで使用するキー
 const LOG_CONSOLE_VISIBILITY_KEY = "showLogConsole";
-
 
 interface Member {
   employee_no: number;
@@ -112,7 +116,7 @@ const MainMenu: React.FC = () => {
   return (
     <div className={styles["page-container"]}>
       <div className={styles["menu-wrapper"]}>
-        <img src={logo} alt="Menuロゴ" className={styles["Menu-logo"]} />
+        <img src={Logo} alt="Menuロゴ" className={styles["Menu-logo"]} />
         <p>こんにちは {data ? data.name : ""}さん</p>
         <div className={styles["alert-area"]}>
           {adminData && (Number(adminData.administrator_employee_no1) === data?.employee_no || Number(adminData.administrator_employee_no2) === data?.employee_no || Number(adminData.administrator_employee_no3) === data?.employee_no) && (
@@ -151,18 +155,35 @@ const MainMenu: React.FC = () => {
             <p><Link to={`/inquir-detail/${data.pop_up_id5}`} className={styles["a-collar"]}>{data ? data.pop_up5 : ""}</Link></p>
           )}
         </div>
-        <p>　</p>
-        <Link to="/kosu-menu" className={styles["kosu-menu-button"]}>工数MENU</Link>
-        <Link to="/def-menu" className={styles["def-menu-button"]}>工数定義区分MENU</Link>
+        <Link to="/kosu-menu" className={styles["kosu-menu-button"]}>
+          <img src={Note} alt="工数アイコン" className={styles["icon"]} />
+          工数MENU
+        </Link>
+        <Link to="/def-menu" className={styles["def-menu-button"]}>
+          <img src={Balance} alt="工数区分定義アイコン" className={styles["icon"]} />
+          工数定義区分MENU
+        </Link>
         {data?.authority && (
           <>
-            <Link to="/member-menu" className={styles["member-menu-button"]}>人員MENU</Link>
-            <Link to="/team-menu" className={styles["team-menu-button"]}>班員MENU</Link>
+            <Link to="/member-menu" className={styles["member-menu-button"]}>
+              <img src={Personnel} alt="人員アイコン" className={styles["icon"]} />
+              人員MENU
+            </Link>
+            <Link to="/team-menu" className={styles["team-menu-button"]}>
+              <img src={Team} alt="班員アイコン" className={styles["icon"]} />
+              班員MENU
+            </Link>
           </>
         )}
-        <Link to="/inquir-menu" className={styles["inquir-menu-button"]}>問い合わせMENU</Link>
+        <Link to="/inquir-menu" className={styles["inquir-menu-button"]}>
+          <img src={Mail} alt="問い合わせアイコン" className={styles["icon"]} />
+          問い合わせMENU
+        </Link>
         {data?.administrator && (
-          <Link to="/manager-menu" className={styles["admin-menu-button"]}>管理者MENU</Link>
+          <Link to="/manager-menu" className={styles["admin-menu-button"]}>
+            <img src={Setting} alt="管理者アイコン" className={styles["icon"]} />
+            管理者MENU
+          </Link>
         )}
         <button onClick={handleLogout} className="blue_button">
           ログアウト

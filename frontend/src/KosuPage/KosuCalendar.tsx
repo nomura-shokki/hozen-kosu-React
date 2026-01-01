@@ -107,7 +107,7 @@ const KosuCalendar: React.FC = () => {
   const postWorkWrite = async () => {
     setIsPostingWorkWrite(true);
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_work_write/`, formData, { withCredentials: true });
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_work_write/`, formData, { withCredentials: true });
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {

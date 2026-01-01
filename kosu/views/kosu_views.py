@@ -398,7 +398,7 @@ class TodayBreakTime(APIView):
     # 工数データ取得
     kosu_instance = self.get_object(login_no, day)
     if not kosu_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_400_BAD_REQUEST)
 
     # データ変換
     kosu_serializer = KosuSerializer(kosu_instance, many=False)

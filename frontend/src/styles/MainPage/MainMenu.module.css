@@ -22,19 +22,22 @@
   width: 85%;
   margin: 0 auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 20px; /* LogConsoleの上の余白を確保 */
+  padding-bottom: 20px;
 }
 
-/* ... 以下、既存のスタイルは省略せずそのまま維持 ... */
+.icon {
+  height: 1em;
+  width: auto;
+  position: static;
+  object-fit: contain;
+}
 
 .kosu-menu-button {
-  display: inline-block;
   width: 100%;
   max-width: 400px;
   background-color: #0ff;
   color: #fff;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
   font-size: clamp(1rem, 1rem + 3vw, 2rem);
   text-align: center;
   border: none;
@@ -43,6 +46,11 @@
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
   margin-bottom: 15px;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  position: relative;
 }
 
 .kosu-menu-button:hover {
@@ -53,13 +61,11 @@
 }
 
 .def-menu-button {
-  display: inline-block;
   width: 100%;
   max-width: 400px;
   background-color: #0f0;
   color: #fff;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
   font-size: clamp(1rem, 1rem + 3vw, 2rem);
   text-align: center;
   border: none;
@@ -68,6 +74,11 @@
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
   margin-bottom: 15px;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  position: relative;
 }
 
 .def-menu-button:hover {
@@ -78,13 +89,11 @@
 }
 
 .member-menu-button {
-  display: inline-block;
   width: 100%;
   max-width: 400px;
   background-color: #ffd700;
   color: #fff;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
   font-size: clamp(1rem, 1rem + 3vw, 2rem);
   text-align: center;
   border: none;
@@ -93,6 +102,11 @@
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
   margin-bottom: 15px;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  position: relative;
 }
 
 .member-menu-button:hover {
@@ -103,13 +117,11 @@
 }
 
 .team-menu-button {
-  display: inline-block;
   width: 100%;
   max-width: 400px;
-  background-color: #ff5500;
+  background-color: #ff7700;
   color: #fff;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
   font-size: clamp(1rem, 1rem + 3vw, 2rem);
   text-align: center;
   border: none;
@@ -118,6 +130,11 @@
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
   margin-bottom: 15px;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  position: relative;
 }
 
 .team-menu-button:hover {
@@ -128,13 +145,11 @@
 }
 
 .inquir-menu-button {
-  display: inline-block;
   width: 100%;
   max-width: 400px;
   background-color: #ff69b4;
   color: #fff;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
   font-size: clamp(1rem, 1rem + 3vw, 2rem);
   text-align: center;
   border: none;
@@ -143,6 +158,11 @@
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
   margin-bottom: 15px;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  position: relative;
 }
 
 .inquir-menu-button:hover {
@@ -153,13 +173,11 @@
 }
 
 .admin-menu-button {
-  display: inline-block;
   width: 100%;
   max-width: 400px;
   background-color: #656565;
   color: #fff;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
   font-size: clamp(1rem, 1rem + 3vw, 2rem);
   text-align: center;
   border: none;
@@ -168,6 +186,11 @@
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
   margin-bottom: 15px;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  position: relative;
 }
 
 .admin-menu-button:hover {
@@ -175,6 +198,18 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   text-decoration: underline;
   text-decoration: none;
+}
+
+.kosu-menu-button::after,
+.def-menu-button::after,
+.member-menu-button::after,
+.team-menu-button::after,
+.inquir-menu-button::after,
+.admin-menu-button::after {
+  content: "";
+  height: 1em;
+  flex: 0 0 auto; 
+  width: var(--icon-width, 1em);
 }
 
 .Menu-logo {
@@ -212,4 +247,16 @@
   .admin-menu-button {
     display: none !important;
   }
+
+.kosu-menu-button::after,
+.def-menu-button::after,
+.member-menu-button::after,
+.team-menu-button::after,
+.inquir-menu-button::after,
+.admin-menu-button::after {
+  content: "";
+  height: 1em;
+  flex: 0 0 auto; 
+  width: 0;
+}
 }

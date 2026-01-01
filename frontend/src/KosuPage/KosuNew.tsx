@@ -525,9 +525,9 @@ const KosuNew: React.FC = () => {
             </div>
 
             <div className={styles["switch-wrapper"]}>
-              <label htmlFor="break_change">休憩変更：
+              <label htmlFor="break_change">休憩時間工数入力可：
                 <Link to="/today-break-time" className={`light_blue_button ${styles["font-min"]}`}>
-                  休憩登録
+                  休憩変更登録
                 </Link>
               </label>
               <div

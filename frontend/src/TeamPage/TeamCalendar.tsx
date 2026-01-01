@@ -109,8 +109,7 @@ const TeamCalendar: React.FC = () => {
   const handleWeekJump = async (direction: 'B' | 'A') => {
     setLoading(true);
     setError(null);
-    const errorPrefix = direction === 'B' ? '前週移動エラー' : '次週移動エラー';
-    
+
     try {
       await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_calendar_week_jump/`,
         { week: direction },

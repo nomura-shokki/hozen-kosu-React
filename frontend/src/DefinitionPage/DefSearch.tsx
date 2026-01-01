@@ -26,7 +26,7 @@ const DefSearch: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<DivisionData[]>(`${process.env.REACT_APP_API_BASE_URL}/api/def_search//`, { withCredentials: true });
+        const response = await axios.get<DivisionData[]>(`${process.env.REACT_APP_API_BASE_URL}/api/def_search/`, { withCredentials: true });
         setDivisions(response.data);
       } catch (err) {
         if (axios.isAxiosError(err)) {

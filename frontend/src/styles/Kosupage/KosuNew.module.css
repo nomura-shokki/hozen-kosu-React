@@ -92,13 +92,14 @@
 }
 
 .work-tyoku-wrapper {
-  display: flex; /* フレックスボックスで横並びにする */
-  justify-content: space-between; /* 子要素間に均等なスペースを配置 */
-  gap: 10px; /* 子要素間の間隔を設定 */
-  width: calc(100% - 40px); /* `.search-bar input` に合わせた幅にする */
-  max-width: 400px; /* `.search-bar input` と同じ制限を適用 */
-  box-sizing: border-box; /* パディングとボーダーを要素のサイズに含める */
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: calc(100% - 40px);
+  max-width: 400px;
+  box-sizing: border-box;
 }
+
 .work-tyoku-wrapper select {
   flex: 1;
   padding: 8px 10px;
