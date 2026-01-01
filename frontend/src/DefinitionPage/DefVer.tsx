@@ -2,8 +2,8 @@ import React, { useState, FormEvent, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/DefinitionPage/DefVer.module.css";
-import Loading from "../components/Loading";
-import DefVersionSelect from "../components/DefVersionSelect"; 
+import Loading from "../Components/Loading";
+import DefVersionSelect from "../Components/DefVersionSelect"; 
 
 interface DefData {
   id: number;

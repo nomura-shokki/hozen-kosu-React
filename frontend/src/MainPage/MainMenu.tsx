@@ -8,7 +8,7 @@ import Personnel from "../img/Personnel.png";
 import Team from "../img/Team.png";
 import Mail from "../img/Mail.png";
 import Setting from "../img/Setting.png";
-import LogConsole from "../components/LogConsole";
+import LogConsole from "../Components/LogConsole";
 import styles from "../styles/MainPage/MainMenu.module.css";
 
 const LOG_CONSOLE_VISIBILITY_KEY = "showLogConsole";

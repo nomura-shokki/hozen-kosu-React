@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import KosuBarChart from "../components/KosuBarChart";
-import KosuDisplay from "../components/KosuDisplay";
-import DefTable from "../components/DefTable";
-import Loading from "../components/Loading";
+import KosuBarChart from "../Components/KosuBarChart";
+import KosuDisplay from "../Components/KosuDisplay";
+import DefTable from "../Components/DefTable";
+import Loading from "../Components/Loading";
 import styles from "../styles/TeamPage/TeamDetail.module.css";
 
 interface Kosu {

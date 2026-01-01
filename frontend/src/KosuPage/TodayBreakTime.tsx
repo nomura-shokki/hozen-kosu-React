@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { MobileTimePicker } from "@mui/x-date-pickers";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import Loading from "../components/Loading";
+import Loading from "../Components/Loading";
 import styles from "../styles/KosuPage/TodayBreakTime.module.css";
 
 interface Kosu {

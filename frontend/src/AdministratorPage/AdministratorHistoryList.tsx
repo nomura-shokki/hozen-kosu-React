@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import Loading from "../components/Loading";
+import TableContainer from "../Components/TableContainer";
+import Loading from "../Components/Loading";
 import styles from "../styles/AdministratorPage/AdministratorHistoryList.module.css";
 
 interface History {
@@ -45,10 +46,7 @@ const AdministratorHistoryList: React.FC = () => {
   const [searchByMonth, setSearchByMonth] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
-  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
-  const [tableWidth, setTableWidth] = useState<number>(0);
   const [modelChoices, setModelChoices] = useState<string[]>([]);
-  const tableRef = useRef<HTMLTableElement>(null);
   const navigate = useNavigate();
 
   const fetchData = useCallback(async (
@@ -118,29 +116,6 @@ const AdministratorHistoryList: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const updateMaxHeight = () => {
-      const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0;
-      const headerHeight = (document.querySelector(`.${styles["h1-collar"]}`) as HTMLElement)?.offsetHeight || 0;
-      const containerPadding = 40;
-      const newMaxHeight = window.innerHeight - searchBarHeight - headerHeight - containerPadding - 50;
-      setMaxHeight(Math.max(200, newMaxHeight));
-    };
-
-    updateMaxHeight();
-    window.addEventListener("resize", updateMaxHeight);
-    return () => window.removeEventListener("resize", updateMaxHeight);
-  }, []);
-
-  useEffect(() => {
-    const updateTableWidth = () => {
-      if (tableRef.current) setTableWidth(tableRef.current.offsetWidth);
-    };
-    updateTableWidth();
-    window.addEventListener("resize", updateTableWidth);
-    return () => window.removeEventListener("resize", updateTableWidth);
-  }, [data]);
-
   if (error) return <div>Error: {error}</div>;
   if (loading) return <div><Loading isLoading={loading} /></div>;
 
@@ -201,16 +176,11 @@ const AdministratorHistoryList: React.FC = () => {
         {data.length === 0 && !loading ? (
           <p>No data found.</p>
         ) : (
-          <div
-            className={styles["table-wrapper"]}
-            style={{
-              minHeight: `${maxHeight}px`,
-              overflowY: "auto",
-              width: tableWidth > 0 ? `${tableWidth + 20}px` : "100%",
-              maxWidth: "100vw",
-            }}
+          <TableContainer 
+            searchBarSelector={`.${styles["search-bar"]}`}
+            headerSelector={`.${styles["h1-collar"]}`}
           >
-            <table ref={tableRef}>
+            <table>
               <thead>
                 <tr>
                   <th className={styles["th-collar"]}>データ操作日時</th>
@@ -243,7 +213,7 @@ const AdministratorHistoryList: React.FC = () => {
               <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>次</button>
               <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={() => handlePageChange(totalPages)}>最後</button>
             </div>
-          </div>
+          </TableContainer>
         )}
       </div>
     </>

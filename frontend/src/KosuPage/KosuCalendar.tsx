@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import Loading from "../components/Loading";
+import Loading from "../Components/Loading";
 import styles from "../styles/KosuPage/KosuCalendar.module.css";
-import WorkSelect from "../components/WorkSelect";
-import TyokuSelect from "../components/TyokuSelect";
+import WorkSelect from "../Components/WorkSelect";
+import TyokuSelect from "../Components/TyokuSelect";
 
 interface Kosu {
   id: number;

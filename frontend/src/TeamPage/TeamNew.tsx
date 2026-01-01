@@ -2,9 +2,9 @@ import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/TeamPage/TeamNew.module.css";
-import TeamMemberSelect from "../components/TeamMemberSelect";
-import ShopSelect from "../components/ShopSelect";
-import Loading from "../components/Loading";
+import TeamMemberSelect from "../Components/TeamMemberSelect";
+import ShopSelect from "../Components/ShopSelect";
+import Loading from "../Components/Loading";
 
 interface FormData {
   employee_no5: number;
@@ -143,7 +143,6 @@ const TeamNew: React.FC = () => {
 
     try {
       await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_new/`, formData, { withCredentials: true });
-      alert("データが更新されました！");
       navigate("/team-menu");
     } catch (err) {
       if (axios.isAxiosError(err)) {

@@ -599,6 +599,7 @@ class KosuUpdate(APIView):
   def get(self, request, pk):
     # 工数データ取得
     kosu_instance = self.get_object(pk)
+    print(kosu_instance)
     if not kosu_instance:
       return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 

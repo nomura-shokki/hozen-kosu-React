@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import Loading from "../components/Loading";
-import ShopSelect from "../components/ShopSelect";
+import Loading from "../Components/Loading";
+import ShopSelect from "../Components/ShopSelect";
 import styles from "../styles/TeamPage/TeamView.module.css";
 
 interface Kosu {

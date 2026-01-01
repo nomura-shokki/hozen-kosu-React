@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import Loading from "../components/Loading";
+import Loading from "../Components/Loading";
 import styles from "../styles/TeamPage/TeamOverTime.module.css";
 
 interface Kosu {
@@ -58,6 +58,7 @@ const TeamOverTime: React.FC = () => {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
+        else if (err.response?.status === 400) navigate("/team-menu", { state: { errorMessage: err.response?.data.message } });
         else setError(err.response?.data.message);
       } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {

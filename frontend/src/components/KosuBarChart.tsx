@@ -1,6 +1,6 @@
 import React from "react";
 import { Bar } from "react-chartjs-2";
-import styles from "../styles/components/KosuBarChart.module.css";
+import styles from "../styles/Components/KosuBarChart.module.css";
 import {
   Chart as ChartJS,
   CategoryScale,

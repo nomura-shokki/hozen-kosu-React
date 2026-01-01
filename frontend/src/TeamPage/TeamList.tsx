@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback, ChangeEvent } from "react";
+import React, { useState, useEffect, useCallback, ChangeEvent } from "react";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import Loading from "../components/Loading";
-import TeamMemberSelect from "../components/TeamMemberSelect";
+import TeamMemberSelect from "../Components/TeamMemberSelect";
+import TableContainer from "../Components/TableContainer";
+import Loading from "../Components/Loading";
 import styles from "../styles/TeamPage/TeamList.module.css";
 
 interface Kosu {
@@ -46,12 +47,8 @@ const TeamList: React.FC = () => {
   const [searchByMonth, setSearchByMonth] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
-  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
-  const [tableWidth, setTableWidth] = useState<number>(0);
   const [teamMemberOptions, setTeamMemberOptions] = useState<TeamMember[]>([]);
   const [selectedMember, setSelectedMember] = useState<string>("");
-  const tableRef = useRef<HTMLTableElement>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -94,6 +91,7 @@ const TeamList: React.FC = () => {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
+        else if (err.response?.status === 400) navigate("/team-menu", { state: { errorMessage: err.response?.data.message } });
         else setError(err.response?.data.message);
       } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
@@ -115,31 +113,6 @@ const TeamList: React.FC = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedMember]);
-
-
-  useEffect(() => {
-    const updateMaxHeight = () => {
-      const searchBarHeight = (document.querySelector(".search-bar") as HTMLElement)?.offsetHeight || 0;
-      const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
-      setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40);
-    };
-
-    updateMaxHeight();
-    window.addEventListener("resize", updateMaxHeight);
-    return () => window.removeEventListener("resize", updateMaxHeight);
-  }, []); 
-
-  useEffect(() => {
-    const updateTableWidth = () => {
-      if (tableRef.current) {
-        setTableWidth(tableRef.current.offsetWidth);
-      }
-    };
-
-    updateTableWidth();
-    window.addEventListener("resize", updateTableWidth);
-    return () => window.removeEventListener("resize", updateTableWidth);
-  }, [data]);
 
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);
@@ -188,7 +161,6 @@ const TeamList: React.FC = () => {
           <input
             id="search-day-input"
             type="date"
-            ref={dateInputRef}
             value={searchDay}
             onChange={(e) => setSearchDay(e.target.value)}
             placeholder="日付を選択"
@@ -221,15 +193,11 @@ const TeamList: React.FC = () => {
         {data.length === 0 ? (
           <p>No data found.</p>
         ) : (
-          <div
-            className={styles["table-wrapper"]}
-            style={{
-              maxHeight: `${maxHeight}px`,
-              overflowY: "auto",
-              width: `${tableWidth + 20}px`,
-            }}
+          <TableContainer 
+            searchBarSelector={`.${styles["search-bar"]}`}
+            headerSelector={`.${styles["h1-collar"]}`}
           >
-            <table ref={tableRef}>
+            <table>
               <thead>
                 <tr>
                   <th className={styles["th-collar"]}>班員</th>
@@ -270,7 +238,7 @@ const TeamList: React.FC = () => {
                 最後
               </button>
             </div>
-          </div>
+          </TableContainer>
         )}
       </div>
     </>

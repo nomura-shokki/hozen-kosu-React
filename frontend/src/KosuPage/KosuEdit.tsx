@@ -1,12 +1,12 @@
 import React, { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import TyokuSelect from "../components/TyokuSelect";
-import WorkSelect from "../components/WorkSelect";
-import DefSelect from "../components/DefSelect";
-import KosuBarChart from "../components/KosuBarChart";
-import DefTable from "../components/DefTable";
-import Loading from "../components/Loading";
+import TyokuSelect from "../Components/TyokuSelect";
+import WorkSelect from "../Components/WorkSelect";
+import DefSelect from "../Components/DefSelect";
+import KosuBarChart from "../Components/KosuBarChart";
+import DefTable from "../Components/DefTable";
+import Loading from "../Components/Loading";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { MobileTimePicker } from "@mui/x-date-pickers";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import Loading from "../components/Loading";
+import Loading from "../Components/Loading";
 import styles from "../styles/InquirPage/InquirDetail.module.css";
 
 interface Inquir {

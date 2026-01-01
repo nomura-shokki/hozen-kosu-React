@@ -4,13 +4,13 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { MobileTimePicker } from "@mui/x-date-pickers";
 import axios from "axios";
-import Loading from "../components/Loading";
-import TyokuSelect from "../components/TyokuSelect";
-import WorkSelect from "../components/WorkSelect";
-import DefSelect from "../components/DefSelect";
-import KosuDisplay from "../components/KosuDisplay";
-import KosuBarChart from "../components/KosuBarChart";
-import DefTable from "../components/DefTable";
+import Loading from "../Components/Loading";
+import TyokuSelect from "../Components/TyokuSelect";
+import WorkSelect from "../Components/WorkSelect";
+import DefSelect from "../Components/DefSelect";
+import KosuDisplay from "../Components/KosuDisplay";
+import KosuBarChart from "../Components/KosuBarChart";
+import DefTable from "../Components/DefTable";
 import styles from "../styles/KosuPage/KosuNew.module.css";
 
 interface Kosu {
@@ -41,7 +41,6 @@ const roundToNearestFiveMinutes = (date: Date, workDay: Date): Date => {
 };
 
 const KosuNew: React.FC = () => {
-  // 状態管理
   const navigate = useNavigate();
   const [data, setData] = useState<Kosu | null>(null); // 工数データ
   const [defData, setDefData] = useState<DefData>({}); // 工数区分定義データ
@@ -373,7 +372,7 @@ const KosuNew: React.FC = () => {
         <nav className={styles["kosu-nav"]}>
           <Link to="/kosu-menu">工数MENU</Link>
           <Link to="/">メインMENU</Link>
-          {data && (
+          {data?.id && (
             <Link to={`/kosu-update/${data.id}`}>工数編集</Link>
           )}
         </nav>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios, { AxiosError } from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import Loading from "../components/Loading";
+import Loading from "../Components/Loading";
 import styles from "../styles/AdministratorPage/AdministratorLoading.module.css";
 
 

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import Loading from "../components/Loading";
+import TableContainer from "../Components/TableContainer";
+import Loading from "../Components/Loading";
 import styles from "../styles/AdministratorPage/AdministratorTaskList.module.css";
 
 interface Task {
@@ -43,10 +44,6 @@ const AdministratorTaskList: React.FC = () => {
   const [searchByMonth, setSearchByMonth] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
-  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
-  const [tableWidth, setTableWidth] = useState<number>(0);
-  const tableRef = useRef<HTMLTableElement>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   const fetchData = useCallback(async (
@@ -125,30 +122,6 @@ const AdministratorTaskList: React.FC = () => {
     setCurrentPage(totalPages);
   };
 
-  useEffect(() => {
-    const updateMaxHeight = () => {
-      const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0;
-      const headerHeight = (document.querySelector("h1") as HTMLElement)?.offsetHeight || 0;
-      setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40);
-    };
-
-    updateMaxHeight();
-    window.addEventListener("resize", updateMaxHeight);
-    return () => window.removeEventListener("resize", updateMaxHeight);
-  }, []);
-
-  useEffect(() => {
-    const updateTableWidth = () => {
-      if (tableRef.current) {
-        setTableWidth(tableRef.current.offsetWidth);
-      }
-    };
-
-    updateTableWidth();
-    window.addEventListener("resize", updateTableWidth);
-    return () => window.removeEventListener("resize", updateTableWidth);
-  }, [data]);
-
   if (error) return <div>Error: {error}</div>;
   if (loading) return <div><Loading isLoading={loading} /></div>;
 
@@ -165,7 +138,6 @@ const AdministratorTaskList: React.FC = () => {
           <input 
             type="date" 
             id="searchDayInput" 
-            ref={dateInputRef} 
             value={searchDay} 
             onChange={handleSearchDayChange} 
             placeholder="日付を選択"
@@ -188,15 +160,11 @@ const AdministratorTaskList: React.FC = () => {
         {data.length === 0 ? (
           <p>No data found.</p>
         ) : (
-          <div
-            className={styles["table-wrapper"]}
-            style={{
-              minHeight: `${maxHeight}px`,
-              overflowY: "auto",
-              width: `${tableWidth + 20}px`,
-            }}
+          <TableContainer 
+            searchBarSelector={`.${styles["search-bar"]}`}
+            headerSelector={`.${styles["h1-collar"]}`}
           >
-            <table ref={tableRef}>
+            <table>
               <thead>
                 <tr>
                   <th className={styles["th-collar"]}>タスク作成日</th>
@@ -233,7 +201,7 @@ const AdministratorTaskList: React.FC = () => {
                 最後
               </button>
             </div>
-          </div>
+          </TableContainer>
         )}
       </div>
     </>

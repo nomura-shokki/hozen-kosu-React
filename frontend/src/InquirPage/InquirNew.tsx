@@ -1,8 +1,8 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import ItemSelect from "../components/ItemSelect";
-import Loading from "../components/Loading";
+import ItemSelect from "../Components/ItemSelect";
+import Loading from "../Components/Loading";
 import styles from "../styles/InquirPage/InquirNew.module.css";
 
 interface FormData {

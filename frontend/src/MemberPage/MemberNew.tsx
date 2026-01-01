@@ -1,8 +1,8 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import ShopSelect from "../components/ShopSelect";
-import Loading from "../components/Loading";
+import ShopSelect from "../Components/ShopSelect";
+import Loading from "../Components/Loading";
 import styles from "../styles/MemberPage/MemberNew.module.css";
 
 interface FormData {

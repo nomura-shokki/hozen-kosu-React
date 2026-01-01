@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "../styles/components/WorkSelect.module.css";
+import styles from "../styles/Components/WorkSelect.module.css";
 
 interface WorkSelectProps {
   id: string;

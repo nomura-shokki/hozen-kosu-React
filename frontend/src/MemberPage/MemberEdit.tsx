@@ -1,8 +1,8 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import Loading from "../components/Loading";
-import ShopSelect from "../components/ShopSelect"; 
+import Loading from "../Components/Loading";
+import ShopSelect from "../Components/ShopSelect"; 
 import styles from "../styles/MemberPage/MemberEdit.module.css"; 
 
 interface Member {

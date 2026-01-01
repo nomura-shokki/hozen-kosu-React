@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import Loading from "../components/Loading";
+import Loading from "../Components/Loading";
 import styles from "../styles/DefinitionPage/DefSearch.module.css";
 
 

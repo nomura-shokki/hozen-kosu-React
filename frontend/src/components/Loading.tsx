@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import helmetImage from "../img/helmet.png"; // 静的リソースの画像
-import styles from "../styles/components/Loading.module.css";
+import styles from "../styles/Components/Loading.module.css";
 
 interface LoadingProps {
   isLoading: boolean; // ローディング状態を受け取るためのプロパティ

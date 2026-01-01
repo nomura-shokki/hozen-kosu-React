@@ -1,10 +1,10 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import Loading from "../components/Loading";
-import DefVersionSelect from "../components/DefVersionSelect";
-import WorkSelect from "../components/WorkSelect";
-import TyokuSelect from "../components/TyokuSelect";
+import Loading from "../Components/Loading";
+import DefVersionSelect from "../Components/DefVersionSelect";
+import WorkSelect from "../Components/WorkSelect";
+import TyokuSelect from "../Components/TyokuSelect";
 import styles from "../styles/AdministratorPage/AdministratorKosuUpdate.module.css";
 
 

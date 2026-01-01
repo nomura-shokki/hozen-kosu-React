@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import styles from "../styles/TeamPage/TeamMenu.module.css";
 
 interface TeamMenuData {
@@ -11,7 +11,9 @@ interface TeamMenuData {
 const TeamMenu: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [teamMenuData, setTeamMenuData] = useState<TeamMenuData | null>(null); 
+  const [teamMenuData, setTeamMenuData] = useState<TeamMenuData | null>(null);
+  const location = useLocation();
+  const redirectedError = location.state?.errorMessage
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,6 +46,8 @@ const TeamMenu: React.FC = () => {
       <nav className={styles["team-nav"]}>
         <Link to="/">メインMENU</Link>
       </nav>
+
+      {redirectedError && (<div role="alert">{redirectedError}</div>)}
 
       {followMessages.length > 0 && (
         <div className={styles["follow-messages"]}>

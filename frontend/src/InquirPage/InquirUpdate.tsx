@@ -1,8 +1,8 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import Loading from "../components/Loading";
-import ItemSelect from "../components/ItemSelect";
+import Loading from "../Components/Loading";
+import ItemSelect from "../Components/ItemSelect";
 import styles from "../styles/InquirPage/InquirUpdate.module.css";
 
 interface Inquir {

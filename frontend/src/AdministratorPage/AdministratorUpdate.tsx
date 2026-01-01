@@ -1,8 +1,8 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import Loading from "../components/Loading";
-import LogConsole from "../components/LogConsole";
+import Loading from "../Components/Loading";
+import LogConsole from "../Components/LogConsole";
 import styles from "../styles/AdministratorPage/AdministratorUpdate.module.css";
 
 

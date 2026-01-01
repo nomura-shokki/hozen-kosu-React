@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import styles from "../styles/components/KosuDisplay.module.css";
+import styles from "../styles/Components/KosuDisplay.module.css";
 
 // コンポーネントが受け取るpropsの型定義
 interface KosuDisplayProps {

@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback, ChangeEvent } from "react";
+import React, { useState, useEffect, useCallback, ChangeEvent } from "react";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import Loading from "../components/Loading";
-import ItemSelect from "../components/ItemSelect";
-import TeamMemberSelect from "../components/TeamMemberSelect";
+import ItemSelect from "../Components/ItemSelect";
+import TeamMemberSelect from "../Components/TeamMemberSelect";
+import TableContainer from "../Components/TableContainer";
+import Loading from "../Components/Loading";
 import styles from "../styles/InquirPage/InquirList.module.css";
 
 interface Inquir {
@@ -27,14 +28,11 @@ const TeamList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
-  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
-  const [tableWidth, setTableWidth] = useState<number>(0);
   const [MemberOptions, setMemberOptions] = useState<InquirMember[]>([]);
   const [searchItemInput, setSearchItemInput] = useState<string>("");
   const [searchItem, setSearchItem] = useState<string>("");
   const [selectedMemberInput, setSelectedMemberInput] = useState<string>("");
   const [searchMemberId, setSearchMemberId] = useState<string>("");
-  const tableRef = useRef<HTMLTableElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -94,30 +92,6 @@ const TeamList: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  useEffect(() => {
-    const updateMaxHeight = () => {
-      const searchBarHeight = (document.querySelector(`.${styles["search-bar"]}`) as HTMLElement)?.offsetHeight || 0;
-      const headerHeight = (document.querySelector(`.${styles["h1-collar"]}`) as HTMLElement)?.offsetHeight || 0;
-      setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 120);
-    };
-
-    updateMaxHeight();
-    window.addEventListener("resize", updateMaxHeight);
-    return () => window.removeEventListener("resize", updateMaxHeight);
-  }, []);
-
-  useEffect(() => {
-    const updateTableWidth = () => {
-      if (tableRef.current) {
-        setTableWidth(tableRef.current.offsetWidth);
-      }
-    };
-
-    updateTableWidth();
-    window.addEventListener("resize", updateTableWidth);
-    return () => window.removeEventListener("resize", updateTableWidth);
-  }, [data]);
 
   const handleSearch = () => {
     const isMemberChanged = selectedMemberInput !== searchMemberId;
@@ -188,15 +162,11 @@ const TeamList: React.FC = () => {
         {data.length === 0 && !loading ? (
           <p>No data found.</p>
         ) : (
-          <div
-            className={styles["table-wrapper"]}
-            style={{
-              maxHeight: `${maxHeight}px`,
-              overflowY: "auto",
-              width: tableWidth > 0 ? `${tableWidth + 20}px` : "100%", 
-            }}
+          <TableContainer 
+            searchBarSelector={`.${styles["search-bar"]}`}
+            headerSelector={`.${styles["h1-collar"]}`}
           >
-            <table ref={tableRef}>
+            <table>
               <thead>
                 <tr>
                   <th className={styles["th-collar"]}>No.</th>
@@ -233,7 +203,7 @@ const TeamList: React.FC = () => {
                 最後
               </button>
             </div>
-          </div>
+          </TableContainer>
         )}
       </div>
     </>

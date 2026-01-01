@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "../styles/components/ShopSelect.module.css";
+import styles from "../styles/Components/ShopSelect.module.css";
 
 interface ShopSelectProps {
   id?: string;

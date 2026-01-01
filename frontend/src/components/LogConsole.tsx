@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import styles from "../styles/components/LogConsole.module.css";
+import styles from "../styles/Components/LogConsole.module.css";
 
 
 const LogConsole: React.FC = () => {

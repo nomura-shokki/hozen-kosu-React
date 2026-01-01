@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "../styles/components/TyokuSelect.module.css";
+import styles from "../styles/Components/TyokuSelect.module.css";
 
 interface TyokuSelectProps {
   id: string;

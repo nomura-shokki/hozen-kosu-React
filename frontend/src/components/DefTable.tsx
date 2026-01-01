@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "../styles/components/DefTable.module.css";
+import styles from "../styles/Components/DefTable.module.css";
 
 interface DefDataProps {
   defData: { [key: string]: string | undefined };

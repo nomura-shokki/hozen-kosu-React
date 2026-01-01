@@ -11,7 +11,7 @@ import {
   Legend,
 } from "chart.js";
 import axios from "axios";
-import Loading from "../components/Loading";
+import Loading from "../Components/Loading";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import styles from "../styles/KosuPage/KosuTotal.module.css";
 

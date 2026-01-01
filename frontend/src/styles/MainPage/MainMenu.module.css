@@ -248,15 +248,15 @@
     display: none !important;
   }
 
-.kosu-menu-button::after,
-.def-menu-button::after,
-.member-menu-button::after,
-.team-menu-button::after,
-.inquir-menu-button::after,
-.admin-menu-button::after {
-  content: "";
-  height: 1em;
-  flex: 0 0 auto; 
-  width: 0;
-}
+  .kosu-menu-button::after,
+  .def-menu-button::after,
+  .member-menu-button::after,
+  .team-menu-button::after,
+  .inquir-menu-button::after,
+  .admin-menu-button::after {
+    content: "";
+    height: 1em;
+    flex: 0 0 auto; 
+    width: 0;
+  }
 }
