@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import TableContainer from "../Components/TableContainer";
+import Pagination from "../Components/Pagination";
 import Loading from "../Components/Loading";
 import styles from "../styles/KosuPage/KosuList.module.css";
 
@@ -36,7 +37,7 @@ const KosuList: React.FC = () => {
   const [data, setData] = useState<Kosu[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchDay, setSearchDay] = useState<string>("");
+  const searchDayRef = useRef<string>("");
   const [searchByMonth, setSearchByMonth] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
@@ -77,39 +78,21 @@ const KosuList: React.FC = () => {
   }, [navigate]);
 
   useEffect(() => {
-    setSearchDay("");
+    searchDayRef.current = "";
+    const input = document.getElementById("search-day-input") as HTMLInputElement;
+    if (input) input.value = "";
     setSearchByMonth(false);
     setCurrentPage(1);
   }, [location.pathname]);
 
   useEffect(() => {
-    fetchData(currentPage, searchDay, searchByMonth);
-  }, [currentPage, fetchData, searchDay, searchByMonth]);
+    fetchData(currentPage, searchDayRef.current, searchByMonth);
+  }, [currentPage, fetchData, searchByMonth]);
 
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);
     setCurrentPage(1);
-    fetchData(1, searchDay, isMonthSearch); 
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleFirstPage = () => {
-    setCurrentPage(1);
-  };
-
-  const handleLastPage = () => {
-    setCurrentPage(totalPages);
+    fetchData(1, searchDayRef.current, isMonthSearch); 
   };
 
   if (loading) return <div><Loading isLoading={loading} /></div>;
@@ -128,8 +111,8 @@ const KosuList: React.FC = () => {
           <input
             id="search-day-input"
             type="date"
-            value={searchDay}
-            onChange={(e) => setSearchDay(e.target.value)}
+            defaultValue={searchDayRef.current}
+            onChange={(e) => { searchDayRef.current = e.target.value; }}
             placeholder="日付を選択"
           />
 
@@ -183,21 +166,15 @@ const KosuList: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            <div className={styles["pagination"]}>
-              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handleFirstPage}>
-                最初
-              </button>
-              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handlePreviousPage}>
-                前
-              </button>
-              <span>{currentPage} / {totalPages}</span>
-              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleNextPage}>
-                次
-              </button>
-              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleLastPage}>
-                最後
-              </button>
-            </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+              buttonColor="#0ff"
+              hoverColor="#0af"
+            />
+
           </TableContainer>
         )}
       </div>

@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback, ChangeEvent } from "react";
+import React, { useState, useEffect, useCallback, ChangeEvent, useRef } from "react";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import TeamMemberSelect from "../Components/TeamMemberSelect";
 import TableContainer from "../Components/TableContainer";
+import Pagination from "../Components/Pagination";
 import Loading from "../Components/Loading";
 import styles from "../styles/TeamPage/TeamList.module.css";
 
@@ -43,7 +44,7 @@ const TeamList: React.FC = () => {
   const [data, setData] = useState<Kosu[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchDay, setSearchDay] = useState<string>("");
+  const searchDayRef = useRef<string>("");
   const [searchByMonth, setSearchByMonth] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
@@ -52,15 +53,19 @@ const TeamList: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const fetchData = useCallback(async (targetMode: boolean | null = null) => {
+  const fetchData = useCallback(async (
+    page: number,
+    day: string,
+    mode: boolean
+  ) => {
     setLoading(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_list/`, {
         params: {
-          page: currentPage,
-          ...(searchDay && {
-            day: searchDay,
-            mode: targetMode !== null ? (targetMode ? "month" : "day") : (searchByMonth ? "month" : "day"),
+          page: page,
+          ...(day && {
+            day: day,
+            mode: mode ? "month" : "day",
             filter: "true",
           }),
           ...(selectedMember && {
@@ -97,18 +102,20 @@ const TeamList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, navigate, searchByMonth, searchDay, selectedMember]);
+  }, [navigate, selectedMember]);
 
   useEffect(() => {
-    setSearchDay("");
+    searchDayRef.current = "";
+    const input = document.getElementById("search-day-input") as HTMLInputElement;
+    if (input) input.value = "";
     setSearchByMonth(false);
     setCurrentPage(1);
     setSelectedMember("");
   }, [location.pathname]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(currentPage, searchDayRef.current, searchByMonth);
+  }, [currentPage, fetchData, searchByMonth]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -116,28 +123,8 @@ const TeamList: React.FC = () => {
 
   const handleSearch = (isMonthSearch: boolean) => {
     setSearchByMonth(isMonthSearch);
-    fetchData(isMonthSearch);
     setCurrentPage(1);
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleFirstPage = () => {
-    setCurrentPage(1);
-  };
-
-  const handleLastPage = () => {
-    setCurrentPage(totalPages);
+    fetchData(1, searchDayRef.current, isMonthSearch);
   };
 
   const handleMemberChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -161,8 +148,8 @@ const TeamList: React.FC = () => {
           <input
             id="search-day-input"
             type="date"
-            value={searchDay}
-            onChange={(e) => setSearchDay(e.target.value)}
+            defaultValue={searchDayRef.current}
+            onChange={(e) => { searchDayRef.current = e.target.value; }}
             placeholder="日付を選択"
           />
           <div className={styles["button-group"]}>
@@ -223,21 +210,15 @@ const TeamList: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            <div className={styles["pagination"]}>
-              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handleFirstPage}>
-                最初
-              </button>
-              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handlePreviousPage}>
-                前
-              </button>
-              <span>{currentPage} / {totalPages}</span>
-              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleNextPage}>
-                次
-              </button>
-              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleLastPage}>
-                最後
-              </button>
-            </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+              buttonColor="#f50"
+              hoverColor="#f10"
+            />
+
           </TableContainer>
         )}
       </div>

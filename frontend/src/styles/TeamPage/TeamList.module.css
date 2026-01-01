@@ -90,7 +90,7 @@
   margin: 0 auto;
 }
 
-.th-collar{
+.th-collar {
   background-color: #f50;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
@@ -105,95 +105,16 @@
   font-weight: bold;
 }
 
-.a-collar{
+.a-collar {
   color: #f50;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin-top: 20px;
-  white-space: nowrap;
-}
-
-.pagination .next-button {
-  position: relative;
-  width: 70px;
-  height: 50px;
-  background-color: #f50;
-  border: none;
-  clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding-left: 10px;
-  color: #FFF;
-  font-weight: bold;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-}
-
-.pagination .prev-button {
-  position: relative;
-  width: 70px;
-  height: 50px;
-  background-color: #f50;
-  border: none;
-  clip-path: polygon(100% 0%, 100% 100%, 0% 50%);
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: 10px;
-  color: #FFF;
-  font-weight: bold;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-}
-
-.pagination button:hover {
-  background-color: #f10;
-  box-shadow: 0 0 5px #555;
-  color: #FFF;
-  font-weight: bold;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-}
-
-.pagination button:disabled {
-  background-color: #ccc;
-  color: #666;
-  cursor: not-allowed;
-}
-
-.pagination span {
-  font-size: 1rem;
-  color: #555;
+.a-collar:hover {
+  color: #f10;
 }
 
 @media (max-width: 768px) {
-  .table-wrapper {
-    margin: 0;
-    justify-content: flex-start;
-    padding-left: 10px;
-  }
-
-  .pagination {
-    gap: 10px;
-  }
-
-  .pagination span {
-    font-size: 0.9rem;
-  }
-
-  .pagination button {
-    width: 50px;
-    height: 40px;
-  }
-
   .search-bar {
     flex-direction: column;
     gap: 10px;

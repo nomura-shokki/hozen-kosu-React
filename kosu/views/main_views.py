@@ -504,8 +504,9 @@ class AdministratorUpdate(APIView):
       # 社員番号の存在チェック
       for key in emp_keys:
         emp_no = request.data.get(key)
-        if not member.objects.filter(employee_no=emp_no).exists():
-          return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        if emp_no:
+          if not member.objects.filter(employee_no=emp_no).exists():
+            return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
       # データ保存
       serializer.save()

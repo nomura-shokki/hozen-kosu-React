@@ -44,7 +44,7 @@ const TableContainer: React.FC<TableContainerProps> = ({
       window.removeEventListener("resize", updateDimensions);
       resizeObserver.disconnect();
     };
-  }, [children, searchBarSelector, headerSelector]);
+  }, [children, searchBarSelector, headerSelector, heightExpansion]);
 
   return (
     <div

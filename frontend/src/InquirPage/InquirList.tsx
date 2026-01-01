@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import ItemSelect from "../Components/ItemSelect";
 import TeamMemberSelect from "../Components/TeamMemberSelect";
 import TableContainer from "../Components/TableContainer";
+import Pagination from "../Components/Pagination";
 import Loading from "../Components/Loading";
 import styles from "../styles/InquirPage/InquirList.module.css";
 
@@ -22,7 +23,7 @@ interface InquirMember {
   name: string;
 }
 
-const TeamList: React.FC = () => {
+const InquirList: React.FC = () => {
   const [data, setData] = useState<Inquir[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,12 +53,14 @@ const TeamList: React.FC = () => {
         withCredentials: true,
       });
 
+      // TeamListのロジックに合わせ、inquir_data（またはpagination_data）から取得
       const paginationData = response.data?.inquir_data || {};
       const results = paginationData.results || [];
+      const count = paginationData.count || 0;
       const pageSize = response.data.page_size || 20;
+      
       const memberOptions = response.data?.member_data || [];
       const memberNameMap: { [key: number]: string } = {};
-      
       memberOptions.forEach((member: InquirMember) => {
         memberNameMap[member.employee_no] = member.name;
       });
@@ -69,7 +72,8 @@ const TeamList: React.FC = () => {
 
       setData(transformedData);
       setMemberOptions(memberOptions);
-      setTotalPages(Math.ceil(paginationData.count / pageSize));
+      // 総ページ数の計算を確実に行う
+      setTotalPages(Math.ceil(count / pageSize) || 1);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
@@ -93,36 +97,15 @@ const TeamList: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
+  // 検索時にcurrentPageを1に戻すことでfetchDataが再実行される
   const handleSearch = () => {
-    const isMemberChanged = selectedMemberInput !== searchMemberId;
-    const isItemChanged = searchItemInput !== searchItem;
-    
     if (currentPage !== 1) {
-      setCurrentPage(1); 
-    } else if (isMemberChanged || isItemChanged) {
-      setSearchMemberId(selectedMemberInput);
-      setSearchItem(searchItemInput);
+      setCurrentPage(1);
     }
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleFirstPage = () => {
-    setCurrentPage(1);
-  };
-
-  const handleLastPage = () => {
-    setCurrentPage(totalPages);
+    // currentPageが1の場合でも確実に値を更新して再送するために
+    // searchMemberIdとsearchItemをセットする
+    setSearchMemberId(selectedMemberInput);
+    setSearchItem(searchItemInput);
   };
 
   const handleMemberChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -188,21 +171,15 @@ const TeamList: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            <div className={styles["pagination"]}>
-              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handleFirstPage}>
-                最初
-              </button>
-              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handlePreviousPage}>
-                前
-              </button>
-              <span>{currentPage} / {totalPages}</span>
-              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleNextPage}>
-                次
-              </button>
-              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleLastPage}>
-                最後
-              </button>
-            </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+              buttonColor="#ff69b4"
+              hoverColor="#ff1493"
+            />
+
           </TableContainer>
         )}
       </div>
@@ -210,4 +187,4 @@ const TeamList: React.FC = () => {
   );
 };
 
-export default TeamList;
+export default InquirList;
