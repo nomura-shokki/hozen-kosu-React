@@ -53,12 +53,9 @@ const InquirList: React.FC = () => {
         withCredentials: true,
       });
 
-      // TeamListのロジックに合わせ、inquir_data（またはpagination_data）から取得
       const paginationData = response.data?.inquir_data || {};
       const results = paginationData.results || [];
-      const count = paginationData.count || 0;
-      const pageSize = response.data.page_size || 20;
-      
+      const pageSize = paginationData.page_size || 20;
       const memberOptions = response.data?.member_data || [];
       const memberNameMap: { [key: number]: string } = {};
       memberOptions.forEach((member: InquirMember) => {
@@ -69,11 +66,9 @@ const InquirList: React.FC = () => {
         ...item,
         name: memberNameMap[item.employee_no2] || `Unknown (${item.employee_no2})`,
       }));
-
       setData(transformedData);
       setMemberOptions(memberOptions);
-      // 総ページ数の計算を確実に行う
-      setTotalPages(Math.ceil(count / pageSize) || 1);
+      setTotalPages(Math.ceil(paginationData.count / pageSize));
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
@@ -97,15 +92,16 @@ const InquirList: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
-  // 検索時にcurrentPageを1に戻すことでfetchDataが再実行される
   const handleSearch = () => {
+    const isMemberChanged = selectedMemberInput !== searchMemberId;
+    const isItemChanged = searchItemInput !== searchItem;
+    
     if (currentPage !== 1) {
-      setCurrentPage(1);
+      setCurrentPage(1); 
+    } else if (isMemberChanged || isItemChanged) {
+      setSearchMemberId(selectedMemberInput);
+      setSearchItem(searchItemInput);
     }
-    // currentPageが1の場合でも確実に値を更新して再送するために
-    // searchMemberIdとsearchItemをセットする
-    setSearchMemberId(selectedMemberInput);
-    setSearchItem(searchItemInput);
   };
 
   const handleMemberChange = (event: ChangeEvent<HTMLSelectElement>) => {

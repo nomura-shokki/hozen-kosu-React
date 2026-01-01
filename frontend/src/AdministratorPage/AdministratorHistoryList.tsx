@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import TableContainer from "../Components/TableContainer";
+import Pagination from "../Components/Pagination";
 import Loading from "../Components/Loading";
 import styles from "../styles/AdministratorPage/AdministratorHistoryList.module.css";
 
@@ -75,11 +76,9 @@ const AdministratorHistoryList: React.FC = () => {
       const ModelChoices = response.data?.model_choices || {};
 
       if (Array.isArray(ModelChoices)) setModelChoices(ModelChoices);
-
       const results = historyData.results || [];
-      const count = historyData.count || 0;
-      const pageSize = results.length > 0 ? historyData.count / Math.ceil(historyData.count / results.length) : 20;
-      setTotalPages(Math.ceil(count / pageSize));
+      const pageSize = historyData.page_size || 20;
+      setTotalPages(Math.ceil(historyData.count / pageSize));
       setData(results);
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -108,12 +107,6 @@ const AdministratorHistoryList: React.FC = () => {
     setCurrentFilterNo(searchNo);
     setCurrentFilterTable(searchTable);
     setCurrentPage(1);
-  };
-
-  const handlePageChange = (targetPage: number) => {
-    if (targetPage >= 1 && targetPage <= totalPages) {
-      setCurrentPage(targetPage);
-    }
   };
 
   if (error) return <div>Error: {error}</div>;
@@ -206,13 +199,15 @@ const AdministratorHistoryList: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            <div className={styles["pagination"]}>
-              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={() => handlePageChange(1)}>最初</button>
-              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>前</button>
-              <span>{currentPage} / {totalPages}</span>
-              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>次</button>
-              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={() => handlePageChange(totalPages)}>最後</button>
-            </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+              buttonColor="#656565"
+              hoverColor="#3a3a3a"
+            />
+
           </TableContainer>
         )}
       </div>

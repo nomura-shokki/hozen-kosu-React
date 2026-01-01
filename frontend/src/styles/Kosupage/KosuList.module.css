@@ -76,7 +76,7 @@
   gap: 20px;
 }
 
-.th-collar{
+.th-collar {
   background-color: #0ff;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
@@ -92,11 +92,14 @@
 }
 
 
-.a-collar{
+.a-collar {
   color: #0ff;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
+.a-collar:hover {
+  color: #0af;
+}
 
 @media (max-width: 768px) {
   .search-bar {

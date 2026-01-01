@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import Loading from "../Components/Loading";
 import TableContainer from "../Components/TableContainer";
+import Pagination from "../Components/Pagination";
+import Loading from "../Components/Loading";
 import styles from "../styles/DefinitionPage/DefList.module.css";
 
 interface DefData {
@@ -44,26 +45,6 @@ const DefList: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleFirstPage = () => {
-    setCurrentPage(1);
-  };
-
-  const handleLastPage = () => {
-    setCurrentPage(totalPages);
-  };
 
   if (error) return <div>Error: {error}</div>;
   if (loading) return <div><Loading isLoading={loading} /></div>;
@@ -108,21 +89,14 @@ const DefList: React.FC = () => {
                 </tbody>
               </table>
 
-              <div className={styles["pagination"]}>
-                <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handleFirstPage}>
-                  最初
-                </button>
-                <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handlePreviousPage}>
-                  前
-                </button>
-                <span>{currentPage} / {totalPages}</span>
-                <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleNextPage}>
-                  次
-                </button>
-                <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleLastPage}>
-                  最後
-                </button>
-              </div>
+              <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+              buttonColor="#0f0"
+              hoverColor="#32cd32"
+            />
+
             </TableContainer>
           )}
         </div>

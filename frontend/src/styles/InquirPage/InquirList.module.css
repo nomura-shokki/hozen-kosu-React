@@ -72,12 +72,12 @@
   box-shadow: 0 0 3px #555;
 }
 
-.th-collar{
+.th-collar {
   background-color: #ff69b4;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
-.a-collar{
+.a-collar {
   color: #ff69b4;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
@@ -85,7 +85,6 @@
 .a-collar:hover {
   color: #ff1493;
 }
-
 
 @media (max-width: 768px) {
   .search-bar {

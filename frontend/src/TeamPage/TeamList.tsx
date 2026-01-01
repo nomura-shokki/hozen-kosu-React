@@ -77,13 +77,12 @@ const TeamList: React.FC = () => {
 
       const paginationData = response.data?.pagination_data || {};
       const results = paginationData.results || [];
-      const pageSize = response.data.page_size || 20;
+      const pageSize = paginationData.page_size || 20;
       const memberOptions = response.data?.team_member_select || [];
       const memberNameMap: { [key: number]: string } = {};
       memberOptions.forEach((member: TeamMember) => {
         memberNameMap[member.employee_no] = member.name;
       });
-
       const transformedData = results.map((item: Kosu) => ({
         ...item,
         name: memberNameMap[item.employee_no3] || `Unknown (${item.employee_no3})`,

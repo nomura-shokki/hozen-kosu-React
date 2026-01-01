@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import TableContainer from "../Components/TableContainer";
+import Pagination from "../Components/Pagination";
 import Loading from "../Components/Loading";
 import styles from "../styles/AdministratorPage/AdministratorTaskList.module.css";
 
@@ -66,14 +67,12 @@ const AdministratorTaskList: React.FC = () => {
 
       const taskData = response.data?.task_data || {};
       const results = taskData.results || [];
-      const count = taskData.count || 0;
-      const pageSize = results.length > 0 ? count / Math.ceil(count / results.length) : 20;
-      setTotalPages(Math.ceil(count / pageSize));
+      const pageSize = taskData.page_size || 20;
+      setTotalPages(Math.ceil(taskData.count / pageSize));
       const transformedData = results.map((item: Task) => ({
         ...item,
       }));
       setData(transformedData);
-
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
@@ -100,26 +99,6 @@ const AdministratorTaskList: React.FC = () => {
     setSearchByMonth(isMonthSearch);
     setCurrentPage(1);
     fetchData(1, searchDay, isMonthSearch);
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleFirstPage = () => {
-    setCurrentPage(1);
-  };
-
-  const handleLastPage = () => {
-    setCurrentPage(totalPages);
   };
 
   if (error) return <div>Error: {error}</div>;
@@ -186,21 +165,15 @@ const AdministratorTaskList: React.FC = () => {
                 ))}
               </tbody>
             </table>
-            <div className={styles["pagination"]}>
-              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handleFirstPage}>
-                最初
-              </button>
-              <button className={styles["prev-button"]} disabled={currentPage === 1} onClick={handlePreviousPage}>
-                前
-              </button>
-              <span>{currentPage} / {totalPages}</span>
-              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleNextPage}>
-                次
-              </button>
-              <button className={styles["next-button"]} disabled={currentPage === totalPages} onClick={handleLastPage}>
-                最後
-              </button>
-            </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+              buttonColor="#656565"
+              hoverColor="#3a3a3a"
+            />
+
           </TableContainer>
         )}
       </div>

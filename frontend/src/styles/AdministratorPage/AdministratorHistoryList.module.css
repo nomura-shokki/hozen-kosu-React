@@ -19,8 +19,8 @@
   width: 100%;
   margin: 0 auto;
   -webkit-overflow-scrolling: touch;
-  padding: 20px; /* 適切なパディングを追加 */
-  box-sizing: border-box; /* パディングを幅に含める */
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .h1-collar {
@@ -32,7 +32,7 @@
   color: #656565;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
   margin-bottom: 10px;
-  display: block; /* リンクを下線付きで独立させる */
+  display: block;
 }
 
 .admin-nav a:hover {
@@ -79,95 +79,23 @@
   box-shadow: 0 0 3px #555;
 }
 
-.th-collar{
+.th-collar {
   background-color: #656565;
   color: #FFF;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
-.a-collar{
+.a-collar {
   color: #656565;
   text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
 }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin-top: 20px;
-  white-space: nowrap;
+.a-collar:hover {
+  color: #3a3a3a;
 }
 
-.pagination .next-button {
-  position: relative;
-  width: 70px;
-  height: 50px;
-  background-color: #656565;
-  border: none;
-  clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding-left: 10px;
-  color: #FFF;
-  font-weight: bold;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-}
-
-.pagination .prev-button {
-  position: relative;
-  width: 70px;
-  height: 50px;
-  background-color: #656565;
-  border: none;
-  clip-path: polygon(100% 0%, 100% 100%, 0% 50%);
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: 10px;
-  color: #FFF;
-  font-weight: bold;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-}
-
-.pagination button:hover {
-  background-color: #3a3a3a;
-  box-shadow: 0 0 5px #555;
-  color: #FFF;
-  font-weight: bold;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-}
-
-.pagination button:disabled {
-  background-color: #ccc;
-  color: #666;
-  cursor: not-allowed;
-}
-
-.pagination span {
-  font-size: 1rem;
-  color: #555;
-}
 
 @media (max-width: 768px) {
-  .pagination {
-    gap: 10px;
-  }
-
-  .pagination span {
-    font-size: 0.9rem;
-  }
-
-  .pagination button {
-    width: 50px;
-    height: 40px;
-  }
-
   .search-bar {
     flex-direction: column;
     gap: 10px;
