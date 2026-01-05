@@ -8,7 +8,6 @@ interface ShopSelectProps {
   id?: string;
 }
 
-// value と label を分けた選択肢リスト
 const contentOptions = [
   { value: "", label: "---" },
   { value: "要望", label: "要望" },
