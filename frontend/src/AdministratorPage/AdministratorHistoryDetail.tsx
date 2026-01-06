@@ -85,11 +85,11 @@ const HistoryDetail: React.FC = () => {
       }
     };
 
-    // 初期実行
+    // 初期テーブル測定実行
     updateMaxHeight();
     updateTableWidth();
 
-    // リサイズ時に再計算
+    // リサイズ時再計算
     window.addEventListener("resize", updateMaxHeight);
     window.addEventListener("resize", updateTableWidth);
     
@@ -98,14 +98,14 @@ const HistoryDetail: React.FC = () => {
       window.removeEventListener("resize", updateMaxHeight);
       window.removeEventListener("resize", updateTableWidth);
     };
-  }, [formData]); // データが読み込まれたタイミングでも再実行
+  }, [formData]); // データ変更時にも再実行
 
-  // --- 条件付きレンダリング (ガード句) ---
+  // 条件付きレンダリング
   if (loading) return <div><Loading isLoading={loading} /></div>;
   if (error) return <div>Error: {error}</div>;
   if (!formData) return <div>データが見つかりません</div>;
 
-  // --- イベントハンドラ: 削除処理 ---
+  // 削除ハンドラ
   const handleDelete = async () => {
     const confirmed = window.confirm("削除しますか？");
     if (!confirmed) {
