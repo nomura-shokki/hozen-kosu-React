@@ -46,7 +46,7 @@ const HistoryDetail: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // APIから履歴詳細データを取得
+        // 履歴詳細データを取得
         const response = await axios.get<Response>(
           `${process.env.REACT_APP_API_BASE_URL}/api/manager_history_detail/${id}/`, 
           { withCredentials: true } // セッション受け取り
@@ -113,7 +113,7 @@ const HistoryDetail: React.FC = () => {
     }
 
     try {
-      // 履歴レコード自体を削除するリクエスト
+      // レコード削除をリクエスト
       await axios.delete(
         `${process.env.REACT_APP_API_BASE_URL}/api/manager_history_detail/${id}/`, 
         { withCredentials: true }
@@ -121,19 +121,19 @@ const HistoryDetail: React.FC = () => {
       alert("削除しました");
       navigate("/manager-history"); // 一覧画面へ戻る
     } catch (err) {
+      // エラーハンドリング
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
         else setError(err.response?.data.message);
       } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
+      // 成功・失敗に関わらずローディング終了
       setLoading(false);
     }
   };
 
-  // --- ヘルパー関数: 変更内容の表示ロジック ---
-  /**
-   * DBに保存されている文字列(JSON/Python dict形式)を解析して、見やすいHTML要素に変換する
-   */
+  // 変更内容の表示整形
+  // JSON/Python dict形式を、見やすいHTML要素に変換
   const renderChanges = (changesString: string) => {
     // 空データの場合
     if (!changesString || String(changesString).trim().length === 0) {
@@ -141,8 +141,7 @@ const HistoryDetail: React.FC = () => {
     }
 
     try {
-      // Pythonの辞書形式リテラルをJSONとしてパースできるように置換処理を行う
-      // 例: 'key': -> "key":, True -> true, None -> null
+      // Pythonの辞書形式リテラルをJSONとしてパースできるよう置換処理
       let validJsonString = changesString.replace(/'([^']+)':/g, '"$1":');
       validJsonString = validJsonString.replace(/True/g, 'true');
       validJsonString = validJsonString.replace(/False/g, 'false');
@@ -165,12 +164,13 @@ const HistoryDetail: React.FC = () => {
         return String(data);
       };
 
+      // 変更内容表示
       return (
         <>
           {keys.map((key) => {
             const value = changes[key];
 
-            // 変更前(old)と変更後(new)の両方が含まれるオブジェクト構造の場合
+            // 変更前と変更後の両方が含まれる構造の場合
             if (typeof value === 'object' && value !== null && !Array.isArray(value) && value.old !== undefined && value.new !== undefined) {
               return (
                 <div key={key}>
@@ -195,13 +195,13 @@ const HistoryDetail: React.FC = () => {
         </>
       );
     } catch (e) {
-      // JSONパースに失敗した場合は、エラー表示とともに生の文字列を表示する
+      // JSONパースに失敗した場合、エラー表示と生の文字列表示
       console.error("Failed to parse changes JSON (after conversion attempts):", e);
       return <div><span style={{ color: 'red' }}>[パースエラー]</span> {changesString}</div>;
     }
   };
 
-  // --- メインレンダリング ---
+  // ページ表示
   return (
     <>
       <Loading isLoading={loading} />
@@ -212,7 +212,6 @@ const HistoryDetail: React.FC = () => {
           <Link to="/manager-history">データ操作履歴一覧</Link>
         </nav>
 
-        {/* スクロール可能なテーブルコンテナ */}
         <div
           className={styles["table-wrapper"]}
           style={{
@@ -246,7 +245,6 @@ const HistoryDetail: React.FC = () => {
               <tr>
                 <th className={styles["th-collar"]}>編集内容</th>
                 <td className={styles["td-position"]}>
-                  {/* ロジックで生成された変更詳細を表示 */}
                   {renderChanges(formData.changes)}
                 </td>
               </tr>
@@ -254,7 +252,6 @@ const HistoryDetail: React.FC = () => {
           </table>
         </div>
 
-        {/* 削除実行ボタン */}
         <button onClick={handleDelete} className="gray_button">
           削除
         </button>
