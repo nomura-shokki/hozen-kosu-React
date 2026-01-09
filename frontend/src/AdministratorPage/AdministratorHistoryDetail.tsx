@@ -29,7 +29,7 @@ interface ChangesObject {
 
 // 操作履歴
 const HistoryDetail: React.FC = () => {
-  // --- フックの初期化 ---
+  // フック初期化
   const navigate = useNavigate(); // 画面遷移用関数設定
   const { id } = useParams<{ id: string }>(); // URLパラメータから履歴ID取得
   
