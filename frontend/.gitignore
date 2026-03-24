@@ -11,8 +11,5 @@ yarn-error.log*
 
 .env.production
 
-# production
-/build
-
 # npm install
 # npm run build
