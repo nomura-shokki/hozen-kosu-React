@@ -17,7 +17,7 @@ DEBUG=env.bool('DEBUG')
 DEFAULT_CHARSET = 'utf-8'
 
 ALLOWED_HOSTS = [
-    'hozen-kosu-another-c6e2gyeraydpdnhq.japaneast-01.azurewebsites.net',
+    'hozen-kosu-react-cwaqashkafgbg5e5.japaneast-01.azurewebsites.net',
     'localhost',
     '127.0.0.1'
     ]
@@ -160,7 +160,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 CSRF_TRUSTED_ORIGINS = [
-  'https://hozen-kosu-another-c6e2gyeraydpdnhq.japaneast-01.azurewebsites.net',
+  'https://hozen-kosu-react-cwaqashkafgbg5e5.japaneast-01.azurewebsites.net',
   'http://localhost:8000',
   'http://127.0.0.1:8000',
 ]
