@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, ChangeEvent } from "react";
+import React, { useState, useEffect, useCallback, ChangeEvent, useRef } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import TeamMemberSelect from "../Components/TeamMemberSelect";
@@ -61,6 +61,9 @@ const AdministratorKosuList: React.FC = () => {
   const [totalPages, setTotalPages] = useState<number>(0);
   const navigate = useNavigate();
 
+  const searchBarRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLHeadingElement>(null);
+
   const fetchData = useCallback(async (
     page: number,
     day: string,
@@ -112,15 +115,36 @@ const AdministratorKosuList: React.FC = () => {
         if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
         else setError(err.response?.data.message);
-      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } else {
+        setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      }
     } finally {
       setLoading(false);
     }
   }, [navigate]);
 
   useEffect(() => {
-    fetchData(currentPage, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement);
-  }, [currentPage, fetchData, searchDay, searchByMonth, selectedMemberInput, searchShop, searchTyoku, searchWork, searchJudgement]);
+    fetchData(
+      currentPage,
+      searchDay,
+      searchByMonth,
+      selectedMemberInput,
+      searchShop,
+      searchTyoku,
+      searchWork,
+      searchJudgement
+    );
+  }, [
+    currentPage,
+    fetchData,
+    searchDay,
+    searchByMonth,
+    selectedMemberInput,
+    searchShop,
+    searchTyoku,
+    searchWork,
+    searchJudgement
+  ]);
 
   const handleGenericChange = (
     setter: React.Dispatch<React.SetStateAction<string>>,
@@ -167,11 +191,21 @@ const AdministratorKosuList: React.FC = () => {
     <>
       <Loading isLoading={loading} />
       <div className={styles["admin-kosu-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>全工数管理</h1>
+        <h1
+          ref={headerRef}
+          className={styles["h1-collar"]}
+        >
+          全工数管理
+        </h1>
+
         <nav className={styles["admin-nav"]}>
           <Link to="/manager-menu">管理者MENU</Link>
         </nav>
-        <div className={styles["search-bar"]}>
+
+        <div
+          ref={searchBarRef}
+          className={styles["search-bar"]}
+        >
           <div className={styles["row-group"]}>
             <div className={styles["form-group"]}>
               <label htmlFor="searchDayInput">就業日：</label>
@@ -183,19 +217,14 @@ const AdministratorKosuList: React.FC = () => {
                 placeholder="日付を選択"
               />
             </div>
-            <button
-              onClick={() => handleSearch(true)}
-              className="gray_button"
-            >
+            <button onClick={() => handleSearch(true)} className="gray_button">
               指定月
             </button>
-            <button
-              onClick={() => handleSearch(false)}
-              className="gray_button"
-            >
+            <button onClick={() => handleSearch(false)} className="gray_button">
               指定日
             </button>
           </div>
+
           <div className={styles["row-group"]}>
             <div className={styles["form-group"]}>
               <label htmlFor="team-member-select">人員：</label>
@@ -217,6 +246,7 @@ const AdministratorKosuList: React.FC = () => {
               />
             </div>
           </div>
+
           <div className={styles["row-group"]}>
             <div className={styles["form-group"]}>
               <label htmlFor="tyokuFilter">直：</label>
@@ -232,10 +262,11 @@ const AdministratorKosuList: React.FC = () => {
                 id="workFilter"
                 value={searchWork}
                 onChange={handleWorkChange}
-                mode='ALL'
+                mode="ALL"
               />
             </div>
           </div>
+
           <div className={styles["row-group"]}>
             <div className={styles["form-group"]}>
               <label htmlFor="JudgementSelect">整合性:</label>
@@ -248,12 +279,13 @@ const AdministratorKosuList: React.FC = () => {
             </div>
           </div>
         </div>
+
         {data.length === 0 ? (
           <p>No data found.</p>
         ) : (
-          <TableContainer 
-            searchBarSelector={`.${styles["search-bar"]}`}
-            headerSelector={`.${styles["h1-collar"]}`}
+          <TableContainer
+            searchBarRef={searchBarRef}
+            headerRef={headerRef}
             heightExpansion
           >
             <table>
@@ -278,7 +310,12 @@ const AdministratorKosuList: React.FC = () => {
                       {item.judgement ? "OK" : "NG"}
                     </td>
                     <td>
-                      <Link to={`/manager-kosu-update/${item.id}`} className={styles["a-collar"]}>編集</Link>
+                      <Link
+                        to={`/manager-kosu-update/${item.id}`}
+                        className={styles["a-collar"]}
+                      >
+                        編集
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -292,7 +329,6 @@ const AdministratorKosuList: React.FC = () => {
               buttonColor="#656565"
               hoverColor="#3a3a3a"
             />
-
           </TableContainer>
         )}
       </div>

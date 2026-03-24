@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, ChangeEvent } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  ChangeEvent,
+  useRef
+} from "react";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import ItemSelect from "../Components/ItemSelect";
@@ -37,26 +43,33 @@ const InquirList: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const searchBarRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLHeadingElement>(null);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_list/`, {
-        params: {
-          page: currentPage,
-          ...(searchMemberId && {
-            member_id: searchMemberId,
-          }),
-          ...(searchItem && {
-            item: searchItem,
-          }),
-        },
-        withCredentials: true,
-      });
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_BASE_URL}/api/inquir_list/`,
+        {
+          params: {
+            page: currentPage,
+            ...(searchMemberId && {
+              member_id: searchMemberId,
+            }),
+            ...(searchItem && {
+              item: searchItem,
+            }),
+          },
+          withCredentials: true,
+        }
+      );
 
       const paginationData = response.data?.inquir_data || {};
       const results = paginationData.results || [];
       const pageSize = paginationData.page_size || 20;
       const memberOptions = response.data?.member_data || [];
+
       const memberNameMap: { [key: number]: string } = {};
       memberOptions.forEach((member: InquirMember) => {
         memberNameMap[member.employee_no] = member.name;
@@ -64,8 +77,11 @@ const InquirList: React.FC = () => {
 
       const transformedData = results.map((item: Inquir) => ({
         ...item,
-        name: memberNameMap[item.employee_no2] || `Unknown (${item.employee_no2})`,
+        name:
+          memberNameMap[item.employee_no2] ||
+          `Unknown (${item.employee_no2})`,
       }));
+
       setData(transformedData);
       setMemberOptions(memberOptions);
       setTotalPages(Math.ceil(paginationData.count / pageSize));
@@ -74,7 +90,9 @@ const InquirList: React.FC = () => {
         if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
         else setError(err.response?.data.message);
-      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } else {
+        setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      }
     } finally {
       setLoading(false);
     }
@@ -95,9 +113,9 @@ const InquirList: React.FC = () => {
   const handleSearch = () => {
     const isMemberChanged = selectedMemberInput !== searchMemberId;
     const isItemChanged = searchItemInput !== searchItem;
-    
+
     if (currentPage !== 1) {
-      setCurrentPage(1); 
+      setCurrentPage(1);
     } else if (isMemberChanged || isItemChanged) {
       setSearchMemberId(selectedMemberInput);
       setSearchItem(searchItemInput);
@@ -116,11 +134,21 @@ const InquirList: React.FC = () => {
     <>
       <Loading isLoading={loading} />
       <div className={styles["inquir-list-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>問い合わせ履歴</h1>
+        <h1
+          ref={headerRef}
+          className={styles["h1-collar"]}
+        >
+          問い合わせ履歴
+        </h1>
+
         <nav className={styles["inquir-nav"]}>
           <Link to="/inquir-menu">問い合わせMENU</Link>
         </nav>
-        <div className={styles["search-bar"]}>
+
+        <div
+          ref={searchBarRef}
+          className={styles["search-bar"]}
+        >
           <label htmlFor="team-member-select"></label>
           <TeamMemberSelect
             id="team-member-select"
@@ -136,14 +164,17 @@ const InquirList: React.FC = () => {
             value={searchItemInput}
             onChange={(e) => setSearchItemInput(e.target.value)}
           />
-          <button onClick={handleSearch} className="pink_button">検索</button>
+          <button onClick={handleSearch} className="pink_button">
+            検索
+          </button>
         </div>
+
         {data.length === 0 && !loading ? (
           <p>No data found.</p>
         ) : (
-          <TableContainer 
-            searchBarSelector={`.${styles["search-bar"]}`}
-            headerSelector={`.${styles["h1-collar"]}`}
+          <TableContainer
+            searchBarRef={searchBarRef}
+            headerRef={headerRef}
           >
             <table>
               <thead>
@@ -159,10 +190,25 @@ const InquirList: React.FC = () => {
                 {data.map((item) => (
                   <tr key={item.id}>
                     <td>{item.id}</td>
-                    <td><Link to={`/inquir-detail/${item.id}`} className={styles["a-collar"]}>{item.name}</Link></td>
+                    <td>
+                      <Link
+                        to={`/inquir-detail/${item.id}`}
+                        className={styles["a-collar"]}
+                      >
+                        {item.name}
+                      </Link>
+                    </td>
                     <td>{item.content_choice}</td>
-                    <td>{(item.inquiry || "").length > 3 ? item.inquiry.substring(0, 3) + "..." : item.inquiry}</td>
-                    <td>{(item.answer || "").length > 3 ? item.answer.substring(0, 3) + "..." : item.answer}</td>
+                    <td>
+                      {(item.inquiry || "").length > 3
+                        ? item.inquiry.substring(0, 3) + "..."
+                        : item.inquiry}
+                    </td>
+                    <td>
+                      {(item.answer || "").length > 3
+                        ? item.answer.substring(0, 3) + "..."
+                        : item.answer}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -175,7 +221,6 @@ const InquirList: React.FC = () => {
               buttonColor="#ff69b4"
               hoverColor="#ff1493"
             />
-
           </TableContainer>
         )}
       </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import TableContainer from "../Components/TableContainer";
@@ -42,6 +42,9 @@ const formatTimestamp = (timestamp: string): string => {
 const AdministratorHistoryList: React.FC = () => {
   // フックの初期化
   const navigate = useNavigate(); // 画面遷移用関数設定
+
+  const searchBarRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLHeadingElement>(null);
 
   // 状態管理
   const [data, setData] = useState<History[]>([]); // 取得した履歴データのリスト
@@ -146,11 +149,21 @@ const AdministratorHistoryList: React.FC = () => {
     <>
       <Loading isLoading={loading} />
       <div className={styles["admin-history-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>データ操作履歴一覧</h1>
+        <h1
+          ref={headerRef}
+          className={styles["h1-collar"]}
+        >
+          データ操作履歴一覧
+        </h1>
+
         <nav className={styles["admin-nav"]}>
           <Link to="/manager-menu">管理者MENU</Link>
         </nav>
-        <div className={styles["search-bar"]}>
+
+        <div
+          ref={searchBarRef}
+          className={styles["search-bar"]}
+        >
           <div className={styles["search-group"]}>
             <label htmlFor="searchDayInput">就業日:</label>
             <input
@@ -168,6 +181,7 @@ const AdministratorHistoryList: React.FC = () => {
               指定日検索
             </button>
           </div>
+
           <div className={styles["search-group"]}>
             <input
               type="text"
@@ -193,15 +207,18 @@ const AdministratorHistoryList: React.FC = () => {
               onChange={(e) => setSearchNo(e.target.value)}
               placeholder="操作者従業員番号"
             />
-            <button onClick={handleIDAndTableSearchClick} className="gray_button">検索</button>
+            <button onClick={handleIDAndTableSearchClick} className="gray_button">
+              検索
+            </button>
           </div>
         </div>
+
         {data.length === 0 && !loading ? (
           <p>No data found.</p>
         ) : (
-          <TableContainer 
-            searchBarSelector={`.${styles["search-bar"]}`}
-            headerSelector={`.${styles["h1-collar"]}`}
+          <TableContainer
+            searchBarRef={searchBarRef}
+            headerRef={headerRef}
           >
             <table>
               <thead>
@@ -223,7 +240,12 @@ const AdministratorHistoryList: React.FC = () => {
                     <td>{item.record_id}</td>
                     <td>{item.operation}</td>
                     <td>
-                      <Link to={`/manager-history-detail/${item.id}`} className={styles["a-collar"]}>詳細</Link>
+                      <Link
+                        to={`/manager-history-detail/${item.id}`}
+                        className={styles["a-collar"]}
+                      >
+                        詳細
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -237,7 +259,6 @@ const AdministratorHistoryList: React.FC = () => {
               buttonColor="#656565"
               hoverColor="#3a3a3a"
             />
-
           </TableContainer>
         )}
       </div>

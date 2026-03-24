@@ -2,63 +2,68 @@ import React, { useState, useEffect, useRef, ReactNode } from "react";
 import styles from "../styles/Components/TableContainer.module.css";
 
 interface TableContainerProps {
-  children: ReactNode;
-  searchBarSelector: string;
-  headerSelector: string;
-  heightExpansion?: boolean;
+    children: ReactNode;
+    searchBarRef: React.RefObject<HTMLElement | null>;
+    headerRef: React.RefObject<HTMLElement | null>;
+    heightExpansion?: boolean;
 }
 
-const TableContainer: React.FC<TableContainerProps> = ({ 
-  children, 
-  searchBarSelector, 
-  headerSelector,
-  heightExpansion = false
+const TableContainer: React.FC<TableContainerProps> = ({
+    children,
+    searchBarRef,
+    headerRef,
+    heightExpansion = false,
 }) => {
-  const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
-  const [tableWidth, setTableWidth] = useState<number>(0);
-  const containerRef = useRef<HTMLDivElement>(null);
+    const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
+    const [tableWidth, setTableWidth] = useState<number>(0);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const updateDimensions = () => {
-      const searchBarHeight = (document.querySelector(searchBarSelector) as HTMLElement)?.offsetHeight || 0;
-      const headerHeight = (document.querySelector(headerSelector) as HTMLElement)?.offsetHeight || 0;
-      if (heightExpansion) {
-        setMaxHeight(window.innerHeight - 100);
-      } else {
-        setMaxHeight(window.innerHeight - searchBarHeight - headerHeight - 40);
-      }
+    useEffect(() => {
+        const updateDimensions = () => {
+            const searchBarHeight = searchBarRef.current?.offsetHeight || 0;
+            const headerHeight = headerRef.current?.offsetHeight || 0;
 
-      const tableElement = containerRef.current?.querySelector("table");
-      if (tableElement) {
-        setTableWidth(tableElement.offsetWidth);
-      }
-    };
+            if (heightExpansion) {
+                setMaxHeight(window.innerHeight - 100);
+            } else {
+                setMaxHeight(
+                    window.innerHeight - searchBarHeight - headerHeight - 40
+                );
+            }
 
-    updateDimensions();
+            const tableElement = containerRef.current?.querySelector("table");
+            if (tableElement) {
+                setTableWidth(tableElement.offsetWidth);
+            }
+        };
 
-    const resizeObserver = new ResizeObserver(() => updateDimensions());
-    if (containerRef.current) resizeObserver.observe(containerRef.current);
-    
-    window.addEventListener("resize", updateDimensions);
-    return () => {
-      window.removeEventListener("resize", updateDimensions);
-      resizeObserver.disconnect();
-    };
-  }, [children, searchBarSelector, headerSelector, heightExpansion]);
+        updateDimensions();
 
-  return (
-    <div
-      ref={containerRef}
-      className={styles["table-wrapper"]}
-      style={{
-        maxHeight: `${maxHeight}px`,
-        overflowY: "auto",
-        width: tableWidth > 0 ? `${tableWidth + 20}px` : "auto",
-      }}
-    >
-      {children}
-    </div>
-  );
+        const resizeObserver = new ResizeObserver(() => updateDimensions());
+        if (containerRef.current) {
+            resizeObserver.observe(containerRef.current);
+        }
+
+        window.addEventListener("resize", updateDimensions);
+        return () => {
+            window.removeEventListener("resize", updateDimensions);
+            resizeObserver.disconnect();
+        };
+    }, [children, searchBarRef, headerRef, heightExpansion]);
+
+    return (
+        <div
+            ref={containerRef}
+            className={styles["table-wrapper"]}
+            style={{
+                maxHeight: `${maxHeight}px`,
+                overflowY: "auto",
+                width: tableWidth > 0 ? `${tableWidth + 20}px` : "auto",
+            }}
+        >
+            {children}
+        </div>
+    );
 };
 
 export default TableContainer;

@@ -188,7 +188,7 @@ const KosuNew: React.FC = () => {
     const formattedTime2 = selectedTimes.time2?.toISOString();
     const overTime = data.over_time || 0;
 
-    if (!data.work_time || !data.tyoku2 || !data.time_work || !formattedTime1 || !formattedTime2) {
+    if (!data.work_time || !data.tyoku2 || !data.time_work || !data.detail_work || !formattedTime1 || !formattedTime2) {
       setErrorMessage("入力必要項目が入力されていません。");
       return;
     }

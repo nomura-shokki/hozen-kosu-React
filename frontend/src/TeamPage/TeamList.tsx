@@ -53,6 +53,9 @@ const TeamList: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const searchBarRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLHeadingElement>(null);
+
   const fetchData = useCallback(async (
     page: number,
     day: string,
@@ -79,10 +82,12 @@ const TeamList: React.FC = () => {
       const results = paginationData.results || [];
       const pageSize = paginationData.page_size || 20;
       const memberOptions = response.data?.team_member_select || [];
+
       const memberNameMap: { [key: number]: string } = {};
       memberOptions.forEach((member: TeamMember) => {
         memberNameMap[member.employee_no] = member.name;
       });
+
       const transformedData = results.map((item: Kosu) => ({
         ...item,
         name: memberNameMap[item.employee_no3] || `Unknown (${item.employee_no3})`,
@@ -95,9 +100,12 @@ const TeamList: React.FC = () => {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
-        else if (err.response?.status === 400) navigate("/team-menu", { state: { errorMessage: err.response?.data.message } });
+        else if (err.response?.status === 400)
+          navigate("/team-menu", { state: { errorMessage: err.response?.data.message } });
         else setError(err.response?.data.message);
-      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } else {
+        setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      }
     } finally {
       setLoading(false);
     }
@@ -138,11 +146,21 @@ const TeamList: React.FC = () => {
     <>
       <Loading isLoading={loading} />
       <div className={styles["team-list-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>班員工数履歴</h1>
+        <h1
+          ref={headerRef}
+          className={styles["h1-collar"]}
+        >
+          班員工数履歴
+        </h1>
+
         <nav className={styles["team-nav"]}>
           <Link to="/team-menu">班員MENU</Link>
         </nav>
-        <div className={styles["search-bar"]}>
+
+        <div
+          ref={searchBarRef}
+          className={styles["search-bar"]}
+        >
           <label htmlFor="search-day-input"></label>
           <input
             id="search-day-input"
@@ -166,6 +184,7 @@ const TeamList: React.FC = () => {
             </button>
           </div>
         </div>
+
         <div className={styles["search-bar"]}>
           <label htmlFor="team-member-select"></label>
           <TeamMemberSelect
@@ -176,12 +195,13 @@ const TeamList: React.FC = () => {
             options={teamMemberOptions}
           />
         </div>
+
         {data.length === 0 ? (
           <p>No data found.</p>
         ) : (
-          <TableContainer 
-            searchBarSelector={`.${styles["search-bar"]}`}
-            headerSelector={`.${styles["h1-collar"]}`}
+          <TableContainer
+            searchBarRef={searchBarRef}
+            headerRef={headerRef}
           >
             <table>
               <thead>
@@ -203,7 +223,12 @@ const TeamList: React.FC = () => {
                       {item.judgement ? "OK" : "NG"}
                     </td>
                     <td>
-                      <Link to={`/team-detail/${item.id}`} className={styles["a-collar"]}>詳細</Link>
+                      <Link
+                        to={`/team-detail/${item.id}`}
+                        className={styles["a-collar"]}
+                      >
+                        詳細
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -217,7 +242,6 @@ const TeamList: React.FC = () => {
               buttonColor="#f50"
               hoverColor="#f10"
             />
-
           </TableContainer>
         )}
       </div>

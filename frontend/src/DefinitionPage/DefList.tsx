@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import TableContainer from "../Components/TableContainer";
@@ -19,13 +19,19 @@ const DefList: React.FC = () => {
   const [totalPages, setTotalPages] = useState<number>(0);
   const navigate = useNavigate();
 
+  const searchBarRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLHeadingElement>(null);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/def_list/`, {
-        params: {page: currentPage},
-        withCredentials: true,
-      });
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_BASE_URL}/api/def_list/`,
+        {
+          params: { page: currentPage },
+          withCredentials: true,
+        }
+      );
 
       const results = response.data.results || [];
       const pageSize = response.data.page_size || 20;
@@ -36,7 +42,9 @@ const DefList: React.FC = () => {
         if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
         else setError(err.response?.data.message);
-      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } else {
+        setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      }
     } finally {
       setLoading(false);
     }
@@ -53,18 +61,27 @@ const DefList: React.FC = () => {
     <>
       <Loading isLoading={loading} />
       <div className={styles["def-list-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>工数区分定義一覧</h1>
+        <h1
+          ref={headerRef}
+          className={styles["h1-collar"]}
+        >
+          工数区分定義一覧
+        </h1>
+
         <nav className={styles["def-nav"]}>
           <Link to="/def-menu">工数区分定義MENU</Link>
         </nav>
 
-        <div className={styles["search-bar"]}>
+        <div
+          ref={searchBarRef}
+          className={styles["search-bar"]}
+        >
           {data.length === 0 ? (
             <p>No data found.</p>
           ) : (
-            <TableContainer 
-              searchBarSelector={`.${styles["search-bar"]}`}
-              headerSelector={`.${styles["h1-collar"]}`}
+            <TableContainer
+              searchBarRef={searchBarRef}
+              headerRef={headerRef}
             >
               <table>
                 <thead>
@@ -79,10 +96,20 @@ const DefList: React.FC = () => {
                     <tr key={item.id}>
                       <td>{item.kosu_name}</td>
                       <td>
-                        <Link to={`/def-update/${item.id}`} className={styles["a-collar"]}>編集</Link>
+                        <Link
+                          to={`/def-update/${item.id}`}
+                          className={styles["a-collar"]}
+                        >
+                          編集
+                        </Link>
                       </td>
                       <td>
-                        <Link to={`/def-delete/${item.id}`} className={styles["a-collar"]}>削除</Link>
+                        <Link
+                          to={`/def-delete/${item.id}`}
+                          className={styles["a-collar"]}
+                        >
+                          削除
+                        </Link>
                       </td>
                     </tr>
                   ))}
@@ -90,13 +117,12 @@ const DefList: React.FC = () => {
               </table>
 
               <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              setCurrentPage={setCurrentPage}
-              buttonColor="#0f0"
-              hoverColor="#32cd32"
-            />
-
+                currentPage={currentPage}
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+                buttonColor="#0f0"
+                hoverColor="#32cd32"
+              />
             </TableContainer>
           )}
         </div>

@@ -44,6 +44,9 @@ const KosuList: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const searchBarRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLHeadingElement>(null);
+
   const fetchData = useCallback(async (
     page: number, 
     day: string, 
@@ -71,7 +74,9 @@ const KosuList: React.FC = () => {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
         else setError(err.response?.data.message);
-      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      } else {
+        setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+      }
     } finally {
       setLoading(false);
     }
@@ -102,11 +107,21 @@ const KosuList: React.FC = () => {
     <>
       <Loading isLoading={loading} />
       <div className={styles["kosu-list-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>工数履歴</h1>
+        <h1
+          ref={headerRef}
+          className={styles["h1-collar"]}
+        >
+          工数履歴
+        </h1>
+
         <nav className={styles["kosu-nav"]}>
           <Link to="/kosu-menu">工数MENU</Link>
         </nav>
-        <div className={styles["search-bar"]}>
+
+        <div
+          ref={searchBarRef}
+          className={styles["search-bar"]}
+        >
           <label htmlFor="search-day-input"></label>
           <input
             id="search-day-input"
@@ -131,12 +146,13 @@ const KosuList: React.FC = () => {
             </button>
           </div>
         </div>
+
         {data.length === 0 ? (
           <p>No data found.</p>
         ) : (
-          <TableContainer 
-            searchBarSelector={`.${styles["search-bar"]}`}
-            headerSelector={`.${styles["h1-collar"]}`}
+          <TableContainer
+            searchBarRef={searchBarRef}
+            headerRef={headerRef}
           >
             <table>
               <thead>
@@ -153,14 +169,30 @@ const KosuList: React.FC = () => {
                   <tr key={item.id}>
                     <td>{item.work_day2} ({getDayOfWeek(item.work_day2)})</td>
                     <td>{formatTyoku(item.tyoku2)}</td>
-                    <td className={item.judgement ? styles["status-ok"] : styles["status-ng"]}>
+                    <td
+                      className={
+                        item.judgement
+                          ? styles["status-ok"]
+                          : styles["status-ng"]
+                      }
+                    >
                       {item.judgement ? "OK" : "NG"}
                     </td>
                     <td>
-                      <Link to={`/kosu-update/${item.id}`} className={styles["a-collar"]}>編集</Link>
+                      <Link
+                        to={`/kosu-update/${item.id}`}
+                        className={styles["a-collar"]}
+                      >
+                        編集
+                      </Link>
                     </td>
                     <td>
-                      <Link to={`/kosu-delete/${item.id}`} className={styles["a-collar"]}>削除</Link>
+                      <Link
+                        to={`/kosu-delete/${item.id}`}
+                        className={styles["a-collar"]}
+                      >
+                        削除
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -174,7 +206,6 @@ const KosuList: React.FC = () => {
               buttonColor="#0ff"
               hoverColor="#0af"
             />
-
           </TableContainer>
         )}
       </div>

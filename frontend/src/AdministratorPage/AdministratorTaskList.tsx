@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import TableContainer from "../Components/TableContainer";
@@ -46,6 +46,9 @@ const AdministratorTaskList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
   const navigate = useNavigate();
+
+  const searchBarRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLHeadingElement>(null);
 
   const fetchData = useCallback(async (
     page: number, 
@@ -108,11 +111,21 @@ const AdministratorTaskList: React.FC = () => {
     <>
       <Loading isLoading={loading} />
       <div className={styles["admin-task-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>非同期タスクデータ管理</h1>
+        <h1
+          ref={headerRef}
+          className={styles["h1-collar"]}
+        >
+          非同期タスクデータ管理
+        </h1>
+
         <nav className={styles["admin-nav"]}>
           <Link to="/manager-menu">管理者MENU</Link>
         </nav>
-        <div className={styles["search-bar"]}>
+
+        <div
+          ref={searchBarRef}
+          className={styles["search-bar"]}
+        >
           <label htmlFor="searchDayInput">就業日：</label>
           <input 
             type="date" 
@@ -136,12 +149,13 @@ const AdministratorTaskList: React.FC = () => {
             </button>
           </div>
         </div>
+
         {data.length === 0 ? (
           <p>No data found.</p>
         ) : (
-          <TableContainer 
-            searchBarSelector={`.${styles["search-bar"]}`}
-            headerSelector={`.${styles["h1-collar"]}`}
+          <TableContainer
+            searchBarRef={searchBarRef}
+            headerRef={headerRef}
           >
             <table>
               <thead>
@@ -159,7 +173,12 @@ const AdministratorTaskList: React.FC = () => {
                     <td>{item.status}</td>
                     <td>{item.task_id}</td>
                     <td>
-                      <Link to={`/manager-task-detail/${item.id}`} className={styles["a-collar"]}>詳細</Link>
+                      <Link
+                        to={`/manager-task-detail/${item.id}`}
+                        className={styles["a-collar"]}
+                      >
+                        詳細
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -173,7 +192,6 @@ const AdministratorTaskList: React.FC = () => {
               buttonColor="#656565"
               hoverColor="#3a3a3a"
             />
-
           </TableContainer>
         )}
       </div>
