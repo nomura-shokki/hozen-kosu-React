@@ -338,38 +338,22 @@ class TeamCalendarWeekJump(APIView):
 class TeamExport(APIView):
   # POST処理
   def post(self, request):
-    # セッション値取得
-    login_no = request.session.get('login_No')
-
-    # 指定日の年,月取得し記録
-    today = datetime.datetime.strptime(request.data.get('day'), '%Y-%m-%d')
-    year, month = today.year, today.month
-    request.session['display_day'] = request.data.get('day')
+    # 年,月取得
+    post_data = request.data
+    year = post_data.get('year')
+    month = post_data.get('month')
+    shop = post_data.get('shop2')
 
     # 新しいExcelブック作成
     wb = openpyxl.Workbook()
 
-    # 班員データ取得
-    team_data = team_member.objects.get(employee_no5=login_no)
-
-    # 班員リスト作成
-    member_numbers = [
-      team_data.member1, team_data.member2, team_data.member3,
-      team_data.member4, team_data.member5, team_data.member6,
-      team_data.member7, team_data.member8, team_data.member9,
-      team_data.member10, team_data.member11, team_data.member12,
-      team_data.member13, team_data.member14, team_data.member15
-    ]
-    valid_member_numbers = [
-      num for num in member_numbers if num is not None and num != ''
-    ]
-    employee_no_nums = []
-    for m in valid_member_numbers:
-      employee_no_nums.append(m)
+    # ショップ人員データ取得
+    member_list = member.objects.filter(shop=shop).order_by('employee_no')
+    employee_no_nums = list(member_list.values_list('employee_no', flat=True))
 
     # 班員毎にExcelに書き込み
     for ind, employee_no_num in enumerate(employee_no_nums):
-      wb = excel_function(employee_no_num, wb, request)
+      wb = excel_function(employee_no_num, wb, year, month, request)
     # 不要なシート削除
     del wb['Sheet']
 
@@ -379,7 +363,7 @@ class TeamExport(APIView):
     excel_file.seek(0)
 
     # URLエンコーディングされたファイル名を生成
-    filename = f'班員の{year}年{month}月度業務工数入力状況.xlsx'
+    filename = f'{year}年{month}月度_工数入力状況_{shop}.xlsx'
     quoted_filename = urllib.parse.quote(filename)
 
     response = HttpResponse(

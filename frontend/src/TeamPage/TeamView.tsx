@@ -188,6 +188,53 @@ const TeamView: React.FC = () => {
     return years;
   };
 
+  const handleExport = async () => {
+    if (!sessionYear || !sessionMonth || !shopDefault) {
+      alert("年、月、およびショップを選択してください。");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_export/`,
+        { 
+          year: sessionYear, 
+          month: sessionMonth,
+          shop2: shopDefault 
+        },
+        { 
+          withCredentials: true,
+          responseType: 'blob'
+        }
+      );
+
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+
+      const filename = `${sessionYear}年${sessionMonth}月度_工数入力状況_${shopDefault}.xlsx`;
+      link.setAttribute('download', filename);
+      
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   if (error) return <div>Error: {error}</div>;
   if (loading) return <div><Loading isLoading={loading} /></div>;
 
@@ -230,6 +277,16 @@ const TeamView: React.FC = () => {
             value={shopDefault || ""}
             onChange={handleShopChange}
           />
+        </div>
+        <div className={styles["select-row"]}>
+          <button 
+            type="button"
+            onClick={handleExport}
+            disabled={loading}
+            className="orange_button"
+          >
+          Excelに出力
+          </button>
         </div>
         <div
           className={styles["table-wrapper"]}

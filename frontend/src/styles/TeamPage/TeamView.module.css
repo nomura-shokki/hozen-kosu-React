@@ -127,6 +127,13 @@ keyframes fadeInUp {
   border-color: #f10;
 }
 
+.select-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
 @media (max-width: 768px) {
   .table-wrapper {
     margin: 0;

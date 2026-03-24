@@ -9,13 +9,9 @@ import datetime
 
 
 # 班員入力工数Excel出力関数
-def excel_function(employee_no_data, wb, request):
+def excel_function(employee_no_data, wb, year, month, request):
   # 人員データ取得
   member_obj = get_object_or_404(member, employee_no=employee_no_data)
-
-  # POSTされた値を日付に設定
-  day_data = datetime.datetime.strptime(request.data.get('day'), '%Y-%m-%d')
-  year, month = day_data.year, day_data.month
 
   # 最終日取得
   select_month = datetime.date(year_end := (year + 1 if month == 12 else year), 
@@ -58,22 +54,23 @@ def excel_function(employee_no_data, wb, request):
           graph_list = [kosu_obj.time_work.count(i) * 5 for i in str_list]
 
     # エクセルファイルに書き込み
-    member_sheet.cell(row=2, column=(day * 2) - 1, value=f'{day}日')
-    member_sheet.cell(row=2, column=day * 2, value=integrity)
-    member_sheet.cell(row=3, column=(day * 2) - 1, value=work)
-    member_sheet.cell(row=3, column=day * 2, value=tyoku)
-    member_sheet.cell(row=4, column=(day * 2) - 1, value='残業')
-    member_sheet.cell(row=4, column=day * 2, value=over_time)
+    member_sheet.cell(row=2, column=(day * 3) - 2, value=f'{day}日')
+    member_sheet.cell(row=2, column=(day * 3) - 1, value=integrity)
+    member_sheet.cell(row=3, column=(day * 3) - 2, value=work)
+    member_sheet.cell(row=3, column=(day * 3) - 1, value=tyoku)
+    member_sheet.cell(row=4, column=(day * 3) - 2, value='残業')
+    member_sheet.cell(row=4, column=(day * 3) - 1, value=over_time)
 
     # 工数区分定義別の累積工数書き込み
     for i, row_num in enumerate(def_list):
-      member_sheet.cell(row=(6 + i), column=(day * 2) - 1, value=row_num)
-      member_sheet.cell(row=(6 + i), column=day * 2, value=graph_list[i])
+      member_sheet.cell(row=(6 + i), column=(day * 3) - 2, value=row_num)
+      member_sheet.cell(row=(6 + i), column=(day * 3) - 1, value=graph_list[i])
 
     # 作業時間ごとの作業内容書き込み
     for i2, item in enumerate(time_display_list):
-      member_sheet.cell(row=(8 + i + i2), column=(day * 2) - 1, value=item[0])
-      member_sheet.cell(row=(8 + i + i2), column=day * 2, value=item[1])
+      member_sheet.cell(row=(8 + i + i2), column=(day * 3) - 2, value=item[0])
+      member_sheet.cell(row=(8 + i + i2), column=(day * 3) - 1, value=item[1])
+      member_sheet.cell(row=(8 + i + i2), column=day * 3, value=item[2])
 
   return wb
 

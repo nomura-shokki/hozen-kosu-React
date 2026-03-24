@@ -129,45 +129,6 @@ const TeamCalendar: React.FC = () => {
     }
   };
 
-  const handleExport = async () => {
-    if (!selectedDay) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_export/`,
-        { day: selectedDay },
-        { 
-          withCredentials: true,
-          responseType: 'blob'
-        }
-      );
-
-      const blob = new Blob([response.data], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-      });
-
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-
-      const filename = `班員の${selectedDay.substring(0, 7)}月度工数.xlsx`;
-      link.setAttribute('download', filename);
-      
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) navigate("/login");
-        else if (err.response?.status === 403) navigate("/");
-        else setError(err.response?.data.message);
-      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSelectedDay(e.target.value);
   };
@@ -308,16 +269,6 @@ const TeamCalendar: React.FC = () => {
               className="orange_button"
             >
               次週
-            </button>
-          </div>
-          <div className={styles["select-row"]}>
-            <button 
-              type="button"
-              onClick={handleExport}
-              disabled={loading}
-              className="orange_button"
-            >
-              Excelに出力
             </button>
           </div>
         </div>
