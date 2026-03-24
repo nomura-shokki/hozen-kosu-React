@@ -70,7 +70,7 @@
   text-decoration: none;
   cursor: pointer;
   opacity: 0;
-  animation: fadeIn 0s linear 3.0s forwards;
+  animation: fadeIn 0s linear 30.0s forwards;
 }
 
 @keyframes fadeIn {

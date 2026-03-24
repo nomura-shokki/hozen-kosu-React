@@ -86,10 +86,21 @@ const MainMenu: React.FC = () => {
         setData(login_data);
         setAdminData(admin_data);
       } catch (err) {
+        console.error("API Error Full Details:", err); // エラー全体をログ出力
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 401) navigate("/login");
-          else setError(err.response?.data.message);
-        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+          console.error("Status:", err.response?.status);       // 500などのステータスコード
+          console.error("Response Data:", err.response?.data);   // サーバーから返ってきたエラー内容（重要！）
+          
+          if (err.response?.status === 401) {
+            navigate("/login");
+          } else {
+            // サーバーから送られてきたメッセージがあればそれを、なければデフォルトを表示
+            const serverMessage = err.response?.data?.message || err.response?.data?.detail || "サーバー内部エラーが発生しました。";
+            setError(serverMessage);
+          }
+        } else {
+          setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+        }
       } finally {
         setLoading(false);
       }
