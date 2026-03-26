@@ -51,9 +51,11 @@ const DefMenu: React.FC = () => {
         <>
           <Link to="/def-new" className={styles["def-button2"]}>工数区分定義登録</Link>
           <Link to="/def-list" className={styles["def-button3"]}>工数区分定義一覧</Link>
+          <Link to="/def-detail-new" className={styles["def-button4"]}>作業詳細選択肢登録</Link>
+          <Link to="/def-detail-list" className={styles["def-button5"]}>作業詳細選択肢一覧</Link>
         </>
       )}
-      <Link to="/def-ver" className={styles["def-button4"]}>工数区分定義切り替え</Link>
+      <Link to="/def-ver" className={styles["def-button6"]}>工数区分定義切り替え</Link>
     </div>
   );
 };

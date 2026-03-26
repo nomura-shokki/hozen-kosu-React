@@ -1,10 +1,10 @@
 import datetime
 import itertools
-from ..models import member, Business_Time_graph, kosu_division
+from ..models import member, Business_Time_graph, kosu_division, def_choice
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import MemberSerializer, DefSerializer, KosuSerializer
+from .serializers import MemberSerializer, DefSerializer, KosuSerializer, DefChoiceSerializer
 from ..utils.main_utils import CustomPagination
 from ..utils.kosu_utils import time_index
 from ..utils.kosu_utils import break_get
@@ -111,16 +111,21 @@ class KosuNew(APIView):
     if def_new_obj and def_new_obj.kosu_name != def_ver:
       warning_message = f"警告: 設定されている工数区分定義は最新の工数区分定義ではありません。任意に過去の工数入力する以外の場合は工数区分定義を最新のものにして工数入力を実施してください。"
 
+    # 作業詳細取得
+    detail_choice = def_choice.objects.all().order_by('def_symbol')
+
     # データ変換
     member_serializer = MemberSerializer(member_data, many=False)
     kosu_serializer = KosuSerializer(kosu_data, many=False)
     def_serializer = DefSerializer(def_data, many=False)
+    detail_serializer = DefChoiceSerializer(detail_choice, many=True)
 
     # 送信データ
     response_data = {
       'member_data': member_serializer.data,
       'kosu_data': kosu_serializer.data,
       'def_data': def_serializer.data,
+      'detail_list': detail_serializer.data,
       'session_day': day,
       'session_def': def_ver,
     }
@@ -599,7 +604,7 @@ class KosuUpdate(APIView):
   def get(self, request, pk):
     # 工数データ取得
     kosu_instance = self.get_object(pk)
-    print(kosu_instance)
+
     if not kosu_instance:
       return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -636,16 +641,21 @@ class KosuUpdate(APIView):
         return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_401_UNAUTHORIZED)
       def_instance = def_query_set.first()
 
+    # 作業詳細取得
+    detail_choice = def_choice.objects.all().order_by('def_symbol')
+
     # データ変換
     kosu_serializer = KosuSerializer(kosu_instance)
     def_serializer = DefSerializer(def_instance)
     member_serializer = MemberSerializer(member_data, many=False)
+    detail_serializer = DefChoiceSerializer(detail_choice, many=True)
 
     # 送信データ
     response_data = {
       'kosu_data': kosu_serializer.data,
       'def_data': def_serializer.data,
       'member_data': member_serializer.data,
+      'detail_data_list': detail_serializer.data,
     }
 
     return Response(response_data)

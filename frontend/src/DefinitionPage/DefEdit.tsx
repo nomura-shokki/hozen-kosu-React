@@ -10,6 +10,7 @@ interface KosuDefinition {
   title: string;
   division1: string;
   division2: string;
+  division3: boolean;
 }
 
 interface FormData {
@@ -35,6 +36,7 @@ const DefEdit: React.FC = () => {
             title: rawData[`kosu_title_${idx}`] || "",
             division1: rawData[`kosu_division_1_${idx}`] || "",
             division2: rawData[`kosu_division_2_${idx}`] || "",
+            division3: rawData[`kosu_division_3_${idx}`] === true || rawData[`kosu_division_3_${idx}`] === "true",
           };
         });
 
@@ -79,7 +81,7 @@ const DefEdit: React.FC = () => {
     );
     if (!confirmed) return;
 
-    const convertedData: { [key: string]: string } = {
+    const convertedData: { [key: string]: string | boolean } = {
       kosu_name: formData.kosu_name,
     };
 
@@ -88,6 +90,7 @@ const DefEdit: React.FC = () => {
       convertedData[`kosu_title_${idx}`] = def.title;
       convertedData[`kosu_division_1_${idx}`] = def.division1;
       convertedData[`kosu_division_2_${idx}`] = def.division2;
+      convertedData[`kosu_division_3_${idx}`] = def.division3;
     });
 
     try {
@@ -105,8 +108,8 @@ const DefEdit: React.FC = () => {
     }
   };
 
-  if (!formData || !formData.kosu_definitions) return <div>データが見つかりません</div>;
   if (loading) return <div><Loading isLoading={loading} /></div>;
+  if (!formData || !formData.kosu_definitions) return <div>データが見つかりません</div>;
 
   return (
     <>
@@ -165,6 +168,24 @@ const DefEdit: React.FC = () => {
                   onChange={(e) => handleChange(e, index, "division2")}
                   rows={3}
                 />
+
+                <div className={styles["switch-wrapper"]}>
+                  <label htmlFor={`kosu_division_${index + 1}_3`}>{`変動/固定${index + 1}:`}</label>
+                  <label className={styles["toggle-switch"]}>
+                    <input
+                      type="checkbox"
+                      id={`kosu_division_${index + 1}_3`}
+                      name={`kosu_division_${index + 1}_3`}
+                      checked={def.division3}
+                      onChange={(e) => {
+                        const updated = [...formData.kosu_definitions];
+                        updated[index] = { ...updated[index], division3: e.target.checked };
+                        setFormData({ ...formData, kosu_definitions: updated });
+                      }}
+                    />
+                    <span className={styles["toggle-slider"]}></span>
+                  </label>
+                </div>
               </div>
             ))}
 

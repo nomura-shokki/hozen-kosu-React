@@ -96,6 +96,8 @@ const AdministratorLoading: React.FC = () => {
     KosuLoad: false,
     DefBackup: false,
     DefLoad: false,
+    ChoiceBackup: false,
+    ChoiceLoad: false,
     MemberBackup: false,
     MemberLoad: false,
     TeamBackup: false,
@@ -113,7 +115,7 @@ const AdministratorLoading: React.FC = () => {
   const [runningStates, setRunningStates] = useState(initialTaskStates);
 
   const initialErrorStates = useMemo(() => ({
-    KosuError: null, DefError: null, MemberError: null, TeamError: null, InquiryError: null,
+    KosuError: null, DefError: null, ChoiceError: null, MemberError: null, TeamError: null, InquiryError: null,
     SettingError: null, AsyncTaskError: null, HistoryError: null,
   }), []); 
   const [errorStates, setErrorStates] = useState<Record<string, string | null>>(initialErrorStates);
@@ -124,6 +126,7 @@ const AdministratorLoading: React.FC = () => {
   const navigate = useNavigate();
   const [kosuFile, setKosuFile] = useState<File | null>(null);
   const [defFile, setDefFile] = useState<File | null>(null);
+  const [choiceFile, setChoiceFile] = useState<File | null>(null);
   const [memberFile, setMemberFile] = useState<File | null>(null);
   const [teamFile, setTeamFile] = useState<File | null>(null);
   const [inquiryFile, setInquiryFile] = useState<File | null>(null);
@@ -159,6 +162,8 @@ const AdministratorLoading: React.FC = () => {
   const KosuLoadMonitor = useTaskMonitor(createSetter('KosuLoad'), createErrorSetter('KosuError'), 'load');
   const DefBackupMonitor = useTaskMonitor(createSetter('DefBackup'), createErrorSetter('DefError'), 'backup');
   const DefLoadMonitor = useTaskMonitor(createSetter('DefLoad'), createErrorSetter('DefError'), 'load');
+  const ChoiceBackupMonitor = useTaskMonitor(createSetter('ChoiceBackup'), createErrorSetter('ChoiceError'), 'backup');
+  const ChoiceLoadMonitor = useTaskMonitor(createSetter('ChoiceLoad'), createErrorSetter('ChoiceError'), 'load');
   const MemberBackupMonitor = useTaskMonitor(createSetter('MemberBackup'), createErrorSetter('MemberError'), 'backup');
   const MemberLoadMonitor = useTaskMonitor(createSetter('MemberLoad'), createErrorSetter('MemberError'), 'load');
   const TeamBackupMonitor = useTaskMonitor(createSetter('TeamBackup'), createErrorSetter('TeamError'), 'backup');
@@ -178,6 +183,8 @@ const AdministratorLoading: React.FC = () => {
     KosuLoad: KosuLoadMonitor,
     DefBackup: DefBackupMonitor,
     DefLoad: DefLoadMonitor,
+    ChoiceBackup: ChoiceBackupMonitor,
+    ChoiceLoad: ChoiceLoadMonitor,
     MemberBackup: MemberBackupMonitor,
     MemberLoad: MemberLoadMonitor,
     TeamBackup: TeamBackupMonitor,
@@ -191,10 +198,11 @@ const AdministratorLoading: React.FC = () => {
     HistoryBackup: HistoryBackupMonitor,
     HistoryDelet: HistoryDeletMonitor,
   }), [
-    KosuBackupMonitor, KosuDeletMonitor, KosuLoadMonitor, DefBackupMonitor, DefLoadMonitor,
-    MemberBackupMonitor, MemberLoadMonitor, TeamBackupMonitor, TeamLoadMonitor,
-    InquiryBackupMonitor, InquiryLoadMonitor, SettingBackupMonitor, SettingLoadMonitor,
-    AsyncTaskBackupMonitor, AsyncTaskDeletMonitor, HistoryBackupMonitor, HistoryDeletMonitor,
+    KosuBackupMonitor, KosuDeletMonitor, KosuLoadMonitor, DefBackupMonitor, DefLoadMonitor, 
+    ChoiceBackupMonitor, ChoiceLoadMonitor, MemberBackupMonitor, MemberLoadMonitor, 
+    TeamBackupMonitor, TeamLoadMonitor, InquiryBackupMonitor, InquiryLoadMonitor, 
+    SettingBackupMonitor, SettingLoadMonitor, AsyncTaskBackupMonitor, AsyncTaskDeletMonitor, 
+    HistoryBackupMonitor, HistoryDeletMonitor,
   ]);
 
   const startTask = useCallback(async (
@@ -244,7 +252,7 @@ const AdministratorLoading: React.FC = () => {
   }, [monitorHooks, startDay, endDay, createSetter, createErrorSetter, initialErrorStates]);
 
   const startFileLoad = useCallback(async (
-    taskKey: 'KosuLoad' | 'DefLoad' | 'MemberLoad' | 'TeamLoad' | 'InquiryLoad' | 'SettingLoad',
+    taskKey: 'KosuLoad' | 'DefLoad' | 'ChoiceLoad' | 'MemberLoad' | 'TeamLoad' | 'InquiryLoad' | 'SettingLoad',
     endpointPath: string,
     processName: string,
     fileToLoad: File | null
@@ -302,6 +310,10 @@ const AdministratorLoading: React.FC = () => {
     return startFileLoad('DefLoad', 'def_load', '工数区分定義データロード', defFile);
   }, [defFile, startFileLoad]);
 
+  const startChoiceload = useCallback(() => {
+    return startFileLoad('ChoiceLoad', 'choice_load', '作業詳細選択肢データロード', choiceFile);
+  }, [choiceFile, startFileLoad]);
+
   const startMemberload = useCallback(() => {
     return startFileLoad('MemberLoad', 'member_load', '人員データロード', memberFile);
   }, [memberFile, startFileLoad]);
@@ -321,6 +333,7 @@ const AdministratorLoading: React.FC = () => {
   const startKosuBackup = () => startTask('KosuBackup', 'kosu_backup', '工数データバックアップ', true);
   const startKosuDelet = () => startTask('KosuDelet', 'kosu_delet', '工数データ削除', true);
   const startDefBackup = () => startTask('DefBackup', 'def_backup', '工数区分定義データバックアップ');
+  const startChoiceBackup = () => startTask('ChoiceBackup', 'choice_backup', '作業詳細選択肢データバックアップ');
   const startMemberBackup = () => startTask('MemberBackup', 'member_backup', '人員データバックアップ');
   const startTeamBackup = () => startTask('TeamBackup', 'team_backup', '班員データバックアップ');
   const startInquiryBackup = () => startTask('InquiryBackup', 'inquiry_backup', '問い合わせデータバックアップ');
@@ -455,6 +468,46 @@ const AdministratorLoading: React.FC = () => {
                 value={runningStates.DefLoad ? "実行中..." : "ロード開始"}
                 onClick={!isAnyBackupRunning ? startDefload : undefined}
                 disabled={isAnyBackupRunning || !defFile}
+                className={styles["def-button"]}
+              />
+            </div>
+          </div>
+
+          <label htmlFor="start-Choice-backup">作業詳細選択肢データ：</label>
+          <div className={styles["input-row"]}>
+            <input
+              id="start-choice-backup"
+              name="start-choice-backup"
+              type="button"
+              value={runningStates.ChoiceBackup ? "実行中..." : "バックアップ開始"}
+              onClick={!isAnyBackupRunning ? startChoiceBackup : undefined}
+              disabled={isAnyBackupRunning}
+              className={styles["def-button"]}
+            />
+            <div className={styles["input-column"]}>
+              <input
+                id="choice-file-upload"
+                name="choice-file-upload"
+                type="file"
+                accept=".csv, .xlsx, .xls"
+                onChange={(e) => setChoiceFile(e.target.files ? e.target.files[0] : null)}
+                disabled={isAnyBackupRunning}
+                className={styles["hidden-file-input"]}
+              />
+              <label
+                htmlFor="choice-file-upload"
+                className={styles["custom-file-label"]}
+                style={{ opacity: isAnyBackupRunning ? 0.6 : 1, cursor: isAnyBackupRunning ? 'not-allowed' : 'pointer' }}
+              >
+                {choiceFile ? choiceFile.name : "ファイルを選択 (CSV/XLSX)"}
+              </label>
+              <input
+                id="start-choice-load"
+                name="start-choice-load"
+                type="button"
+                value={runningStates.DefLoad ? "実行中..." : "ロード開始"}
+                onClick={!isAnyBackupRunning ? startChoiceload : undefined}
+                disabled={isAnyBackupRunning || !choiceFile}
                 className={styles["def-button"]}
               />
             </div>

@@ -1,7 +1,7 @@
 from threading import local
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
-from .models import History, member, Business_Time_graph, team_member, kosu_division, administrator_data, inquiry_data
+from .models import History, member, Business_Time_graph, team_member, kosu_division, def_choice, administrator_data, inquiry_data
 from .middleware.clear_session_middleware import get_current_request
 from django.db import models
 
@@ -273,6 +273,46 @@ def log_delete_kosu_division_history(sender, instance, **kwargs):
   History.objects.create(
     operation='DELETE',
     table_name='kosu_division',
+    record_id=instance.id,
+    login_No=session_data,
+    changes=None,
+  )
+
+
+
+# 履歴を記録　新規作成、更新 (def_choice)
+@receiver(post_save, sender=def_choice)
+def log_create_update_def_choice_history(sender, instance, created, **kwargs):
+  request = get_current_request()
+  session_data = request.session.get('login_No') if request else None
+
+  # 差分計算
+  changes = get_changes(instance, created)
+
+  # 操作内容判定
+  operation = 'CREATE' if created else 'UPDATE'
+
+  # 履歴記録
+  History.objects.create(
+    operation=operation,
+    table_name='def_choice',
+    record_id=instance.id,
+    login_No=session_data,
+    changes=changes,
+  )
+
+
+
+# 履歴を記録　削除 (def_choice)
+@receiver(post_delete, sender=def_choice)
+def log_delete_def_choice_history(sender, instance, **kwargs):
+  request = get_current_request()
+  session_data = request.session.get('login_No') if request else None
+
+  # 履歴記録
+  History.objects.create(
+    operation='DELETE',
+    table_name='def_choice',
     record_id=instance.id,
     login_No=session_data,
     changes=None,

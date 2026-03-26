@@ -25,18 +25,6 @@
   margin: 0 auto;
 }
 
-/* 画面幅が768px以下の場合に左揃えに変更 */
-@media (max-width: 768px) {
-  .def-new-wrapper {
-    margin: 0; /* 左揃えにするため中央配置を解除 */
-    justify-content: flex-start;
-  }
-
-  .def-nav a {
-    font-size: 0.8rem;
-  }
-}
-
 .search-bar {
   display: flex; /* Flexboxで子要素を柔軟に配置 */
   flex-direction: column; /* 子要素を縦方向に並べる */
@@ -112,10 +100,78 @@
   background-color: #efe;
 }
 
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 75px;
+  height: 39px;
+  margin: 0 auto;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 30px;
+  transition: 0.3s;
+}
+
+.toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 30px;
+  width: 30px;
+  left: 4.5px;
+  bottom: 4.5px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #0f0;
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(36px);
+}
+
+.switch-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+}
+
+.switch-wrapper label {
+  margin-left: 20px;
+}
+
 @media (max-width: 768px) {
   .search-bar input,
   .search-bar select {
     width: calc(100% - 20px);
     max-width: 250px;
+  }
+
+  .def-new-wrapper {
+    margin: 0;
+    justify-content: flex-start;
+  }
+
+  .def-nav a {
+    font-size: 0.8rem;
   }
 }

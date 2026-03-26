@@ -31,6 +31,11 @@ interface DefData {
   [key: string]: string | undefined;
 }
 
+interface DetailData {
+  def_symbol: string;
+  def_select: string;
+}
+
 const roundToNearestFiveMinutes = (date: Date, workDay: Date): Date => {
   const minutes = Math.floor(date.getMinutes() / 5) * 5;
   date.setMinutes(minutes, 0, 0);
@@ -44,6 +49,8 @@ const KosuNew: React.FC = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<Kosu | null>(null); // 工数データ
   const [defData, setDefData] = useState<DefData>({}); // 工数区分定義データ
+  const [detailList, setDetailList] = useState<DetailData[]>([]); // 作業詳細の選択肢リスト
+  const [isDetailSelectMode, setIsDetailSelectMode] = useState<boolean>(false); // 手入力モード (false = 選択, true = 手入力)
   const [loading, setLoading] = useState(true); // ローディング状態
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // エラーメッセージ
   const [warningMessage, setWarningMessage] = useState<string | null>(null); // 警告メッセージ
@@ -107,6 +114,11 @@ const KosuNew: React.FC = () => {
       });
       const def_data = response.data.def_data || {};
       setDefData(def_data);
+      
+      const detail_list = response.data.detail_list || [];
+      console.log(detail_list)
+      setDetailList(detail_list);
+
       const member_data = response.data.member_data;
       if (member_data?.name) {
         setMemberName(member_data.name);
@@ -132,11 +144,24 @@ const KosuNew: React.FC = () => {
   ) => {
     const { name, value } = event.target;
     if (data) {
-      const updatedValue = name === "over_time" ? parseInt(value, 10) || 0 : value;
-      setData({
-        ...data,
-        [name]: updatedValue,
-      });
+      let updatedData = { ...data, [name]: name === "over_time" ? parseInt(value, 10) || 0 : value };
+
+      if (name === "time_work" && value !== "") {
+        const currentDetail = detailList.find(d => d.def_select === data.detail_work);
+        if (currentDetail && currentDetail.def_symbol !== value) {
+          updatedData.detail_work = "";
+        }
+      }
+
+      // 修正ポイント: 手入力モードでない（選択モード）場合に連動
+      if (name === "detail_work" && !isDetailSelectMode) {
+        const selectedDetail = detailList.find(d => d.def_select === value);
+        if (selectedDetail) {
+          updatedData.time_work = selectedDetail.def_symbol;
+        }
+      }
+
+      setData(updatedData);
 
       if (name === "work_day2") {
         try {
@@ -362,6 +387,10 @@ const KosuNew: React.FC = () => {
     }
   }, [data?.tyoku2, memberShop, data?.work_day2, data]);
 
+  const filteredDetailList = data?.time_work 
+    ? detailList.filter(item => item.def_symbol === data.time_work)
+    : detailList;
+
   if (loading) return <div><Loading isLoading={loading} /></div>;
 
   return (
@@ -422,14 +451,41 @@ const KosuNew: React.FC = () => {
             </label>
             <DefSelect id="time_work" value={data?.time_work || ""} onChange={handleChange} defData={defData} />
 
-            <label htmlFor="detail_work">作業詳細：</label>
-            <input
-              type="text"
-              id="detail_work"
-              name="detail_work"
-              value={data?.detail_work || ""}
-              onChange={handleChange}
-            />
+            <label htmlFor="detail_work">
+              作業詳細：
+              <span>
+                手入力：
+                <input 
+                  type="checkbox" 
+                  checked={isDetailSelectMode} 
+                  onChange={(e) => setIsDetailSelectMode(e.target.checked)} 
+                />
+              </span>
+            </label>
+            
+            {isDetailSelectMode ? (
+              <input
+                type="text"
+                id="detail_work"
+                name="detail_work"
+                value={data?.detail_work || ""}
+                onChange={handleChange}
+              />
+            ) : (
+              <select
+                id="detail_work"
+                name="detail_work"
+                value={data?.detail_work || ""}
+                onChange={handleChange}
+              >
+                <option value="">-- 作業詳細を選択 --</option>
+                {filteredDetailList.map((item, index) => (
+                  <option key={index} value={item.def_select}>
+                    {item.def_select}
+                  </option>
+                ))}
+              </select>
+            )}
 
             <label>
               作業時間：
@@ -477,7 +533,16 @@ const KosuNew: React.FC = () => {
               </div>
             </div>
 
-            <label htmlFor="over_time">残業時間：</label>
+            <label htmlFor="over_time">
+              残業時間：
+              <button
+                type="button"
+                onClick={handleSendOverTime}
+                className={`light_blue_button ${styles["font-min"]}`}
+              >
+                残業のみ登録
+              </button>
+            </label>
             <div className={styles["over-time-wrapper"]}>
               <button
                 type="button"
@@ -513,13 +578,6 @@ const KosuNew: React.FC = () => {
                 onClick={() => handleIncrement2("over_time")}
               >
                 +
-              </button>
-              <button
-                type="button"
-                onClick={handleSendOverTime}
-                className={`light_blue_button ${styles["font-min"]}`}
-              >
-                残業のみ登録
               </button>
             </div>
 

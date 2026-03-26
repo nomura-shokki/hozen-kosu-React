@@ -6,9 +6,9 @@ import time
 import tempfile
 from ..tasks import generate_kosu_backup, delete_kosu_data, load_kosu_file, \
                     generate_member_backup, load_member_file, generate_team_backup, load_team_file, \
-                    generate_def_backup, load_def_file, generate_inquiry_backup, load_inquiry_file, \
-                    generate_setting_backup, load_setting_file, generate_AsyncTask_backup, \
-                    delete_AsyncTask_data, generate_History_backup ,delete_History_data
+                    generate_def_backup, load_def_file, generate_choice_backup, load_choice_file, \
+                    generate_inquiry_backup, load_inquiry_file, generate_setting_backup, load_setting_file, \
+                    generate_AsyncTask_backup, delete_AsyncTask_data, generate_History_backup ,delete_History_data
 from ..models import AsyncTask
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes
@@ -71,6 +71,23 @@ def backup(request):
           temp_file.write(chunk)
         temp_file_path = temp_file.name
       task_function = load_def_file
+      args = (temp_file_path,)
+    except Exception as e:
+      if temp_file_path and os.path.exists(temp_file_path):
+        os.remove(temp_file_path)
+      return JsonResponse({'status': 'error', 'message': f'ファイル書き込みエラー: {str(e)}'}, status=500)
+  elif url_name == 'choice_backup':
+    task_function = generate_choice_backup
+    args = ()
+  elif url_name == 'choice_load':
+    choice_file = request.FILES.get('file')
+    temp_file_path = None
+    try:
+      with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as temp_file:
+        for chunk in choice_file.chunks():
+          temp_file.write(chunk)
+        temp_file_path = temp_file.name
+      task_function = load_choice_file
       args = (temp_file_path,)
     except Exception as e:
       if temp_file_path and os.path.exists(temp_file_path):

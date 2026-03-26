@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from ..models import member, Business_Time_graph, kosu_division, team_member, \
-                      inquiry_data, administrator_data, AsyncTask, History
+from ..models import member, Business_Time_graph, kosu_division, def_choice, \
+                      team_member, inquiry_data, administrator_data, AsyncTask, History
 
 
 
@@ -14,6 +14,13 @@ class MemberSerializer(serializers.ModelSerializer):
 class DefSerializer(serializers.ModelSerializer):
   class Meta:
     model = kosu_division
+    fields = '__all__'
+
+
+
+class DefChoiceSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = def_choice
     fields = '__all__'
 
 

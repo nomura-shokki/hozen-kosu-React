@@ -35,10 +35,16 @@ interface Member {
   shop: string;
 }
 
+interface DetailData {
+  def_symbol: string;
+  def_select: string;
+}
+
 interface KosuResponse {
   kosu_data: Kosu;
   def_data: DefData;
   member_data: Member;
+  detail_data_list: DetailData[];
 }
 
 const KosuEdit: React.FC = () => {
@@ -61,6 +67,9 @@ const KosuEdit: React.FC = () => {
   const [isDisabled, setIsDisabled] = useState<boolean[]>([]);
   const [isWorkTyokuDisabled, setIsWorkTyokuDisabled] = useState<boolean>(true);
 
+  const [isDetailTextMode, setIsDetailTextMode] = useState<boolean[]>([]);
+  const [detailDataList, setDetailDataList] = useState<DetailData[]>([]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -68,12 +77,13 @@ const KosuEdit: React.FC = () => {
           `${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`,
           { withCredentials: true }
         );
-        const { kosu_data, def_data, member_data } = response.data;
+        const { kosu_data, def_data, member_data, detail_data_list } = response.data;
         setFormData(kosu_data);
         setDefData(def_data);
         setMemberShop(member_data.shop);
         setInitialTimeWork(kosu_data.time_work);
         setInitialTyoku(kosu_data.tyoku2);
+        setDetailDataList(detail_data_list || []);
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
@@ -192,6 +202,7 @@ const KosuEdit: React.FC = () => {
     if (timeData.length === 0) {
       setTimeData(newTimeData);
       setIsDisabled(newTimeData.map(() => true));
+      setIsDetailTextMode(newTimeData.map(() => false));
     }
   }, [formData, defData, timeData.length, memberShop]);
 
@@ -221,6 +232,32 @@ const KosuEdit: React.FC = () => {
     }
   };
 
+  const handleWorkChange = (e: ChangeEvent<HTMLSelectElement>, index: number) => {
+    const selectedWork = e.target.value;
+    setTimeData((prev) => {
+      const updated = [...prev];
+      updated[index].work = selectedWork;
+      if (!isDetailTextMode[index]) {
+        const firstDetail = detailDataList.find(d => d.def_symbol === selectedWork);
+        updated[index].detail = firstDetail ? firstDetail.def_select : "";
+      }
+      return updated;
+    });
+  };
+
+  const handleDetailChange = (e: ChangeEvent<HTMLSelectElement>, index: number) => {
+    const selectedDetail = e.target.value;
+    setTimeData((prev) => {
+      const updated = [...prev];
+      updated[index].detail = selectedDetail;
+      const matchedWork = detailDataList.find(d => d.def_select === selectedDetail);
+      if (matchedWork) {
+        updated[index].work = matchedWork.def_symbol;
+      }
+      return updated;
+    });
+  };
+
   const handleTimeChange = (
     field: "time1" | "time2",
     newTime: Date | null,
@@ -248,8 +285,29 @@ const KosuEdit: React.FC = () => {
     setIsWorkTyokuDisabled((prev) => !prev);
   };
 
+  const handleDetailModeChange = (index: number) => {
+    setIsDetailTextMode((prev) => {
+      const updated = [...prev];
+      updated[index] = !updated[index];
+      return updated;
+    });
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    // 作業内容・作業詳細のペアバリデーション
+    const isInvalidPair = timeData.some((item) => {
+      const hasWork = !!item.work;
+      const hasDetail = !!item.detail;
+      // 片方のみ入力されている場合はエラー (XOR)
+      return (hasWork && !hasDetail) || (!hasWork && hasDetail);
+    });
+
+    if (isInvalidPair) {
+      setErrorMessage("作業内容と作業詳細はセットで入力してください。");
+      return;
+    }
 
     const submittedData = timeData.reduce((acc, item, index) => {
       acc[`time1_${index + 1}`] = item.time1?.toISOString() || "";
@@ -386,6 +444,7 @@ const KosuEdit: React.FC = () => {
       }
     ]);
     setIsDisabled((prevIsDisabled) => [...prevIsDisabled, true]);
+    setIsDetailTextMode((prev) => [...prev, false]);
   };
 
   const removeLastForm = () => {
@@ -396,6 +455,7 @@ const KosuEdit: React.FC = () => {
         return updatedTimeData;
       });
       setIsDisabled((prevIsDisabled) => prevIsDisabled.slice(0, -1));
+      setIsDetailTextMode((prev) => prev.slice(0, -1));
     }
   };
 
@@ -414,7 +474,7 @@ const KosuEdit: React.FC = () => {
         </nav>
 
         {errorMessage && (
-          <div role="alert">{errorMessage}</div>
+          <div role="alert" style={{ color: "red", fontWeight: "bold" }}>{errorMessage}</div>
         )}
 
         <form
@@ -557,19 +617,49 @@ const KosuEdit: React.FC = () => {
                   name={`timeData_work_${index}`}
                   value={item?.work || ""}
                   className={styles["form-width"]}
-                  onChange={(e) => handleChange(e, index, "work")}
+                  onChange={(e) => handleWorkChange(e, index)}
                   defData={defData}
                   disabled={isDisabled[index]}
                 />
-                <input
-                  type="text"
-                  id={`detail_work_${index}`}
-                  name={`detail_work_${index}`}
-                  value={item?.detail || ""}
-                  className={styles["form-width"]}
-                  onChange={(e) => handleChange(e, index, "detail")}
-                  disabled={isDisabled[index]}
-                />
+
+                <label className={styles["toggle-switch"]}>
+                  <input
+                    type="checkbox"
+                    checked={isDetailTextMode[index]}
+                    onChange={() => handleDetailModeChange(index)}
+                    disabled={isDisabled[index]}
+                  />
+                  <span className={styles["toggle-slider"]}></span>
+                </label>
+
+                {isDetailTextMode[index] ? (
+                  <input
+                    type="text"
+                    id={`detail_work_${index}`}
+                    name={`detail_work_${index}`}
+                    value={item?.detail || ""}
+                    className={styles["form-width"]}
+                    onChange={(e) => handleChange(e, index, "detail")}
+                    disabled={isDisabled[index]}
+                  />
+                ) : (
+                  <select
+                    id={`detail_work_select_${index}`}
+                    value={item?.detail || ""}
+                    className={styles["form-width"]}
+                    onChange={(e) => handleDetailChange(e, index)}
+                    disabled={isDisabled[index]}
+                  >
+                    <option value="">選択してください</option>
+                    {detailDataList
+                      .filter(d => !item.work || d.def_symbol === item.work)
+                      .map((d, i) => (
+                        <option key={i} value={d.def_select}>{d.def_select}</option>
+                      ))
+                    }
+                  </select>
+                )}
+                
                 <button
                   type="button"
                   className="blue_button"

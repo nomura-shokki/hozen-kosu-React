@@ -163,7 +163,6 @@ const MemberNew: React.FC = () => {
   };
 
   if (loading) return <div><Loading isLoading={loading} /></div>;
-  if (errorMessage && !formData.name) return <div>Error: {errorMessage}</div>;
 
   return (
     <div className={styles["member-new-wrapper"]}>

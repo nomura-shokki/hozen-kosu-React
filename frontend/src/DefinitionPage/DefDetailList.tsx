@@ -4,19 +4,23 @@ import { Link, useNavigate } from "react-router-dom";
 import TableContainer from "../Components/TableContainer";
 import Pagination from "../Components/Pagination";
 import Loading from "../Components/Loading";
-import styles from "../styles/DefinitionPage/DefList.module.css";
+import styles from "../styles/DefinitionPage/DefDetailList.module.css";
 
-interface DefData {
+interface DetailData {
   id: number;
-  kosu_name: string;
+  def_symbol: string;
+  def_select: string;
 }
 
-const DefList: React.FC = () => {
-  const [data, setData] = useState<DefData[]>([]);
+const DefDeteDetailList: React.FC = () => {
+  const [data, setData] = useState<DetailData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchSymbol, setSearchSymbol] = useState<string>(""); // 選択された値
+  const [currentFilterSymbol, setCurrentFilterSymbol] = useState<string>(""); // 検索確定用
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
+  const [allSymbols, setAllSymbols] = useState<string[]>([]); // 選択肢用
   const navigate = useNavigate();
 
   const searchBarRef = useRef<HTMLDivElement>(null);
@@ -26,9 +30,12 @@ const DefList: React.FC = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_API_BASE_URL}/api/def_list/`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/def_detail_list/`,
         {
-          params: { page: currentPage },
+          params: { 
+            page: currentPage,
+            def_symbol: currentFilterSymbol 
+          },
           withCredentials: true,
         }
       );
@@ -37,6 +44,11 @@ const DefList: React.FC = () => {
       const pageSize = response.data.page_size || 20;
       setData(results);
       setTotalPages(Math.ceil(response.data.count / pageSize));
+      
+      // バックエンドから送られてきた symbol_list をセット
+      if (response.data.symbol_list) {
+        setAllSymbols(response.data.symbol_list);
+      }
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
@@ -48,11 +60,18 @@ const DefList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, navigate]);
+  }, [currentPage, navigate, currentFilterSymbol]);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, [currentPage, fetchData]);
+
+  const handleSearch = () => {
+    setCurrentFilterSymbol(searchSymbol);
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  };
 
   if (error) return <div>Error: {error}</div>;
   if (loading) return <div><Loading isLoading={loading} /></div>;
@@ -60,19 +79,43 @@ const DefList: React.FC = () => {
   return (
     <>
       <Loading isLoading={loading} />
-      <div className={styles["def-list-wrapper"]}>
+      <div className={styles["def-detail-list-wrapper"]}>
         <h1
           ref={headerRef}
           className={styles["h1-collar"]}
         >
-          工数区分定義一覧
+          作業詳細選択肢一覧
         </h1>
 
-        <nav className={styles["def-nav"]} ref={searchBarRef}>
+        <nav className={styles["def-nav"]}>
           <Link to="/def-menu">工数区分定義MENU</Link>
         </nav>
 
-        <div className={styles["search-bar"]}>
+        <div 
+          ref={searchBarRef}
+          className={styles["search-bar"]}
+        >
+          <label>
+            定義記号：
+            <select
+              value={searchSymbol}
+              onChange={(e) => setSearchSymbol(e.target.value)}
+              className={styles["search-select"]}
+            >
+              <option value="">すべて</option>
+              {allSymbols.map((symbol) => (
+                <option key={symbol} value={symbol}>
+                  {symbol}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button onClick={handleSearch} className="green_button">
+            検索
+          </button>
+        </div>
+
+        <div className={styles["table-wrapper"]}>
           {data.length === 0 ? (
             <p>No data found.</p>
           ) : (
@@ -83,7 +126,8 @@ const DefList: React.FC = () => {
               <table>
                 <thead>
                   <tr>
-                    <th className={styles["th-collar"]}>工数区分定義Ver</th>
+                    <th className={styles["th-collar"]}>定義記号</th>
+                    <th className={styles["th-collar"]}>作業詳細</th>
                     <th className={styles["th-collar"]}>編集</th>
                     <th className={styles["th-collar"]}>削除</th>
                   </tr>
@@ -91,10 +135,11 @@ const DefList: React.FC = () => {
                 <tbody>
                   {data.map((item) => (
                     <tr key={item.id}>
-                      <td>{item.kosu_name}</td>
+                      <td>{item.def_symbol}</td>
+                      <td>{item.def_select}</td>
                       <td>
                         <Link
-                          to={`/def-update/${item.id}`}
+                          to={`/def-detail-update/${item.id}`}
                           className={styles["a-collar"]}
                         >
                           編集
@@ -102,7 +147,7 @@ const DefList: React.FC = () => {
                       </td>
                       <td>
                         <Link
-                          to={`/def-delete/${item.id}`}
+                          to={`/def-detail-delete/${item.id}`}
                           className={styles["a-collar"]}
                         >
                           削除
@@ -128,4 +173,4 @@ const DefList: React.FC = () => {
   );
 };
 
-export default DefList;
+export default DefDeteDetailList;

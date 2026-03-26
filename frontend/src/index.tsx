@@ -21,6 +21,10 @@ import DefList from './DefinitionPage/DefList';
 import DefEdit from './DefinitionPage/DefEdit';
 import DefDelete from './DefinitionPage/DefDelete';
 import DefVer from './DefinitionPage/DefVer';
+import DefDetailNew from './DefinitionPage/DefDetailNew';
+import DefDetailList from './DefinitionPage/DefDetailList';
+import DefDetailEdit from './DefinitionPage/DefDetailEdit';
+import DefDetailDelete from './DefinitionPage/DefDetailDelete';
 import MemberMenu from './MemberPage/MemberMenu';
 import MemberNew from './MemberPage/MemberNew';
 import MemberList from './MemberPage/MemberList';
@@ -74,6 +78,10 @@ const App: React.FC = () => {
       "/def-update/:id": "工数区分定義編集 - 業務工数システム",
       "/def-delete/:id": "工数区分定義削除 - 業務工数システム",
       "/def-ver": "工数区分定義切り替え - 業務工数システム",
+      "/def-detail-new": "作業詳細選択肢登録 - 業務工数システム",
+      "/def-detail-list": "作業詳細選択肢一覧 - 業務工数システム",
+      "/def-detail-update/:id": "作業詳細選択肢編集 - 業務工数システム",
+      "/def-detail-delete/:id": "作業詳細選択肢削除 - 業務工数システム",
       "/member-menu": "人員Menu - 業務工数システム",
       "/member-new": "人員登録 - 業務工数システム",
       "/member-list": "人員一覧 - 業務工数システム",
@@ -127,6 +135,10 @@ const App: React.FC = () => {
       <Route path="/def-update/:id" element={<DefEdit />} />
       <Route path="/def-delete/:id" element={<DefDelete />} />
       <Route path="/def-ver" element={<DefVer />} />
+      <Route path="/def-detail-new" element={<DefDetailNew />} />
+      <Route path="/def-detail-list" element={<DefDetailList />} />
+      <Route path="/def-detail-update/:id" element={<DefDetailEdit />} />
+      <Route path="/def-detail-delete/:id" element={<DefDetailDelete />} />
       <Route path="/member-menu" element={<MemberMenu />} />
       <Route path="/member-new" element={<MemberNew />} />
       <Route path="/member-list" element={<MemberList />} />

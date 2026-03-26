@@ -40,6 +40,11 @@
   margin-left: 20px;
 }
 
+.search-bar label span {
+  font-size: 0.7rem;
+  margin-left: 5px;
+}
+
 .search-bar input,
 .search-bar select {
   padding: 8px 10px;
@@ -50,6 +55,12 @@
   width: calc(100% - 40px);
   max-width: 400px;
   box-sizing: border-box;
+}
+
+.search-bar input[type="checkbox"] {
+  width: auto;
+  transform: scale(1.5);
+  margin-left: 5px;
 }
 
 .kosu-nav a {
@@ -76,7 +87,7 @@
 .over-time-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   width: calc(100% - 40px);
   max-width: 400px;
   box-sizing: border-box;
@@ -150,7 +161,7 @@
   width: 35px;
   height: 35px;
   border-radius: 50%;
-  margin: 0 5px;
+  margin: 0 3px;
   text-shadow:
     -0.5px -0.5px 0 #000,
     0.5px -0.5px 0 #000,
@@ -171,7 +182,7 @@
   width: 25px;
   height: 25px;
   border-radius: 50%;
-  margin: 0 5px;
+  margin: 0 3px;
   text-shadow:
     -0.5px -0.5px 0 #000,
     0.5px -0.5px 0 #000,

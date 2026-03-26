@@ -1,9 +1,10 @@
-from ..models import kosu_division, member
+from ..models import kosu_division, member, def_choice
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import MemberSerializer, DefSerializer
+from .serializers import MemberSerializer, DefSerializer, DefChoiceSerializer
 from ..utils.main_utils import CustomPagination
+import string
 
 
 
@@ -204,6 +205,201 @@ class DefDelete(APIView):
       return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
     def_instance.delete()
     return Response({'status': 'error', 'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+
+
+
+class DefDetailList(APIView):
+  def get(self, request):
+    # ログイン情報をセッションから取得
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+
+    # クエリパラメータで絞り込み条件を取得
+    search_symbol = request.query_params.get('def_symbol', None)
+
+    detail_choice = def_choice.objects.all().order_by('def_symbol')
+
+    # 絞り込みある場合はフィルタリング
+    if search_symbol:
+      detail_choice = detail_choice.filter(def_symbol=search_symbol)
+
+    # ページネーション処理
+    paginator = CustomPagination()
+    result_page = paginator.paginate_queryset(detail_choice, request)
+    serializer = DefChoiceSerializer(result_page, many=True)
+
+    # 絞り込み選択肢取得
+    symbol_list = list(def_choice.objects.values_list('def_symbol', flat=True).distinct().order_by('def_symbol'))
+
+    # 通常のパージネーションレスポンスを取得
+    response = paginator.get_paginated_response(serializer.data)
+    
+    # レスポンスデータに symbol_list を追加
+    response.data['symbol_list'] = symbol_list
+    
+    return response
+
+
+
+class DefDetailNew(APIView):
+  def get(self, request):
+    # セッション値取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+
+    # 工数区分定義確認
+    def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
+
+    if not def_query_set.exists():
+      return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    elif def_query_set.count() > 1:
+      return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+    def_data = def_query_set.first()
+
+    serializer = DefSerializer(def_data, many=False)
+    return Response(serializer.data)
+
+
+  def post(self, request):
+    data = request.data
+
+    if def_choice.objects.filter(def_select=data.get('def_select')).exists():
+      return Response({'status': 'error', 'message': '入力した作業詳細はすでに登録されています。'}, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = DefChoiceSerializer(data=data)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    return Response({'status': 'error', 'message': 'バリテーションエラー'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class DefDetailUpdate(APIView):
+  def get_object(self, pk):
+    try:
+      return def_choice.objects.get(id=pk)
+    except def_choice.DoesNotExist:
+      return None
+
+
+  def get(self, request, pk):
+    # セッション値取得
+    login_no = request.session.get('login_No')
+    def_ver = request.session.get('input_def')
+
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+    choice_instance = self.get_object(pk)
+    if not choice_instance:
+      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # 工数区分定義確認
+    def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
+
+    if not def_query_set.exists():
+      return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    elif def_query_set.count() > 1:
+      return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
+    def_data = def_query_set.first()
+
+    symbol_list = []
+    if def_data:
+      count = 0
+      for i in range(1, 51):
+        if getattr(def_data, f'kosu_title_{i}'):
+          count += 1
+        else:
+          break
+
+      all_letters = string.ascii_uppercase + string.ascii_lowercase
+      symbol_list = list(all_letters[:count])
+      symbol_list.append("$")
+
+    serializer = DefChoiceSerializer(choice_instance)
+
+    return Response({
+            'formData': serializer.data,
+            'symbol_list': symbol_list
+            })
+
+
+  def put(self, request, pk):
+    choice_instance = self.get_object(pk)
+    if not choice_instance:
+      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    data = request.data
+    serializer = DefChoiceSerializer(choice_instance, data=data)
+    if serializer.is_valid():
+      if data.get('def_select') != choice_instance.def_select and def_choice.objects.filter(def_select=data.get('def_select')).exists():
+        return Response(
+          {'status': 'error', 'message': '入力した作業詳細はすでに登録されています。'},
+          status=status.HTTP_400_BAD_REQUEST
+        )
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response({'status': 'error', 'message': 'バリテーションエラー'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class DefDetailDelete(APIView):
+  print("ここまでOK")
+  def get_object(self, pk):
+    try:
+      return def_choice.objects.get(id=pk)
+    except def_choice.DoesNotExist:
+      return None
+
+
+  def delete(self, request, pk):
+    login_no = request.session.get('login_No')
+    if not login_no:
+      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+      member_data = member.objects.get(employee_no=login_no)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': 'ログイン情報が正しくありません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if not member_data.administrator:
+      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+
+    choice_instance = self.get_object(pk)
+    if choice_instance is None:
+      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+    choice_instance.delete()
+    return Response({'status': 'error', 'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+
+
 
 
 

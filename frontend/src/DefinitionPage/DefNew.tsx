@@ -4,11 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 import Loading from "../Components/Loading";
 import styles from "../styles/DefinitionPage/DefNew.module.css";
 
-
 interface KosuDefinition {
   title: string;
   division1: string;
   division2: string;
+  division3: boolean;
 }
 
 interface FormData {
@@ -19,7 +19,12 @@ interface FormData {
 const DefNew: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     kosu_name: "",
-    kosu_definitions: Array(50).fill({ title: "", division1: "", division2: "" }),
+    kosu_definitions: Array(50).fill(null).map(() => ({ 
+      title: "", 
+      division1: "", 
+      division2: "", 
+      division3: false 
+    })),
   });
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -78,7 +83,7 @@ const DefNew: React.FC = () => {
     );
     if (!confirmed) return;
 
-    const convertedData: { [key: string]: string } = {
+    const convertedData: { [key: string]: string | boolean } = {
       kosu_name: formData.kosu_name,
     };
 
@@ -87,6 +92,7 @@ const DefNew: React.FC = () => {
       convertedData[`kosu_title_${idx}`] = def.title;
       convertedData[`kosu_division_1_${idx}`] = def.division1;
       convertedData[`kosu_division_2_${idx}`] = def.division2;
+      convertedData[`kosu_division_3_${idx}`] = def.division3;
     });
 
     try {
@@ -164,6 +170,30 @@ const DefNew: React.FC = () => {
                   onChange={(e) => handleChange(e, index, "division2")}
                   rows={3}
                 />
+
+                <div className={styles["switch-wrapper"]}>
+                  <label htmlFor={`kosu_division_${index + 1}_3`}>{`変動/固定${index + 1}:`}</label>
+                  <label className={styles["toggle-switch"]}>
+                    <input
+                      type="checkbox"
+                      id={`kosu_division_${index + 1}_3`}
+                      name={`kosu_division_${index + 1}_3`}
+                      checked={def.division3}
+                      onChange={(e) => {
+                        const updatedDefinitions = [...formData.kosu_definitions];
+                        updatedDefinitions[index] = {
+                          ...updatedDefinitions[index],
+                          division3: e.target.checked,
+                        };
+                        setFormData((prev) => ({
+                          ...prev,
+                          kosu_definitions: updatedDefinitions,
+                        }));
+                      }}
+                    />
+                    <span className={styles["toggle-slider"]}></span>
+                  </label>
+                </div>
               </div>
             ))}
 

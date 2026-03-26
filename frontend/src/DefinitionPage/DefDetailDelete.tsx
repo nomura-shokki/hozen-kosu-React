@@ -2,21 +2,23 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
-import styles from "../styles/MemberPage/MemberDelete.module.css";
+import styles from "../styles/DefinitionPage/DefDetailDelete.module.css";
 
-interface Member {
-  employee_no: number;
-  name: string;
-  shop: string;
-  authority: boolean;
-  administrator: boolean;
+interface Choice {
+  id: number;
+  def_symbol: string;
+  def_select: string;
+}
+
+interface FetchResponse {
+  formData: Choice;
+  symbol_list: string[];
 }
 
 const MemberDelete: React.FC = () => {
   const navigate = useNavigate();
-  const { employee_no } = useParams<{ employee_no: string }>();
-  const employeeNo = Number(employee_no);
-  const [record, setRecord] = useState<Member | null>(null);
+  const { id } = useParams<{ id: string }>();
+  const [record, setRecord] = useState<Choice | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
@@ -24,10 +26,10 @@ const MemberDelete: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
 
   useEffect(() => {
-    const fetchMember = async () => {
+    const fetchChoice = async () => {
       try {
-        const response = await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, { withCredentials: true });
-        setRecord(response.data);
+        const response = await axios.get<FetchResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/def_detail_update/${id}/`, { withCredentials: true });
+        setRecord(response.data.formData);
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
@@ -39,8 +41,8 @@ const MemberDelete: React.FC = () => {
       }
     };
 
-    fetchMember();
-  }, [employeeNo, navigate]);
+    fetchChoice();
+  }, [id, navigate]);
 
   useEffect(() => {
     const updateMaxHeight = () => {
@@ -66,15 +68,10 @@ const MemberDelete: React.FC = () => {
   }, [record]);
 
   const handleDelete = async () => {
-    const confirmed = window.confirm("人員情報を削除すると該当人員の工数入力が見えなくなります。特別な意図がない場合は人員情報の編集でショップ選択を退社に変えるのみにして下さい。削除しますか？");
-    if (!confirmed) {
-      return;
-    }
-
     try {
-      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/member_delete/${employeeNo}/`, { withCredentials: true });
+      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/def_detail_delete/${id}/`, { withCredentials: true });
       alert("削除が完了しました");
-      navigate("/member-list");
+      navigate("/def-detail-list");
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
@@ -90,14 +87,13 @@ const MemberDelete: React.FC = () => {
   return (
     <>
       <Loading isLoading={loading} />
-      <div className={styles["member-delete-wrapper"]}>
-        <h1 className={styles["h1-collar"]}>人員削除</h1>
-
-        <nav className={styles["member-nav"]}>
-          <Link to="/member-list">人員一覧</Link>
+      <div className={styles["choice-delete-wrapper"]}>
+        <h1 className={styles["h1-collar"]}>作業詳細選択肢削除</h1>
+        <nav className={styles["def-nav"]}>
+          <Link to="/def-menu">工数区分定義MENU</Link>
         </nav>
 
-        <p>以下の人員のデータを削除しますか？</p>
+        <p>以下の作業詳細データを削除しますか？</p>
 
         <div
           className={styles["table-wrapper"]}
@@ -110,30 +106,18 @@ const MemberDelete: React.FC = () => {
           <table ref={tableRef}>
             <tbody>
               <tr>
-                <th className={styles["th-collar"]}>従業員番号</th>
-                <td>{record.employee_no}</td>
+                <th className={styles["th-collar"]}>定義記号</th>
+                <td>{record.def_symbol}</td>
               </tr>
               <tr>
-                <th className={styles["th-collar"]}>氏名</th>
-                <td>{record.name}</td>
-              </tr>
-              <tr>
-                <th className={styles["th-collar"]}>ショップ</th>
-                <td>{record.shop}</td>
-              </tr>
-              <tr>
-                <th className={styles["th-collar"]}>権限</th>
-                <td>{record.authority ? "有" : "無"}</td>
-              </tr>
-              <tr>
-                <th className={styles["th-collar"]}>管理者権限</th>
-                <td>{record.administrator ? "有" : "無"}</td>
+                <th className={styles["th-collar"]}>作業詳細</th>
+                <td>{record.def_select}</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <button onClick={handleDelete} className="yellow_button">
+        <button onClick={handleDelete} className="green_button">
           削除
         </button>
       </div>

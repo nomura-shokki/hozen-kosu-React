@@ -529,7 +529,7 @@ def kosu_division_dictionary(def_name):
     # 工数区分登録カウンターリセット
     n = 0
     # 工数区分登録数カウント
-    for kosu_num in range(1, 50):
+    for kosu_num in range(1, 51):
       val = getattr(kosu_obj, f'kosu_title_{kosu_num}')
       if val not in [None, '']:
         n = kosu_num

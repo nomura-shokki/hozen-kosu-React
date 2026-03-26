@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from ..models import member, Business_Time_graph
+from ..models import member, Business_Time_graph, kosu_division
 from .kosu_utils import kosu_sort
 from .kosu_utils import create_kosu
 from .kosu_utils import kosu_division_dictionary
@@ -29,6 +29,8 @@ def excel_function(employee_no_data, wb, year, month, request):
     # 初期化
     time_display_list, work_list, def_list, graph_list = [], [], [], []
     integrity, work, tyoku, over_time = 'NG', '', '', 0
+    fluctuation_total = 0
+    fixed_total = 0
 
     # 工数データある場合の処理
     if kosu_obj:
@@ -40,18 +42,28 @@ def excel_function(employee_no_data, wb, year, month, request):
 
       # 工数区分定義バージョンある場合の処理
       if kosu_obj.def_ver2:
-          # 作業内容と作業詳細を直によって表示変更
-          work_list, detail_list = kosu_sort(kosu_obj, member_obj)
-          # 作業時間、作業内容リスト作成
-          time_display_list = create_kosu(work_list, detail_list, kosu_obj, member_obj, request)
-          # 工数区分定義辞書もどき、工数区分数取得
-          def_library, def_n = kosu_division_dictionary(kosu_obj.def_ver2)
-          # 工数区分定義リスト取得
-          def_list, def_num = get_def_library_data(kosu_obj.def_ver2)
-          # 作業内容用記号定義
-          str_list = list("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx")[:def_n]
-          # 定義区分別の累積工数取得
-          graph_list = [kosu_obj.time_work.count(i) * 5 for i in str_list]
+        # 作業内容と作業詳細を直によって表示変更
+        work_list, detail_list = kosu_sort(kosu_obj, member_obj)
+        # 作業時間、作業内容リスト作成
+        time_display_list = create_kosu(work_list, detail_list, kosu_obj, member_obj, request)
+        # 工数区分定義リスト取得
+        def_list, def_num = get_def_library_data(kosu_obj.def_ver2)
+        # 作業内容用記号定義
+        str_list = list("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx")[:def_num]
+        # 定義区分別の累積工数取得
+        graph_list = [kosu_obj.time_work.count(i) * 5 for i in str_list]
+        # 区分定義 変動/固定 取得
+        kosu_obj = kosu_division.objects.get(kosu_name=kosu_obj.def_ver2)
+        fluctuation_boolean = []
+        for n in range(1, 51):
+          val = getattr(kosu_obj, f'kosu_division_3_{n}')
+          fluctuation_boolean.append(val)
+
+        for ind, d in enumerate(graph_list):
+          if fluctuation_boolean[ind]:
+            fluctuation_total += d
+          else:
+            fixed_total += d
 
     # エクセルファイルに書き込み
     member_sheet.cell(row=2, column=(day * 3) - 2, value=f'{day}日')
@@ -66,11 +78,16 @@ def excel_function(employee_no_data, wb, year, month, request):
       member_sheet.cell(row=(6 + i), column=(day * 3) - 2, value=row_num)
       member_sheet.cell(row=(6 + i), column=(day * 3) - 1, value=graph_list[i])
 
+    member_sheet.cell(row=(7 + len(def_list)), column=(day * 3) - 2, value='固定')
+    member_sheet.cell(row=(8 + len(def_list)), column=(day * 3) - 2, value='可動')
+    member_sheet.cell(row=(7 + len(def_list)), column=(day * 3) - 1, value=fixed_total)
+    member_sheet.cell(row=(8 + len(def_list)), column=(day * 3) - 1, value=fluctuation_total)
+
     # 作業時間ごとの作業内容書き込み
     for i2, item in enumerate(time_display_list):
-      member_sheet.cell(row=(8 + i + i2), column=(day * 3) - 2, value=item[0])
-      member_sheet.cell(row=(8 + i + i2), column=(day * 3) - 1, value=item[1])
-      member_sheet.cell(row=(8 + i + i2), column=day * 3, value=item[2])
+      member_sheet.cell(row=(10 + len(def_list) + i2), column=(day * 3) - 2, value=item[0])
+      member_sheet.cell(row=(10 + len(def_list) + i2), column=(day * 3) - 1, value=item[1])
+      member_sheet.cell(row=(10 + len(def_list) + i2), column=day * 3, value=item[2])
 
   return wb
 

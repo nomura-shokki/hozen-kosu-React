@@ -5,7 +5,7 @@ import openpyxl
 import pandas as pd
 import pytz
 import datetime
-from .models import Business_Time_graph, kosu_division, member, team_member, \
+from .models import Business_Time_graph, kosu_division, def_choice, member, team_member, \
                     inquiry_data, administrator_data, AsyncTask, History
 from .utils.kosu_utils import kosu_division_dictionary
 from django.db import IntegrityError
@@ -570,18 +570,18 @@ def generate_def_backup():
   ws = wb.active
 
   # ヘッダー作成
-  headers = ['工数区分定義Ver名'] + [item for i in range(1, 51) for item in [f'工数区分名{i}', f'定義{i}', f'作業内容{i}']]
+  headers = ['工数区分定義Ver名'] + [item for i in range(1, 51) for item in [f'工数区分名{i}', f'定義{i}', f'作業内容{i}', f'変動/固定{i}']]
 
   ws.append(headers)
 
-  # 班員データ取得
-  def_data = kosu_division.objects.all()
+  # データ取得
+  def_data = kosu_division.objects.all().order_by('id')
 
   # データ書き込み
   for item in def_data:
     row = [item.kosu_name] + \
           [getattr(item, f'kosu_title_{i}') if j == 0 else getattr(item, f'kosu_division_{j}_{i}') 
-          for i in range(1, 51) for j in range(0, 3)]
+          for i in range(1, 51) for j in range(0, 4)]
     ws.append(row)
 
   # 保存先のディレクトリ確認・作成
@@ -618,7 +618,7 @@ def load_def_file(file_path):
     ws = wb.worksheets[0]
 
     # 3. ヘッダー定義とチェック
-    expected_headers = ['工数区分定義Ver名'] + [item for i in range(1, 51) for item in [f'工数区分名{i}', f'定義{i}', f'作業内容{i}']]
+    expected_headers = ['工数区分定義Ver名'] + [item for i in range(1, 51) for item in [f'工数区分名{i}', f'定義{i}', f'作業内容{i}', f'変動/固定{i}']]
 
     actual_headers = [ws.cell(1, col).value for col in range(1, len(expected_headers) + 1)]
     
@@ -640,11 +640,114 @@ def load_def_file(file_path):
         'kosu_name': ws.cell(row=i, column=1).value
         }
       for n in range(1, 51):
-        def_data[f'kosu_title_{n}'] = ws.cell(row=i, column=n*3-1).value
-        def_data[f'kosu_division_1_{n}'] = ws.cell(row=i, column=n*3).value
-        def_data[f'kosu_division_2_{n}'] = ws.cell(row=i, column=n*3+1).value
+        def_data[f'kosu_title_{n}'] = ws.cell(row=i, column=n*4-2).value
+        def_data[f'kosu_division_1_{n}'] = ws.cell(row=i, column=n*4-1).value
+        def_data[f'kosu_division_2_{n}'] = ws.cell(row=i, column=n*4).value
+        def_data[f'kosu_division_3_{n}'] = ws.cell(row=i, column=n*4+1).value
 
       new_data = kosu_division(**def_data)
+      new_data.save()
+
+    # 5. 処理が成功したら一時ファイルを削除
+    os.remove(temp_file_path)
+    return {'status': 'success'}, None
+
+  except Exception as e:
+    # ロード処理でエラーが発生した際は一時ファイルがあれば削除しエラーを返す
+    if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
+      os.remove(temp_file_path)
+    return {'status': 'error', 'message': str(e)}, None
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 作業詳細選択肢データバックアップ非同期処理
+def generate_choice_backup():
+  # 今日の日付取得
+  today = datetime.date.today().strftime('%Y%m%d')
+  # 新しいExcelブック作成
+  wb = openpyxl.Workbook()
+  ws = wb.active
+
+  # ヘッダー作成
+  headers = ['定義記号', '作業詳細']
+
+  ws.append(headers)
+
+  # データ取得
+  choice_data = def_choice.objects.all()
+
+  # データ書き込み
+  for item in choice_data:
+    row = [item.def_symbol, item.def_select]
+    ws.append(row)
+
+  # 保存先のディレクトリ確認・作成
+  media_dir = settings.MEDIA_ROOT
+  if not os.path.exists(media_dir):
+    os.makedirs(media_dir)
+
+  # ファイル名作成と保存
+  filename = f'作業詳細選択肢データバックアップ_{today}.xlsx'
+  filepath = os.path.join(media_dir, filename)
+  wb.save(filepath)
+
+  # ファイルパスを返却
+  return filepath
+
+
+
+
+
+#--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+# 工数区分定義データロード非同期処理
+def load_choice_file(file_path):
+  try:
+    # 1. 渡されたファイルパスを一時ファイルパスとして保持
+    temp_file_path = file_path
+
+    # 2. ファイルを開く
+    wb = openpyxl.load_workbook(temp_file_path)
+    ws = wb.worksheets[0]
+
+    # 3. ヘッダー定義とチェック
+    expected_headers = ['定義記号', '作業詳細']
+
+    actual_headers = [ws.cell(1, col).value for col in range(1, len(expected_headers) + 1)]
+    
+    # ヘッダーが一致しない場合、一時ファイルを削除しエラーを返す
+    if actual_headers != expected_headers:
+      os.remove(temp_file_path)
+      return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None 
+
+    # 4. データ読み込みとDB保存
+    for i in range(2, ws.max_row + 1):
+      # 読み込み予定データと同一の工数区分定義データが存在するか確認
+      choice_data_filter = def_choice.objects.filter(def_select=ws.cell(row=i, column=2).value)
+      # 同一工数区分定義データがあった場合データ削除
+      if choice_data_filter.exists():
+        choice_data_filter.delete()
+
+      # データ定義
+      choice_data = {
+        'kosu_name': ws.cell(row=i, column=1).value
+        }
+      
+      # Excelからデータを読み込む
+      new_data = def_choice(def_symbol=ws.cell(row=i, column=1).value, def_select=ws.cell(row=i, column=2).value)
+
       new_data.save()
 
     # 5. 処理が成功したら一時ファイルを削除

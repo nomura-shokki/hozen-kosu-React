@@ -15,7 +15,6 @@ const TableContainer: React.FC<TableContainerProps> = ({
     heightExpansion = false,
 }) => {
     const [maxHeight, setMaxHeight] = useState<number>(window.innerHeight);
-    const [tableWidth, setTableWidth] = useState<number>(0);
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -30,26 +29,15 @@ const TableContainer: React.FC<TableContainerProps> = ({
                     window.innerHeight - searchBarHeight - headerHeight - 40
                 );
             }
-
-            const tableElement = containerRef.current?.querySelector("table");
-            if (tableElement) {
-                setTableWidth(tableElement.offsetWidth);
-            }
         };
 
         updateDimensions();
 
-        const resizeObserver = new ResizeObserver(() => updateDimensions());
-        if (containerRef.current) {
-            resizeObserver.observe(containerRef.current);
-        }
-
         window.addEventListener("resize", updateDimensions);
         return () => {
             window.removeEventListener("resize", updateDimensions);
-            resizeObserver.disconnect();
         };
-    }, [children, searchBarRef, headerRef, heightExpansion]);
+    }, [searchBarRef, headerRef, heightExpansion]);
 
     return (
         <div
@@ -58,7 +46,9 @@ const TableContainer: React.FC<TableContainerProps> = ({
             style={{
                 maxHeight: `${maxHeight}px`,
                 overflowY: "auto",
-                width: tableWidth > 0 ? `${tableWidth + 20}px` : "auto",
+                overflowX: "auto",
+                width: "fit-content",
+                maxWidth: "100%",
             }}
         >
             {children}
