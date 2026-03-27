@@ -1,3 +1,4 @@
+from django.db.models import Case, When, Value, IntegerField
 from ..models import kosu_division, member, def_choice
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -226,7 +227,13 @@ class DefDetailList(APIView):
     # クエリパラメータで絞り込み条件を取得
     search_symbol = request.query_params.get('def_symbol', None)
 
-    detail_choice = def_choice.objects.all().order_by('def_symbol')
+    detail_choice = def_choice.objects.all().annotate(
+      symbol_order=Case(
+        When(def_symbol='$', then=Value(1)),
+        default=Value(0),
+        output_field=IntegerField(),
+        )
+      ).order_by('symbol_order', 'def_symbol')
 
     # 絞り込みある場合はフィルタリング
     if search_symbol:
@@ -372,7 +379,6 @@ class DefDetailUpdate(APIView):
 
 
 class DefDetailDelete(APIView):
-  print("ここまでOK")
   def get_object(self, pk):
     try:
       return def_choice.objects.get(id=pk)

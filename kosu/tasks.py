@@ -712,7 +712,7 @@ def generate_choice_backup():
 
 
 
-# 工数区分定義データロード非同期処理
+# 作業詳細選択肢データロード非同期処理
 def load_choice_file(file_path):
   try:
     # 1. 渡されたファイルパスを一時ファイルパスとして保持
@@ -732,19 +732,12 @@ def load_choice_file(file_path):
       os.remove(temp_file_path)
       return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None 
 
+    # 作業詳細選択肢データ全削除
+    choice_data_filter = def_choice.objects.all()
+    choice_data_filter.delete()
+
     # 4. データ読み込みとDB保存
     for i in range(2, ws.max_row + 1):
-      # 読み込み予定データと同一の工数区分定義データが存在するか確認
-      choice_data_filter = def_choice.objects.filter(def_select=ws.cell(row=i, column=2).value)
-      # 同一工数区分定義データがあった場合データ削除
-      if choice_data_filter.exists():
-        choice_data_filter.delete()
-
-      # データ定義
-      choice_data = {
-        'kosu_name': ws.cell(row=i, column=1).value
-        }
-      
       # Excelからデータを読み込む
       new_data = def_choice(def_symbol=ws.cell(row=i, column=1).value, def_select=ws.cell(row=i, column=2).value)
 

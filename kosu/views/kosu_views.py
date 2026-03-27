@@ -1,5 +1,6 @@
 import datetime
 import itertools
+from django.db.models import Case, When, Value, IntegerField
 from ..models import member, Business_Time_graph, kosu_division, def_choice
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -112,7 +113,13 @@ class KosuNew(APIView):
       warning_message = f"警告: 設定されている工数区分定義は最新の工数区分定義ではありません。任意に過去の工数入力する以外の場合は工数区分定義を最新のものにして工数入力を実施してください。"
 
     # 作業詳細取得
-    detail_choice = def_choice.objects.all().order_by('def_symbol')
+    detail_choice = def_choice.objects.all().annotate(
+      symbol_order=Case(
+        When(def_symbol='$', then=Value(1)),
+        default=Value(0),
+        output_field=IntegerField(),
+        )
+      ).order_by('symbol_order', 'def_symbol')
 
     # データ変換
     member_serializer = MemberSerializer(member_data, many=False)
@@ -642,7 +649,13 @@ class KosuUpdate(APIView):
       def_instance = def_query_set.first()
 
     # 作業詳細取得
-    detail_choice = def_choice.objects.all().order_by('def_symbol')
+    detail_choice = def_choice.objects.all().annotate(
+      symbol_order=Case(
+        When(def_symbol='$', then=Value(1)),
+        default=Value(0),
+        output_field=IntegerField(),
+        )
+      ).order_by('symbol_order', 'def_symbol')
 
     # データ変換
     kosu_serializer = KosuSerializer(kosu_instance)
