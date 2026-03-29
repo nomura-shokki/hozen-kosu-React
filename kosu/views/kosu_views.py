@@ -7,16 +7,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import MemberSerializer, DefSerializer, KosuSerializer, DefChoiceSerializer
 from ..utils.main_utils import CustomPagination
-from ..utils.kosu_utils import time_index
-from ..utils.kosu_utils import break_get
-from ..utils.kosu_utils import break_time_process
-from ..utils.kosu_utils import break_time_delete
-from ..utils.kosu_utils import break_time_write
-from ..utils.kosu_utils import detail_list_summarize
-from ..utils.kosu_utils import judgement_check
-from ..utils.kosu_utils import parse_break_time
-from ..utils.kosu_utils import get_week_of_month
-from ..utils.kosu_utils import kosu_write
+from ..utils.kosu_utils import time_index, break_get, break_time_process, break_time_delete, \
+                                break_time_write, detail_list_summarize, judgement_check, parse_break_time, \
+                                  get_week_of_month, kosu_write
 import datetime
 import itertools
 

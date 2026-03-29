@@ -733,8 +733,8 @@ def load_choice_file(file_path):
       return {'status': 'error', 'message': '無効なファイルフォーマットです。'}, None 
 
     # 作業詳細選択肢データ全削除
-    choice_data_filter = def_choice.objects.all()
-    choice_data_filter.delete()
+    choice_data = def_choice.objects.all()
+    choice_data.delete()
 
     # 4. データ読み込みとDB保存
     for i in range(2, ws.max_row + 1):
