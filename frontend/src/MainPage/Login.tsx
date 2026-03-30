@@ -11,6 +11,13 @@ const Login: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
 
+  // クッキーから指定した名前の値を取得する関数を追加
+  const getCookie = (name: string) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift();
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setErrorMessage("");
@@ -20,7 +27,7 @@ const Login: React.FC = () => {
         { employee_no: Number(employee_no) },
         {
           headers: {
-            "Content-Type": "application/json",
+            'X-CSRFToken': getCookie('csrftoken') || ''
           },
           withCredentials: true,
         }

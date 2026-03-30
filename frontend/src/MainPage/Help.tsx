@@ -23,6 +23,13 @@ const Help: React.FC = () => {
     }
   };
 
+  // クッキーから指定した名前の値を取得する関数を追加
+  const getCookie = (name: string) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift();
+  };
+
   const handlePasswordSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setErrorMessage("");
@@ -31,7 +38,12 @@ const Help: React.FC = () => {
       const res = await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/api/help_pass/`,
         { password },
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken') || ''
+          }
+        }
       );
 
       if (res.data === true || res.data.result === true) {

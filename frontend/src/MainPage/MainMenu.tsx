@@ -86,15 +86,14 @@ const MainMenu: React.FC = () => {
         setData(login_data);
         setAdminData(admin_data);
       } catch (err) {
-        console.error("API Error Full Details:", err); // エラー全体をログ出力
+        console.error("API Error Full Details:", err); 
         if (axios.isAxiosError(err)) {
-          console.error("Status:", err.response?.status);       // 500などのステータスコード
-          console.error("Response Data:", err.response?.data);   // サーバーから返ってきたエラー内容（重要！）
+          console.error("Status:", err.response?.status);   
+          console.error("Response Data:", err.response?.data);   
           
           if (err.response?.status === 401) {
             navigate("/login");
           } else {
-            // サーバーから送られてきたメッセージがあればそれを、なければデフォルトを表示
             const serverMessage = err.response?.data?.message || err.response?.data?.detail || "サーバー内部エラーが発生しました。";
             setError(serverMessage);
           }
@@ -109,9 +108,25 @@ const MainMenu: React.FC = () => {
     fetchData();
   }, [navigate]);
 
+  // クッキーから指定した名前の値を取得する関数を追加
+  const getCookie = (name: string) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift();
+  };
+
   const handleLogout = async () => {
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/logout/`, {}, { withCredentials: true });
+      await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/logout/`, 
+        {}, 
+        { 
+          withCredentials: true,
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken') || ''
+          }
+        }
+      );
       navigate("/login");
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
