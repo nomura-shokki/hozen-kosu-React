@@ -1,0 +1,76 @@
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.h1-collar {
+  color: #0ff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.kosu-nav a {
+  color: #0ff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.kosu-nav a:hover {
+  color: #0af;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
+
+.kosu-delete-wrapper {
+  animation: fadeInUp 1s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 15px;
+  margin: 0 auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .kosu-delete-wrapper {
+    margin: 0;
+    justify-content: flex-start;
+  }
+}
+
+.centeredContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  margin: 10px auto;
+}
+
+@media (max-width: 768px) {
+  .table-wrapper {
+    margin: 0;
+    justify-content: flex-start;
+    padding-left: 10px;
+  }
+
+  .kosu-nav a {
+    font-size: 0.8rem;
+  }
+}
+
+.th-collar{
+  background-color: #0ff;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+}
