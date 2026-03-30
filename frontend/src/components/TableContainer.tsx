@@ -43,12 +43,10 @@ const TableContainer: React.FC<TableContainerProps> = ({
         <div
             ref={containerRef}
             className={styles["table-wrapper"]}
-            style={{
-                maxHeight: `${maxHeight}px`,
-                overflowY: "auto",
-                overflowX: "auto",
-                width: "fit-content",
-                maxWidth: "100%",
+            style={{  
+              maxHeight: `${maxHeight}px`,  
+              overflowY: "auto",  
+              overflowX: "auto",
             }}
         >
             {children}
