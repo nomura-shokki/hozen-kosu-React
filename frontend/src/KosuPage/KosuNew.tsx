@@ -117,7 +117,6 @@ const KosuNew: React.FC = () => {
       setDefData(def_data);
       
       const detail_list = response.data.detail_list || [];
-      console.log(detail_list)
       setDetailList(detail_list);
 
       const member_data = response.data.member_data;

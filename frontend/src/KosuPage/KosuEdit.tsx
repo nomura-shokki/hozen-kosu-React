@@ -198,11 +198,9 @@ const KosuEdit: React.FC = () => {
       };
     });
 
-    if (timeData.length === 0) {
-      setTimeData(newTimeData);
-      setIsDisabled(newTimeData.map(() => true));
-      setIsDetailTextMode(newTimeData.map(() => false));
-    }
+    setTimeData(newTimeData);
+    setIsDisabled(newTimeData.map(() => true));
+    setIsDetailTextMode(newTimeData.map(() => false));
   }, [formData, defData, timeData.length, memberShop]);
 
   const handleChange = (
