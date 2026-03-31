@@ -115,12 +115,12 @@ const AdminUpdate: React.FC = () => {
 
     for (const field of employeeNumbers) {
       const val = formData[field.key];
-      if (val === null || val === undefined) {
-        continue;
-      }
-
       if (val === null || val === undefined || Number.isNaN(val) || (typeof val === 'string' && val === "")) {
         continue;
+      }
+      if (val <= 0) {
+        setErrorMessage(`問い合わせ担当者従業員番号${field.label.slice(-1)}は自然数で入力してください。`);
+        return;
       }
     }
 
