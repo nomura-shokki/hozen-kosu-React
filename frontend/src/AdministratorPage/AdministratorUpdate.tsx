@@ -117,7 +117,7 @@ const AdminUpdate: React.FC = () => {
       if (val === null || val === undefined) {
         continue;
       }
-
+      console.log(val)
       if (val <= 0) {
         setErrorMessage(`問い合わせ担当者従業員番号${field.label.slice(-1)}は自然数で入力してください。`);
         return;
