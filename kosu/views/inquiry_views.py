@@ -292,7 +292,7 @@ class InquirUpdate(APIView):
       return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     if int(login_no) != int(inquir_instance.employee_no2) or \
-      int(login_no) in [int(admin_data.administrator_employee_no1), int(admin_data.administrator_employee_no2), int(admin_data.administrator_employee_no3)]:
+      int(login_no) not in [int(admin_data.administrator_employee_no1), int(admin_data.administrator_employee_no2), int(admin_data.administrator_employee_no3)]:
       return Response({'status': 'error', 'message': '権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
 
