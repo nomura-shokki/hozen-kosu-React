@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/TeamPage/TeamNew.module.css";
@@ -61,7 +62,7 @@ const TeamNew: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_new/`, { withCredentials: true });
+        const response = await api.get("/api/team_new/");
         const memberSelectData =
           response.data.member_select.map(
             (member: { employee_no: number; name: string; shop: string }) => ({
@@ -142,7 +143,7 @@ const TeamNew: React.FC = () => {
     setLoading(true);
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_new/`, formData, { withCredentials: true });
+      await api.post("/api/team_new/", formData);
       navigate("/team-menu");
     } catch (err) {
       if (axios.isAxiosError(err)) {

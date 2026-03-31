@@ -1,4 +1,5 @@
 import React, { useState, useEffect, FormEvent } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -55,7 +56,7 @@ const TodayBreakTime: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/today_break_time/`, {withCredentials: true,});
+        const response = await api.get("/api/today_break_time/");
         const kosu_data: Kosu = response.data.kosu_data || {
           employee_no3: 0,
           breaktime: "#00000000",
@@ -117,7 +118,7 @@ const TodayBreakTime: React.FC = () => {
     }
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/today_break_time/`,
+      await api.post("/api/today_break_time/",
         {
           breakTime1: breakTime1 ? breakTime1.toISOString() : null,
           breakTime2: breakTime2 ? breakTime2.toISOString() : null,
@@ -128,8 +129,7 @@ const TodayBreakTime: React.FC = () => {
           breakTime7: breakTime7 ? breakTime7.toISOString() : null,
           breakTime8: breakTime8 ? breakTime8.toISOString() : null,
           sessionDay: sessionDay,
-        },
-        { withCredentials: true }
+        }
       );
 
       const formattedDate = sessionDay

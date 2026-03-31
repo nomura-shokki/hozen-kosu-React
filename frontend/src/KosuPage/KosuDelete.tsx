@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -43,7 +44,7 @@ const KosuDelete: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, { withCredentials: true });
+        const response = await api.get(`/api/kosu_update/${id}/`);
         const { kosu_data, member_data, def_data } = response.data;
 
         setRecord(kosu_data);
@@ -93,7 +94,7 @@ const KosuDelete: React.FC = () => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_delete/${id}/`, { withCredentials: true });
+      await api.delete(`/api/kosu_delete/${id}/`);
       alert("削除が完了しました");
       navigate("/kosu-list");
     } catch (err) {

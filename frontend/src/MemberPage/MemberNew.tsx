@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import ShopSelect from "../Components/ShopSelect";
@@ -80,7 +81,7 @@ const MemberNew: React.FC = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, { withCredentials: true });
+        await api.get("/api/member_new/");
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
@@ -117,7 +118,7 @@ const MemberNew: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/member_new/`, formData, { withCredentials: true });
+      await api.post("/api/member_new/", formData);
       alert("登録完了！");
 
       setFormData({

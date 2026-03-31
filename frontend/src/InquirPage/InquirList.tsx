@@ -5,6 +5,7 @@ import React, {
   ChangeEvent,
   useRef
 } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import ItemSelect from "../Components/ItemSelect";
@@ -49,8 +50,8 @@ const InquirList: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_BASE_URL}/api/inquir_list/`,
+      const response = await api.get(
+        "/api/inquir_list/",
         {
           params: {
             page: currentPage,
@@ -60,8 +61,7 @@ const InquirList: React.FC = () => {
             ...(searchItem && {
               item: searchItem,
             }),
-          },
-          withCredentials: true,
+          }
         }
       );
 

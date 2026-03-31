@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -28,7 +29,7 @@ const MemberDelete: React.FC = () => {
   useEffect(() => {
     const fetchChoice = async () => {
       try {
-        const response = await axios.get<FetchResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/def_detail_update/${id}/`, { withCredentials: true });
+        const response = await api.get<FetchResponse>(`/api/def_detail_update/${id}/`);
         setRecord(response.data.formData);
       } catch (err) {
         if (axios.isAxiosError(err)) {
@@ -69,7 +70,7 @@ const MemberDelete: React.FC = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/def_detail_delete/${id}/`, { withCredentials: true });
+      await api.delete(`/api/def_detail_delete/${id}/`);
       alert("削除が完了しました");
       navigate("/def-detail-list");
     } catch (err) {

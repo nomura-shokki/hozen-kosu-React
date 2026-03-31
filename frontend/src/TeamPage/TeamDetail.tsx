@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import KosuBarChart from "../Components/KosuBarChart";
@@ -52,7 +53,7 @@ const TeamDetail: React.FC = () => {
   useEffect(() => {
     const fetchTeamDetail = async () => {
       try {
-        const response = await axios.get<KosuResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/team_detail/${id}/`,{ withCredentials: true });
+        const response = await api.get<KosuResponse>(`/api/team_detail/${id}/`);
         const { kosu_data, def_data, member_data } = response.data;
         setFormData(kosu_data);
         setDefData(def_data || {});

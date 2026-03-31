@@ -1,4 +1,5 @@
-import React, { useState, useEffect, FormEvent, ChangeEvent } from "react";
+import React, { useState, useEffect, FormEvent, ChangeEvent, useCallback } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import TyokuSelect from "../Components/TyokuSelect";
@@ -70,31 +71,29 @@ const KosuEdit: React.FC = () => {
   const [isDetailTextMode, setIsDetailTextMode] = useState<boolean[]>([]);
   const [detailDataList, setDetailDataList] = useState<DetailData[]>([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get<KosuResponse>(
-          `${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`,
-          { withCredentials: true }
-        );
-        const { kosu_data, def_data, member_data, detail_data_list } = response.data;
-        setFormData(kosu_data);
-        setDefData(def_data);
-        setMemberShop(member_data.shop);
-        setInitialTimeWork(kosu_data.time_work);
-        setInitialTyoku(kosu_data.tyoku2);
-        setDetailDataList(detail_data_list || []);
-      } catch (err) {
-        if (axios.isAxiosError(err)) {
-          if (err.response?.status === 401) navigate("/login");
-          else setError(err.response?.data.message);
-        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+  const fetchData = useCallback(async () => {
+    try {
+      const response = await api.get<KosuResponse>(`/api/kosu_update/${id}/`);
+      const { kosu_data, def_data, member_data, detail_data_list } = response.data;
+      setFormData(kosu_data);
+      setDefData(def_data);
+      setMemberShop(member_data.shop);
+      setInitialTimeWork(kosu_data.time_work);
+      setInitialTyoku(kosu_data.tyoku2);
+      setDetailDataList(detail_data_list || []);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) navigate("/login");
+        else setError(err.response?.data.message);
+      } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
+    } finally {
+      setLoading(false);
+    }
   }, [id, navigate]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     if (!formData) {
@@ -296,11 +295,9 @@ const KosuEdit: React.FC = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // 作業内容・作業詳細のペアバリデーション
     const isInvalidPair = timeData.some((item) => {
       const hasWork = !!item.work;
       const hasDetail = !!item.detail;
-      // 片方のみ入力されている場合はエラー (XOR)
       return (hasWork && !hasDetail) || (!hasWork && hasDetail);
     });
 
@@ -355,9 +352,10 @@ const KosuEdit: React.FC = () => {
     }
 
     try {
-      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_update/${id}/`, updatedFormData, { withCredentials: true });
+      await api.put(`/api/kosu_update/${id}/`, updatedFormData);
       alert("データが更新されました！");
-      navigate("/kosu-list");
+      setTimeData([]);
+      fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
@@ -402,11 +400,10 @@ const KosuEdit: React.FC = () => {
     };
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/item_delete/`, requestData, { withCredentials: true });
+      await api.post(`/api/item_delete/`, requestData);
       alert(`行 ${index + 1} が削除されました！`);
-      setTimeData((prevTimeData) =>
-        prevTimeData.filter((_, i) => i !== index)
-      );
+      setTimeData([]);
+      fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
@@ -419,8 +416,10 @@ const KosuEdit: React.FC = () => {
     if (!formData) return;
 
     try {
-      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/day_update/`, formData, { withCredentials: true });
+      await api.put(`/api/day_update/`, formData);
       alert("日付編集を送信しました！");
+      setTimeData([]);
+      fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");

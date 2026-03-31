@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -37,7 +38,7 @@ const KosuCalendar: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_calendar/`, { withCredentials: true });
+      const response = await api.get("/api/kosu_calendar/");
       const results = response.data.kosu_data || [];
       setData(results);
       setSessionYear(response.data.session_year);
@@ -89,10 +90,10 @@ const KosuCalendar: React.FC = () => {
   const postYearMonth = useCallback(async (year: number, month: number) => {
     setLoading(true);
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_calendar_change/`, {
+      await api.post("/api/kosu_calendar_change/", {
         year: year,
         month: month,
-      }, { withCredentials: true });
+      });
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -107,7 +108,7 @@ const KosuCalendar: React.FC = () => {
   const postWorkWrite = async () => {
     setIsPostingWorkWrite(true);
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_work_write/`, formData, { withCredentials: true });
+      await api.post("/api/kosu_work_write/", formData);
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -122,7 +123,7 @@ const KosuCalendar: React.FC = () => {
   const postWorkDefault = async () => {
     setIsPostingWorkDefault(true);
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/work_default/`, {}, { withCredentials: true });
+      await api.post("/api/work_default/", {});
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -141,7 +142,7 @@ const KosuCalendar: React.FC = () => {
         return acc;
       }, {});
   
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/tyoku_default/`, postData, { withCredentials: true });
+      await api.post("/api/tyoku_default/", postData);
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -153,9 +154,9 @@ const KosuCalendar: React.FC = () => {
 
   const handleDayClick = async (dayValue: string) => {
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_link/`, {
+      await api.post("/api/kosu_link/", {
         day: dayValue,
-      }, { withCredentials: true });
+      });
       navigate("/kosu-new");
     } catch (err) {
       if (axios.isAxiosError(err)) {

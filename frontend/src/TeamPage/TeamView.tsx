@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -38,7 +39,7 @@ const TeamView: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_view/`, { withCredentials: true });
+      const response = await api.get("/api/team_view/");
       const results = response.data.kosu_data || [];
       const memberNameList: [number, string][] = response.data.member_name_list || [];
       setMemberNames(memberNameList);
@@ -72,10 +73,10 @@ const TeamView: React.FC = () => {
   const postYearMonth = useCallback(async (year: number, month: number) => {
     setLoading(true);
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_view/`, {
+      await api.post("/api/team_view/", {
         year: year,
         month: month,
-      }, { withCredentials: true });
+      });
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -91,10 +92,7 @@ const TeamView: React.FC = () => {
   const postShopSelect = useCallback(async (shopValue: string) => {
     setLoading(true);
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_shop_select/`, 
-        { shop_default: shopValue }, 
-        { withCredentials: true }
-      );
+      await api.post("/api/team_shop_select/", { shop_default: shopValue });
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -196,14 +194,13 @@ const TeamView: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_export/`,
+      const response = await api.post("/api/team_export/",
         { 
           year: sessionYear, 
           month: sessionMonth,
           shop2: shopDefault 
         },
-        { 
-          withCredentials: true,
+        {
           responseType: 'blob'
         }
       );

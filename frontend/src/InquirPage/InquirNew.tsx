@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import ItemSelect from "../Components/ItemSelect";
@@ -23,7 +24,7 @@ const InquirNew: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_new/`, { withCredentials: true });
+        await api.get("/api/inquir_new/");
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
@@ -58,7 +59,7 @@ const InquirNew: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_new/`, formData, { withCredentials: true });
+      await api.post("/api/inquir_new/", formData);
       alert("登録完了！");
 
       setFormData({

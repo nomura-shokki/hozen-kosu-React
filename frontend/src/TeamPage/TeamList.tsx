@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, ChangeEvent, useRef } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import TeamMemberSelect from "../Components/TeamMemberSelect";
@@ -63,7 +64,7 @@ const TeamList: React.FC = () => {
   ) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_list/`, {
+      const response = await api.get("/api/team_list/", {
         params: {
           page: page,
           ...(day && {
@@ -74,8 +75,7 @@ const TeamList: React.FC = () => {
           ...(selectedMember && {
             member_id: selectedMember,
           }),
-        },
-        withCredentials: true,
+        }
       });
 
       const paginationData = response.data?.pagination_data || {};

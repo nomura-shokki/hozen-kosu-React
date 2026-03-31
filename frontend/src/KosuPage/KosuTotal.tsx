@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import api from "../api/axios";
 import axios from "axios";
 import Loading from "../Components/Loading";
 import ChartDataLabels from "chartjs-plugin-datalabels";
@@ -72,12 +73,11 @@ const KosuTotal: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_total/`,
+      const response = await api.post("/api/kosu_total/",
         {
           date: selectedDate,
           period: selectedPeriod,
-        },
-        { withCredentials: true }
+        }
       );
       setApiData(response.data);
       setLoading(false);
@@ -95,7 +95,7 @@ const KosuTotal: React.FC = () => {
     const fetchInitialData = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_total/`, { withCredentials: true });
+        const response = await api.get("/api/kosu_total/");
         setApiData(response.data);
         if (response.data.session_day) {
           setSelectedDate(response.data.session_day);

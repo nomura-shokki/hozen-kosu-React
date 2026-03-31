@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import styles from "../styles/TeamPage/TeamMenu.module.css";
@@ -19,7 +20,7 @@ const TeamMenu: React.FC = () => {
   useEffect(() => {
     const fetchMenuData = async () => {
       try {
-        const response = await axios.get<TeamMenuData>(`${process.env.REACT_APP_API_BASE_URL}/api/team_menu/`, { withCredentials: true });
+        const response = await api.get<TeamMenuData>("/api/team_menu/");
         setTeamMenuData(response.data);
       } catch (err) {
         if (axios.isAxiosError(err)) {

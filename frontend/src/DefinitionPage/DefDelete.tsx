@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -28,10 +29,7 @@ const DefDelete: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/api/def_update/${id}/`,
-          { withCredentials: true }
-        );
+        const response = await api.get(`/api/def_update/${id}/`);
         const rawData = response.data;
 
         const kosu_definitions = Array.from({ length: 50 }, (_, i) => {
@@ -90,10 +88,7 @@ const DefDelete: React.FC = () => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_BASE_URL}/api/def_delete/${id}/`,
-        { withCredentials: true }
-      );
+      await api.delete(`/api/def_delete/${id}/`);
       alert("削除が完了しました");
       navigate("/def-menu");
     } catch (err) {

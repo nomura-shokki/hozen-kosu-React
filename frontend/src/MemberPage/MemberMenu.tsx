@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import styles from "../styles/MemberPage/MemberMenu.module.css";
@@ -11,7 +12,7 @@ const MemberMenu: React.FC = () => {
   useEffect(() => {
     const fetchMemberMenu = async () => {
       try {
-        await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/member_menu/`, { withCredentials: true });
+        await api.get("/api/member_menu/");
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");

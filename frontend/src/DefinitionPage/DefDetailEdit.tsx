@@ -1,4 +1,5 @@
 import React, { useState, useEffect, FormEvent } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -10,7 +11,6 @@ interface Choice {
   def_select: string;
 }
 
-// APIレスポンス用の型定義
 interface FetchResponse {
   formData: Choice;
   symbol_list: string[];
@@ -20,14 +20,14 @@ const DefDetailEdit: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [formData, setFormData] = useState<Choice | null>(null);
-  const [symbolList, setSymbolList] = useState<string[]>([]); // 選択肢用
+  const [symbolList, setSymbolList] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchChoice = async () => {
       try {
-        const response = await axios.get<FetchResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/def_detail_update/${id}/`, { withCredentials: true });
+        const response = await api.get<FetchResponse>(`/api/def_detail_update/${id}/`);
         setFormData(response.data.formData);
         setSymbolList(response.data.symbol_list);
       } catch (err) {
@@ -62,9 +62,8 @@ const DefDetailEdit: React.FC = () => {
     event.preventDefault();
 
     try {
-      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/def_detail_update/${id}/`,
-        formData,
-        { withCredentials: true }
+      await api.put(`/api/def_detail_update/${id}/`,
+        formData
       );
       alert("データが更新されました！");
       navigate("/def-detail-list");

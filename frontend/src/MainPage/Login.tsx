@@ -1,40 +1,22 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import api from "../api/axios";
 import axios from "axios";
 import logo from "../img/TitleRogo.png";
 import styles from "../styles/MainPage/Login.module.css";
-
-
 
 const Login: React.FC = () => {
   const [employee_no, setNumber] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
 
-  // クッキーから指定した名前の値を取得する関数を追加
-  const getCookie = (name: string) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(';').shift();
-  };
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setErrorMessage("");
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/login/`,
-        { employee_no: Number(employee_no) },
-        {
-          headers: {
-            'X-CSRFToken': getCookie('csrftoken') || ''
-          },
-          withCredentials: true,
-        }
-      );
-
+      const response = await api.post("/api/login/", { employee_no: Number(employee_no) });
       const data = response.data;
-
       if (data.status === "success") {
         navigate("/");
       } else {

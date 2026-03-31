@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import api from "../api/axios";
 import axios from "axios";
 import styles from "../styles/MainPage/Help.module.css";
 
@@ -23,29 +24,12 @@ const Help: React.FC = () => {
     }
   };
 
-  // クッキーから指定した名前の値を取得する関数を追加
-  const getCookie = (name: string) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(';').shift();
-  };
-
   const handlePasswordSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setErrorMessage("");
 
     try {
-      const res = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/help_pass/`,
-        { password },
-        { 
-          withCredentials: true,
-          headers: {
-            'X-CSRFToken': getCookie('csrftoken') || ''
-          }
-        }
-      );
-
+      const res = await api.post("/api/help_pass/", { password });
       if (res.data === true || res.data.result === true) {
         setIsAuthenticated(true);
       } else {
@@ -70,14 +54,11 @@ const Help: React.FC = () => {
     }
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/help//`,
-        { 
-          memberReset: isMemberReset, 
-          defReset: isDefReset,
-          settingReset: isSettingReset 
-        },
-        { withCredentials: true }
-      );
+      await api.post("/api/help//", { 
+        memberReset: isMemberReset, 
+        defReset: isDefReset,
+        settingReset: isSettingReset 
+      });
 
       if (isMemberReset) {
         alert("リセットが完了しました。従業員番号：12345でログイン可能です。");

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import styles from "../styles/InquirPage/InquirMenu.module.css";
@@ -18,7 +19,7 @@ const InquirMenu: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_menu/`, { withCredentials: true });
+        await api.get<Member>("/api/inquir_menu/");
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");

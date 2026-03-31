@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import TableContainer from "../Components/TableContainer";
@@ -25,14 +26,7 @@ const DefList: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_BASE_URL}/api/def_list/`,
-        {
-          params: { page: currentPage },
-          withCredentials: true,
-        }
-      );
-
+      const response = await api.get("/api/def_list/", { params: { page: currentPage } });
       const results = response.data.results || [];
       const pageSize = response.data.page_size || 20;
       setData(results);

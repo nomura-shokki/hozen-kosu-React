@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -44,7 +45,7 @@ const InquirDetail: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_detail/${id}/`, { withCredentials: true });
+        const response = await api.get<Response>(`/api/inquir_detail/${id}/`);
         const { inquir_data, login_data, inquir_member_data, next_id, before_id } = response.data;
         setFormData(inquir_data);
         setMemberData(login_data);

@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -38,7 +39,7 @@ const InquirUpdate: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true });
+        const response = await api.get<Response>(`/api/inquir_update/${id}/`);
         const { inquir_data, login_data } = response.data;
         setFormData(inquir_data);
         setMemberData(login_data);
@@ -85,7 +86,7 @@ const InquirUpdate: React.FC = () => {
     if (!formData) return;
 
     try {
-      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, formData, { withCredentials: true });
+      await axios.put(`/api/inquir_update/${id}/`, formData);
       alert("登録完了！");
       navigate("/inquir-list");
     } catch (err) {
@@ -104,7 +105,7 @@ const InquirUpdate: React.FC = () => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/inquir_update/${id}/`, { withCredentials: true });
+      await api.delete(`/api/inquir_update/${id}/`);
       alert("削除が完了しました");
       navigate("/inquir-list");
     } catch (err) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import TableContainer from "../Components/TableContainer";
@@ -54,16 +55,15 @@ const KosuList: React.FC = () => {
   ) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_list/`, {
+      const response = await api.get("/api/kosu_list/", {
         params: {
           page: page,
           ...(day && {
             day: day,
             mode: mode ? "month" : "day",
             filter: "true",
-          }),
-        },
-        withCredentials: true,
+          })
+        }
       });
 
       const results = response.data.results || [];

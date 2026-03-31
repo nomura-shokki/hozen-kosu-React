@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import api from "../api/axios";
 import axios from "axios";
 import ShopSelect from "../Components/ShopSelect";
 import TableContainer from "../Components/TableContainer";
@@ -33,15 +34,14 @@ const MemberList: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_BASE_URL}/api/member_list/`,
+      const response = await api.get(
+        "/api/member_list/",
         {
           params: {
             page: currentPage,
             employee_no: currentFilterNumber,
             shop: currentFilterShop,
-          },
-          withCredentials: true,
+          }
         }
       );
 

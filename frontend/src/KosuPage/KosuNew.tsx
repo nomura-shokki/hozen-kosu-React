@@ -4,6 +4,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { MobileTimePicker } from "@mui/x-date-pickers";
 import axios from "axios";
+import api from "../api/axios";
 import Loading from "../Components/Loading";
 import TyokuSelect from "../Components/TyokuSelect";
 import WorkSelect from "../Components/WorkSelect";
@@ -92,7 +93,7 @@ const KosuNew: React.FC = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, { withCredentials: true });
+      const response = await api.get("/api/kosu_new/");
       setWarningMessage(response.data.warning || null);
       const kosu_data = response.data.kosu_data || {
         employee_no3: 0,
@@ -153,7 +154,6 @@ const KosuNew: React.FC = () => {
         }
       }
 
-      // 修正ポイント: 手入力モードでない（選択モード）場合に連動
       if (name === "detail_work" && !isDetailSelectMode) {
         const selectedDetail = detailList.find(d => d.def_select === value);
         if (selectedDetail) {
@@ -165,10 +165,7 @@ const KosuNew: React.FC = () => {
 
       if (name === "work_day2") {
         try {
-          await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/set_day/`,
-            { day: value || "" },
-            { withCredentials: true }
-          );
+          await api.post("/api/set_day/", { day: value || "" });
           fetchData();
         } catch (err) {
           if (axios.isAxiosError(err)) {
@@ -270,7 +267,7 @@ const KosuNew: React.FC = () => {
     };
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_new/`, updatedData, { withCredentials: true });
+      await api.post("/api/kosu_new/", updatedData);
       alert("更新が成功しました！");
       updateCachedTimes(selectedTimes.time1, selectedTimes.time2);
       fetchData();
@@ -317,7 +314,7 @@ const KosuNew: React.FC = () => {
     }
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/over_time/`, data, { withCredentials: true });
+      await api.post("/api/over_time/", data);
       alert("残業情報を送信しました！");
     } catch (err) {
       if (axios.isAxiosError(err)) {

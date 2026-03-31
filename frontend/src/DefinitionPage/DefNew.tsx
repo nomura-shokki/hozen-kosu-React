@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -34,7 +35,7 @@ const DefNew: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, { withCredentials: true });
+        await api.get("/api/def_new/");
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
@@ -96,7 +97,7 @@ const DefNew: React.FC = () => {
     });
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/def_new/`, convertedData, { withCredentials: true });
+      await api.post("/api/def_new/", convertedData);
       alert("登録完了！");
       navigate("/def-menu");
     } catch (err) {

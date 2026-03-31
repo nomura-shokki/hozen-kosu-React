@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -18,14 +19,12 @@ const DefDetailNew: React.FC = () => {
     def_select: "",
   });
 
-  // APIから取得したデータを保持する
   const [defData, setDefData] = useState<any>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/def_detail_new/`, { withCredentials: true });
-        // 取得したデータをステートに格納
+        const response = await api.get("/api/def_detail_new/");
         setDefData(response.data);
       } catch (err) {
         if (axios.isAxiosError(err)) {
@@ -41,11 +40,9 @@ const DefDetailNew: React.FC = () => {
     checkAuth();
   }, [navigate]);
 
-  // 選択肢（A, B, C... および $）を生成するロジック
   const getSymbolOptions = () => {
     if (!defData) return [];
-    
-    // 最大50まで、値が入っている末尾のインデックスを探す
+
     let maxIndex = 0;
     for (let i = 1; i <= 50; i++) {
       if (defData[`kosu_title_${i}`]) {
@@ -55,17 +52,13 @@ const DefDetailNew: React.FC = () => {
 
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx";
     const options = [];
-    
-    // アルファベットの選択肢を追加
+
     for (let i = 0; i < maxIndex; i++) {
       if (alphabet[i]) {
         options.push({ value: alphabet[i], label: alphabet[i] });
       }
     }
-
-    // 末尾に $ を追加
     options.push({ value: "$", label: "$" });
-    
     return options;
   };
 
@@ -91,7 +84,7 @@ const DefDetailNew: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/def_detail_new/`, formData, { withCredentials: true });
+      await api.post("/api/def_detail_new/", formData);
       alert("登録完了！");
 
       setFormData({
@@ -133,13 +126,12 @@ const DefDetailNew: React.FC = () => {
       >
         <div className={styles["search-bar"]}>
           <label htmlFor="def_symbol">定義記号:</label>
-          {/* input から select に変更 */}
           <select
             id="def_symbol"
             name="def_symbol"
             value={formData.def_symbol}
             onChange={handleChange}
-            className={styles["select-input"]} // 必要に応じてスタイルを調整してください
+            className={styles["select-input"]}
           >
             <option value="">選択してください</option>
             {symbolOptions.map((opt) => (

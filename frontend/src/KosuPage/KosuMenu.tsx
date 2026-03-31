@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import styles from "../styles/KosuPage/KosuMenu.module.css";
@@ -16,7 +17,7 @@ const KosuMenu: React.FC = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/kosu_menu/`, { withCredentials: true });
+        await api.get<Member>("/api/kosu_menu/");
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");

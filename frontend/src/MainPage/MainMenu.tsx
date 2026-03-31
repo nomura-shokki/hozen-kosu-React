@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "../img/MenuRogo.png";
@@ -81,25 +82,15 @@ const MainMenu: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/main_menu/`, { withCredentials: true });
+        const response = await api.get<Response>("/api/main_menu/");
         const { login_data, admin_data } = response.data;
         setData(login_data);
         setAdminData(admin_data);
       } catch (err) {
-        console.error("API Error Full Details:", err); 
         if (axios.isAxiosError(err)) {
-          console.error("Status:", err.response?.status);   
-          console.error("Response Data:", err.response?.data);   
-          
-          if (err.response?.status === 401) {
-            navigate("/login");
-          } else {
-            const serverMessage = err.response?.data?.message || err.response?.data?.detail || "サーバー内部エラーが発生しました。";
-            setError(serverMessage);
-          }
-        } else {
-          setError("不明なエラーが発生しました。IT担当者に連絡してください。");
-        }
+          if (err.response?.status === 401) navigate("/login");
+          else setError(err.response?.data.message);
+        } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
       } finally {
         setLoading(false);
       }
@@ -108,25 +99,9 @@ const MainMenu: React.FC = () => {
     fetchData();
   }, [navigate]);
 
-  // クッキーから指定した名前の値を取得する関数を追加
-  const getCookie = (name: string) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(';').shift();
-  };
-
   const handleLogout = async () => {
     try {
-      await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/logout/`, 
-        {}, 
-        { 
-          withCredentials: true,
-          headers: {
-            'X-CSRFToken': getCookie('csrftoken') || ''
-          }
-        }
-      );
+      await api.post("/api/logout/", {});
       navigate("/login");
     } catch (err: any) {
       if (axios.isAxiosError(err)) {

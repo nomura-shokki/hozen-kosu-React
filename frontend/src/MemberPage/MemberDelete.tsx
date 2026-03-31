@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -26,7 +27,7 @@ const MemberDelete: React.FC = () => {
   useEffect(() => {
     const fetchMember = async () => {
       try {
-        const response = await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/member_update/${employeeNo}/`, { withCredentials: true });
+        const response = await api.get<Member>(`/api/member_update/${employeeNo}/`);
         setRecord(response.data);
       } catch (err) {
         if (axios.isAxiosError(err)) {
@@ -72,7 +73,7 @@ const MemberDelete: React.FC = () => {
     }
 
     try {
-      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/member_delete/${employeeNo}/`, { withCredentials: true });
+      await api.delete(`/api/member_delete/${employeeNo}/`);
       alert("削除が完了しました");
       navigate("/member-list");
     } catch (err) {

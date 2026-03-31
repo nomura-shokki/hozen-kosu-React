@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -36,7 +37,7 @@ const TeamOverTime: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_overtime/`, { withCredentials: true });
+      const response = await api.get("/api/team_overtime/");
       const results = response.data.kosu_data || [];
       const memberNameList: [number, string][] = response.data.member_name_list || [];
       setMemberNames(memberNameList);
@@ -69,10 +70,10 @@ const TeamOverTime: React.FC = () => {
   const postYearMonth = useCallback(async (year: number, month: number) => {
     setLoading(true);
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_overtime/`, {
+      await api.post("/api/team_overtime/", {
         year: year,
         month: month,
-      }, { withCredentials: true });
+      });
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {

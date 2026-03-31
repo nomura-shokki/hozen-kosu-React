@@ -1,4 +1,5 @@
 import React, { useState, useEffect, FormEvent } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -70,7 +71,7 @@ const BreakTime: React.FC = () => {
   useEffect(() => {
     const fetchBreakTimes = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/break_time/`, { withCredentials: true });
+        const response = await api.get("/api/break_time/");
         const member_data: Member = response.data.member_data || {};
 
         const breakTimeKeys = [
@@ -123,7 +124,6 @@ const BreakTime: React.FC = () => {
               return;
             }
           } 
-
           else {
             if (diffMin > 15) {
               setErrorMessage(`${groups[g]}${breaks[b]}が15分を超えています。`);
@@ -140,7 +140,7 @@ const BreakTime: React.FC = () => {
     }, {} as { [key: string]: string | null });
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/break_time/`, breakTimeData, { withCredentials: true });
+      await api.post("/api/break_time/", breakTimeData);
       alert("変更完了！");
     } catch (err) {
       if (axios.isAxiosError(err)) {

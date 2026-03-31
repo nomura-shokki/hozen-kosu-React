@@ -1,4 +1,5 @@
 import React, { useState, FormEvent, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/DefinitionPage/DefVer.module.css";
@@ -28,7 +29,7 @@ const DefVer: React.FC = () => {
   useEffect(() => {
     const fetchVerData = async () => {
       try {
-        const response = await axios.get<DefVerResponse>(`${process.env.REACT_APP_API_BASE_URL}/api/def_ver/`, {withCredentials: true,});
+        const response = await api.get<DefVerResponse>("/api/def_ver/");
         setChoices(response.data.choices);
         setCurrentVersion(response.data.current_version);
         setSelectedVersion(response.data.current_version);
@@ -48,11 +49,7 @@ const DefVer: React.FC = () => {
     event.preventDefault();
 
     try {
-      await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/def_ver/`,
-        { versionchoice: selectedVersion },
-        { withCredentials: true }
-      );
+      await api.post("/api/def_ver/", { versionchoice: selectedVersion });
       setCurrentVersion(selectedVersion);
       alert("切り替え完了！");
       setErrorMessage(null);

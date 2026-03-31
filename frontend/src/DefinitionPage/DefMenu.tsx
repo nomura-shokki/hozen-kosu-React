@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import styles from "../styles/DefinitionPage/DefMenu.module.css";
@@ -22,7 +23,7 @@ const DefMenu: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/def_menu/`, { withCredentials: true });
+        const response = await api.get<Member>("/api/def_menu/");
         setData(response.data);
       } catch (err) {
         if (axios.isAxiosError(err)) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, ChangeEvent } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -44,7 +45,7 @@ const TeamCalendar: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/team_calendar/`, { withCredentials: true });
+      const response = await api.get("/api/team_calendar/");
       const results = response.data.kosu_data || [];
       const searchDayString: string = response.data.Search_day;
       const memberNameList: [number, string][] = response.data.member_name_list || [];
@@ -89,12 +90,7 @@ const TeamCalendar: React.FC = () => {
   const postData = async (day: string) => {
     setLoading(true);
     setError(null);
-    try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_calendar/`,
-        { day: day },
-        { withCredentials: true }
-      );
-
+    try {await api.post("/api/team_calendar/", { day: day });
       await fetchData(); 
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -111,12 +107,7 @@ const TeamCalendar: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/team_calendar_week_jump/`,
-        { week: direction },
-        { withCredentials: true }
-      );
-
+    try {await api.post("/api/team_calendar_week_jump/", { week: direction });
       await fetchData(); 
     } catch (err) {
       if (axios.isAxiosError(err)) {

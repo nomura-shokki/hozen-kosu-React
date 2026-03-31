@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import TableContainer from "../Components/TableContainer";
@@ -16,11 +17,11 @@ const DefDeteDetailList: React.FC = () => {
   const [data, setData] = useState<DetailData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchSymbol, setSearchSymbol] = useState<string>(""); // 選択された値
-  const [currentFilterSymbol, setCurrentFilterSymbol] = useState<string>(""); // 検索確定用
+  const [searchSymbol, setSearchSymbol] = useState<string>("");
+  const [currentFilterSymbol, setCurrentFilterSymbol] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
-  const [allSymbols, setAllSymbols] = useState<string[]>([]); // 選択肢用
+  const [allSymbols, setAllSymbols] = useState<string[]>([]);
   const navigate = useNavigate();
 
   const searchBarRef = useRef<HTMLDivElement>(null);
@@ -29,14 +30,13 @@ const DefDeteDetailList: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_BASE_URL}/api/def_detail_list/`,
+      const response = await api.get(
+        "/api/def_detail_list/",
         {
           params: { 
             page: currentPage,
             def_symbol: currentFilterSymbol 
-          },
-          withCredentials: true,
+          }
         }
       );
 
@@ -44,8 +44,7 @@ const DefDeteDetailList: React.FC = () => {
       const pageSize = response.data.page_size || 20;
       setData(results);
       setTotalPages(Math.ceil(response.data.count / pageSize));
-      
-      // バックエンドから送られてきた symbol_list をセット
+
       if (response.data.symbol_list) {
         setAllSymbols(response.data.symbol_list);
       }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -26,7 +27,7 @@ const DefSearch: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<DivisionData[]>(`${process.env.REACT_APP_API_BASE_URL}/api/def_search/`, { withCredentials: true });
+        const response = await api.get<DivisionData[]>("/api/def_search/");
         setDivisions(response.data);
       } catch (err) {
         if (axios.isAxiosError(err)) {
