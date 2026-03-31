@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -42,7 +43,7 @@ const AdminUpdate: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, { withCredentials: true });
+        const response = await api.get<Response>("/api/manager_update/");
         const { admin_data } = response.data;
         setFormData(admin_data);
       } catch (err) {
@@ -117,15 +118,14 @@ const AdminUpdate: React.FC = () => {
       if (val === null || val === undefined) {
         continue;
       }
-      console.log(val)
-      if (val <= 0) {
-        setErrorMessage(`問い合わせ担当者従業員番号${field.label.slice(-1)}は自然数で入力してください。`);
-        return;
+
+      if (val === null || val === undefined || Number.isNaN(val) || (typeof val === 'string' && val === "")) {
+        continue;
       }
     }
 
     try {
-      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/manager_update/`, formData, { withCredentials: true });
+      await api.put("/api/manager_update/", formData);
       alert("登録完了！");
       navigate("/");
     } catch (err) {

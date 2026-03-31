@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import api from "../api/axios";
 import axios, { AxiosError } from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -61,11 +62,11 @@ const useTaskMonitor = (
   }, [setIsRunning, setError, processName]);
 
   const monitorTaskStatus = useCallback((taskId: string) => {
-    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/check_backup_status?task_id=${taskId}`;
+    const endpoint = `/api/check_backup_status?task_id=${taskId}`;
 
     const interval = setInterval(async () => {
       try {
-        const response = await axios.get(endpoint);
+        const response = await api.get(endpoint);
         const data = response.data;
         if (data.status === 'success') {
           clearInterval(interval);
@@ -135,7 +136,7 @@ const AdministratorLoading: React.FC = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        await axios.get<Member>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_Loading/`, { withCredentials: true });
+        await api.get<Member>("/api/manager_Loading/");
       } catch (err) {
         const axiosError = err as AxiosError;
         if (axiosError.response?.status === 401) navigate("/login");
@@ -219,19 +220,14 @@ const AdministratorLoading: React.FC = () => {
 
     setErrorStates(initialErrorStates);
 
-    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/${endpointPath}/`;
-    const headers: Record<string, string> = {
-      'X-CSRFToken': getCsrfToken()
-    };
+    const endpoint = `/api/${endpointPath}/`;
 
     isRunningSetter(true);
 
     try {
       const bodyData = isDateRanged ? { start_day: startDay, end_day: endDay } : {};
 
-      const response = await axios.post(endpoint, isDateRanged ? bodyData : undefined, {
-        headers: headers
-      });
+      const response = await api.post(endpoint, isDateRanged ? bodyData : undefined);
       const data = response.data;
 
       if (data.taskId || (data.status === 'success' && data.task_id)) {
@@ -268,7 +264,7 @@ const AdministratorLoading: React.FC = () => {
       return;
     }
 
-    const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/${endpointPath}/`;
+    const endpoint = `/api/${endpointPath}/`;
 
     const formData = new FormData();
     formData.append('file', fileToLoad);
@@ -276,13 +272,7 @@ const AdministratorLoading: React.FC = () => {
     isRunningSetter(true);
 
     try {
-      const response = await axios.post(endpoint, formData, {
-        headers: {
-          'X-CSRFToken': getCsrfToken(),
-          'Content-Type': 'multipart/form-data'
-        },
-      });
-
+      const response = await api.post(endpoint, formData);
       const data = response.data;
 
       if (data.taskId || (data.status === 'success' && data.task_id)) {

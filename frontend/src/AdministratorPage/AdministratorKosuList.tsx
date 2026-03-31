@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, ChangeEvent, useRef } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import TeamMemberSelect from "../Components/TeamMemberSelect";
@@ -76,7 +77,7 @@ const AdministratorKosuList: React.FC = () => {
   ) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu/`, {
+      const response = await api.get("/api/manager_kosu/", {
         params: {
           page: page,
           ...(day || member || shop || tyoku || work || judgement ? {
@@ -89,8 +90,7 @@ const AdministratorKosuList: React.FC = () => {
             work: work,
             judgement: judgement,
           } : {}),
-        },
-        withCredentials: true,
+        }
       });
 
       const kosuData = response.data?.kosu_data || {};

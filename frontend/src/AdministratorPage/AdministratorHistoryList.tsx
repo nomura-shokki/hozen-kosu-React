@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import TableContainer from "../Components/TableContainer";
@@ -82,8 +83,7 @@ const AdministratorHistoryList: React.FC = () => {
   ) => {
     setLoading(true);
     try {
-      // 操作履歴データ一覧を取得
-      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/manager_history/`, {
+      const response = await api.get("/api/manager_history/", {
         params: {
           page: page,
           record_id: id,
@@ -91,8 +91,7 @@ const AdministratorHistoryList: React.FC = () => {
           mode: mode ? "month" : "day", // trueなら月検索、falseなら日検索
           table_name: table,
           login_No: loginNo,
-        },
-        withCredentials: true, // セッション受け取り
+        }
       });
 
       const historyData = response.data?.history_data || {}; // 操作履歴

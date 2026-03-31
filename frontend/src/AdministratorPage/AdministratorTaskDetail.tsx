@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -30,7 +31,7 @@ const TaskDetail: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<Response>(`${process.env.REACT_APP_API_BASE_URL}/api/manager_task_detail/${id}/`, { withCredentials: true });
+        const response = await api.get<Response>(`/api/manager_task_detail/${id}/`);
         const { task_data } = response.data;
         setFormData(task_data);
       } catch (err) {
@@ -80,10 +81,7 @@ const TaskDetail: React.FC = () => {
     if (!id) return;
 
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_BASE_URL}/api/manager_task_detail/${id}/`,
-        { withCredentials: true }
-      );
+      await api.delete(`/api/manager_task_detail/${id}/`);
       alert("削除が完了しました");
       navigate("/manager-task");
     } catch (err) {

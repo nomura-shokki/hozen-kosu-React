@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -47,10 +48,7 @@ const HistoryDetail: React.FC = () => {
     const fetchData = async () => {
       try {
         // 履歴詳細データを取得
-        const response = await axios.get<Response>(
-          `${process.env.REACT_APP_API_BASE_URL}/api/manager_history_detail/${id}/`, 
-          { withCredentials: true } // セッション受け取り
-        );
+        const response = await api.get<Response>(`/api/manager_history_detail/${id}/`);
         const { history_data } = response.data;
         setFormData(history_data);
       } catch (err) {
@@ -113,11 +111,7 @@ const HistoryDetail: React.FC = () => {
     }
 
     try {
-      // レコード削除をリクエスト
-      await axios.delete(
-        `${process.env.REACT_APP_API_BASE_URL}/api/manager_history_detail/${id}/`, 
-        { withCredentials: true }
-      );
+      await api.delete(`/api/manager_history_detail/${id}/`);
       alert("削除しました");
       navigate("/manager-history"); // 一覧画面へ戻る
     } catch (err) {

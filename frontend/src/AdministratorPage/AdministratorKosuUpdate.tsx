@@ -1,4 +1,5 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
@@ -128,8 +129,7 @@ const AdministratorKosuUpdate: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<Response>(
-          `${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`, { withCredentials: true });
+        const response = await api.get<Response>(`/api/manager_kosu_update/${id}/`);
         const { kosu_data, choices } = response.data;
         setFormData(kosu_data);
         setTimeWorkSegments(splitTimeWork(kosu_data.time_work));
@@ -280,11 +280,7 @@ const AdministratorKosuUpdate: React.FC = () => {
     };
 
     try {
-      await axios.put(
-        `${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`,
-        dataToSubmit,
-        { withCredentials: true }
-      );
+      await api.put(`/api/manager_kosu_update/${id}/`,dataToSubmit);
       alert("データが更新されました！");
       navigate("/manager-kosu");
     } catch (err) {
@@ -305,10 +301,7 @@ const AdministratorKosuUpdate: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_BASE_URL}/api/manager_kosu_update/${id}/`,
-        { withCredentials: true }
-      );
+      await api.delete(`/api/manager_kosu_update/${id}/`);
       alert("データが削除されました！");
       navigate("/manager-kosu");
     } catch (err) {
