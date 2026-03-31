@@ -291,7 +291,14 @@ class InquirUpdate(APIView):
     except administrator_data.DoesNotExist:
       return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    if int(login_no) != int(inquir_instance.employee_no2) and int(login_no) not in [int(admin_data.administrator_employee_no1), int(admin_data.administrator_employee_no2), int(admin_data.administrator_employee_no3)]:
+    admin_list = [  
+      admin_data.administrator_employee_no1,  
+      admin_data.administrator_employee_no2,  
+      admin_data.administrator_employee_no3
+    ]  
+    admin_list = [int(a) for a in admin_list if a is not None]
+
+    if int(login_no) != int(inquir_instance.employee_no2) and int(login_no) not in admin_list:
       return Response({'status': 'error', 'message': '権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # データ変換
