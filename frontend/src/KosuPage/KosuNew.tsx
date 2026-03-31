@@ -62,6 +62,7 @@ const KosuNew: React.FC = () => {
   const [memberShop, setMemberShop] = useState<string>(""); // メンバーの所属部署
   const [isTomorrowChecked, setIsTomorrowChecked] = useState<boolean>(false); // 翌日チェックボックスの状態
   const [isBreakChangeChecked, setIsBreakChangeChecked] = useState<boolean>(false); // 休憩変更チェックボックスの状態
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const prevTyokuRef = useRef<string | null>(null);
   const [selectedTimes, setSelectedTimes] = useState<{
     time1: Date | null;
@@ -267,7 +268,10 @@ const KosuNew: React.FC = () => {
 
     try {
       await api.post("/api/kosu_new/", updatedData);
-      alert("更新が成功しました！");
+      setSuccessMessage("更新が成功しました！");
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 1000);
       updateCachedTimes(selectedTimes.time1, selectedTimes.time2);
       fetchData();
 
