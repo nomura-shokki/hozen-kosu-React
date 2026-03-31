@@ -414,6 +414,9 @@ const KosuNew: React.FC = () => {
           <div role="alert">{errorMessage}</div>
         )}
 
+        {successMessage && (
+          <div role="alert">{successMessage}</div>
+        )}
         <form
           onSubmit={handleSubmit}
           onKeyDown={(e) => {
