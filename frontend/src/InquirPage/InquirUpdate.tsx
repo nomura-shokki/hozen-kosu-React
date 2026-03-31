@@ -86,7 +86,7 @@ const InquirUpdate: React.FC = () => {
     if (!formData) return;
 
     try {
-      await axios.put(`/api/inquir_update/${id}/`, formData);
+      await api.put(`/api/inquir_update/${id}/`, formData);
       alert("登録完了！");
       navigate("/inquir-list");
     } catch (err) {

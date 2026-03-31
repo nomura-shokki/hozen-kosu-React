@@ -280,8 +280,13 @@ div[role="alert"] {
   border: 1px solid #f5c6cb;
   border-radius: 4px;
   padding: 10px;
-  margin-bottom: 16px;
+  margin: 0 auto 16px auto; 
   font-size: 0.9rem;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  max-width: 90vw;
+  box-sizing: border-box;
 }
 
 div[role="alert"]::before {

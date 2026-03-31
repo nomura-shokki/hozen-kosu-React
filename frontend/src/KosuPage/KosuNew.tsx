@@ -268,6 +268,7 @@ const KosuNew: React.FC = () => {
 
     try {
       await api.post("/api/kosu_new/", updatedData);
+      setErrorMessage(null);
       setSuccessMessage("更新が成功しました！");
       setTimeout(() => {
         setSuccessMessage(null);
@@ -415,8 +416,11 @@ const KosuNew: React.FC = () => {
         )}
 
         {successMessage && (
-          <div role="alert">{successMessage}</div>
+          <div className={styles["notice"]}>
+            {successMessage}
+          </div>
         )}
+
         <form
           onSubmit={handleSubmit}
           onKeyDown={(e) => {
