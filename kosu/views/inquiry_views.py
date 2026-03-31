@@ -291,12 +291,15 @@ class InquirUpdate(APIView):
     except administrator_data.DoesNotExist:
       return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    admin_list = [  
-      admin_data.administrator_employee_no1,  
-      admin_data.administrator_employee_no2,  
+    admin_list_raw = [
+      admin_data.administrator_employee_no1,
+      admin_data.administrator_employee_no2,
       admin_data.administrator_employee_no3
-    ]  
-    admin_list = [int(a) for a in admin_list if a not in (None, '')]
+    ]
+    admin_list = []
+    for a in admin_list_raw:
+      if a and str(a).strip().isdigit():
+        admin_list.append(int(a))
 
     if int(login_no) != int(inquir_instance.employee_no2) and int(login_no) not in admin_list:
       return Response({'status': 'error', 'message': '権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
