@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import api from "../api/axios";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios"; 
 import { useNavigate, Link } from "react-router-dom";
 import Loading from "../Components/Loading";
 import styles from "../styles/AdministratorPage/AdministratorLoading.module.css";
@@ -14,10 +14,6 @@ const getTodayDateString = () => {
   const day = String(today.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
-
-function getCsrfToken() {
-  return document.cookie.match(/csrftoken=([^;]*)/)?.[1] || '';
-}
 
 interface Member {
   employee_no: number;
