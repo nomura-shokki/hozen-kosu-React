@@ -25,8 +25,6 @@ class InquirList(APIView):
     # ログイン者データ確認
     try:
       member_data = member.objects.get(employee_no=login_no)
-      if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -75,8 +73,6 @@ class InquirNew(APIView):
     # ログイン者データ確認
     try:
       member_data = member.objects.get(employee_no=login_no)
-      if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
