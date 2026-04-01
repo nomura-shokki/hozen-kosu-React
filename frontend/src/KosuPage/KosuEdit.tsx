@@ -635,8 +635,8 @@ const KosuEdit: React.FC = () => {
                 {isDetailTextMode[index] ? (
                   <input
                     type="text"
-                    id={`detail_work_${index}`}
-                    name={`detail_work_${index}`}
+                    id={`timeData_detail_${index}`}
+                    name={`timeData_detail_${index}`}
                     value={item?.detail || ""}
                     className={styles["form-width"]}
                     onChange={(e) => handleChange(e, index, "detail")}
@@ -645,6 +645,7 @@ const KosuEdit: React.FC = () => {
                 ) : (
                   <select
                     id={`detail_work_select_${index}`}
+                    name={`timeData_detail_${index}`}
                     value={item?.detail || ""}
                     className={styles["form-width"]}
                     onChange={(e) => handleDetailChange(e, index)}
