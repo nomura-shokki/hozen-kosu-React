@@ -203,12 +203,20 @@ const KosuEdit: React.FC = () => {
       };
     });
 
+    const initialDetailMode = newTimeData.map((item) => {
+      if (!item.detail) return false;
+      if (item.work === "$") return false;
+      
+      const existsInList = detailDataList.some(d => d.def_select === item.detail);
+      return !existsInList;
+    });
+
     setTimeData(newTimeData);
     setIsDisabled(newTimeData.map(() => true));
-    setIsDetailTextMode(newTimeData.map(() => false));
+    setIsDetailTextMode(initialDetailMode);
 
     isParsedRef.current = true;
-  }, [formData, defData, memberShop]);
+  }, [formData, defData, memberShop, detailDataList]);
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
