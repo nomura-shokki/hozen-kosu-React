@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent, ChangeEvent, useCallback } from "react";
+import React, { useState, useEffect, FormEvent, ChangeEvent, useCallback, useRef } from "react";
 import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
@@ -71,6 +71,9 @@ const KosuEdit: React.FC = () => {
   const [isDetailTextMode, setIsDetailTextMode] = useState<boolean[]>([]);
   const [detailDataList, setDetailDataList] = useState<DetailData[]>([]);
 
+  // パース済みかどうかを管理するRef
+  const isParsedRef = useRef(false);
+
   const fetchData = useCallback(async () => {
     try {
       const response = await api.get<KosuResponse>(`/api/kosu_update/${id}/`);
@@ -81,6 +84,8 @@ const KosuEdit: React.FC = () => {
       setInitialTimeWork(kosu_data.time_work);
       setInitialTyoku(kosu_data.tyoku2);
       setDetailDataList(detail_data_list || []);
+      // データを再取得した際はパースを許可する
+      isParsedRef.current = false;
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
@@ -96,7 +101,7 @@ const KosuEdit: React.FC = () => {
   }, [fetchData]);
 
   useEffect(() => {
-    if (!formData) {
+    if (!formData || Object.keys(defData).length === 0 || isParsedRef.current) {
       return;
     }
 
@@ -201,7 +206,9 @@ const KosuEdit: React.FC = () => {
     setTimeData(newTimeData);
     setIsDisabled(newTimeData.map(() => true));
     setIsDetailTextMode(newTimeData.map(() => false));
-  }, [formData, defData, timeData.length, memberShop]);
+
+    isParsedRef.current = true;
+  }, [formData, defData, memberShop]);
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
@@ -355,7 +362,6 @@ const KosuEdit: React.FC = () => {
     try {
       await api.put(`/api/kosu_update/${id}/`, updatedFormData);
       alert("データが更新されました！");
-      setTimeData([]);
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -403,7 +409,6 @@ const KosuEdit: React.FC = () => {
     try {
       await api.post(`/api/item_delete/`, requestData);
       alert(`行 ${index + 1} が削除されました！`);
-      setTimeData([]);
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -419,7 +424,6 @@ const KosuEdit: React.FC = () => {
     try {
       await api.put(`/api/day_update/`, formData);
       alert("日付編集を送信しました！");
-      setTimeData([]);
       fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -443,7 +447,7 @@ const KosuEdit: React.FC = () => {
         detail: '',
       }
     ]);
-    setIsDisabled((prevIsDisabled) => [...prevIsDisabled, true]);
+    setIsDisabled((prevIsDisabled) => [...prevIsDisabled, false]); // 追加時は入力可能にする
     setIsDetailTextMode((prev) => [...prev, false]);
   };
 
