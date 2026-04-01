@@ -696,7 +696,7 @@ class KosuUpdate(APIView):
     # 空の作業内容リスト作成
     work_list = list(itertools.repeat('#', 288))
     detail_list = list(itertools.repeat('', 288))
-
+    print(request.data)
     # 工数書き込み
     jst = datetime.timezone(datetime.timedelta(hours=9))
     if max_num:
@@ -716,7 +716,7 @@ class KosuUpdate(APIView):
           for i in range(start_time_ind, end_time_ind):
             if work_list[i] == '#':
               work_list[i] = request.data.get(f'timeData_work_{n + 1}', '#')
-              detail_list[i] = request.data.get(f'detail_work_{n + 1}', '')
+              detail_list[i] = request.data.get(f'timeData_detail_{n + 1}', '')
             else:
               return Response({'status': 'error', 'message': '入力した作業時間に被りがあります。'},status=status.HTTP_400_BAD_REQUEST)
 
@@ -724,13 +724,13 @@ class KosuUpdate(APIView):
           for i in range(start_time_ind, 288):
             if work_list[i] == '#':
               work_list[i] = request.data.get(f'timeData_work_{n + 1}', '#')
-              detail_list[i] = request.data.get(f'detail_work_{n + 1}', '')
+              detail_list[i] = request.data.get(f'timeData_detail_{n + 1}', '')
             else:
               return Response({'status': 'error', 'message': '入力した作業時間に被りがあります。'},status=status.HTTP_400_BAD_REQUEST)
           for i in range(0, end_time_ind):
             if work_list[i] == '#':
               work_list[i] = request.data.get(f'timeData_work_{n + 1}', '#')
-              detail_list[i] = request.data.get(f'detail_work_{n + 1}', '')
+              detail_list[i] = request.data.get(f'timeData_detail_{n + 1}', '')
             else:
               return Response({'status': 'error', 'message': '入力した作業時間に被りがあります。'},status=status.HTTP_400_BAD_REQUEST)
       kosu_instance.time_work = ''.join(work_list)

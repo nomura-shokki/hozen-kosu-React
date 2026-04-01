@@ -296,6 +296,9 @@ const KosuEdit: React.FC = () => {
     const isInvalidPair = timeData.some((item) => {
       const hasWork = !!item.work;
       const hasDetail = !!item.detail;
+      if (item.work === "$") {
+        return false; 
+      }
       return (hasWork && !hasDetail) || (!hasWork && hasDetail);
     });
 
