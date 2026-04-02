@@ -42,7 +42,7 @@ keyframes fadeInUp {
   max-width: 100vw;
   overflow-x: auto;
   overflow-y: auto;
-  border: 1px solid #ccc;
+  border: 1px solid #999;
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
   margin: 0 auto;
@@ -88,7 +88,7 @@ keyframes fadeInUp {
 .select-form input {
   padding: 8px 12px; /* 内側の余白 */
   border-radius: 5px; /* 角を丸くする */
-  border: 1px solid #ccc; /* 枠線を灰色で設定 */
+  border: 1px solid #999; /* 枠線を灰色で設定 */
   background-color: #fff; /* 背景色を白に設定 */
   font-size: 1.5rem; /* 文字サイズを大きく設定 */
   cursor: pointer; /* マウスカーソルをポインターに変更 */

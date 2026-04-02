@@ -54,7 +54,7 @@
 .search-bar select {
   padding: 8px 10px; /* 内部の余白を設定 */
   margin: 0 auto; /* 入力欄を中央揃えにする */
-  border: 1px solid #ccc; /* 枠線の設定 */
+  border: 1px solid #999; /* 枠線の設定 */
   border-radius: 4px; /* 角を丸くする */
   font-size: 1rem; /* フォントサイズ */
   width: calc(100% - 20px); /* フォーム幅に応じて調整し、左右に隙間を持たせる */
@@ -77,7 +77,7 @@
   padding: 10px;
   overflow-x: auto;
   overflow-y: auto;
-  border: 1px solid #ccc;
+  border: 1px solid #999;
   margin: 15px;
   box-sizing: border-box; /* パディングやボーダーを含めたサイズを計算 */
   -webkit-overflow-scrolling: touch; /* モバイル向けスムーズスクロール */

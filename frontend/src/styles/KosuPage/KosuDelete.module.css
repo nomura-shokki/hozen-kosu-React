@@ -52,7 +52,7 @@
   width: 100%;
   overflow-x: auto;
   overflow-y: auto;
-  border: 1px solid #ccc;
+  border: 1px solid #999;
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
   margin: 10px auto;

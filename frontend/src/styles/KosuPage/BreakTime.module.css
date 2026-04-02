@@ -62,7 +62,7 @@
   justify-content: center; /* フレックスアイテムの上下中央揃え */
   align-items: center; /* フレックスアイテムの左右中央揃え */
   gap: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid #999;
   width: 95%;
   border-radius: 8px;
   padding: 10px 0;
@@ -103,7 +103,7 @@
   flex: 1;
   font-size: 1rem;
   padding: 8px 10px;
-  border: 1px solid #ccc;
+  border: 1px solid #999;
   border-radius: 4px;
   background-color: #fff; 
 }

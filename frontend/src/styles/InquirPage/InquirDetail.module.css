@@ -44,7 +44,7 @@
   max-width: calc(100vw - 30px);
   padding: 10px;
   overflow-y: auto;
-  border: 1px solid #ccc;
+  border: 1px solid #999;
   margin: 15px;
   box-sizing: border-box; /* パディングやボーダーを含めたサイズを計算 */
   -webkit-overflow-scrolling: touch; /* モバイル向けスムーズスクロール */
