@@ -351,9 +351,31 @@ class TeamExport(APIView):
     member_list = member.objects.filter(shop=shop).order_by('employee_no')
     employee_no_nums = list(member_list.values_list('employee_no', flat=True))
 
+    start_date = datetime.date(year, month, 1)
+    # 翌月の1日から1日引いて月末日を算出
+    if month == 12:
+      end_date = datetime.date(year + 1, 1, 1) - datetime.timedelta(days=1)
+    else:
+      end_date = datetime.date(year, month + 1, 1) - datetime.timedelta(days=1)
+
+    all_kosu_qs = Business_Time_graph.objects.filter(
+      employee_no3__in=employee_no_nums,
+      work_day2__range=(start_date, end_date)
+    )
+
+    # 検索を高速化するために辞書化 {employee_no: {work_day: obj}}
+    kosu_data_dict = {}
+    for k in all_kosu_qs:
+      if k.employee_no3 not in kosu_data_dict:
+        kosu_data_dict[k.employee_no3] = {}
+      kosu_data_dict[k.employee_no3][k.work_day2] = k
+
     # 班員毎にExcelに書き込み
     for ind, employee_no_num in enumerate(employee_no_nums):
-      wb = excel_function(employee_no_num, wb, year, month, request)
+      # 該当する従業員のデータのみを切り出して渡す
+      member_kosu_data = kosu_data_dict.get(employee_no_num, {})
+      wb = excel_function(employee_no_num, wb, year, month, request, member_kosu_data)
+    
     # 不要なシート削除
     del wb['Sheet']
 

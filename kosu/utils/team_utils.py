@@ -9,13 +9,13 @@ import datetime
 
 
 # 班員入力工数Excel出力関数
-def excel_function(employee_no_data, wb, year, month, request):
+def excel_function(employee_no_data, wb, year, month, request, member_kosu_data):
   # 人員データ取得
   member_obj = get_object_or_404(member, employee_no=employee_no_data)
 
   # 最終日取得
   select_month = datetime.date(year_end := (year + 1 if month == 12 else year), 
-                                month_end := (1 if month == 12 else month + 1), 1)
+                              month_end := (1 if month == 12 else month + 1), 1)
   day_end = (select_month - datetime.timedelta(days=1)).day
 
   # Excelに班員のシート作成
@@ -24,8 +24,9 @@ def excel_function(employee_no_data, wb, year, month, request):
 
   # 工数データ書き込み
   for day in range(1, day_end + 1):
-    kosu_obj = Business_Time_graph.objects.filter(employee_no3=employee_no_data, 
-                                                  work_day2=datetime.date(year, month, day)).first()
+    current_date = datetime.date(year, month, day)
+    kosu_obj = member_kosu_data.get(current_date)
+
     # 初期化
     time_display_list, work_list, def_list, graph_list = [], [], [], []
     integrity, work, tyoku, over_time = 'NG', '', '', 0
@@ -53,10 +54,11 @@ def excel_function(employee_no_data, wb, year, month, request):
         # 定義区分別の累積工数取得
         graph_list = [kosu_obj.time_work.count(i) * 5 for i in str_list]
         # 区分定義 変動/固定 取得
-        kosu_obj = kosu_division.objects.get(kosu_name=kosu_obj.def_ver2)
+        # ※ここも本来は外でキャッシュすべきですが、定義変更が少ないため一旦維持します
+        kosu_div_obj = kosu_division.objects.get(kosu_name=kosu_obj.def_ver2)
         fluctuation_boolean = []
         for n in range(1, 51):
-          val = getattr(kosu_obj, f'kosu_division_3_{n}')
+          val = getattr(kosu_div_obj, f'kosu_division_3_{n}')
           fluctuation_boolean.append(val)
 
         for ind, d in enumerate(graph_list):
@@ -90,4 +92,3 @@ def excel_function(employee_no_data, wb, year, month, request):
       member_sheet.cell(row=(10 + len(def_list) + i2), column=day * 3, value=item[2])
 
   return wb
-
