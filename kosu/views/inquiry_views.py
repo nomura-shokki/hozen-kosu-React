@@ -336,6 +336,12 @@ class InquirUpdate(APIView):
     except administrator_data.DoesNotExist:
       return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    # 質問者データ確認
+    try:
+      inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
+    except member.DoesNotExist:
+      return Response({'status': 'error', 'message': '質問者の人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
     if serializer.is_valid():
       changed_fields = set() 
       # 変更の有無とフィールドをチェック
@@ -364,10 +370,10 @@ class InquirUpdate(APIView):
         for i in range(1, 6):
           pop_up_attr = f'pop_up{i}'
           pop_up_id_attr = f'pop_up_id{i}'
-          if getattr(member_data, pop_up_attr) in ['', None]:
-            setattr(member_data, pop_up_attr, f'ID{pk}の問い合わせに回答が来ています。')
-            setattr(member_data, pop_up_id_attr, pk)
-            member_data.save()
+          if getattr(inquir_member, pop_up_attr) in ['', None]:
+            setattr(inquir_member, pop_up_attr, f'ID{pk}の問い合わせに回答が来ています。')
+            setattr(inquir_member, pop_up_id_attr, pk)
+            inquir_member.save()
             break
 
       serializer.save()

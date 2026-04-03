@@ -54,7 +54,6 @@ def excel_function(employee_no_data, wb, year, month, request, member_kosu_data)
         # 定義区分別の累積工数取得
         graph_list = [kosu_obj.time_work.count(i) * 5 for i in str_list]
         # 区分定義 変動/固定 取得
-        # ※ここも本来は外でキャッシュすべきですが、定義変更が少ないため一旦維持します
         kosu_div_obj = kosu_division.objects.get(kosu_name=kosu_obj.def_ver2)
         fluctuation_boolean = []
         for n in range(1, 51):
