@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import Loading from "../Components/Loading";
 import styles from "../styles/InquirPage/InquirMenu.module.css";
 
 
@@ -23,6 +24,7 @@ const InquirMenu: React.FC = () => {
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
           else setError(err.response?.data.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
       } finally {
@@ -33,7 +35,7 @@ const InquirMenu: React.FC = () => {
     fetchData();
   }, [navigate]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div><Loading isLoading={loading} /></div>;
   if (error) return <div>Error: {error}</div>;
 
   return (

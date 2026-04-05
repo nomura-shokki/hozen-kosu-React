@@ -84,7 +84,7 @@ const DefDelete: React.FC = () => {
   }, [formData]);
 
   const handleDelete = async () => {
-    const confirmed = window.confirm("この工数区分定義を削除しますか？関連する工数入力に影響が出る可能性があります。");
+    const confirmed = confirm("この工数区分定義を削除しますか？関連する工数入力に影響が出る可能性があります。");
     if (!confirmed) return;
 
     try {

@@ -109,7 +109,6 @@ const AdministratorTaskList: React.FC = () => {
 
   return (
     <>
-      <Loading isLoading={loading} />
       <div className={styles["admin-task-wrapper"]}>
         <h1
           ref={headerRef}

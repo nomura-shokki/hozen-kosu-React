@@ -92,6 +92,7 @@ const BreakTime: React.FC = () => {
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
           else setErrorMessage(err.response?.data.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
       } finally {
@@ -145,6 +146,7 @@ const BreakTime: React.FC = () => {
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
         else setErrorMessage(err.response?.data.message);
       } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
@@ -156,7 +158,6 @@ const BreakTime: React.FC = () => {
 
   return (
     <>
-      <Loading isLoading={loading} />
       <div className={styles["brea-time-wrapper"]}>
         <h1 className={styles["h1-collar"]}>
           休憩時間変更

@@ -1,26 +1,40 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import axios from "axios";
 import "@testing-library/jest-dom/vitest";
 import KosuDelete from "../../KosuPage/KosuDelete";
 
-// 1. axios のシンプルなモック (import axios の直後に行う)
-vi.mock("axios");
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+// 1. api (カスタムaxiosインスタンス) のモック
+vi.mock("../../api/axios", () => ({
+  default: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
+import api from "../../api/axios";
+const mockedApi = api as any;
+
+// axios.isAxiosError のモック
+vi.mock("axios", () => ({
+  default: {
+    isAxiosError: vi.fn((err: any) => !!err.response),
+  },
+}));
 
 // 2. 子コンポーネントを強制的に「空のdiv」に置き換える
-vi.mock("../../components/KosuBarChart", () => ({
+vi.mock("../../Components/KosuBarChart", () => ({
   default: () => <div data-testid="mock-bar-chart">Chart Mock</div>
 }));
-vi.mock("../../components/KosuDisplay", () => ({
+vi.mock("../../Components/KosuDisplay", () => ({
   default: (props: any) => <div data-testid="mock-display">{props.shop}</div>
 }));
-vi.mock("../../components/DefTable", () => ({
+vi.mock("../../Components/DefTable", () => ({
   default: () => <div data-testid="mock-def-table">Table Mock</div>
 }));
-vi.mock("../../components/Loading", () => ({
-  default: () => <div data-testid="loading-mock">Loading...</div>
+vi.mock("../../Components/Loading", () => ({
+  default: () => null
 }));
 
 // 3. react-router-dom のモック
@@ -53,15 +67,14 @@ const mockResponseData = {
 };
 
 describe("KosuDelete Component - 削除機能テスト", () => {
-  
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(window, "confirm").mockReturnValue(true);
     vi.spyOn(window, "alert").mockImplementation(() => {});
-    process.env.REACT_APP_API_BASE_URL = "http://localhost";
-    
+
     // getリクエストのデフォルト挙動を設定
-    (mockedAxios.get as any).mockResolvedValue(mockResponseData);
+    mockedApi.get.mockResolvedValue(mockResponseData);
   });
 
   it("初期表示時にAPIからデータを取得し、正しく表示されること", async () => {
@@ -73,7 +86,7 @@ describe("KosuDelete Component - 削除機能テスト", () => {
 
     // データの読み込みを待つ
     expect(await screen.findByText("2023-10-25")).toBeInTheDocument();
-    
+
     // 子コンポーネントがモックに置き換わっているか確認
     const displayMock = await screen.findByTestId("mock-display");
     expect(displayMock).toHaveTextContent("加工SHOP");
@@ -81,7 +94,7 @@ describe("KosuDelete Component - 削除機能テスト", () => {
   });
 
   it("削除ボタンをクリックし、確認ダイアログでOKを押すと削除APIが呼ばれること", async () => {
-    (mockedAxios.delete as any).mockResolvedValueOnce({});
+    mockedApi.delete.mockResolvedValueOnce({});
 
     render(
       <MemoryRouter>
@@ -95,9 +108,8 @@ describe("KosuDelete Component - 削除機能テスト", () => {
     fireEvent.click(deleteButton);
 
     await waitFor(() => {
-      expect(mockedAxios.delete).toHaveBeenCalledWith(
-        expect.stringContaining("/api/kosu_delete/123/"),
-        expect.any(Object)
+      expect(mockedApi.delete).toHaveBeenCalledWith(
+        "/api/kosu_delete/123/"
       );
     });
 
@@ -117,11 +129,11 @@ describe("KosuDelete Component - 削除機能テスト", () => {
     await screen.findByText("2023-10-25");
     fireEvent.click(screen.getByRole("button", { name: "削除" }));
 
-    expect(mockedAxios.delete).not.toHaveBeenCalled();
+    expect(mockedApi.delete).not.toHaveBeenCalled();
   });
 
   it("API取得エラー（401）時にログイン画面へリダイレクトすること", async () => {
-    (mockedAxios.get as any).mockRejectedValueOnce({
+    mockedApi.get.mockRejectedValueOnce({
       response: { status: 401 },
     });
 

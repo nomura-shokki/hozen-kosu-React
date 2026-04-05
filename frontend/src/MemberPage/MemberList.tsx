@@ -81,7 +81,6 @@ const MemberList: React.FC = () => {
 
   return (
     <>
-      <Loading isLoading={loading} />
       <div className={styles["member-list-wrapper"]}>
         <h1
           ref={headerRef}

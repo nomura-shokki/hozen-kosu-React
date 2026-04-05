@@ -148,7 +148,7 @@ class DefUpdate(APIView):
   def get(self, request, pk):
     def_instance = self.get_object(pk)
     if not def_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     login_no = request.session.get('login_No')
     if not login_no:
@@ -164,7 +164,7 @@ class DefUpdate(APIView):
   def put(self, request, pk):
     def_instance = self.get_object(pk)
     if not def_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     data = request.data
     serializer = DefSerializer(def_instance, data=data)
@@ -203,9 +203,9 @@ class DefDelete(APIView):
 
     def_instance = self.get_object(pk)
     if def_instance is None:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
     def_instance.delete()
-    return Response({'status': 'error', 'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+    return Response({'status': 'success', 'message': 'レコードを削除しました。'}, status=status.HTTP_204_NO_CONTENT)
 
 
 
@@ -327,7 +327,7 @@ class DefDetailUpdate(APIView):
       return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
     choice_instance = self.get_object(pk)
     if not choice_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # 工数区分定義確認
     def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
@@ -362,7 +362,7 @@ class DefDetailUpdate(APIView):
   def put(self, request, pk):
     choice_instance = self.get_object(pk)
     if not choice_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     data = request.data
     serializer = DefChoiceSerializer(choice_instance, data=data)
@@ -401,9 +401,9 @@ class DefDetailDelete(APIView):
 
     choice_instance = self.get_object(pk)
     if choice_instance is None:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
     choice_instance.delete()
-    return Response({'status': 'error', 'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+    return Response({'status': 'success', 'message': 'レコードを削除しました。'}, status=status.HTTP_204_NO_CONTENT)
 
 
 

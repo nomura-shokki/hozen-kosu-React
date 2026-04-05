@@ -85,6 +85,7 @@ const TodayBreakTime: React.FC = () => {
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
           else if (err.response?.status === 400) navigate("/kosu-new");
           else setErrorMessage(err.response?.data.message);
         } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
@@ -144,6 +145,7 @@ const TodayBreakTime: React.FC = () => {
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
         else setErrorMessage(err.response?.data.message);
       } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
@@ -162,7 +164,6 @@ const TodayBreakTime: React.FC = () => {
 
   return (
     <>
-      <Loading isLoading={loading} />
       <div className={styles["today-brea-time-wrapper"]}>
         <h1 className={styles["h1-collar"]}>
           {sessionDay ? new Date(sessionDay).toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" }).replace(/\//g, "年").replace(/月/, "月") + "日" : ""}<br />

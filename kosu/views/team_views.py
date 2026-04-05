@@ -183,7 +183,7 @@ class TeamDetail(APIView):
     # 工数データ取得
     kosu_instance = self.get_object(pk)
     if not kosu_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # セッション値取得
     login_no = request.session.get('login_No')
@@ -271,7 +271,7 @@ class TeamCalendar(APIView):
       team_data = team_member.objects.get(employee_no5=login_no)
     except team_member.DoesNotExist:
       # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '班員情報を登録してください。'}, status=status.HTTP_400_BAD_REQUEST);
+      return Response({'status': 'error', 'message': '班員情報を登録してください。'}, status=status.HTTP_400_BAD_REQUEST)
 
     # 班員の従業員番号をリストにまとめる
     member_numbers = [
@@ -423,7 +423,7 @@ class TeamOverTime(APIView):
       team_data = team_member.objects.get(employee_no5=login_no)
     except team_member.DoesNotExist:
       # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '班員情報を登録してください。'}, status=status.HTTP_400_BAD_REQUEST);
+      return Response({'status': 'error', 'message': '班員情報を登録してください。'}, status=status.HTTP_400_BAD_REQUEST)
 
     # 班員の従業員番号をリストにまとめる
     member_numbers = [

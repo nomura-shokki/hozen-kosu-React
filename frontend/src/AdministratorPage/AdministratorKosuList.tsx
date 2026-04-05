@@ -189,7 +189,6 @@ const AdministratorKosuList: React.FC = () => {
 
   return (
     <>
-      <Loading isLoading={loading} />
       <div className={styles["admin-kosu-wrapper"]}>
         <h1
           ref={headerRef}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import styles from "../styles/Components/LogConsole.module.css";
 
 
@@ -9,12 +9,9 @@ const LogConsole: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // ログを取得するAPIエンドポイント
-    const logApiUrl = `${process.env.REACT_APP_API_BASE_URL}/api/web_console_log/`;
-
     const fetchLog = () => {
-      axios
-        .get<{ log_content: string }>(logApiUrl, { withCredentials: true })
+      api
+        .get<{ log_content: string }>("/api/web_console_log/")
         .then((response) => {
           setLogContent(response.data.log_content);
           setLoading(false);
@@ -27,7 +24,7 @@ const LogConsole: React.FC = () => {
     };
 
     fetchLog();
-    const intervalId = setInterval(fetchLog, 5000); 
+    const intervalId = setInterval(fetchLog, 5000);
 
     // クリーンアップ関数
     return () => clearInterval(intervalId);

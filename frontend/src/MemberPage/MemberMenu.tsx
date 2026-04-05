@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import Loading from "../Components/Loading";
 import styles from "../styles/MemberPage/MemberMenu.module.css";
 
 const MemberMenu: React.FC = () => {
@@ -27,7 +28,7 @@ const MemberMenu: React.FC = () => {
     fetchMemberMenu();
   }, [navigate]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div><Loading isLoading={loading} /></div>;
   if (error) return <div>Error: {error}</div>;
 
   return (

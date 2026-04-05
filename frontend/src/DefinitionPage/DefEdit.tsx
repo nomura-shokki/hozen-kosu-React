@@ -76,7 +76,7 @@ const DefEdit: React.FC = () => {
     event.preventDefault();
     if (!formData) return;
 
-    const confirmed = window.confirm(
+    const confirmed = confirm(
       "工数区分定義を更新すると全人員の工数入力に影響します。課内に変更を展開した上で土日など工数入力がない時間に登録することを推奨します。"
     );
     if (!confirmed) return;

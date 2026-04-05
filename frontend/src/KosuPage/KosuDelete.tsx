@@ -56,6 +56,7 @@ const KosuDelete: React.FC = () => {
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
           else setError(err.response?.data.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
       } finally {
@@ -90,7 +91,7 @@ const KosuDelete: React.FC = () => {
   }, [record]);
 
   const handleDelete = async () => {
-    const confirmed = window.confirm("削除すると戻せません。削除しますか？");
+    const confirmed = confirm("削除すると戻せません。削除しますか？");
     if (!confirmed) return;
 
     try {
@@ -100,6 +101,7 @@ const KosuDelete: React.FC = () => {
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
+        else if (err.response?.status === 403) navigate("/");
         else setError(err.response?.data.message);
       } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     }
@@ -120,7 +122,6 @@ const KosuDelete: React.FC = () => {
 
   return (
     <>
-      <Loading isLoading={loading} />
       <div className={styles["kosu-delete-wrapper"]}>   
         <h1 className={styles["h1-collar"]}>工数データ削除</h1>
         <nav className={styles["kosu-nav"]}>

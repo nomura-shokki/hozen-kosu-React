@@ -171,7 +171,7 @@ class MemberUpdate(APIView):
     # 指定された従業員データを取得
     member_instance = self.get_object(pk)
     if member_instance is None:
-      return Response({'status': 'error', 'message': 'error', 'message': '人員データが確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '人員データが確認できません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # データをシリアライズして返却
     serializer = MemberSerializer(member_instance)
@@ -182,7 +182,7 @@ class MemberUpdate(APIView):
     # 特定の従業員データを取得
     member_instance = self.get_object(pk)
     if member_instance is None:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # クライアントから送られてきたデータをシリアライズ
     data = request.data
@@ -210,9 +210,9 @@ class MemberDelete(APIView):
     # 削除対象のオブジェクトを取得
     member_instance = self.get_object(pk)
     if member_instance is None:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # レコードを削除
     member_instance.delete()
-    return Response({'status': 'error', 'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+    return Response({'status': 'success', 'message': 'レコードを削除しました。'}, status=status.HTTP_204_NO_CONTENT)
 

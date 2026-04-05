@@ -159,16 +159,16 @@ class Help(APIView):
                                     kosu_division_1_3='C',
                                     kosu_division_2_3='C',
                                     )
-        default_def.seve()
+        default_def.save()
 
       if settingReset:
         administrator_data.objects.all().delete()
         default_administrator = administrator_data(menu_row='20')
-        default_administrator.seve()
+        default_administrator.save()
 
       return Response({'status': 'success', 'message': 'OK'}, status=status.HTTP_200_OK)
     except Exception as e:
-      return Response({'status': 'error', 'error': 'データの初期化中にエラーが発生しました。'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'status': 'error', 'message': 'データの初期化中にエラーが発生しました。'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -632,7 +632,7 @@ class AdministratorKosuUpdate(APIView):
     # 工数データ取得
     kosu_instance = self.get_object(pk)
     if not kosu_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # セッション値、編集前の日付、従業員番号取得
     login_no = request.session.get('login_No')
@@ -684,7 +684,7 @@ class AdministratorKosuUpdate(APIView):
     # 工数データ取得
     kosu_instance = self.get_object(pk)
     if not kosu_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # セッション値、日付、人員データ取得
     day = request.session.get('day')
@@ -709,7 +709,7 @@ class AdministratorKosuUpdate(APIView):
     # 削除対象のオブジェクトを取得
     kosu_instance = self.get_object(pk)
     if kosu_instance is None:
-      return Response({'status': 'error', 'message': 'データがありません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # レコードを削除
     kosu_instance.delete()
@@ -786,7 +786,7 @@ class AdministratorTaskDetail(APIView):
     # 削除対象のオブジェクトを取得
     task_instance = self.get_object(pk)
     if task_instance is None:
-      return Response({'status': 'error', 'message': 'データがありません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     serializer = TaskSerializer(task_instance)
 
@@ -813,7 +813,7 @@ class AdministratorTaskDetail(APIView):
     # 削除対象のオブジェクトを取得
     task_instance = self.get_object(pk)
     if task_instance is None:
-      return Response({'status': 'error', 'message': 'データがありません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # レコードを削除
     task_instance.delete()
@@ -906,7 +906,7 @@ class AdministratorHistoryDetail(APIView):
     history_instance = self.get_object(pk)
 
     if history_instance is None:
-      return Response({'status': 'error', 'message': 'データがありません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     serializer = HistorySerializer(history_instance)
 
@@ -920,7 +920,7 @@ class AdministratorHistoryDetail(APIView):
     # 削除対象のオブジェクトを取得
     history_instance = self.get_object(pk)
     if history_instance is None:
-      return Response({'status': 'error', 'message': 'データがありません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # レコードを削除
     history_instance.delete()

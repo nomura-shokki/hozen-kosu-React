@@ -132,7 +132,6 @@ const InquirList: React.FC = () => {
 
   return (
     <>
-      <Loading isLoading={loading} />
       <div className={styles["inquir-list-wrapper"]}>
         <h1
           ref={headerRef}

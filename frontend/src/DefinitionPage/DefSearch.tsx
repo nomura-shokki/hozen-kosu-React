@@ -32,6 +32,7 @@ const DefSearch: React.FC = () => {
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
           else setError(err.response?.data.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
       } finally {
@@ -72,7 +73,6 @@ const DefSearch: React.FC = () => {
 
   return (
     <>
-      <Loading isLoading={loading} />
       <div className={styles["def-search-wrapper"]}>
         <h1 className={styles["h1-collar"]}>工数区分定義確認</h1>
         <nav className={styles["def-nav"]}>

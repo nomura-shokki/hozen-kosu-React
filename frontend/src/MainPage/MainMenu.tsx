@@ -9,6 +9,7 @@ import Personnel from "../img/Personnel.png";
 import Team from "../img/Team.png";
 import Mail from "../img/Mail.png";
 import Setting from "../img/Setting.png";
+import Loading from "../Components/Loading";
 import LogConsole from "../Components/LogConsole";
 import styles from "../styles/MainPage/MainMenu.module.css";
 
@@ -111,7 +112,7 @@ const MainMenu: React.FC = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div><Loading isLoading={loading} /></div>;
   if (error) return <div>Error: {error}</div>;
 
   return (

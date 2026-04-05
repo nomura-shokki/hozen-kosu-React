@@ -55,6 +55,7 @@ const InquirDetail: React.FC = () => {
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) navigate("/login");
+          else if (err.response?.status === 403) navigate("/");
           else setError(err.response?.data.message);
         } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
       } finally {
@@ -75,7 +76,6 @@ const InquirDetail: React.FC = () => {
 
   return (
     <>
-      <Loading isLoading={loading} />
       <div className={styles["inquir-detail-wrapper"]}>
         <h1 className={styles["h1-collar"]}>問い合わせ詳細</h1>
         <nav className={styles["inquir-nav"]}>

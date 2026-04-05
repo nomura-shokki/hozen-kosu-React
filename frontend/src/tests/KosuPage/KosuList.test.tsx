@@ -1,19 +1,43 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import axios from "axios";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import KosuList from "../../KosuPage/KosuList";
 
-// axiosのモック化
-vi.mock("axios", () => ({
+// api (カスタムaxiosインスタンス) のモック
+vi.mock("../../api/axios", () => ({
   default: {
     get: vi.fn(),
-    isAxiosError: vi.fn((err) => !!err.isAxiosError),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
+import api from "../../api/axios";
+const mockedApi = api as any;
+
+// axios.isAxiosError のモック
+vi.mock("axios", () => ({
+  default: {
+    isAxiosError: vi.fn((err: any) => !!err.response),
   },
 }));
 
-const mockedAxios = axios as any;
+// 子コンポーネントのモック
+vi.mock("../../Components/Loading", () => ({
+  default: () => null,
+}));
+vi.mock("../../Components/TableContainer", () => ({
+  default: ({ children }: any) => <div>{children}</div>,
+}));
+vi.mock("../../Components/Pagination", () => ({
+  default: ({ setCurrentPage, currentPage, totalPages }: any) => (
+    <div data-testid="pagination">
+      <button onClick={() => setCurrentPage(currentPage + 1)}>次</button>
+      <button onClick={() => setCurrentPage(totalPages)}>最後</button>
+    </div>
+  ),
+}));
 
 // useNavigateのモック化
 const mockedNavigate = vi.fn();
@@ -22,10 +46,11 @@ vi.mock("react-router-dom", async () => {
   return {
     ...actual,
     useNavigate: () => mockedNavigate,
+    useLocation: () => ({ pathname: "/kosu-list", state: null }),
   };
 });
 
-describe("KosuList Component - 詳細結合テスト修正版", () => {
+describe("KosuList Component - 詳細結合テスト", () => {
   const mockDataPage1 = {
     data: {
       results: [
@@ -47,7 +72,7 @@ describe("KosuList Component - 詳細結合テスト修正版", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedAxios.get.mockResolvedValue(mockDataPage1);
+    mockedApi.get.mockResolvedValue(mockDataPage1);
   });
 
   it("初期表示時にデータを取得し、フォーマットが正しく表示されること", async () => {
@@ -60,14 +85,13 @@ describe("KosuList Component - 詳細結合テスト修正版", () => {
 
     // 初期ロードを待つ
     await screen.findByText("2023-10-01 (日)");
-    
-    // 検索入力
-    const dateInput = screen.getByLabelText(/就業日：/);
 
+    // 検索入力 (labelが空のためIDで取得)
+    const dateInput = document.getElementById("search-day-input") as HTMLInputElement;
     fireEvent.change(dateInput, { target: { value: "2023-10-01" } });
 
     // 履歴リセット
-    mockedAxios.get.mockClear();
+    mockedApi.get.mockClear();
 
     // 「指定月」ボタンをクリック
     const monthButton = screen.getByText("指定月");
@@ -75,11 +99,9 @@ describe("KosuList Component - 詳細結合テスト修正版", () => {
 
     // 検証
     await waitFor(() => {
-      // toHaveBeenCalledWith ではなく toHaveBeenCalled 後の検証に分ける（デバッグしやすいため）
-      const calls = mockedAxios.get.mock.calls;
+      const calls = mockedApi.get.mock.calls;
       const match = calls.some((call: any) => {
         const params = call[1]?.params;
-        // modeが'month'であり、かつdayが'2023-10'から始まっていることを確認
         return params?.mode === "month" && params?.day?.startsWith("2023-10");
       });
       expect(match).toBe(true);
@@ -87,7 +109,7 @@ describe("KosuList Component - 詳細結合テスト修正版", () => {
   });
 
   it("「次」ボタンをクリックして2ページ目のデータを取得できること", async () => {
-    mockedAxios.get.mockResolvedValueOnce(mockDataPage1).mockResolvedValueOnce(mockDataPage2);
+    mockedApi.get.mockResolvedValueOnce(mockDataPage1).mockResolvedValueOnce(mockDataPage2);
     render(<MemoryRouter><KosuList /></MemoryRouter>);
     await screen.findByText("2023-10-01 (日)");
     fireEvent.click(screen.getByText("次"));
@@ -99,16 +121,18 @@ describe("KosuList Component - 詳細結合テスト修正版", () => {
     await screen.findByText("2023-10-01 (日)");
     fireEvent.click(screen.getByText("最後"));
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        expect.any(String),
+      expect(mockedApi.get).toHaveBeenCalledWith(
+        "/api/kosu_list/",
         expect.objectContaining({ params: expect.objectContaining({ page: 3 }) })
       );
     });
   });
 
-  it("APIが403を返した場合、トップページへリダイレクトすること", async () => {
-    mockedAxios.get.mockRejectedValueOnce({ isAxiosError: true, response: { status: 403 } });
+  it("APIが403を返した場合、メインメニューにリダイレクトされること", async () => {
+    mockedApi.get.mockRejectedValueOnce({ response: { status: 403, data: { message: "権限がありません" } } });
     render(<MemoryRouter><KosuList /></MemoryRouter>);
-    await waitFor(() => expect(mockedNavigate).toHaveBeenCalledWith("/"));
+    await waitFor(() => {
+      expect(mockedNavigate).toHaveBeenCalledWith("/");
+    });
   });
 });

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../api/axios";
 import axios from "axios";
 import { useNavigate, Link, useLocation } from "react-router-dom";
+import Loading from "../Components/Loading";
 import styles from "../styles/TeamPage/TeamMenu.module.css";
 
 interface TeamMenuData {
@@ -38,7 +39,7 @@ const TeamMenu: React.FC = () => {
 
   const followMessages = teamMenuData?.follow_message_list || [];
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div><Loading isLoading={loading} /></div>;
   if (error) return <div>Error: {error}</div>;
 
   return (

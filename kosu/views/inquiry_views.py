@@ -141,7 +141,7 @@ class InquirDetail(APIView):
     # 問い合わせデータ取得
     inquir_instance = self.get_object(pk)
     if not inquir_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # セッションからデータ取得
     login_no = request.session.get('login_No')
@@ -267,7 +267,7 @@ class InquirUpdate(APIView):
     # 問い合わせデータ取得
     inquir_instance = self.get_object(pk)
     if not inquir_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # セッションからデータ取得
     login_no = request.session.get('login_No')
@@ -326,7 +326,7 @@ class InquirUpdate(APIView):
     # 問い合わせデータ取得
     inquir_instance = self.get_object(pk)
     if not inquir_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     data = request.data
     serializer = InquirSerializer(inquir_instance, data=data)
@@ -385,7 +385,7 @@ class InquirUpdate(APIView):
     # 問い合わせデータ取得
     inquir_instance = self.get_object(pk)
     if inquir_instance is None:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # 質問者データ確認
     try:
@@ -448,4 +448,4 @@ class InquirUpdate(APIView):
 
     # レコードを削除
     inquir_instance.delete()
-    return Response({'status': 'error', 'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+    return Response({'status': 'success', 'message': 'レコードを削除しました。'}, status=status.HTTP_204_NO_CONTENT)

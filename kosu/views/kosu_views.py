@@ -10,8 +10,6 @@ from ..utils.main_utils import CustomPagination
 from ..utils.kosu_utils import time_index, break_get, break_time_process, break_time_delete, \
                                 break_time_write, detail_list_summarize, judgement_check, parse_break_time, \
                                   get_week_of_month, kosu_write
-import datetime
-import itertools
 
 
 
@@ -403,7 +401,7 @@ class TodayBreakTime(APIView):
     # 工数データ取得
     kosu_instance = self.get_object(login_no, day)
     if not kosu_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_400_BAD_REQUEST)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # データ変換
     kosu_serializer = KosuSerializer(kosu_instance, many=False)
@@ -606,7 +604,7 @@ class KosuUpdate(APIView):
     kosu_instance = self.get_object(pk)
 
     if not kosu_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # セッション値、日付取得
     login_no = request.session.get('login_No')
@@ -672,7 +670,7 @@ class KosuUpdate(APIView):
     # 工数データ取得
     kosu_instance = self.get_object(pk)
     if not kosu_instance:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # セッション値、日付、ログイン者データ取得
     def_ver = request.session.get('input_def')
@@ -865,11 +863,11 @@ class KosuDelete(APIView):
     # 削除対象のオブジェクトを取得
     kosu_instance = self.get_object(pk)
     if kosu_instance is None:
-      return Response({'status': 'error', 'message': 'Record not found'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # レコードを削除
     kosu_instance.delete()
-    return Response({'status': 'error', 'message': 'Record deleted'}, status=status.HTTP_204_NO_CONTENT)
+    return Response({'status': 'success', 'message': 'レコードを削除しました。'}, status=status.HTTP_204_NO_CONTENT)
 
 
 
