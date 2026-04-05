@@ -76,7 +76,7 @@ const TaskDetail: React.FC = () => {
   if (!formData) return <div>データが見つかりません</div>;
 
   const handleDelete = async () => {
-    const confirmed = confirm("削除しますか？");
+    const confirmed = window.confirm("削除しますか？");
     if (!confirmed) return;
     if (!id) return;
 

@@ -294,7 +294,7 @@ const AdministratorKosuUpdate: React.FC = () => {
   const handleDelete = async () => {
     if (!id) return;
 
-    if (!confirm("このデータを完全に削除してもよろしいですか？この操作は元に戻せません。")) {
+    if (!window.confirm("このデータを完全に削除してもよろしいですか？この操作は元に戻せません。")) {
       return;
     }
 

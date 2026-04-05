@@ -105,7 +105,7 @@ const HistoryDetail: React.FC = () => {
 
   // 削除ハンドラ
   const handleDelete = async () => {
-    const confirmed = confirm("削除しますか？");
+    const confirmed = window.confirm("削除しますか？");
     if (!confirmed) {
       return;
     }

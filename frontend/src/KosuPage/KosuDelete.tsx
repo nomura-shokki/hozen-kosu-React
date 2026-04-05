@@ -91,7 +91,7 @@ const KosuDelete: React.FC = () => {
   }, [record]);
 
   const handleDelete = async () => {
-    const confirmed = confirm("削除すると戻せません。削除しますか？");
+    const confirmed = window.confirm("削除すると戻せません。削除しますか？");
     if (!confirmed) return;
 
     try {
