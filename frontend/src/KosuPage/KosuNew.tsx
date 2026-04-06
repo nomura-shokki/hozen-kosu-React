@@ -323,6 +323,8 @@ const KosuNew: React.FC = () => {
     try {
       await api.post("/api/over_time/", data);
       alert("残業情報を送信しました！");
+      setErrorMessage(null);
+      fetchData();
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
