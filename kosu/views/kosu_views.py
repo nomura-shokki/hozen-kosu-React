@@ -156,7 +156,6 @@ class KosuNew(APIView):
       request.session['day'] = str(day)
 
     # チェックBOX状態取得
-    check = 1 if post_data.get("tomorrow_check", False) else 0
     break_change = 1 if post_data.get("break_change", False) else 0
     # 作業時間から時間のみ抽出
     jst = datetime.timezone(datetime.timedelta(hours=9))
@@ -211,7 +210,7 @@ class KosuNew(APIView):
     break_start4, break_end4, break_next_day4 = break_time_process(breaktime_over3)
 
     # 工数に被りがないかチェック
-    ranges = [(start_time_ind, end_time_ind)] if check == 0 else [(start_time_ind, 288), (0, end_time_ind)]
+    ranges = [(start_time_ind, 288), (0, end_time_ind)] if end_time_ind < start_time_ind else [(start_time_ind, end_time_ind)]
     for ind in ranges:
       for kosu in range(ind[0], ind[1]):
         # 工数データの要素が空でない場合、エラー
@@ -256,6 +255,10 @@ class KosuNew(APIView):
           if work_list[int(break_end)] != '#':
             # 休憩時間内の工数データを休憩に書き換え
             work_list, detail_list = break_time_write(break_start, break_end, work_list, detail_list)
+
+    work_count = work_list.count("#")
+    if work_count < 24:
+      return Response({'status': 'error', 'message': '作業時間が長すぎます。'}, status=status.HTTP_400_BAD_REQUEST)
 
     # 工数データの取得または新規作成
     kosu_data, created = Business_Time_graph.objects.get_or_create(

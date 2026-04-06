@@ -184,11 +184,6 @@ const KosuNew: React.FC = () => {
       const workDay = new Date(data.work_day2);
       const now = roundToNearestFiveMinutes(new Date(), workDay);
       setSelectedTimes((prev) => ({ ...prev, time2: now }));
-      if (selectedTimes.time1 && now.getTime() < selectedTimes.time1.getTime()) {
-        setIsTomorrowChecked(true);
-      } else {
-        setIsTomorrowChecked(false);
-      }
     }
   };
 
@@ -212,7 +207,7 @@ const KosuNew: React.FC = () => {
     const formattedTime2 = selectedTimes.time2?.toISOString();
     const overTime = data.over_time || 0;
 
-    if (!data.work_time || !data.tyoku2 || !data.time_work || !data.detail_work || !formattedTime1 || !formattedTime2) {
+    if (!data.work_time || !data.tyoku2 || !data.time_work || !data.detail_work || !formattedTime1 || !formattedTime2 || !selectedTimes.time1 || !selectedTimes.time2) {
       setErrorMessage("入力必要項目が入力されていません。");
       return;
     }
@@ -220,9 +215,17 @@ const KosuNew: React.FC = () => {
       setErrorMessage("作業時間が誤っています確認して下さい。");
       return;
     }
-    if (selectedTimes.time1 && selectedTimes.time2 && selectedTimes.time1 > selectedTimes.time2 && !isTomorrowChecked) {
-      setErrorMessage("作業開始時間が終了時間を越えています。翌日チェックを忘れていませんか？");
-      return;
+    if (selectedTimes.time1 && selectedTimes.time2) {
+      let time1Ms = selectedTimes.time1.getTime();
+      let time2Ms = selectedTimes.time2.getTime();
+      if (time2Ms < time1Ms) {
+        time2Ms += 24 * 60 * 60 * 1000;
+      }
+      const diffInHours = (time2Ms - time1Ms) / (1000 * 60 * 60);
+      if (diffInHours >= 13) {
+        setErrorMessage("作業時間が13時間を越えています。確認してください。");
+        return;
+      }
     }
     if (selectedTimes.time1 && selectedTimes.time2) {
       const time1Hours = selectedTimes.time1.getHours();
@@ -233,14 +236,10 @@ const KosuNew: React.FC = () => {
       const time2InMinutes = time2Hours * 60 + time2Minutes;
       const timeDifference = Math.abs(time2InMinutes - time1InMinutes);
       const hoursDifference = timeDifference / 60;
-      if ((time1InMinutes < time2InMinutes && hoursDifference > 21) || (time1InMinutes > time2InMinutes && hoursDifference < 3)) {
+      if ((time1InMinutes < time2InMinutes && hoursDifference > 21)) {
         setErrorMessage("作業時間が21時間を超えています。入力できません。");
         return;
       }
-    }
-    if (selectedTimes.time1 && selectedTimes.time2 && selectedTimes.time1 < selectedTimes.time2 && isTomorrowChecked) {
-      setErrorMessage("1日以上の工数は入力できません。誤って翌日チェックを入れていませんか？");
-      return;
     }
     if (data.work_time !== "休出" && overTime % 15 !== 0) {
       setErrorMessage("残業の最小単位は15分です。確認してください。");
@@ -264,7 +263,7 @@ const KosuNew: React.FC = () => {
       over_time: data.over_time || 0,
       time1: formattedTime1,
       time2: formattedTime2,
-      tomorrow_check: isTomorrowChecked,
+      tomorrow_check: false,
       break_change: isBreakChangeChecked,
     };
 
@@ -533,16 +532,6 @@ const KosuNew: React.FC = () => {
                   }}
                 />
               </LocalizationProvider>
-              <div>
-                <label htmlFor="tomorrow_check">翌日:</label>
-                <input
-                  type="checkbox"
-                  id="tomorrow_check"
-                  name="tomorrow_check"
-                  checked={isTomorrowChecked}
-                  onChange={(e) => setIsTomorrowChecked(e.target.checked)}
-                />
-              </div>
             </div>
 
             <label htmlFor="over_time">
