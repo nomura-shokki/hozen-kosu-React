@@ -60,7 +60,6 @@ const KosuNew: React.FC = () => {
   const [initialWorkDetail, setInitialWorkDetail] = useState<string | null>(null); // 初期の作業詳細
   const [initialTyoku, setInitialTyoku] = useState<string | null>(null); // 初期の直
   const [memberShop, setMemberShop] = useState<string>(""); // メンバーの所属部署
-  const [isTomorrowChecked, setIsTomorrowChecked] = useState<boolean>(false); // 翌日チェックボックスの状態
   const [isBreakChangeChecked, setIsBreakChangeChecked] = useState<boolean>(false); // 休憩変更チェックボックスの状態
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const prevTyokuRef = useRef<string | null>(null);
