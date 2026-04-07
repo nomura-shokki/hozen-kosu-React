@@ -1,7 +1,7 @@
 import datetime
 import openpyxl
 import urllib.parse
-from ..models import member, Business_Time_graph, kosu_division, team_member
+from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -488,8 +488,26 @@ class TeamView(APIView):
     except member.DoesNotExist:
       return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    try:
+      admin_data = administrator_data.objects.order_by("id").last()
+    except administrator_data.DoesNotExist:
+      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    admin_list_raw = [
+      admin_data.administrator_employee_no1,
+      admin_data.administrator_employee_no2,
+      admin_data.administrator_employee_no3
+    ]
+    admin_list = []
+    for a in admin_list_raw:
+      if a and str(a).strip().isdigit():
+        admin_list.append(int(a))
+
     shop = request.session.get('shop', member_data.shop)
     team_shop = list(member.objects.filter(shop=shop).values_list('employee_no', flat=True))
+    print(team_shop)
+    team_shop = [x for x in team_shop if x not in admin_list]
+    print(team_shop)
 
     member_name_list = []
     for m in team_shop:

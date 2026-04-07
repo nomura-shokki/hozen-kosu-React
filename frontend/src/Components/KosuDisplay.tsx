@@ -9,11 +9,12 @@ interface KosuDisplayProps {
   defData: { [key: string]: string | undefined }; // 作業コードとタイトルのマッピングデータ
   tyoku: string; // 勤務シフト（例: "1", "2" など）
   shop: string; // 部署・ショップ情報（特定のシフトの調整に使用）
+  work?: string; // 勤務
   headerColor?: string;
 }
 
 // Reactの関数コンポーネント定義
-const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updatedAt, defData, tyoku, shop, headerColor }) => {
+const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updatedAt, defData, tyoku, shop, work, headerColor }) => {
   // パースされたデータを格納するステート
   const [parsedData, setParsedData] = useState<{ time: string; work: string; detail: string }[]>([]);
   // テーブルの大きさ測定
@@ -126,6 +127,60 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
 
   const headerStyle = { backgroundColor: headerColor }
 
+  // 合計時間を計算 (#と$を除いた文字数 * 5分)
+  const totalMinutes = timeWork.replace(/[#$]/g, "").length * 5;
+
+  // 基準合計工数作成関数（Pythonロジックの移植）
+  const getDefaultTotal = () => {
+    let default_total: string | number = 0;
+    const shopP_R_T = ['P', 'R', 'T1', 'T2', 'その他', '組長以上(P,R,T,その他)'];
+    const shopW_A = ['W1', 'W2', 'A1', 'A2', 'J', '組長以上(W,A)'];
+
+    if (work === '出勤' || work === 'シフト出') {
+      default_total = 470;
+    } else if (work === '休出') {
+      default_total = 0;
+    } else if (work === '遅刻・早退') {
+      default_total = '-';
+    } else if (shopP_R_T.includes(shop || "") && tyoku === '1' && work === '半前年休') {
+      default_total = 220;
+    } else if (shopP_R_T.includes(shop || "") && tyoku === '1' && work === '半後年休') {
+      default_total = 250;
+    } else if (shopP_R_T.includes(shop || "") && tyoku === '2' && work === '半前年休') {
+      default_total = 230;
+    } else if (shopP_R_T.includes(shop || "") && tyoku === '2' && work === '半後年休') {
+      default_total = 240;
+    } else if (shopP_R_T.includes(shop || "") && tyoku === '3' && work === '半前年休') {
+      default_total = 275;
+    } else if (shopP_R_T.includes(shop || "") && tyoku === '3' && work === '半後年休') {
+      default_total = 195;
+    } else if (shopW_A.includes(shop || "") && tyoku === '1' && work === '半前年休') {
+      default_total = 230;
+    } else if (shopW_A.includes(shop || "") && tyoku === '1' && work === '半後年休') {
+      default_total = 240;
+    } else if (shopW_A.includes(shop || "") && tyoku === '2' && work === '半前年休') {
+      default_total = 290;
+    } else if (shopW_A.includes(shop || "") && tyoku === '2' && work === '半後年休') {
+      default_total = 180;
+    } else if (shopW_A.includes(shop || "") && tyoku === '3' && work === '半前年休') {
+      default_total = 230;
+    } else if (shopW_A.includes(shop || "") && tyoku === '3' && work === '半後年休') {
+      default_total = 240;
+    } else if (tyoku === '4' && work === '半前年休') {
+      default_total = 230;
+    } else if (tyoku === '4' && work === '半後年休') {
+      default_total = 240;
+    } else if ((tyoku === '5' || tyoku === '6') && work === '半前年休') {
+      default_total = 220;
+    } else if ((tyoku === '5' || tyoku === '6') && work === '半後年休') {
+      default_total = 250;
+    }
+
+    return default_total;
+  };
+
+  const defaultTotal = getDefaultTotal();
+
   return (
     <div className={styles["table-wrapper"]} style={{ maxHeight: `${maxHeight}px`, overflowY: "auto", width: `${tableWidth + 15}px` }}>
       <table ref={tableRef}>
@@ -138,12 +193,18 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
         </thead>
         <tbody>
           {parsedData.map((item, index) => (
-            <tr key={index}>
-              <td>{item.time}</td>
-              <td>{item.work}</td>
-              <td>{item.detail}</td>
-            </tr>
+            <React.Fragment key={index}>
+              <tr>
+                <td>{item.time}</td>
+                <td>{item.work}</td>
+                <td>{item.detail}</td>
+              </tr>
+            </React.Fragment>
           ))}
+          <tr>
+            <td>工数合計(基準時間)</td>
+            <td>{totalMinutes}分({defaultTotal}分)</td>
+          </tr>
         </tbody>
       </table>
     </div>

@@ -697,7 +697,7 @@ class KosuUpdate(APIView):
     # 空の作業内容リスト作成
     work_list = list(itertools.repeat('#', 288))
     detail_list = list(itertools.repeat('', 288))
-    print(request.data)
+
     # 工数書き込み
     jst = datetime.timezone(datetime.timedelta(hours=9))
     if max_num:

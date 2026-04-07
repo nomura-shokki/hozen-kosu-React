@@ -59,8 +59,8 @@ const KosuNew: React.FC = () => {
   const [initialTimeWork, setInitialTimeWork] = useState<string | null>(null); // 初期の作業内容
   const [initialWorkDetail, setInitialWorkDetail] = useState<string | null>(null); // 初期の作業詳細
   const [initialTyoku, setInitialTyoku] = useState<string | null>(null); // 初期の直
-  const [memberShop, setMemberShop] = useState<string>(""); // メンバーの所属部署
-  const [isBreakChangeChecked, setIsBreakChangeChecked] = useState<boolean>(false); // 休憩変更チェックボックスの状態
+  const [memberShop, setMemberShop] = useState<string>("");
+  const [isBreakChangeChecked, setIsBreakChangeChecked] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const prevTyokuRef = useRef<string | null>(null);
   const [selectedTimes, setSelectedTimes] = useState<{
@@ -435,7 +435,12 @@ const KosuNew: React.FC = () => {
         >
           <div className={styles["search-bar"]}>
             <label htmlFor="work_day2">就業日：
-              <span style={{ color: data?.judgement ? "blue" : "red", marginLeft: "8px" }}>
+              <span style={{ 
+                color: data?.judgement ? "blue" : "red", 
+                marginLeft: "8px",
+                fontSize: "1.2rem",
+                fontWeight: "bold"
+              }}>
                 {data?.judgement ? "OK" : "NG"}
               </span>
             </label>
@@ -607,7 +612,7 @@ const KosuNew: React.FC = () => {
         </form>
         {initialTimeWork && (
           <div className={styles["centeredContainer"]}>
-            <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""} defData={defData} tyoku={initialTyoku || ""} shop={memberShop || ""} headerColor="#0ff" />
+            <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""} defData={defData} tyoku={initialTyoku || ""} shop={memberShop || ""} work={data?.work_time || ""} headerColor="#0ff" />
             <KosuBarChart initialTimeWork={initialTimeWork} tyoku={initialTyoku || ""} shop={memberShop || ""} />
             <DefTable defData={defData} />
           </div>

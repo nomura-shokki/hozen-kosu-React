@@ -132,7 +132,7 @@ const TeamDetail: React.FC = () => {
           )}
         </div>
         <div className={styles["centeredContainer"]}>
-          <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""} defData={defData} tyoku={initialTyoku || ""} shop={memberData?.shop || ""} headerColor="#f50" />
+          <KosuDisplay timeWork={initialTimeWork || ""} updatedAt={new Date()} workDetail={initialWorkDetail || ""} defData={defData} tyoku={initialTyoku || ""} shop={memberData?.shop || ""} work={formData?.work_time || ""} headerColor="#f50" />
           <KosuBarChart initialTimeWork={initialTimeWork} tyoku={initialTyoku || ""} shop={memberData?.shop || ""} />
           <DefTable defData={defData} />
         </div>
