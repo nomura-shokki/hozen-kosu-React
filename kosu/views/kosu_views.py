@@ -739,7 +739,7 @@ class KosuUpdate(APIView):
 
     kosu_instance.tyoku2 = request.data.get('tyoku2')
     kosu_instance.work_time = request.data.get('work_time')
-    kosu_instance.judgement = judgement_check(work_list, detail_list, kosu_instance.tyoku2, member_obj, request.data.get('over_time', 0))
+    kosu_instance.judgement = judgement_check(work_list, kosu_instance.work_time, kosu_instance.tyoku2, member_obj, request.data.get('over_time', 0))
     if not kosu_instance.def_ver2:
       kosu_instance.def_ver2 = def_ver
     kosu_instance.save()
