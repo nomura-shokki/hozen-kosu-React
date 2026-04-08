@@ -7,6 +7,8 @@ import Pagination from "../Components/Pagination";
 import Loading from "../Components/Loading";
 import styles from "../styles/AdministratorPage/AdministratorHistoryList.module.css";
 
+
+
 // 操作履歴のレコード型定義
 interface History {
   id: number;
@@ -15,12 +17,6 @@ interface History {
   record_id: string;   // 対象レコードのID
   login_No: string;    // 操作者の従業員番号
   timestamp: string;     // 変更内容
-}
-
-interface Member {
-  id: number;
-  employee_no: number;
-  name: string;
 }
 
 // 日付フォーマット関数(タイムゾーン付のデータを「YYYY-MM-DD (HH:mm)」形式に変換)
@@ -76,9 +72,6 @@ const AdministratorHistoryList: React.FC = () => {
   // テーブル名一覧
   const [modelChoices, setModelChoices] = useState<string[]>([]); 
 
-  // 従業員番号と名前のマッピング状態
-  const [memberNameMap, setMemberNameMap] = useState<{ [key: string]: string }>({});
-
   // データ取得
   const fetchData = useCallback(async (
     page: number,
@@ -103,13 +96,6 @@ const AdministratorHistoryList: React.FC = () => {
 
       const historyData = response.data?.history_data || {}; // 操作履歴
       const ModelChoices = response.data?.model_choices || {}; // テーブル名一覧
-      const memberOptions = response.data?.team_member_select || [];
-
-      const newMemberNameMap: { [key: string]: string } = {};
-      memberOptions.forEach((member: Member) => {
-        newMemberNameMap[String(member.employee_no)] = member.name;
-      });
-      setMemberNameMap(newMemberNameMap);
 
       // テーブル名一覧データが配列であることを確認
       if (Array.isArray(ModelChoices)) setModelChoices(ModelChoices);
@@ -237,8 +223,7 @@ const AdministratorHistoryList: React.FC = () => {
               <thead>
                 <tr>
                   <th className={styles["th-collar"]}>データ操作日時</th>
-                  <th className={styles["th-collar"]}>操作者NO</th>
-                  <th className={styles["th-collar"]}>操作者名</th>
+                  <th className={styles["th-collar"]}>操作者</th>
                   <th className={styles["th-collar"]}>操作テーブル</th>
                   <th className={styles["th-collar"]}>レコードID</th>
                   <th className={styles["th-collar"]}>操作種類</th>
@@ -250,7 +235,6 @@ const AdministratorHistoryList: React.FC = () => {
                   <tr key={item.id}>
                     <td>{formatTimestamp(item.timestamp)}</td>
                     <td>{item.login_No}</td>
-                    <td>{memberNameMap[item.login_No] || ""}</td>
                     <td>{item.table_name}</td>
                     <td>{item.record_id}</td>
                     <td>{item.operation}</td>
