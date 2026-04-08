@@ -838,6 +838,9 @@ class AdministratorHistoryList(APIView):
       return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not member_data.administrator:
       return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+    
+    member_all = member.objects.all()
+    member_select = MemberSerializer(member_all, many=True)
 
     # 検索パラメータの取得
     search_day = request.query_params.get('day')
@@ -874,6 +877,7 @@ class AdministratorHistoryList(APIView):
 
     response_data = {
       'history_data': paginator.get_paginated_response(serializer.data).data,
+      'member_select':member_select.data,
       'model_choices': model_choices,
     }
     return Response(response_data)
