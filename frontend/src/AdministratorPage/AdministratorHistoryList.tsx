@@ -17,6 +17,13 @@ interface History {
   record_id: string;   // 対象レコードのID
   login_No: string;    // 操作者の従業員番号
   timestamp: string;     // 変更内容
+  operator_name?: string; 
+}
+
+interface Member {
+  id: number;
+  employee_no: number;
+  name: string;
 }
 
 // 日付フォーマット関数(タイムゾーン付のデータを「YYYY-MM-DD (HH:mm)」形式に変換)
@@ -103,8 +110,20 @@ const AdministratorHistoryList: React.FC = () => {
       // ページネーション計算+データセット
       const results = historyData.results || [];
       const pageSize = historyData.page_size || 20;
+      const memberOptions = response.data?.member_select || [];
+
+      const memberNameMap: { [key: number]: string } = {};
+      memberOptions.forEach((member: Member) => {
+        memberNameMap[member.employee_no] = member.name;
+      });
+
+      const transformedData = results.map((item: History) => ({  
+        ...item,  
+        operator_name: memberNameMap[Number(item.login_No)] || `Unknown (${item.login_No})`,  
+      }));
+
       setTotalPages(Math.ceil(historyData.count / pageSize));
-      setData(results);
+      setData(transformedData);
     } catch (err) {
       // エラーハンドリング
       if (axios.isAxiosError(err)) {
@@ -223,6 +242,7 @@ const AdministratorHistoryList: React.FC = () => {
               <thead>
                 <tr>
                   <th className={styles["th-collar"]}>データ操作日時</th>
+                  <th className={styles["th-collar"]}>操作者No</th>
                   <th className={styles["th-collar"]}>操作者</th>
                   <th className={styles["th-collar"]}>操作テーブル</th>
                   <th className={styles["th-collar"]}>レコードID</th>
@@ -235,6 +255,7 @@ const AdministratorHistoryList: React.FC = () => {
                   <tr key={item.id}>
                     <td>{formatTimestamp(item.timestamp)}</td>
                     <td>{item.login_No}</td>
+                    <td>{item.operator_name}</td>
                     <td>{item.table_name}</td>
                     <td>{item.record_id}</td>
                     <td>{item.operation}</td>
