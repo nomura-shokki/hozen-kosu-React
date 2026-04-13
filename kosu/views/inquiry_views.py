@@ -167,33 +167,34 @@ class InquirDetail(APIView):
     except administrator_data.DoesNotExist:
       return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    # 個人ポップアップ削除処理
-    inquir_member_changed = False
-    for i in range(1, 6):
-      pop_up_id_field = f'pop_up_id{i}'
-      pop_up_field = f'pop_up{i}'
-      if str(getattr(inquir_member, pop_up_id_field)) == str(pk):
-        setattr(inquir_member, pop_up_id_field, '')
-        setattr(inquir_member, pop_up_field, '')
-        inquir_member_changed = True
-        break
-
-    # 個人ポップアップ移行処理(ポップアップデータを前詰め)
-    if inquir_member_changed:
-      for i in range(1, 5):
+    if inquir_member.employee_no == member_data.employee_no:
+      # 個人ポップアップ削除処理
+      inquir_member_changed = False
+      for i in range(1, 6):
         pop_up_id_field = f'pop_up_id{i}'
         pop_up_field = f'pop_up{i}'
-        next_pop_up_id_field = f'pop_up_id{i+1}'
-        next_pop_up_field = f'pop_up{i+1}'
+        if str(getattr(inquir_member, pop_up_id_field)) == str(pk):
+          setattr(inquir_member, pop_up_id_field, '')
+          setattr(inquir_member, pop_up_field, '')
+          inquir_member_changed = True
+          break
 
-        if getattr(inquir_member, pop_up_field) in ['', None]:
-          setattr(inquir_member, pop_up_id_field, getattr(inquir_member, next_pop_up_id_field))
-          setattr(inquir_member, pop_up_field, getattr(inquir_member, next_pop_up_field))
-          setattr(inquir_member, next_pop_up_id_field, '')
-          setattr(inquir_member, next_pop_up_field, '')
-      
-      # 最後に一度だけ保存
-      inquir_member.save()
+      # 個人ポップアップ移行処理(ポップアップデータを前詰め)
+      if inquir_member_changed:
+        for i in range(1, 5):
+          pop_up_id_field = f'pop_up_id{i}'
+          pop_up_field = f'pop_up{i}'
+          next_pop_up_id_field = f'pop_up_id{i+1}'
+          next_pop_up_field = f'pop_up{i+1}'
+
+          if getattr(inquir_member, pop_up_field) in ['', None]:
+            setattr(inquir_member, pop_up_id_field, getattr(inquir_member, next_pop_up_id_field))
+            setattr(inquir_member, pop_up_field, getattr(inquir_member, next_pop_up_field))
+            setattr(inquir_member, next_pop_up_id_field, '')
+            setattr(inquir_member, next_pop_up_field, '')
+        
+        # 最後に一度だけ保存
+        inquir_member.save()
 
     # 管理者通知ポップアップ削除処理
     if admin_data and (admin_data.administrator_employee_no1 == str(login_no) or \

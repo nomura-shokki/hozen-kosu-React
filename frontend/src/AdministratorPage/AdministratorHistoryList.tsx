@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import api from "../api/axios";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import TableContainer from "../Components/TableContainer";
 import Pagination from "../Components/Pagination";
 import Loading from "../Components/Loading";
 import styles from "../styles/AdministratorPage/AdministratorHistoryList.module.css";
-
-
 
 // 操作履歴のレコード型定義
 interface History {
@@ -17,7 +15,7 @@ interface History {
   record_id: string;   // 対象レコードのID
   login_No: string;    // 操作者の従業員番号
   timestamp: string;     // 変更内容
-  operator_name?: string; 
+  operator_name?: string;
 }
 
 interface Member {
@@ -26,12 +24,10 @@ interface Member {
   name: string;
 }
 
-// 日付フォーマット関数(タイムゾーン付のデータを「YYYY-MM-DD (HH:mm)」形式に変換)
 const formatTimestamp = (timestamp: string): string => {
   if (!timestamp) return "";
   try {
     const date = new Date(timestamp);
-    // 不正な日付ならそのまま返す
     if (isNaN(date.getTime())) return timestamp;
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -40,7 +36,6 @@ const formatTimestamp = (timestamp: string): string => {
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day} (${hours}:${minutes})`;
   } catch (error) {
-    // エラーハンドリング
     console.error("Failed to format timestamp:", error);
     return timestamp;
   }
@@ -50,7 +45,7 @@ const formatTimestamp = (timestamp: string): string => {
 const AdministratorHistoryList: React.FC = () => {
   // フックの初期化
   const navigate = useNavigate(); // 画面遷移用関数設定
-
+  const [searchParams, setSearchParams] = useSearchParams();
   const searchBarRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLHeadingElement>(null);
 
@@ -58,26 +53,26 @@ const AdministratorHistoryList: React.FC = () => {
   const [data, setData] = useState<History[]>([]); // 取得した履歴データのリスト
   const [loading, setLoading] = useState<boolean>(true); // ローディング状態
   const [error, setError] = useState<string | null>(null); // エラーメッセージ
-  
+
   // フォームの値
-  const [searchDay, setSearchDay] = useState<string>("");
-  const [searchId, setSearchId] = useState<string>("");
-  const [searchNo, setSearchNo] = useState<string>("");
-  const [searchTable, setSearchTable] = useState<string>("");
+  const [searchDay, setSearchDay] = useState<string>(searchParams.get("day") || "");
+  const [searchId, setSearchId] = useState<string>(searchParams.get("id") || "");
+  const [searchNo, setSearchNo] = useState<string>(searchParams.get("no") || "");
+  const [searchTable, setSearchTable] = useState<string>(searchParams.get("table") || "");
 
   // APIに送るフィルタ条件(確定値)
-  const [currentFilterDay, setCurrentFilterDay] = useState<string>("");
-  const [currentFilterId, setCurrentFilterId] = useState<string>("");
-  const [currentFilterNo, setCurrentFilterNo] = useState<string>("");
-  const [currentFilterTable, setCurrentFilterTable] = useState<string>("");
+  const [currentFilterDay, setCurrentFilterDay] = useState<string>(searchParams.get("day") || "");
+  const [currentFilterId, setCurrentFilterId] = useState<string>(searchParams.get("id") || "");
+  const [currentFilterNo, setCurrentFilterNo] = useState<string>(searchParams.get("no") || "");
+  const [currentFilterTable, setCurrentFilterTable] = useState<string>(searchParams.get("table") || "");
   const [searchByMonth, setSearchByMonth] = useState<boolean>(false);
 
   // ページネーション管理
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [currentPage, setCurrentPage] = useState<number>(Number(searchParams.get("page")) || 1);
   const [totalPages, setTotalPages] = useState<number>(0);
 
   // テーブル名一覧
-  const [modelChoices, setModelChoices] = useState<string[]>([]); 
+  const [modelChoices, setModelChoices] = useState<string[]>([]);
 
   // データ取得
   const fetchData = useCallback(async (
@@ -95,7 +90,7 @@ const AdministratorHistoryList: React.FC = () => {
           page: page,
           record_id: id,
           day: day,
-          mode: mode ? "month" : "day", // trueなら月検索、falseなら日検索
+          mode: mode ? "month" : "day",
           table_name: table,
           login_No: loginNo,
         }
@@ -107,32 +102,28 @@ const AdministratorHistoryList: React.FC = () => {
       // テーブル名一覧データが配列であることを確認
       if (Array.isArray(ModelChoices)) setModelChoices(ModelChoices);
 
-      // ページネーション計算+データセット
       const results = historyData.results || [];
       const pageSize = historyData.page_size || 20;
       const memberOptions = response.data?.member_select || [];
-
       const memberNameMap: { [key: number]: string } = {};
       memberOptions.forEach((member: Member) => {
         memberNameMap[member.employee_no] = member.name;
       });
 
-      const transformedData = results.map((item: History) => ({  
-        ...item,  
-        operator_name: memberNameMap[Number(item.login_No)] || `Unknown (${item.login_No})`,  
+      const transformedData = results.map((item: History) => ({
+        ...item,
+        operator_name: memberNameMap[Number(item.login_No)] || `Unknown (${item.login_No})`,
       }));
 
       setTotalPages(Math.ceil(historyData.count / pageSize));
       setData(transformedData);
     } catch (err) {
-      // エラーハンドリング
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
         else if (err.response?.status === 403) navigate("/");
         else setError(err.response?.data.message);
       } else setError("不明なエラーが発生しました。IT担当者に連絡してください。");
     } finally {
-      // 成功・失敗に関わらずローディング終了
       setLoading(false);
     }
   }, [navigate]);
@@ -147,22 +138,45 @@ const AdministratorHistoryList: React.FC = () => {
     setCurrentFilterDay(searchDay); // 日付確定値としてセット
     setSearchByMonth(isMonthSearch); // モード（月/日）を更新
     setCurrentPage(1); // 検索時は1ページ目へ
+    setSearchParams({
+      day: searchDay,
+      id: currentFilterId,
+      no: currentFilterNo,
+      table: currentFilterTable,
+      page: "1",
+    });
   };
 
-  // 絞り込みハンドラ
+  // 絞り込みハンドラ  
   const handleIDAndTableSearchClick = () => {
     setCurrentFilterDay(searchDay);
     setCurrentFilterId(searchId);
     setCurrentFilterNo(searchNo);
     setCurrentFilterTable(searchTable);
     setCurrentPage(1);
+    setSearchParams({
+      day: searchDay,
+      id: searchId,
+      no: searchNo,
+      table: searchTable,
+      page: "1",
+    });
   };
 
-  // 条件付きレンダリング
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSearchParams({
+      day: currentFilterDay,
+      id: currentFilterId,
+      no: currentFilterNo,
+      table: currentFilterTable,
+      page: String(page),
+    });
+  };
+
   if (error) return <div>Error: {error}</div>;
   if (loading) return <div><Loading isLoading={loading} /></div>;
 
-  // ページ表示
   return (
     <>
       <Loading isLoading={loading} />
@@ -250,6 +264,7 @@ const AdministratorHistoryList: React.FC = () => {
                   <th className={styles["th-collar"]}>詳細</th>
                 </tr>
               </thead>
+
               <tbody>
                 {data.map((item) => (
                   <tr key={item.id}>
@@ -275,7 +290,7 @@ const AdministratorHistoryList: React.FC = () => {
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              setCurrentPage={setCurrentPage}
+              setCurrentPage={handlePageChange}
               buttonColor="#656565"
               hoverColor="#3a3a3a"
             />
@@ -285,5 +300,4 @@ const AdministratorHistoryList: React.FC = () => {
     </>
   );
 };
-
 export default AdministratorHistoryList;
