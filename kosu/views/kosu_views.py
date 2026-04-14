@@ -474,17 +474,11 @@ class TodayBreakTime(APIView):
     for time_inds in time_data:
       if time_inds[0] < time_inds[1]:
         if kosu_list[time_inds[1]] != '#':
-          for k in range(time_inds[0], time_inds[1]):
-            kosu_list[k] = '$'
-            detail_list[k] = ''
-      else:
+          kosu_list, detail_list = break_time_write(time_inds[0], time_inds[1], kosu_list, detail_list)
+      elif time_inds[0] > time_inds[1]:
         if kosu_list[time_inds[1]] != '#':
-          for k in range(time_inds[1], 288):
-            kosu_list[k] = '$'
-            detail_list[k] = ''
-          for k in range(0, time_inds[0]):
-            kosu_list[k] = '$'
-            detail_list[k] = ''
+          kosu_list, detail_list = break_time_write(time_inds[0], 288, kosu_list, detail_list)
+          kosu_list, detail_list = break_time_write(0, time_inds[1], kosu_list, detail_list)
 
     kosu_instance.time_work = ''.join(kosu_list)
     kosu_instance.detail_work = detail_list_summarize(detail_list)
