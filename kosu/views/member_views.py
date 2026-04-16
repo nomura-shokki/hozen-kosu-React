@@ -1,3 +1,4 @@
+from django.db.models import Case, When, Value, IntegerField  
 from ..models import member
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -37,7 +38,13 @@ class MemberList(APIView):
     search_shop = request.query_params.get('shop', None)
 
     # 人員データ全取得
-    members = member.objects.all().order_by('employee_no')
+    members = member.objects.annotate(  
+        shop_order=Case(  
+            When(shop='異動・退社', then=Value(1)),  
+            default=Value(0),  
+            output_field=IntegerField(),  
+        )  
+    ).order_by('shop_order', 'employee_no')  
 
     # 絞り込みある場合はフィルタリング
     if search_number:
