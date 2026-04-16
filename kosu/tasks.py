@@ -272,7 +272,7 @@ def generate_member_backup():
     '連2直昼休憩時間', '連2直残業休憩時間1', '連2直残業休憩時間2', '連2直残業休憩時間3', 
     'ポップアップ1', 'ポップアップID1', 'ポップアップ2', 'ポップアップID2',
     'ポップアップ3', 'ポップアップID3', 'ポップアップ4', 'ポップアップID4',
-    'ポップアップ5', 'ポップアップID6', '休憩エラー有効チェック', '工数定義区分予測無効',
+    'ポップアップ5', 'ポップアップID6', '休憩エラー有効チェック',
     ]
   ws.append(headers)
 
@@ -290,7 +290,7 @@ def generate_member_backup():
       item.break_time5, item.break_time5_over1, item.break_time5_over2, item.break_time5_over3, 
       item.break_time6, item.break_time6_over1, item.break_time6_over2, item.break_time6_over3,
       item.pop_up1, item.pop_up_id1, item.pop_up2, item.pop_up_id2, item.pop_up3, item.pop_up_id3, 
-      item.pop_up4, item.pop_up_id4, item.pop_up5, item.pop_up_id5, item.break_check, item.def_prediction, 
+      item.pop_up4, item.pop_up_id4, item.pop_up5, item.pop_up_id5, item.break_check, 
       ]
     ws.append(row)
 
@@ -338,7 +338,7 @@ def load_member_file(file_path):
       '連2直昼休憩時間', '連2直残業休憩時間1', '連2直残業休憩時間2', '連2直残業休憩時間3', 
       'ポップアップ1', 'ポップアップID1', 'ポップアップ2', 'ポップアップID2',
       'ポップアップ3', 'ポップアップID3', 'ポップアップ4', 'ポップアップID4',
-      'ポップアップ5', 'ポップアップID6', '休憩エラー有効チェック', '工数定義区分予測無効',
+      'ポップアップ5', 'ポップアップID6', '休憩エラー有効チェック', 
       ]
 
     # ファイル内ヘッダー取得
@@ -400,7 +400,6 @@ def load_member_file(file_path):
           pop_up5 = ws.cell(row=i, column=38).value,
           pop_up_id5 = ws.cell(row=i, column=39).value,
           break_check = ws.cell(row=i, column=40).value,
-          def_prediction = ws.cell(row=i, column=41).value
         )
       except IntegrityError as create_e:
         print(f"従業員番号 {employee_no_value} の書き込み中にIntegrityErrorが発生しました: {create_e}")
