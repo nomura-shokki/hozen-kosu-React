@@ -1,6 +1,7 @@
 import datetime
 import openpyxl
 import urllib.parse
+from django.db.models import Case, When, Value, IntegerField  
 from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -53,7 +54,13 @@ class TeamNew(APIView):
     team_member_default = MemberSerializer(team_member_choices, many=True)
 
     if member_data.shop == '組長以上(P,R,T,その他)' or member_data.shop == '組長以上(W,A)':
-      member_all = member.objects.all().order_by('employee_no')
+      member_all = member.objects.annotate(  
+        shop_order=Case(  
+          When(shop='異動・退社', then=Value(1)),  
+          default=Value(0),  
+          output_field=IntegerField(),  
+        )  
+      ).order_by('shop_order', 'employee_no')  
     else:
       member_all = member.objects.filter(shop=member_data.shop).order_by('employee_no')
     member_select = MemberSerializer(member_all, many=True)
