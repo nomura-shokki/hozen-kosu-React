@@ -54,7 +54,7 @@ const Help: React.FC = () => {
     }
 
     try {
-      await api.post("/api/help//", { 
+      await api.post("/api/help/", { 
         memberReset: isMemberReset, 
         defReset: isDefReset,
         settingReset: isSettingReset 
