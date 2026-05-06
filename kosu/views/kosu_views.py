@@ -267,6 +267,7 @@ class KosuNew(APIView):
       defaults={
         'employee_no3': login_no,
         'work_day2': day,
+        'name': member_obj,
       }
     )
 
@@ -349,6 +350,7 @@ class OverTime(APIView):
       defaults={
         'employee_no3': login_no,
         'work_day2': day,
+        'name': member_obj,
       }
     )
 
