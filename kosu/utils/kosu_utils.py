@@ -256,7 +256,7 @@ def judgement_check(kosu_def, work, tyoku, member_obj, over_work):
 
   # 出勤、休出時、工数合計と残業に整合性がある場合の処理
   if (work == '休日' or work == 'シフト休' or work == '年休' or work == '代休' or work == '公休' or work == '欠勤') and \
-    kosu_total == 0:
+    kosu_total == 0 and int(over_work) == 0:
     # 工数入力OK_NGをOKに切り替え
     judgement = True
 
