@@ -110,7 +110,12 @@ const TodayBreakTime: React.FC = () => {
 
     for (const config of breakConfigs) {
       if (config.start && config.end) {
-        const diffMin = (config.end.getTime() - config.start.getTime()) / (1000 * 60);
+        let diffMin = (config.end.getTime() - config.start.getTime()) / (1000 * 60);
+
+        if (diffMin < 0) {
+          diffMin += 24 * 60;
+        }
+
         if (diffMin > config.limit) {
           setErrorMessage(`${config.label}が${config.limit}分を超えています。`);
           return;

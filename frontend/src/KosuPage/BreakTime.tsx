@@ -117,7 +117,11 @@ const BreakTime: React.FC = () => {
 
         if (startTime && endTime) {
           const diffMs = endTime.getTime() - startTime.getTime();
-          const diffMin = diffMs / (1000 * 60);
+          let diffMin = diffMs / (1000 * 60);
+
+          if (diffMin < 0) {
+            diffMin += 24 * 60;
+          }
 
           if (b === 0 || b === 2) {
             if (diffMin > 60) {
