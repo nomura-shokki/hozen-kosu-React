@@ -63,6 +63,7 @@ const KosuNew: React.FC = () => {
   const [isBreakChangeChecked, setIsBreakChangeChecked] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const prevTyokuRef = useRef<string | null>(null);
+  const prevWorkDayRef = useRef<string | null>(null);
   const [selectedTimes, setSelectedTimes] = useState<{
     time1: Date | null;
     time2: Date | null;
@@ -358,7 +359,10 @@ const KosuNew: React.FC = () => {
   }, [fetchData]);
 
   useEffect(() => {
-    if (prevTyokuRef.current !== null && data?.tyoku2 && data.tyoku2 !== prevTyokuRef.current) {
+    const isTyokuChanged = prevTyokuRef.current !== null && data?.tyoku2 && data.tyoku2 !== prevTyokuRef.current;
+    const isWorkDayChanged = prevWorkDayRef.current !== null && data?.work_day2 && data.work_day2 !== prevWorkDayRef.current;
+
+    if ((isTyokuChanged || isWorkDayChanged) && data?.tyoku2) {
       const workDay = data ? new Date(data.work_day2) : new Date();
       let newTime = new Date(workDay);
 
@@ -378,6 +382,7 @@ const KosuNew: React.FC = () => {
         newTime.setHours(17, 10, 0, 0);
       } else {
         prevTyokuRef.current = data.tyoku2;
+        prevWorkDayRef.current = data.work_day2;
         return;
       }
 
@@ -389,6 +394,9 @@ const KosuNew: React.FC = () => {
     }
     if (data?.tyoku2) {
       prevTyokuRef.current = data.tyoku2;
+    }
+    if (data?.work_day2) {
+      prevWorkDayRef.current = data.work_day2;
     }
   }, [data?.tyoku2, memberShop, data?.work_day2, data]);
 
