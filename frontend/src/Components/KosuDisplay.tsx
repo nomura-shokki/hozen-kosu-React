@@ -142,6 +142,8 @@ const KosuDisplay: React.FC<KosuDisplayProps> = ({ timeWork, workDetail, updated
       default_total = 0;
     } else if (work === '出勤(時短なし)') {
       default_total = 480;
+    } else if (work === '半前年休(時短なし)' || work === '半後年休(時短なし)') {
+      default_total = 240;
     } else if (work === '遅刻・早退') {
       default_total = '-';
     } else if (shopP_R_T.includes(shop || "") && tyoku === '1' && work === '半前年休') {
