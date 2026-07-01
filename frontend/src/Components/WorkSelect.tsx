@@ -16,6 +16,7 @@ const limitedWorkOptions = [
   { value: "休出", label: "休出" },
   { value: "半前年休", label: "半前年休" },
   { value: "半後年休", label: "半後年休" },
+  { value: "出勤(時短なし)", label: "出勤(時短なし)" },
   { value: "早退・遅刻", label: "早退・遅刻" },
 ];
 
