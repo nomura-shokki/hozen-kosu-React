@@ -77,6 +77,7 @@ const DefSearch: React.FC = () => {
         <h1 className={styles["h1-collar"]}>工数区分定義確認</h1>
         <nav className={styles["def-nav"]}>
           <Link to="/def-menu">工数区分定義MENU</Link>
+          <Link to="/kosu-new">工数入力</Link>
         </nav>
 
         <form>
