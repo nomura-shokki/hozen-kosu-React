@@ -46,6 +46,31 @@ const roundToNearestFiveMinutes = (date: Date, workDay: Date): Date => {
   return date;
 };
 
+const formatApiError = (err: unknown): string => {  
+  if (!axios.isAxiosError(err)) {  
+    return "不明なエラーが発生しました。";  
+  }  
+  const status = err.response?.status ?? "なし";  
+  const statusText = err.response?.statusText ?? "なし";  
+  const responseData = err.response?.data;  
+  let responseBody = "レスポンス本文なし";  
+  if (typeof responseData === "string") {  
+    responseBody = responseData;  
+  } else if (responseData !== undefined && responseData !== null) {  
+    try {  
+      responseBody = JSON.stringify(responseData, null, 2);  
+    } catch {  
+      responseBody = String(responseData);  
+    }  
+  }  
+  return [  
+    `HTTP Status: ${status}`,  
+    `Status Text: ${statusText}`,  
+    `Response Data:`,  
+    responseBody,  
+  ].join("\n");  
+};  
+
 const KosuNew: React.FC = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<Kosu | null>(null); // 工数データ
@@ -299,8 +324,8 @@ const KosuNew: React.FC = () => {
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) navigate("/login");
-        else if (err.response?.status === 403) navigate("/");
-        else setErrorMessage(err.response?.data.message);
+        else if (err.response?.status === 403) setErrorMessage(formatApiError(err));
+        else setErrorMessage(err.response?.data?.message || formatApiError(err));
       } else setErrorMessage("不明なエラーが発生しました。IT担当者に連絡してください。");
     }
   };
@@ -423,7 +448,19 @@ const KosuNew: React.FC = () => {
         )}
 
         {errorMessage && (
-          <div role="alert">{errorMessage}</div>
+          <div  
+            role="alert"  
+            style={{  
+              whiteSpace: "pre-wrap",  
+              overflowWrap: "anywhere",  
+              color: "red",  
+              border: "1px solid red",  
+              padding: "8px",  
+              marginBottom: "8px",  
+            }}
+          >  
+            {errorMessage}  
+          </div>
         )}
 
         {successMessage && (

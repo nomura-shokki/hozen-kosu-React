@@ -2,39 +2,38 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@fullcalendar/daygrid": "^6.1.19",
-    "@fullcalendar/interaction": "^6.1.19",
-    "@fullcalendar/react": "^6.1.19",
-    "@fullcalendar/timegrid": "^6.1.19",
-    "@mui/material": "^7.2.0",
-    "@mui/x-date-pickers": "^8.11.2",
-    "@testing-library/dom": "^10.4.0",
-    "@types/react": "^19.1.7",
-    "@types/react-dom": "^19.1.6",
-    "axios": "^1.11.0",
-    "chart.js": "^4.5.0",
-    "chartjs-plugin-datalabels": "^2.2.0",
-    "date-fns": "^4.1.0",
-    "dayjs": "^1.11.13",
-    "react": "^19.1.0",
-    "react-calendar": "^6.0.0",
-    "react-chartjs-2": "^5.3.0",
-    "react-dom": "^19.1.0",
-    "react-router-dom": "^7.11.0",
-    "react-scripts": "5.0.1",
-    "typescript": "^4.9.5",
-    "web-vitals": "^2.1.4"
+  "dependencies": {  
+    "@emotion/react": "^11.14.0",  
+    "@emotion/styled": "^11.14.1",  
+    "@fullcalendar/daygrid": "^6.1.19",  
+    "@fullcalendar/interaction": "^6.1.19",  
+    "@fullcalendar/react": "^6.1.19",  
+    "@fullcalendar/timegrid": "^6.1.19",  
+    "@mui/material": "^7.2.0",  
+    "@mui/x-date-pickers": "^8.11.2",  
+    "@testing-library/dom": "^10.4.0",  
+    "@types/react": "^19.1.7",  
+    "@types/react-dom": "^19.1.6",  
+    "axios": "^1.11.0",  
+    "chart.js": "^4.5.0",  
+    "chartjs-plugin-datalabels": "^2.2.0",  
+    "date-fns": "^4.1.0",  
+    "dayjs": "^1.11.13",  
+    "react": "^19.1.0",  
+    "react-calendar": "^6.0.0",  
+    "react-chartjs-2": "^5.3.0",  
+    "react-dom": "^19.1.0",  
+    "react-router-dom": "^7.11.0",  
+    "web-vitals": "^2.1.4"  
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:run": "vitest run",
-    "eject": "react-scripts eject"
+  "scripts": {  
+    "dev": "vite",  
+    "start": "vite",  
+    "build": "tsc --noEmit && vite build",  
+    "preview": "vite preview",  
+    "test": "vitest",  
+    "test:ui": "vitest --ui",  
+    "test:run": "vitest run"  
   },
   "eslintConfig": {
     "extends": [
@@ -54,16 +53,16 @@
       "last 1 safari version"
     ]
   },
-  "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.1",
-    "@types/jest": "^30.0.0",
-    "@vitejs/plugin-react": "^5.1.2",
-    "@vitest/coverage-v8": "^4.1.2",
-    "@vitest/ui": "^4.0.16",
-    "eslint-config-react-app": "^7.0.1",
-    "jsdom": "^27.3.0",
-    "vitest": "^4.0.16",
-    "webpack-bundle-analyzer": "^4.10.2"
-  }
+  "devDependencies": {  
+    "@testing-library/jest-dom": "^6.9.1",  
+    "@testing-library/react": "^16.3.1",  
+    "@types/jest": "^30.0.0",  
+    "@vitejs/plugin-react": "^6.1.1",  
+    "@vitest/coverage-v8": "^4.1.2",  
+    "@vitest/ui": "^4.0.16",  
+    "jsdom": "^27.3.0",  
+    "typescript": "^7.0.2",  
+    "vite": "^8.2.2",  
+    "vitest": "^4.0.16"  
+  } 
 }
