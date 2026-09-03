@@ -512,9 +512,7 @@ class TeamView(APIView):
 
     shop = request.session.get('shop', member_data.shop)
     team_shop = list(member.objects.filter(shop=shop).values_list('employee_no', flat=True))
-    print(team_shop)
     team_shop = [x for x in team_shop if x not in admin_list]
-    print(team_shop)
 
     member_name_list = []
     for m in team_shop:
