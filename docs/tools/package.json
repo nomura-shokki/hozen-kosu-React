@@ -1,0 +1,9 @@
+{
+  "name": "kosu-docs-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "教育資料MD→PDF変換ツール",
+  "dependencies": {
+    "md-to-pdf": "^5.2.5"
+  }
+}
