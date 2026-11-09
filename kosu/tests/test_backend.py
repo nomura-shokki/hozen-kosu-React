@@ -2420,6 +2420,18 @@ class TestInquiryViewsExtended(BaseTestCase):
 # 22. TestAsyncViews
 # ---------------------------------------------------------------------------
 class TestAsyncViews(BaseTestCase):
+    def setUp(self):  
+        # テスト用の管理者を作成します。  
+        self.test_member = member.objects.create(  
+            employee_no='11111',  
+            administrator=True,  
+            authority=True,  
+        )  
+        # LoginNoAuthentication が参照するセッション値を設定します。  
+        session = self.client.session  
+        session['login_No'] = '11111'  
+        session.save()
+
     def test_check_task_status_success(self):
         task = AsyncTask.objects.create(
             task_id='test-check-1', status='success', result='/path/to/file.xlsx')

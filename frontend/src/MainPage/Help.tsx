@@ -24,7 +24,9 @@ const Help: React.FC = () => {
     }
   };
 
-  const handlePasswordSubmit = async (event: React.FormEvent) => {
+  const handlePasswordSubmit = async (
+    event: React.SyntheticEvent<HTMLFormElement>
+  ): Promise<void> => {
     event.preventDefault();
     setErrorMessage("");
 
@@ -40,7 +42,9 @@ const Help: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (
+    event: React.SyntheticEvent<HTMLFormElement>
+  ): Promise<void> => {
     event.preventDefault();
     setErrorMessage("");
 

@@ -5,33 +5,25 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import MemberSerializer
 from ..utils.main_utils import CustomPagination
+from ..permissions import HasAuthority, IsAdministrator
 
 
 
 
 # 人員一覧
 class MemberList(APIView):
+  permission_classes = [HasAuthority]
   # GET時の動作
   def get(self, request):
     # セッションからデータ取得
-    login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
-    # 未ログインや定義が未定義の場合はログイン画面へ
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 定義が未定義の場合はログイン画面へ
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    try:
-      # ログインユーザーのデータ取得
-      member_data = member.objects.get(employee_no=login_no)
-      # 権限がない場合はMenu画面へ
-      if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
-    except member.DoesNotExist:
-      # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # ログイン者データ確認
+    member_data = request.user
 
     # クエリパラメータで絞り込み条件を取得
     search_number = request.query_params.get('employee_no', None)
@@ -63,20 +55,10 @@ class MemberList(APIView):
 
 # 人員データ新規登録
 class MemberNew(APIView):
+  permission_classes = [HasAuthority]
   def get(self, request):
-    login_no = request.session.get('login_No')
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    try:
-      # ログインユーザーのデータ取得
-      member_data = member.objects.get(employee_no=login_no)
-      # 権限がない場合はMenu画面へ
-      if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
-    except member.DoesNotExist:
-      # 人員情報取得できない場合エラー
-      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # ログイン者データ確認
+    member_data = request.user
 
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data)
@@ -154,6 +136,7 @@ class MemberNew(APIView):
 
 # 人員データ編集動作
 class MemberUpdate(APIView):
+  permission_classes = [HasAuthority]
   def get_object(self, pk):
     try:
       return member.objects.get(employee_no=pk)
@@ -162,18 +145,8 @@ class MemberUpdate(APIView):
 
 
   def get(self, request, pk):
-    # セッションからログイン情報を取得
-    login_no = request.session.get('login_No')
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # ログインユーザーの権限を確認
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '権限確認中にエラーが発生しました'}, status=status.HTTP_403_FORBIDDEN)
-    if not member_data.authority:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+    # ログイン者データ確認
+    member_data = request.user
 
     # 指定された従業員データを取得
     member_instance = self.get_object(pk)
@@ -206,6 +179,7 @@ class MemberUpdate(APIView):
 
 # 人員データ削除動作
 class MemberDelete(APIView):
+  permission_classes = [HasAuthority]
   def get_object(self, pk):
     try:
       return member.objects.get(employee_no=pk)

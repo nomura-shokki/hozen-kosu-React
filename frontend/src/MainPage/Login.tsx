@@ -10,7 +10,9 @@ const Login: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (
+    event: React.SyntheticEvent<HTMLFormElement>
+  ): Promise<void> => {
     event.preventDefault();
     setErrorMessage("");
 

@@ -13,20 +13,14 @@ class InquirList(APIView):
   # GET時の動作
   def get(self, request):
     # セッションからデータ取得
-    login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
-    # 未ログインや定義が未定義の場合はログイン画面へ
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 定義が未定義の場合はログイン画面へ
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    member_data = request.user
 
     # クエリパラメータで絞り込み条件を取得
     item = request.query_params.get('item')
@@ -63,31 +57,16 @@ class InquirList(APIView):
 class InquirNew(APIView):
   # GET時の動作
   def get(self, request):
-    # セッションからデータ取得
-    login_no = request.session.get('login_No')
-
-    # 未ログインや定義が未定義の場合はログイン画面へ
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # ログイン者データ確認
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    member_data = request.user
 
     serializer = MemberSerializer([member_data], many=True)
     return Response(serializer.data)
 
 
   def post(self, request):
-    login_no = request.session.get('login_No')
-
     # ログイン者データ確認
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    member_data = request.user
 
     data = request.data
 
@@ -143,18 +122,8 @@ class InquirDetail(APIView):
     if not inquir_instance:
       return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
-    # セッションからデータ取得
-    login_no = request.session.get('login_No')
-
-    # 未ログインや定義が未定義の場合はログイン画面へ
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # ログイン者データ確認
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    member_data = request.user
 
     # 質問者データ確認
     try:
@@ -197,9 +166,9 @@ class InquirDetail(APIView):
         inquir_member.save()
 
     # 管理者通知ポップアップ削除処理
-    if admin_data and (admin_data.administrator_employee_no1 == str(login_no) or \
-      admin_data.administrator_employee_no2 == str(login_no) or \
-      admin_data.administrator_employee_no3 == str(login_no)):
+    if admin_data and (admin_data.administrator_employee_no1 == str(member_data.employee_no) or \
+      admin_data.administrator_employee_no2 == str(member_data.employee_no) or \
+      admin_data.administrator_employee_no3 == str(member_data.employee_no)):
       
       admin_data_changed = False
       for i in range(1, 6):
@@ -270,18 +239,8 @@ class InquirUpdate(APIView):
     if not inquir_instance:
       return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
-    # セッションからデータ取得
-    login_no = request.session.get('login_No')
-
-    # 未ログインや定義が未定義の場合はログイン画面へ
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # ログイン者データ確認
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    member_data = request.user
 
     try:
       admin_data = administrator_data.objects.order_by("id").last()
@@ -298,7 +257,7 @@ class InquirUpdate(APIView):
       if a and str(a).strip().isdigit():
         admin_list.append(int(a))
 
-    if int(login_no) != int(inquir_instance.employee_no2) and int(login_no) not in admin_list:
+    if int(member_data.employee_no) != int(inquir_instance.employee_no2) and int(member_data.employee_no) not in admin_list:
       return Response({'status': 'error', 'message': '権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # データ変換
@@ -315,14 +274,8 @@ class InquirUpdate(APIView):
 
 
   def put(self, request, pk):
-    # セッションからデータ取得
-    login_no = request.session.get('login_No')
-
     # ログイン者データ確認
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    member_data = request.user
 
     # 問い合わせデータ取得
     inquir_instance = self.get_object(pk)

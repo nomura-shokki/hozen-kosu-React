@@ -7,14 +7,15 @@ import json
 from pathlib import Path
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.views import View
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from rest_framework import status
 from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, AsyncTask, History
 from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer, DefSerializer, TaskSerializer, HistorySerializer
 from ..utils.main_utils import CustomPagination, get_all_model_names_in_myapp
+from ..permissions import HasAuthority, IsAdministrator
 
 
 
@@ -77,6 +78,7 @@ def manifest(request):
 
 # ログイン
 class Login(APIView):
+  permission_classes = [AllowAny]
   # POST処理
   def post(self, request):
     try:
@@ -104,6 +106,7 @@ class Login(APIView):
 
 
 class Help(APIView):
+  permission_classes = [AllowAny]
   # POST処理
   def post(self, request):
     post_data = request.data
@@ -174,6 +177,7 @@ class Help(APIView):
 
 # ヘルプ画面パスワード判定
 class HelpPass(APIView):
+  permission_classes = [AllowAny]
   # POST処理
   def post(self, request):
     # ルートディレクトリを取得
@@ -192,6 +196,7 @@ class HelpPass(APIView):
 
 # ログアウト
 class Logout(APIView):
+  permission_classes = [AllowAny]
   # POST処理
   def post(self,request):
     # セッション削除
@@ -205,20 +210,14 @@ class Menu(APIView):
   # GET処理
   def get(self, request):
     # セッション値取得
-    login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
     # セッション値なしエラー
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    member_data = request.user
 
     # 設定データ確認
     try:
@@ -240,25 +239,18 @@ class Menu(APIView):
 
 # 人員Menu
 class MemberMenu(APIView):
+  permission_classes = [HasAuthority]
   # GET処理
   def get(self, request):
     # セッション値取得
-    login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
     # セッション値なしエラー
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-      if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    member_data = request.user
 
     # データ変換
     serializer = MemberSerializer(member_data, many=False)
@@ -271,20 +263,14 @@ class DefMenu(APIView):
   # GET処理
   def get(self, request):
     # セッション値取得
-    login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
     # セッション値なしエラー
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    member_data = request.user
 
     # データ変換
     serializer = MemberSerializer(member_data, many=False)
@@ -297,20 +283,14 @@ class KosuMenu(APIView):
   # GET処理
   def get(self, request):
     # セッション値取得
-    login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
     # セッション値なしエラー
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者データ確認
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    member_data = request.user
 
     # データ変換
     serializer = MemberSerializer(member_data, many=False)
@@ -320,27 +300,16 @@ class KosuMenu(APIView):
 
 # 班員Menu
 class TeamMenu(APIView):
+  permission_classes = [HasAuthority]
   # GET処理
   def get(self, request):
-    # セッション値取得
-    login_no = request.session.get('login_No')
-
-    # セッション値なしエラー
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-      if not member_data.authority:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    member_data = request.user
 
     # 班員フォローメッセージ作成
     follow_message_list = []
     # 班員データあるか確認
-    team_filter = team_member.objects.filter(employee_no5=login_no)
+    team_filter = team_member.objects.filter(employee_no5=member_data.employee_no)
     team_get = team_filter.first() if team_filter.exists() else None
 
     # 班員フォロー有効の場合、班員リスト作成
@@ -392,18 +361,8 @@ class TeamMenu(APIView):
 class InquirMenu(APIView):
   # GET処理
   def get(self, request):
-    # セッション値取得
-    login_no = request.session.get('login_No')
-
-    # セッション値なしエラー
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # ログイン者データ確認
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    member_data = request.user
 
     # データ変換
     serializer = MemberSerializer(member_data, many=False)
@@ -413,22 +372,11 @@ class InquirMenu(APIView):
 
 # 管理者Menu
 class AdministratorMenu(APIView):
+  permission_classes = [IsAdministrator]
   # GET処理
   def get(self, request):
-    # セッション値取得
-    login_no = request.session.get('login_No')
-
-    # セッション値なしエラー
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-      if not member_data.administrator:
-        return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザー情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    member_data = request.user
 
     # 設定データ確認
     try:
@@ -450,22 +398,11 @@ class AdministratorMenu(APIView):
 
 # 管理者設定更新
 class AdministratorUpdate(APIView):
+  permission_classes = [IsAdministrator]
   # GET処理
   def get(self, request):
     # ログイン者情報取得
-    login_no = request.session.get('login_No')
-
-    # 未ログインや定義が未定義の場合はログイン画面へ
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+    member_data = request.user
 
     # 設定データ確認
     try:
@@ -515,22 +452,11 @@ class AdministratorUpdate(APIView):
 
 # データ管理
 class AdministratorLoading(APIView):
+  permission_classes = [IsAdministrator]
   # GET処理
   def get(self, request):
-    # セッションからデータ取得
-    login_no = request.session.get('login_No')
-
-    # 未ログインや定義が未定義の場合はログイン画面へ
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+    member_data = request.user
 
     # データ変換
     login_serializer = MemberSerializer(member_data, many=False)
@@ -545,25 +471,18 @@ class AdministratorLoading(APIView):
 
 # 全工数履歴
 class AdministratorKosuList(APIView):
+  permission_classes = [IsAdministrator]
   # GET処理
   def get(self, request):
     # セッション値取得
-    login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
 
     # セッション値なしエラー
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+    member_data = request.user
 
     # 検索パラメータの取得
     search_day = request.query_params.get('day')
@@ -619,6 +538,7 @@ class AdministratorKosuList(APIView):
 
 
 class AdministratorKosuUpdate(APIView):
+  permission_classes = [IsAdministrator]
   # 指定IDの工数データ取得
   def get_object(self, pk):
     try:
@@ -635,24 +555,16 @@ class AdministratorKosuUpdate(APIView):
       return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # セッション値、編集前の日付、従業員番号取得
-    login_no = request.session.get('login_No')
     def_ver = request.session.get('input_def')
     request.session['day'] = str(kosu_instance.work_day2)
     request.session['employee_no'] = str(kosu_instance.employee_no3)
 
     # セッション値なしエラー
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
     if not def_ver:
       return Response({'status': 'error', 'message': '使用する工数区分定義情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+    member_data = request.user
 
     # 工数データ人員情報取得
     try:
@@ -718,22 +630,11 @@ class AdministratorKosuUpdate(APIView):
 
 
 class AdministratorTaskList(APIView):
+  permission_classes = [IsAdministrator]
   # GET処理
   def get(self, request):
-    # セッション値取得
-    login_no = request.session.get('login_No')
-
-    # セッション値なしエラー
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+    member_data = request.user
 
     # 検索パラメータの取得
     search_day = request.query_params.get('day')
@@ -762,6 +663,7 @@ class AdministratorTaskList(APIView):
 
 
 class AdministratorTaskDetail(APIView):
+  permission_classes = [IsAdministrator]
   def get_object(self, pk):
     try:
       return AsyncTask.objects.get(id=pk)
@@ -770,18 +672,8 @@ class AdministratorTaskDetail(APIView):
 
 
   def get(self, request, pk):
-    # セッションからログイン情報を取得
-    login_no = request.session.get('login_No')
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+    member_data = request.user
 
     # 削除対象のオブジェクトを取得
     task_instance = self.get_object(pk)
@@ -797,18 +689,8 @@ class AdministratorTaskDetail(APIView):
 
 
   def delete(self, request, pk):
-    # セッションからログイン情報を取得
-    login_no = request.session.get('login_No')
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+    member_data = request.user
 
     # 削除対象のオブジェクトを取得
     task_instance = self.get_object(pk)
@@ -822,22 +704,11 @@ class AdministratorTaskDetail(APIView):
 
 
 class AdministratorHistoryList(APIView):
+  permission_classes = [IsAdministrator]
   # GET処理
   def get(self, request):
-    # セッション値取得
-    login_no = request.session.get('login_No')
-
-    # セッション値なしエラー
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+    member_data = request.user
     
     member_all = member.objects.all()
     member_select = MemberSerializer(member_all, many=True)
@@ -885,6 +756,7 @@ class AdministratorHistoryList(APIView):
 
 
 class AdministratorHistoryDetail(APIView):
+  permission_classes = [IsAdministrator]
   def get_object(self, pk):
     try:
       return History.objects.get(id=pk)
@@ -893,18 +765,8 @@ class AdministratorHistoryDetail(APIView):
 
 
   def get(self, request, pk):
-    # セッションからログイン情報を取得
-    login_no = request.session.get('login_No')
-    if not login_no:
-      return Response({'status': 'error', 'message': 'ログイン情報が確認できません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
     # ログイン者情報取得
-    try:
-      member_data = member.objects.get(employee_no=login_no)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': 'ユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
-    if not member_data.administrator:
-      return Response({'status': 'error', 'message': 'アクセス権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+    member_data = request.user
 
     # 削除対象のオブジェクトを取得
     history_instance = self.get_object(pk)
@@ -932,7 +794,8 @@ class AdministratorHistoryDetail(APIView):
 
 
 
-class WebConsoleLogView(View):
+class WebConsoleLogView(APIView):
+  permission_classes = [IsAdministrator]
   def get(self, request, *args, **kwargs):
     # プロジェクトルートからのweb_console.logの相対パス
     LOG_FILE_PATH = os.path.join(settings.BASE_DIR, 'web_console.log')

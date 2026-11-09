@@ -67,6 +67,9 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     ),
+    'DEFAULT_AUTHENTICATION_CLASSES': ['kosu.permissions.LoginNoAuthentication'],  # だれがログインしているか
+    'DEFAULT_PERMISSION_CLASSES': ['kosu.permissions.IsLoggedIn'],                 # 最初から全部の API でログインが要る
+    'UNAUTHENTICATED_USER': None,                                                 # ログインしていない時の request.user は None
 }
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
