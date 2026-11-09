@@ -1,183 +1,260 @@
+/* ============================================================
+ * ファイル名 : TeamNew.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 班員登録画面（TeamPage/TeamNew.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーションと、
+ *              ショップ絞り込み欄（組長以上のショップのみ表示）・班員登録フォーム
+ *              （フォローON/OFFのトグルスイッチ、メンバー1〜15の選択プルダウン）の見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 班員登録フォームの幅
+ * ------------------------------------------------------------ */
+
+/* 班員登録フォーム（<form> 要素）の幅: 350px〜450px の範囲に収める */
 .form-width {
-  max-width: 450px;
-  min-width: 350px;
+  max-width: 450px; /* 最大幅450px */
+  min-width: 350px; /* 最小幅350px */
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「班員登録」: 班員系画面の共通色（オレンジ）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #f50;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #f50; /* 文字色: オレンジ */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「班員MENU」リンク */
 .team-nav a {
-  color: #f50;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #f50; /* 文字色: オレンジ */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「班員MENU」リンクにマウスを乗せたとき */
 .team-nav a:hover {
-  color: #f10;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #f10; /* 文字色: 赤に近いオレンジに変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: はみ出した分はスクロールさせ、表示時にフェードインさせる */
 .team-new-wrapper {
-  animation: fadeInUp 1s ease-out;
-  width: 100%;
-  max-height: 100%;
-  max-width: 100vw;
-  overflow-x: auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  margin: 0 auto;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-height: 100%; /* 高さは親要素の高さまでに制限する */
+  max-width: 100vw; /* 横幅は画面（ビューポート）の幅を超えないようにする */
+  overflow-x: auto; /* 横にはみ出した場合は横スクロールバーを出す */
+  overflow-y: auto; /* 縦にはみ出した場合は縦スクロールバーを出す */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
 }
 
+/* ------------------------------------------------------------
+ * 入力欄（ショップ絞り込み欄・班員登録フォーム共通）
+ * ------------------------------------------------------------ */
+
+/* 入力欄の枠（ショップ絞り込み欄と班員登録フォームの2か所で使用）: 縦一列に中央寄せで並べる */
 .search-bar {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 20px 0;
-  flex-wrap: wrap;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: center; /* 縦方向（並びの方向）の中央に寄せる */
+  align-items: center; /* 横方向の中央に揃える */
+  gap: 15px; /* 子要素同士の間隔 */
+  margin: 20px 0; /* 上下に20pxの余白 */
+  flex-wrap: wrap; /* 収まりきらないときは折り返す */
 }
 
+/* 項目名ラベル（「フォローON/OFF:」「メンバー1:」等）: 中央寄せの中でラベルだけ左端に寄せる */
 .search-bar label {
-  align-self: flex-start;
-  margin-left: 20px;
+  align-self: flex-start; /* この要素だけ左端に配置する */
+  margin-left: 20px; /* 左に20pxの余白を空ける */
 }
 
+/* 選択プルダウン（メンバー1〜15の TeamMemberSelect、絞り込みショップ1・2の ShopSelect） */
 .search-bar select {
-  padding: 8px 10px;
-  margin: 0 auto;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  width: calc(100% - 40px);
-  max-width: 400px;
-  min-width: 100px;
-  box-sizing: border-box;
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  width: calc(100% - 40px); /* 横幅: 親要素の幅から40pxを引いた幅（左右に20pxずつ余白を残す） */
+  max-width: 400px; /* ただし最大400pxまで */
+  min-width: 100px; /* ショップ絞り込みで2つ横に並べても潰れないよう最低100pxは確保する */
+  box-sizing: border-box; /* 内側の余白と枠線を含めて横幅を計算する（指定幅からはみ出さない） */
 }
 
+/* 選択プルダウンにフォーカス（選択中）したとき */
 .search-bar select:focus {
-  border-color: #ff5500;
-  outline: none;
-  box-shadow: 0 0 3px #555;
+  border-color: #ff5500; /* 枠線をオレンジにして選択中であることを示す */
+  outline: none; /* ブラウザ標準のフォーカス枠を消す（代わりに上の枠線色と影で示す） */
+  box-shadow: 0 0 3px #555; /* 周囲にうっすら影を付ける */
 }
 
+/* ------------------------------------------------------------
+ * ショップ絞り込み欄
+ * ------------------------------------------------------------ */
+
+/* 絞り込みショップ1・2のプルダウンを横に並べる枠 */
 .shop-select-container {
-  display: flex;
-  gap: 5px;
-  width: calc(100% - 40px);
-  max-width: 400px;
-  box-sizing: border-box;
+  display: flex; /* 2つのプルダウンをフレックスレイアウトで横に並べる */
+  gap: 5px; /* プルダウン同士の間隔 */
+  width: calc(100% - 40px); /* 横幅: 親要素の幅から40pxを引いた幅（他の入力欄と幅を揃える） */
+  max-width: 400px; /* ただし最大400pxまで */
+  box-sizing: border-box; /* 内側の余白と枠線を含めて横幅を計算する */
 }
 
+/* 「ショップ絞り込み:」ラベルを包む枠: 横幅いっぱいに広げて左寄せにする */
 .shop-label-wrapper {
-  width: 100%;
-  text-align: left;
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  text-align: left; /* 文字を左寄せにする */
 }
 
+/* ------------------------------------------------------------
+ * トグルスイッチ（フォローON/OFF）
+ * チェックボックス本体は透明にして隠し、代わりに .toggle-slider の
+ * 丸いつまみ付きのバーをスイッチとして見せる仕組み。
+ * ------------------------------------------------------------ */
+
+/* トグルスイッチ全体（<label> 要素）: 中の .toggle-slider を重ねる基準位置にする */
 .toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 75px;
-  height: 39px;
-  margin: 0 auto;
+  position: relative; /* 子要素の absolute 配置の基準にする */
+  display: inline-block; /* 横幅・高さを指定できるインライン要素にする */
+  width: 75px; /* スイッチの横幅 */
+  height: 39px; /* スイッチの高さ */
+  margin: 0 auto; /* 左右の余白を自動にする（※左余白は優先度の高い .search-bar label の 20px が適用される） */
 }
 
+/* スイッチ内のチェックボックス本体: 見えなくする（クリックは親の <label> 経由で効く） */
 .toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
+  opacity: 0; /* 完全に透明にして見えなくする */
+  width: 0; /* 幅を0にして場所を取らないようにする */
+  height: 0; /* 高さを0にして場所を取らないようにする */
 }
 
+/* スイッチのバー部分（OFF時の見た目）: スイッチ全体いっぱいに広がる角丸の灰色バー */
 .toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #999;
-  border-radius: 30px;
-  transition: 0.3s;
+  position: absolute; /* 親（.toggle-switch）を基準に重ねて配置する */
+  cursor: pointer; /* マウスカーソルを指の形にして押せることを示す */
+  top: 0; /* 親の上端に合わせる */
+  left: 0; /* 親の左端に合わせる */
+  right: 0; /* 親の右端に合わせる */
+  bottom: 0; /* 親の下端に合わせる（上下左右0で親いっぱいに広がる） */
+  background-color: #999; /* 背景色: 灰色（OFFの状態） */
+  border-radius: 30px; /* 角を大きく丸めてカプセル形にする */
+  transition: 0.3s; /* 色などの変化を0.3秒かけてなめらかに切り替える */
 }
 
+/* スイッチの丸いつまみ: バーの左端に白い円を表示する */
 .toggle-slider::before {
-  position: absolute;
-  content: "";
-  height: 30px;
-  width: 30px;
-  left: 4.5px;
-  bottom: 4.5px;
-  background-color: white;
-  border-radius: 50%;
-  transition: 0.3s;
+  position: absolute; /* バーを基準に重ねて配置する */
+  content: ""; /* 擬似要素を表示するために空の内容を指定する（中身は不要） */
+  height: 30px; /* つまみの高さ */
+  width: 30px; /* つまみの幅 */
+  left: 4.5px; /* バーの左端から4.5px内側に置く */
+  bottom: 4.5px; /* バーの下端から4.5px内側に置く（高さ39pxの中央付近） */
+  background-color: white; /* つまみの色: 白 */
+  border-radius: 50%; /* 正円にする */
+  transition: 0.3s; /* つまみの移動を0.3秒かけてなめらかにする */
 }
 
+/* チェックが入ったとき（フォローON）のバー: オレンジにする */
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #ff5500;
+  background-color: #ff5500; /* 背景色: オレンジ（ONの状態） */
 }
 
+/* チェックが入ったとき（フォローON）のつまみ: 右端へ移動させる */
 .toggle-switch input:checked + .toggle-slider::before {
-  transform: translateX(36px);
+  transform: translateX(36px); /* 右へ36px移動（75px幅 − つまみ30px − 左右の余白4.5px×2 ≒ 36px） */
 }
 
+/* 項目名ラベルとトグルスイッチをまとめる枠: 縦に並べて左寄せにする */
 .switch-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-start;
-  text-align: left;
-  width: 100%;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  gap: 4px; /* 子要素同士の間隔 */
+  align-items: flex-start; /* 子要素を左端に揃える */
+  text-align: left; /* 文字を左寄せにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
 }
 
+/* ------------------------------------------------------------
+ * ショップ絞り込み欄の外枠（カード）
+ * ------------------------------------------------------------ */
+
+/* ショップ絞り込み欄を包む白いカード: global.css の form と同じ見た目にして、下の登録フォームと揃える */
 .paling {
-  background-color: #fff;
-  padding: 0;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  min-width: 350px;
-  max-width: 450px;
-  margin: 10px auto;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-sizing: border-box;
+  background-color: #fff; /* 背景色: 白 */
+  padding: 0; /* 内側の余白なし */
+  border-radius: 8px; /* 角を丸める */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けてカードが浮いて見えるようにする */
+  min-width: 350px; /* 最小幅350px */
+  max-width: 450px; /* 最大幅450px */
+  margin: 10px auto; /* 上下10pxの余白。左右は自動にして中央に配置する */
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  overflow: hidden; /* はみ出した部分を隠す（角丸の外に中身が出ないようにする） */
+  box-sizing: border-box; /* 内側の余白と枠線を含めて横幅を計算する */
 }
 
+/* トグル枠内の項目名ラベル（「フォローON/OFF:」）とスイッチの <label>: 左に字下げする */
 .switch-wrapper label {
-  margin-left: 20px;
+  margin-left: 20px; /* 左に20pxの余白を空ける */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: 外枠の余白をなくし、プルダウンを細くし、リンク文字を小さくし、カードの最小幅を解除する */
 @media (max-width: 768px) {
+  /* 画面全体の外枠 */
   .team-new-wrapper {
-    margin: 0;
-    justify-content: flex-start;
+    margin: 0; /* 外側の余白をなくす */
+    justify-content: flex-start; /* ※ .team-new-wrapper はフレックスコンテナではないため、この指定は効果がない */
   }
 
+  /* 入力欄・プルダウン: 最大幅を狭める（※この画面の .search-bar 内の input はトグル内の透明なチェックボックスのみ） */
   .search-bar input,
   .search-bar select {
-    width: calc(100% - 40px);
-    max-width: 250px;
+    width: calc(100% - 40px); /* 横幅: 親要素の幅から40pxを引いた幅 */
+    max-width: 250px; /* 最大幅を250pxに狭める */
   }
 
+  /* 「班員MENU」リンク: 文字を小さくする */
   .team-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 
+  /* ショップ絞り込み欄のカード: 狭い画面に収まるよう最小幅を解除する（global.css の form と同じ対応） */
   .paling {
-    width: auto;
-    min-width: unset; 
+    width: auto; /* 横幅を自動にする */
+    min-width: unset; /* 最小幅350pxの指定を解除する */
   }
 }
 

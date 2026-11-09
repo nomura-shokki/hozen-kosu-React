@@ -1,24 +1,38 @@
+/* ============================================================
+ * ファイル名 : KosuDisplay.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 共通部品「工数表示表」（Components/KosuDisplay.tsx）
+ *              ※工数入力・工数削除・班員工数履歴詳細の各画面で使用
+ * 概要       : 1日分の工数（作業時間・作業内容・作業詳細）を一覧にした表を囲む、
+ *              スクロール可能なカード型の枠の見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* 工数表示表を囲む白いカード型の枠: はみ出した分は枠内でスクロールさせる
+   （※TSX側の style 属性で maxHeight・overflowY・width を画面サイズに合わせて上書きしている） */
 .table-wrapper {
-  width: calc(100% - 20px);
+  width: calc(100% - 20px); /* 親要素の幅から左右10pxずつ（計20px）を引いた幅にする */
   max-height: 400px; /* 明確な高さ制限を設定 */
-  max-width: calc(100vw - 20px);
+  max-width: calc(100vw - 20px); /* 横幅は画面（ビューポート）の幅から20px引いた幅までに制限する */
   overflow-x: auto; /* 横スクロールを許可する */
   overflow-y: auto; /* 縦スクロールを許可する */
   border: 1px solid #999; /* 境界線を追加してスクロール領域を明確にする */
   box-sizing: border-box; /* パディングやボーダーを含めてサイズを計算 */
-  -webkit-overflow-scrolling: touch; /* iOSでスムーズスクロールを有効化 */
+  -webkit-overflow-scrolling: touch; /* iOSでスムーズスクロールを有効化（旧ブラウザ向け指定） */
   margin: 10px auto; /* デフォルトでは中央揃えにする */
-  padding: 10px;
-  background-color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  animation: fadeInUp 0.8s ease-in-out;
+  padding: 10px; /* 内側の余白 */
+  background-color: #ffffff; /* 背景色: 白 */
+  border-radius: 16px; /* 角を大きく丸めてカード状に見せる */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側にうっすら影を付けて浮き上がって見せる */
+  animation: fadeInUp 0.8s ease-in-out; /* 0.8秒かけて表示する指定（※このファイルに @keyframes fadeInUp が無く、CSS Modules では別ファイルの同名アニメーションを参照できないため実際には動かない） */
 }
 
 /* 画面幅が768px以下の場合に左揃えに変更 */
 @media (max-width: 768px) {
+  /* 表の枠: 左右自動の余白（中央寄せ）をやめ、固定の余白にして左寄せにする */
   .table-wrapper {
-    margin: 10px;
+    margin: 10px; /* 外側の余白を上下左右10pxに固定する */
     padding-left: 10px; /* 少し余白を追加して視認性を向上 */
   }
 }

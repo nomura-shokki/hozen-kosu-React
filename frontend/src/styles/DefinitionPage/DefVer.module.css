@@ -1,75 +1,120 @@
+/* ============================================================
+ * ファイル名 : DefVer.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 工数区分定義切り替え画面（DefinitionPage/DefVer.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・工数区分定義Verの選択欄
+ *              （ラベル・プルダウン）・切り替えボタンの配置の見た目を定義する。
+ *              工数区分定義系の画面共通色（緑）を使う。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 子要素を縦に並べて中央寄せし、表示時にフェードインさせる */
 .defver-wrapper {
-  animation: fadeInUp 1s ease-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: top;
-  align-items: center;
-  height: 100vh;
-  width: 100%;
-  margin: 0 auto;
-  -webkit-overflow-scrolling: touch;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: top; /* ※ top は有効な値ではないためブラウザに無視される（初期値の上詰めと同じ表示） */
+  align-items: center; /* 子要素を横方向の中央に揃える */
+  height: 100vh; /* 高さを画面（ビューポート）の高さいっぱいにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「工数区分定義切り替え」: 工数区分定義系画面の共通色（緑）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #0f0;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0f0; /* 文字色: 明るい緑 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「工数区分定義MENU」へ戻るリンク */
 .def-nav a {
-  color: #0f0;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0f0; /* 文字色: 明るい緑 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「工数区分定義MENU」リンクにマウスを乗せたとき */
 .def-nav a:hover {
-  color: #0f0;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0f0; /* 文字色: 明るい緑（※通常時と同じ色のため、色の変化は無い。他画面では #32cd32 に変えている） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 工数区分定義Verの選択フォーム
+ * ------------------------------------------------------------ */
+
+/* ラベル「工数区分の選択:」: 中央寄せの中で、ラベルだけ左端に寄せる */
 .defver-wrapper label {
-  align-self: flex-start;
-  margin-left: 20px;
+  align-self: flex-start; /* この要素だけ横方向の左端に配置する（親の中央揃えを上書き） */
+  margin-left: 20px; /* 左に20pxの余白 */
 }
 
+/* 工数区分定義Verのプルダウン（Components/DefVersionSelect.tsx が描画する select 要素） */
 .defver-wrapper select {
-  padding: 8px 10px;
-  margin: 0 auto;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  width: calc(100% - 40px);
-  max-width: 400px;
-  box-sizing: border-box;
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  width: calc(100% - 40px); /* 幅: 親要素の幅から左右20pxずつ（計40px）引いた幅 */
+  max-width: 400px; /* 最大幅（広い画面で横に伸びすぎないように） */
+  box-sizing: border-box; /* 幅に枠線と内側余白を含めて計算する */
 }
 
+/* プルダウンにフォーカス（選択中）したとき */
 .defver-wrapper select:focus {
-  border-color: #0f0;
-  outline: none;
-  box-shadow: 0 0 3px #555;
+  border-color: #0f0; /* 枠線を緑にして選択中であることを示す */
+  outline: none; /* ブラウザ標準のフォーカス枠を消す（代わりに上の枠線色と影で示す） */
+  box-shadow: 0 0 3px #555; /* 周囲にうっすら影を付ける */
 }
 
+/* 「工数区分定義切り替え」ボタンを置く行: ボタンを中央に配置する */
 .search-button-row {
-  display: flex;
-  justify-content: center;
-  margin: 20px;
+  display: flex; /* 子要素（ボタン）をフレックスレイアウトで配置する */
+  justify-content: center; /* 横方向の中央に寄せる */
+  margin: 20px; /* 周囲に20pxの余白 */
 }
 
+/* 「現在の工数区分のVerは "〇〇" です」の文章: 下に余白を空ける */
 .defver-wrapper p {
-  margin-bottom: 10px;
+  margin-bottom: 10px; /* 下に10pxの余白 */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 「工数区分定義MENU」リンク: 文字を小さくする */
   .def-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }

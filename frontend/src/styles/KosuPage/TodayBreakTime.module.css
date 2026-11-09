@@ -1,86 +1,132 @@
+/* ============================================================
+ * ファイル名 : TodayBreakTime.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 当日休憩時間変更画面（KosuPage/TodayBreakTime.tsx）
+ *              ※工数入力画面の「休憩変更登録」ボタンから開き、入力中の日の1日分だけ休憩時間を変える画面
+ * 概要       : 画面全体の外枠・見出し・ナビゲーションと、
+ *              休憩（昼休憩・残業休憩1〜3）ごとの開始・終了時刻選択欄の見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル（「YYYY年M月D日」＋「休憩時間変更」の2行）: 工数系画面の共通色（水色）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0ff; /* 文字色: 水色（シアン） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「工数入力」リンク（工数入力画面へ戻る） */
 .kosu-nav a {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0ff; /* 文字色: 水色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「工数入力」リンクにマウスを乗せたとき */
 .kosu-nav a:hover {
-  color: #0af;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0af; /* 文字色: 少し濃い青に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 内容が画面からはみ出す場合は枠内でスクロールさせ、表示時にフェードインさせる */
 .today-brea-time-wrapper {
-  animation: fadeInUp 1s ease-out;
-  width: 100%;
-  max-height: 100%;
-  max-width: 100vw;
-  overflow-x: auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  margin: 0 auto;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-height: 100%; /* 高さは親要素の高さまでに制限する */
+  max-width: 100vw; /* 横幅は画面（ビューポート）の幅までに制限する */
+  overflow-x: auto; /* 横にはみ出した場合は横スクロールバーを出す */
+  overflow-y: auto; /* 縦にはみ出した場合は縦スクロールバーを出す */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: 外枠の余白をなくし、リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 外枠の余白調整（※TSX側では現在使用されていない。本画面の外枠は today-brea-time-wrapper） */
   .kosu-new-wrapper {
-    margin: 0;
-    justify-content: flex-start;
+    margin: 0; /* 外側の余白をなくす */
+    justify-content: flex-start; /* 子要素を先頭（上または左）に詰める */
   }
 
+  /* 「工数入力」リンク: 文字を小さくする */
   .kosu-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }
 
+/* ------------------------------------------------------------
+ * 休憩時間入力フォーム
+ * ------------------------------------------------------------ */
+
+/* 休憩ごとのラベル・時刻選択欄と「登録」ボタンを包む枠: 縦一列に中央寄せで並べる */
 .search-bar {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 20px 0;
-  flex-wrap: wrap;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: center; /* 縦方向の中央に寄せる */
+  align-items: center; /* 横方向の中央に揃える */
+  gap: 15px; /* 子要素同士の間隔 */
+  margin: 20px 0; /* 上下に20pxの余白 */
+  flex-wrap: wrap; /* 入りきらないときは折り返す */
 }
 
+/* 休憩の種類名ラベル（「昼休憩:」「残業休憩1:」など） */
 .search-bar label {
-  align-self: flex-start;
-  margin-left: 20px;
+  align-self: flex-start; /* 中央寄せの並びの中で、ラベルだけ左端に寄せる */
+  margin-left: 20px; /* 左に20pxの余白 */
 }
 
+/* 開始時刻・「〜」・終了時刻を横に並べる枠 */
 .time-picker-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: calc(100% - 40px);
-  max-width: 400px;
-  box-sizing: border-box;
-  flex-wrap: wrap;
+  display: flex; /* 子要素をフレックスレイアウトで横に並べる */
+  align-items: center; /* 縦方向の中央に揃える */
+  gap: 10px; /* 子要素同士の間隔 */
+  width: calc(100% - 40px); /* 親要素の幅から左右20pxずつ（計40px）を引いた幅にする */
+  max-width: 400px; /* 広い画面でも横幅は400pxまでにする */
+  box-sizing: border-box; /* 枠線・内側余白を幅に含めて計算する */
+  flex-wrap: wrap; /* 横幅が足りないときは折り返す */
 }
 
+/* 時刻選択枠の中のラベル（※TSX上ではこの枠内に label 要素は記述されていない） */
 .time-picker-wrapper label {
-  font-size: 1rem;
-  margin-left: 5px;
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  margin-left: 5px; /* 左に5pxの余白 */
 }
 
+/* 休憩の開始時刻・終了時刻を選ぶ欄（MUI の MobileTimePicker＝タップで時計型の時刻選択画面を開く部品） */
 .time-picker {
-  flex: 1;
-  font-size: 1rem;
-  padding: 8px 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
-  background-color: #fff; 
+  flex: 1; /* 横並びの中で残りの幅を均等に分け合う */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  background-color: #fff; /* 背景色: 白 */
 }

@@ -1,98 +1,152 @@
+/* ============================================================
+ * ファイル名 : InquirList.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 問い合わせ履歴画面（InquirPage/InquirList.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・検索欄（問い合わせ者・内容の
+ *              選択欄＋検索ボタン）・一覧表の見た目を定義する。
+ *              問い合わせ系の画面共通色（ピンク）を使う。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 子要素を縦に並べて中央寄せし、表示時にフェードインさせる */
 .inquir-list-wrapper {
-  animation: fadeInUp 1s ease-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: top;
-  align-items: center;
-  height: 100vh;
-  width: 100%;
-  margin: 0 auto;
-  -webkit-overflow-scrolling: touch;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: top; /* ※ top は有効な値ではないためブラウザに無視される（初期値の上詰めと同じ表示） */
+  align-items: center; /* 子要素を横方向の中央に揃える */
+  height: 100vh; /* 高さを画面（ビューポート）の高さいっぱいにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「問い合わせ履歴」: 問い合わせ系画面の共通色（ピンク）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #ff69b4;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff69b4; /* 文字色: ピンク（ホットピンク） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「問い合わせMENU」へ戻るリンク */
 .inquir-nav a {
-  color: #ff69b4;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff69b4; /* 文字色: ピンク */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「問い合わせMENU」リンクにマウスを乗せたとき */
 .inquir-nav a:hover {
-  color: #ff1493;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff1493; /* 文字色: 濃いピンクに変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 検索欄
+ * ------------------------------------------------------------ */
+
+/* 検索欄（問い合わせ者の選択欄・内容の選択欄・検索ボタン）: 横一列に中央寄せで並べる */
 .search-bar {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 20px 0;
-  flex-wrap: wrap;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: row; /* 子要素を横方向に並べる */
+  justify-content: center; /* 横方向の中央に寄せる */
+  align-items: center; /* 縦方向の中央に揃える */
+  gap: 15px; /* 子要素同士の間隔 */
+  margin: 20px 0; /* 上下に20pxの余白 */
+  flex-wrap: wrap; /* 横幅が足りないときは折り返す */
 }
 
+/* 問い合わせ者・内容の選択欄（Components/TeamMemberSelect.tsx・ItemSelect.tsx が描画する select 要素）
+ *   ※ input はこの画面の検索欄には無い */
 .search-bar input,
 .search-bar select {
-  padding: 8px 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  min-width: 180px;
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  min-width: 180px; /* 選択肢が欠けて表示されないよう最低幅を確保する */
 }
 
+/* 選択欄にフォーカス（選択中）したとき */
 .search-bar input:focus,
 .search-bar select:focus {
-  border-color: #ff69b4;
-  outline: none;
-  box-shadow: 0 0 3px #555;
+  border-color: #ff69b4; /* 枠線をピンクにして選択中であることを示す */
+  outline: none; /* ブラウザ標準のフォーカス枠を消す（代わりに上の枠線色と影で示す） */
+  box-shadow: 0 0 3px #555; /* 周囲にうっすら影を付ける */
 }
 
+/* 検索ボタンにマウスを乗せたとき */
 .search-bar button:hover {
-  background-color: #ff1493;
-  box-shadow: 0 0 5px #555;
+  background-color: #ff1493; /* 背景色を濃いピンクにする */
+  box-shadow: 0 0 5px #555; /* 周囲に影を付けて浮き上がって見せる */
 }
 
+/* 検索ボタンにフォーカスしたとき */
 .search-bar button:focus {
-  outline: none;
-  box-shadow: 0 0 3px #555;
+  outline: none; /* ブラウザ標準のフォーカス枠を消す */
+  box-shadow: 0 0 3px #555; /* 代わりに周囲へうっすら影を付ける */
 }
 
+/* ------------------------------------------------------------
+ * 一覧表
+ * ------------------------------------------------------------ */
+
+/* 表の見出しセル（No.・問い合わせ者・内容・問い合わせ・回答） */
 .th-collar {
-  background-color: #ff69b4;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  background-color: #ff69b4; /* 背景色: ピンク */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 表内の問い合わせ者名リンク（押すと問い合わせ詳細画面へ遷移する） */
 .a-collar {
-  color: #ff69b4;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff69b4; /* 文字色: ピンク */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 問い合わせ者名リンクにマウスを乗せたとき */
 .a-collar:hover {
-  color: #ff1493;
+  color: #ff1493; /* 文字色: 濃いピンク */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: 検索欄を縦並びにし、リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 検索欄: 選択欄と検索ボタンを縦に並べる */
   .search-bar {
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: column; /* 子要素を縦方向に並べる */
+    gap: 10px; /* 間隔を少し詰める */
   }
 
+  /* 「問い合わせMENU」リンク: 文字を小さくする */
   .inquir-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }

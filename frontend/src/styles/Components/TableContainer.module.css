@@ -1,18 +1,32 @@
+/* ============================================================
+ * ファイル名 : TableContainer.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 共通部品「一覧表の外枠」（Components/TableContainer.tsx）
+ *              ※工数履歴・人員一覧・班員工数履歴・工数区分定義一覧・問い合わせ履歴・管理者の各一覧画面などで使用
+ * 概要       : 一覧表を囲み、表がはみ出す場合に枠内で縦横スクロールさせる外枠の見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ *              高さの上限とスクロール指定は、TSX側で画面の高さから計算した値を style 属性で上書きしている。
+ * ============================================================ */
+
+/* 一覧表を囲む外枠: はみ出した分は枠内でスクロールさせる */
 .table-wrapper {
-  max-height: 400px;
-  overflow-x: auto;
-  overflow-y: auto;
-  border: 1px solid #999;
-  box-sizing: border-box;
-  -webkit-overflow-scrolling: touch;
-  margin: 0;
+  max-height: 400px; /* 高さの上限（※TSX側の style 属性で画面サイズに合わせた値に上書きされる） */
+  overflow-x: auto; /* 横にはみ出した場合は横スクロールバーを出す */
+  overflow-y: auto; /* 縦にはみ出した場合は縦スクロールバーを出す */
+  border: 1px solid #999; /* 灰色の細い枠線でスクロール領域を明確にする */
+  box-sizing: border-box; /* 枠線・内側余白を幅に含めて計算する */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
+  margin: 0; /* 外側の余白なし */
 }
 
+/* 画面幅が768px以下のとき: 外枠を画面幅いっぱいに広げ、左寄せにする */
 @media (max-width: 768px) {
+  /* 一覧表の外枠: 横幅いっぱい・左寄せにする */
   .table-wrapper {
-    align-self: flex-start;
-    padding-left: 0;
-    width: 100%;
-    max-width: 100vw;
+    align-self: flex-start; /* 親要素がフレックスレイアウトの場合、自分だけ先頭（縦並びなら左端）に寄せる */
+    padding-left: 0; /* 左の内側余白なし */
+    width: 100%; /* 横幅を親要素いっぱいにする */
+    max-width: 100vw; /* 横幅は画面（ビューポート）の幅までに制限する */
   }
 }

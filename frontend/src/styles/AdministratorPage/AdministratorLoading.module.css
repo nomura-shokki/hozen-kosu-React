@@ -1,299 +1,373 @@
+/* ============================================================
+ * ファイル名 : AdministratorLoading.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : データ管理画面（AdministratorPage/AdministratorLoading.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・期間指定欄・データ種類ごとの
+ *              バックアップ / 削除 / ロード（ファイル読み込み）ボタンとファイル選択欄の見た目を定義する。
+ *              ボタンはデータ種類ごとに色分けしている（工数=水色、工数区分定義・作業詳細選択肢=緑、
+ *              人員=黄、班員=オレンジ、問い合わせ=ピンク、設定・タスク履歴・操作履歴=灰色）。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 子要素を縦に並べて中央寄せし、表示時にフェードインさせる */
 .admin-loading-wrapper {
-  animation: fadeInUp 1s ease-out;
-  display: flex; /* 子要素をフレックスレイアウトにする */
-  flex-direction: column; /* 縦方向に要素を並べる */
-  justify-content: top;
-  align-items: center; /* 横方向の中央に配置 */
-  height: 100vh; /* 画面の高さいっぱいにする */
-  width: 100%;
-  margin: 0 auto; /* 横方向の中央寄せ */
-  -webkit-overflow-scrolling: touch;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: top; /* ※ top は有効な値ではないためブラウザに無視される（初期値の上詰めと同じ表示） */
+  align-items: center; /* 子要素を横方向の中央に揃える */
+  height: 100vh; /* 高さを画面（ビューポート）の高さいっぱいにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「データ管理」: 管理者系画面の共通色（灰色）に濃い灰色の縁取りを付ける */
 .h1-collar {
-  color: #656565;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #656565; /* 文字色: 灰色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて濃い灰色の縁取りに見せる */
 }
 
+/* 「管理者MENU」リンク */
 .admin-nav a {
-  color: #656565;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #656565; /* 文字色: 灰色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 濃い灰色の縁取り */
 }
 
+/* 「管理者MENU」リンクにマウスを乗せたとき */
 .admin-nav a:hover {
-  color: #3a3a3a;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #3a3a3a; /* 文字色: さらに濃い灰色に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 濃い灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 操作欄（期間指定・データ種類ごとの行）
+ * ------------------------------------------------------------ */
+
+/* 操作欄全体: 「期間指定：」「工数データ…：」などのラベルと、その下のボタン行を縦1列に並べる */
 .search-bar {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 5px 0;
-  min-width: 250px;
-  flex-wrap: wrap;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* ラベルとボタン行を縦方向に並べる */
+  justify-content: center; /* 縦方向の中央に寄せる */
+  align-items: center; /* 横方向の中央に揃える */
+  gap: 15px; /* 子要素同士の間隔 */
+  margin: 5px 0; /* 上下に5pxの余白 */
+  min-width: 250px; /* 狭い画面でもボタンが潰れないよう最低幅を確保する */
+  flex-wrap: wrap; /* 入りきらないときは折り返す */
 }
 
+/* 各行のラベル（「期間指定：」「人員データ：」など）: 左端に寄せる */
 .search-bar label {
-  align-self: flex-start;
+  align-self: flex-start; /* このラベルだけ中央寄せをやめて左端に配置する */
 }
 
+/* 操作欄内の入力欄・ボタン（input 要素全般）の基本の見た目 */
 .search-bar input {
-  padding: 8px 10px;
-  margin: 0 auto;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  width: calc(100% - 40px);
-  max-width: 400px;
-  box-sizing: border-box;
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  width: calc(100% - 40px); /* 横幅: 親要素の幅から左右20pxずつ（計40px）を引いた幅 */
+  max-width: 400px; /* 広い画面でも400pxより広げない */
+  box-sizing: border-box; /* 内側余白・枠線を含めた大きさで幅を計算する */
 }
 
+/* 1行分の操作（期間指定の日付2つ、またはバックアップ・削除・ロードのボタン群）: 横一列に並べる */
 .input-row {
-  display: flex; 
-  justify-content: space-between;
-  align-items: center; 
-  width: 100%; 
-  align-self: center; 
-  margin: 0 auto;
+  display: flex; /* 子要素をフレックスレイアウトで横に並べる */
+  justify-content: space-between; /* 子要素を両端揃えで均等に配置する */
+  align-items: center; /* 縦方向の中央に揃える */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  align-self: center; /* 親（操作欄）の中で横方向の中央に配置する */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
 }
 
+/* 行内の入力欄・ボタン: 左右と下に余白を付ける */
 .input-row input {
-  max-width: none; 
-  margin: 0 10px 15px 10px;
-  padding: 8px 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
+  max-width: none; /* 操作欄共通の最大幅400pxを解除する */
+  margin: 0 10px 15px 10px; /* 外側の余白（上0・左右10px・下15px） */
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
 }
 
+/* ロード用のまとまり（ファイル選択欄＋「ロード開始」ボタン）: 縦に並べる */
 .input-column {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  margin: 0 10px 15px 10px; 
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* ファイル選択欄とボタンを縦方向に並べる */
+  align-items: stretch; /* 子要素の横幅をまとまりの幅いっぱいに伸ばす */
+  margin: 0 10px 15px 10px; /* 外側の余白（上0・左右10px・下15px） */
 }
 
+/* ロード用のまとまりの中の入力欄（隠しファイル選択欄を除く）: 幅いっぱいに広げる */
 .input-column input:not(.hidden-file-input) {
-  width: 100%;
-  margin: 0;
-  max-width: none;
+  width: 100%; /* 横幅を親要素（まとまり）いっぱいにする */
+  margin: 0; /* 行内共通の外側余白を打ち消す */
+  max-width: none; /* 最大幅の制限を解除する */
 }
 
+/* ロード用のまとまりの中の入力欄すべて（隠しファイル選択欄も含む。上のルールと同じ内容） */
 .input-column input {
-  width: 100%;
-  margin: 0;
-  max-width: none;
+  width: 100%; /* 横幅を親要素（まとまり）いっぱいにする */
+  margin: 0; /* 行内共通の外側余白を打ち消す */
+  max-width: none; /* 最大幅の制限を解除する */
 }
 
+/* ------------------------------------------------------------
+ * ファイル選択欄
+ * ------------------------------------------------------------ */
+
+/* 本物のファイル選択欄（input type="file"）: ブラウザ標準の見た目を隠し、
+ * 代わりに下の .custom-file-label（label 要素）をクリックさせてファイルを選ばせる */
 .hidden-file-input {
-  width: 0.1px;
-  height: 0.1px;
-  opacity: 0;
-  overflow: hidden;
-  position: absolute;
-  z-index: -1;
+  width: 0.1px; /* ほぼ幅0にする（※上の .input-column input の width: 100% の方が優先度が高く、実際はそちらで上書きされる） */
+  height: 0.1px; /* ほぼ高さ0にする（display: none だと label からのクリックが効かないブラウザがあるため、極小サイズで隠す手法） */
+  opacity: 0; /* 完全に透明にする */
+  overflow: hidden; /* はみ出した部分を表示しない */
+  position: absolute; /* 通常の配置の流れから外し、周りのレイアウトに影響させない */
+  z-index: -1; /* 他の要素より後ろに置き、誤ってクリックされないようにする */
 }
 
+/* ファイル選択ボタン代わりのラベル（「ファイルを選択 (CSV/XLSX)」、選択後はファイル名を表示） */
 .custom-file-label {
-  display: inline-block;
-  width: 100%;
-  background-color: #f3f3f3;
-  color: #333;
-  text-shadow: none;
-  border: 1px solid #999;
-  padding: 10px;
-  text-align: center;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin: 0 0 5px 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; 
+  display: inline-block; /* 幅・余白を指定できるようにする */
+  width: 100%; /* 横幅を親要素（まとまり）いっぱいにする */
+  background-color: #f3f3f3; /* 背景色: ごく薄い灰色 */
+  color: #333; /* 文字色: 濃い灰色 */
+  text-shadow: none; /* 文字の影（縁取り）を付けない */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  text-align: center; /* 文字を中央揃えにする */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスを乗せると指の形のカーソルにして押せることを示す */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影を0.3秒かけて滑らかに変化させる */
+  margin: 0 0 5px 0; /* 下に5pxの余白（下の「ロード開始」ボタンとの間隔） */
+  white-space: nowrap; /* 長いファイル名でも改行させない */
+  overflow: hidden; /* 枠からはみ出した文字を隠す */
+  text-overflow: ellipsis; /* はみ出した部分を「…」で省略表示する */
 }
 
+/* ファイル選択ラベルにマウスを乗せたとき */
 .custom-file-label:hover {
-  background-color: #e0e0e0;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: none;
+  background-color: #e0e0e0; /* 背景色を少し濃い灰色にする */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: none; /* 下線を付けない */
 }
 
+/* ファイル選択ラベルが操作できないとき（いずれかの処理の実行中）: 半透明にして禁止カーソルにする
+ * （TSX 側は実行中に style 属性へ cursor: not-allowed を入れるため、[style*="not-allowed"] の方で一致する。
+ *   label 要素には disabled 属性は付けていないため [disabled] 側は現在一致しない） */
 .custom-file-label[disabled],
 .custom-file-label[style*="not-allowed"] {
-  opacity: 0.6;
-  cursor: not-allowed !important;
+  opacity: 0.6; /* 60%の不透明度（半透明）にして操作できないことを示す */
+  cursor: not-allowed !important; /* 禁止マークのカーソルにする（!important で他の cursor 指定より必ず優先させる） */
 }
 
+/* バックアップ / 削除 / ロードのボタンが押せないとき（処理の実行中、またはロード用ファイルが未選択） */
 .input-row input[type="button"]:disabled,
 .input-column input[type="button"]:disabled {
-  background-color: #999; 
-  color: #888; 
-  text-shadow: none;
-  cursor: not-allowed; 
-  box-shadow: none; 
+  background-color: #999; /* 背景色: 灰色（データ種類ごとの色を消す） */
+  color: #888; /* 文字色: 薄い灰色 */
+  text-shadow: none; /* 文字の縁取りを消す */
+  cursor: not-allowed; /* 禁止マークのカーソルにする */
+  box-shadow: none; /* 影を消す */
 }
 
+/* ------------------------------------------------------------
+ * データ種類ごとの操作ボタン（バックアップ開始・削除開始・ロード開始）
+ *   ※各ボタンは .search-bar / .input-row / .input-column の中の input 要素のため、
+ *     width・max-width・padding・font-size・border・border-radius・margin は、
+ *     セレクタの優先度が高い上記の「〜 input」向けルールの指定で上書きされる
+ * ------------------------------------------------------------ */
+
+/* 工数データ用のボタン: 水色（工数系画面の共通色） */
 .kosu-button {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #0ff;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: clamp(1rem, 1rem + 3vw, 2rem);
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* 幅・余白を指定できるようにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* 最大幅400px */
+  background-color: #0ff; /* 背景色: 水色（シアン） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem); /* 文字サイズ: 画面幅に応じて 1rem〜2rem の範囲で自動調整する */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスを乗せると指の形のカーソルにして押せることを示す */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影を0.3秒かけて滑らかに変化させる */
+  margin-bottom: 15px; /* 下に15pxの余白 */
+  text-decoration: none; /* 下線を付けない */
 }
 
+/* 工数データ用のボタンにマウスを乗せたとき */
 .kosu-button:hover {
-  background-color: #0af;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #0af; /* 背景色を少し濃い青にする */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: underline; /* 下線を付ける（※直後の text-decoration: none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を付けない（後に書いた指定が優先される） */
 }
 
+/* 工数区分定義データ・作業詳細選択肢データ用のボタン: 緑 */
 .def-button {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #0f0;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: clamp(1rem, 1rem + 3vw, 2rem);
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* 幅・余白を指定できるようにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* 最大幅400px */
+  background-color: #0f0; /* 背景色: 緑（ライム） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem); /* 文字サイズ: 画面幅に応じて 1rem〜2rem の範囲で自動調整する */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* 指の形のカーソルにする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影を0.3秒かけて滑らかに変化させる */
+  margin-bottom: 15px; /* 下に15pxの余白 */
+  text-decoration: none; /* 下線を付けない */
 }
 
+/* 工数区分定義データ・作業詳細選択肢データ用のボタンにマウスを乗せたとき */
 .def-button:hover {
-  background-color: #32cd32;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #32cd32; /* 背景色を少し濃い緑（ライムグリーン）にする */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: underline; /* 下線を付ける（※直後の text-decoration: none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を付けない（後に書いた指定が優先される） */
 }
 
+/* 人員データ用のボタン: 黄（人員系画面の共通色） */
 .member-button {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #ffd700;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: clamp(1rem, 1rem + 3vw, 2rem);
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* 幅・余白を指定できるようにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* 最大幅400px */
+  background-color: #ffd700; /* 背景色: 黄（ゴールド） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem); /* 文字サイズ: 画面幅に応じて 1rem〜2rem の範囲で自動調整する */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* 指の形のカーソルにする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影を0.3秒かけて滑らかに変化させる */
+  margin-bottom: 15px; /* 下に15pxの余白 */
+  text-decoration: none; /* 下線を付けない */
 }
 
+/* 人員データ用のボタンにマウスを乗せたとき */
 .member-button:hover {
-  background-color: #ffa500;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #ffa500; /* 背景色をオレンジにする */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: underline; /* 下線を付ける（※直後の text-decoration: none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を付けない（後に書いた指定が優先される） */
 }
 
+/* 班員データ用のボタン: オレンジ（班員系画面の共通色） */
 .team-button {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #ff5500;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: clamp(1rem, 1rem + 3vw, 2rem);
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* 幅・余白を指定できるようにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* 最大幅400px */
+  background-color: #ff5500; /* 背景色: 濃いオレンジ */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem); /* 文字サイズ: 画面幅に応じて 1rem〜2rem の範囲で自動調整する */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* 指の形のカーソルにする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影を0.3秒かけて滑らかに変化させる */
+  margin-bottom: 15px; /* 下に15pxの余白 */
+  text-decoration: none; /* 下線を付けない */
 }
 
+/* 班員データ用のボタンにマウスを乗せたとき */
 .team-button:hover {
-  background-color: #ff1100;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #ff1100; /* 背景色を赤に近いオレンジにする */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: underline; /* 下線を付ける（※直後の text-decoration: none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を付けない（後に書いた指定が優先される） */
 }
 
+/* 問い合わせデータ用のボタン: ピンク（問い合わせ系画面の共通色） */
 .inquiry-button {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #ff69b4;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: clamp(1rem, 1rem + 3vw, 2rem);
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* 幅・余白を指定できるようにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* 最大幅400px */
+  background-color: #ff69b4; /* 背景色: ピンク（ホットピンク） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem); /* 文字サイズ: 画面幅に応じて 1rem〜2rem の範囲で自動調整する */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* 指の形のカーソルにする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影を0.3秒かけて滑らかに変化させる */
+  margin-bottom: 15px; /* 下に15pxの余白 */
+  text-decoration: none; /* 下線を付けない */
 }
 
+/* 問い合わせデータ用のボタンにマウスを乗せたとき */
 .inquiry-button:hover {
-  background-color: #ff1493;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #ff1493; /* 背景色を濃いピンク（ディープピンク）にする */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: underline; /* 下線を付ける（※直後の text-decoration: none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を付けない（後に書いた指定が優先される） */
 }
 
+/* 設定データ・タスク履歴データ・操作履歴データ用のボタン: 灰色（管理者系画面の共通色） */
 .setting-button {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #656565;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: clamp(1rem, 1rem + 3vw, 2rem);
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* 幅・余白を指定できるようにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* 最大幅400px */
+  background-color: #656565; /* 背景色: 灰色 */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 濃い灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem); /* 文字サイズ: 画面幅に応じて 1rem〜2rem の範囲で自動調整する */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* 指の形のカーソルにする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影を0.3秒かけて滑らかに変化させる */
+  margin-bottom: 15px; /* 下に15pxの余白 */
+  text-decoration: none; /* 下線を付けない */
 }
 
+/* 設定データ・タスク履歴データ・操作履歴データ用のボタンにマウスを乗せたとき */
 .setting-button:hover {
-  background-color: #3a3a3a;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #3a3a3a; /* 背景色をさらに濃い灰色にする */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: underline; /* 下線を付ける（※直後の text-decoration: none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を付けない（後に書いた指定が優先される） */
 }
 

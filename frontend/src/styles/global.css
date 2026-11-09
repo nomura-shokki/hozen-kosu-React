@@ -1,342 +1,459 @@
+/* ============================================================
+ * ファイル名 : global.css
+ * 種別       : スタイルシート（全画面共通）
+ * 対象画面   : 全画面（frontend/src/index.tsx で import './styles/global.css' として読み込まれる）
+ * 概要       : 全画面に適用される共通スタイル。ブラウザ標準の見た目のリセット、
+ *              ページ全体・見出し・フォーム・表の基本の見た目、画面の系統ごとに
+ *              色分けした共通ボタン、エラーメッセージ、日付/時刻入力欄の調整を定義する。
+ * 共通クラス : 以下のボタン用クラスは TSX 側で className="light_blue_button" のように
+ *              文字列で直接指定して使う（系統ごとにボタンの色を変えている）。
+ *   - blue_button       : メインメニュー・ログイン画面（MainPage/MainMenu.tsx, Login.tsx）、工数編集画面（KosuPage/KosuEdit.tsx）
+ *   - yellow_button     : 人員系画面（MemberPage/MemberList・MemberNew・MemberEdit・MemberDelete.tsx）
+ *   - green_button      : 工数区分定義系画面（DefinitionPage/DefNew・DefEdit・DefDelete・DefVer・
+ *                         DefDetailNew・DefDetailList・DefDetailEdit・DefDetailDelete.tsx）、工数入力画面（KosuPage/KosuNew.tsx）
+ *   - light_blue_button : 工数系画面（KosuPage/KosuNew・KosuEdit・KosuList・KosuDelete・KosuCalendar・
+ *                         BreakTime・TodayBreakTime.tsx）
+ *   - orange_button     : 班員系画面（TeamPage/TeamNew・TeamList・TeamCalendar・TeamView.tsx）
+ *   - pink_button       : 問い合わせ系画面（InquirPage/InquirNew・InquirList・InquirDetail・InquirUpdate.tsx）
+ *   - gray_button       : 管理者系画面（AdministratorPage/ 配下の各画面）、ヘルプ画面（MainPage/Help.tsx）
+ * 補足       : CSS Modules ではない通常のCSSのため、ここに書いたクラス名・タグ名の指定は
+ *              アプリ内の全画面に効く（h1, form, table などはすべての同じタグに適用される）。
+ *              各画面の *.module.css で同じ要素に別の指定をした場合は、そちらで上書きされることがある。
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * リセット（ブラウザ標準の見た目の打ち消し）
+ *   ブラウザごとに異なる初期の余白・装飾を消して、どのブラウザでも同じ見た目から始める
+ * ------------------------------------------------------------ */
+
+/* 全要素共通: ブラウザ標準の余白を消し、幅・高さの計算方法を統一する */
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  margin: 0; /* 外側の余白をなくす */
+  padding: 0; /* 内側の余白をなくす */
+  box-sizing: border-box; /* width/height に枠線と内側余白を含めて計算する（レイアウトが崩れにくい） */
 }
 
+/* ページの土台（html と body）: 高さを画面いっぱいにし、基本フォントを指定する */
 html, body {
-  height: 100%;
-  font-family: 'Arial', sans-serif;
+  height: 100%; /* 高さを親（画面）いっぱいにする */
+  font-family: 'Arial', sans-serif; /* 基本フォント: Arial（無ければゴシック系の標準フォント） */
 }
 
+/* ボタン・入力欄・選択欄・複数行入力欄: ブラウザ標準の装飾を消し、周りの文字と同じ書式にする */
 button,
 input,
 select,
 textarea {
-  font-family: inherit;
-  font-size: 100%;
-  margin: 0;
-  padding: 0;
-  border: none;
-  background: none;
-  outline: none;
+  font-family: inherit; /* フォントを親要素から引き継ぐ（ブラウザ標準の入力欄用フォントを使わない） */
+  font-size: 100%; /* 文字サイズを親要素と同じにする（入力欄は標準だと小さめになるため） */
+  margin: 0; /* 外側の余白をなくす */
+  padding: 0; /* 内側の余白をなくす */
+  border: none; /* 標準の枠線を消す */
+  background: none; /* 標準の背景色を消す */
+  outline: none; /* 選択中（フォーカス時）の標準の枠線を消す */
 }
 
+/* 箇条書きリスト（ul: 記号付き / ol: 番号付き）: 行頭の記号と余白を消す */
 ul,
 ol {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  list-style: none; /* 行頭の「・」や番号を表示しない */
+  margin: 0; /* 外側の余白をなくす */
+  padding: 0; /* 内側の余白（標準では左側に字下げがある）をなくす */
 }
 
+/* リンク: 標準の下線と青色を消す */
 a {
-  text-decoration: none;
-  color: inherit;
+  text-decoration: none; /* 下線を消す */
+  color: inherit; /* 文字色を親要素から引き継ぐ（標準の青・紫にしない） */
 }
 
+/* 画像: 親要素からはみ出さないようにする */
 img {
-  max-width: 100%;
-  height: auto;
-  display: block;
+  max-width: 100%; /* 横幅は親要素の幅まで（はみ出さない） */
+  height: auto; /* 縦横比を保ったまま高さを自動計算する */
+  display: block; /* ブロック要素にして、画像の下にできる隙間を消す */
 }
 
 
 
 
 
+/* ------------------------------------------------------------
+ * 共通の変数（CSSカスタムプロパティ）
+ * ------------------------------------------------------------ */
+
+/* 文字サイズの変数: 画面幅に応じて自動で伸び縮みする文字サイズを定義する
+ *   clamp(最小値, 推奨値, 最大値) … 推奨値を使い、最小値〜最大値の範囲に収める
+ *   rem = ルート要素の文字サイズ（通常16px）、vw = 画面幅の1%
+ *   下の h1 / h2 / p で var(--変数名) として参照する */
 :root {
-  --heading1: clamp(1.5rem, 1.5rem + 3vw, 4rem); 
-  --heading2: clamp(0.7rem, 0.8rem + 3vw, 1.5rem);
-  --paragraph: clamp(0.3rem, 0.6rem + 3vw, 1rem);
+  --heading1: clamp(1.5rem, 1.5rem + 3vw, 4rem); /* 大見出し(h1)用: 24px〜64px の範囲で画面幅に比例 */
+  --heading2: clamp(0.7rem, 0.8rem + 3vw, 1.5rem); /* 中見出し(h2)用: 約11px〜24px の範囲で画面幅に比例 */
+  --paragraph: clamp(0.3rem, 0.6rem + 3vw, 1rem); /* 本文(p)用: 約5px〜16px の範囲で画面幅に比例 */
 }
 
+/* ------------------------------------------------------------
+ * ページ全体・文字要素
+ * ------------------------------------------------------------ */
+
+/* ページ本体: 薄い灰色の背景にし、画面の中身を横方向の中央・上詰めで配置する */
 body {
-  font-family: 'Arial', sans-serif;
-  margin: 0;
-  padding: 10px;
-  background-color: #f4f7f9;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  overflow-x: auto;
-  white-space: nowrap;
+  font-family: 'Arial', sans-serif; /* 基本フォント（上の html, body と同じ指定） */
+  margin: 0; /* 外側の余白をなくす */
+  padding: 10px; /* 画面の端と中身の間に10pxの余白を空ける */
+  background-color: #f4f7f9; /* 背景色: ごく薄い青みがかった灰色 */
+  display: flex; /* 中身（React の描画領域）をフレックスレイアウトで配置する */
+  justify-content: center; /* 中身を横方向の中央に寄せる */
+  align-items: flex-start; /* 中身を縦方向は上詰めにする */
+  min-height: 100vh; /* 最低でも画面（ビューポート）の高さいっぱいにする */
+  overflow-x: auto; /* 中身が画面幅より広いときは横スクロールできるようにする */
+  white-space: nowrap; /* 文字を自動で折り返さない（全要素に引き継がれるため、表などが崩れない） */
 }
 
+/* 大見出し（各画面のタイトル）: 画面幅に応じた大きさで中央に表示する */
 h1 {
-  font-size: var(--heading1);
-  margin-bottom: 1rem;
-  text-align: center;
+  font-size: var(--heading1); /* 文字サイズ: 上で定義した大見出し用の変数 */
+  margin-bottom: 1rem; /* 下にルート文字サイズ1文字分の余白 */
+  text-align: center; /* 中央揃え */
 }
 
+/* 中見出し: 画面幅に応じた大きさで中央に表示する */
 h2 {
-  font-size: var(--heading2);
-  margin-bottom: 0.2rem;
-  text-align: center;
+  font-size: var(--heading2); /* 文字サイズ: 上で定義した中見出し用の変数 */
+  margin-bottom: 0.2rem; /* 下にわずかな余白 */
+  text-align: center; /* 中央揃え */
 }
 
+/* 本文の段落: 画面幅に応じた大きさで中央に表示する */
 p {
-  font-size: var(--paragraph);
-  text-align: center;
+  font-size: var(--paragraph); /* 文字サイズ: 上で定義した本文用の変数 */
+  text-align: center; /* 中央揃え */
 }
 
+/* リンク（2回目の指定）: 下線を消す */
 a {
-  text-decoration: none;
+  text-decoration: none; /* 下線を消す（上のリセット部分の a と同じ指定の重複） */
 }
 
+/* リンクにマウスを乗せたとき: 下線を表示して押せることを示す */
 a:hover {
-  text-decoration: underline;
+  text-decoration: underline; /* 下線を表示する */
 }
 
+/* ------------------------------------------------------------
+ * フォーム（入力画面の枠）
+ * ------------------------------------------------------------ */
+
+/* 入力フォーム全体: 白いカード状の枠にして中央に置き、中身を縦に並べる */
 form {
-  background-color: #fff;
-  padding: 0;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  min-width: 350px;
-  max-width: 450px;
-  margin: 10px auto;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  background-color: #fff; /* 背景色: 白 */
+  padding: 0; /* 内側の余白なし */
+  border-radius: 8px; /* 角を丸める */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下方向にうっすら影を付けてカードが浮いて見えるようにする */
+  min-width: 350px; /* 最小幅（入力欄が狭くなりすぎないように） */
+  max-width: 450px; /* 最大幅（横に広がりすぎないように） */
+  margin: 10px auto; /* 上下10px、左右は自動にして中央に配置する */
+  display: flex; /* 中身をフレックスレイアウトで配置する */
+  flex-direction: column; /* 中身（入力項目）を縦方向に並べる */
+  box-sizing: border-box; /* 幅に枠線と内側余白を含める（上の * と同じ指定） */
 }
 
+/* 画面幅が768px以下（スマートフォン等）のとき: フォームの最小幅の制限を外す */
 @media (max-width: 768px) {
+  /* 入力フォーム: 狭い画面からはみ出さないよう、幅を中身に合わせる */
   form {
-    width: auto;
-    min-width: unset; 
+    width: auto; /* 幅を自動（中身と画面幅に合わせる） */
+    min-width: unset; /* 上で指定した最小幅350pxを解除する */
   }
 }
 
+/* ------------------------------------------------------------
+ * 表（一覧画面のテーブル）
+ * ------------------------------------------------------------ */
+
+/* 表全体: 罫線を1本にまとめ、セル内の文字を折り返さない */
 table {
-  width: auto;
-  border-collapse: collapse;
-  margin-top: 10px;
-  white-space: nowrap;
+  width: auto; /* 幅は中身に合わせる */
+  border-collapse: collapse; /* 隣り合うセルの枠線を重ねて1本線にする */
+  margin-top: 10px; /* 表の上に10pxの余白 */
+  white-space: nowrap; /* セル内の文字を折り返さない */
 }
 
+/* 表の見出しセル(th)と通常セル(td): 薄い灰色の枠線と内側の余白を付けて中央揃えにする */
 th,
 td {
-  border: 1px solid #ddd;
-  padding: 10px;
-  text-align: center;
+  border: 1px solid #ddd; /* 薄い灰色の細い枠線 */
+  padding: 10px; /* セル内側の余白 */
+  text-align: center; /* 文字を中央揃え */
 }
 
+/* 表の見出しセル: 白い太字に灰色の縁取りを付ける（背景色は各画面の *.module.css で指定） */
 th {
-  color: white;
-  font-weight: bold;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: white; /* 文字色: 白 */
+  font-weight: bold; /* 太字 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* ------------------------------------------------------------
+ * 共通ボタン（画面の系統ごとに色分け）
+ *   7種類とも「白文字＋灰色の縁取り・角丸・マウスを乗せると色が濃くなる」という共通の形で、
+ *   背景色だけが異なる（orange / pink / gray は左右の余白付き）
+ * ------------------------------------------------------------ */
+
+/* 青ボタン: メインメニュー・ログイン画面・工数編集画面で使用 */
 .blue_button {
-  background-color: #007bff;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  writing-mode: horizontal-tb;
-  white-space: nowrap;
-  width: auto;
-  max-width: 100%;
+  background-color: #007bff; /* 背景色: 青 */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り（白文字を読みやすくする） */
+  padding: 10px; /* ボタン内側の余白 */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にして押せることを示す */
+  transition: background-color 0.3s ease; /* 背景色の変化を0.3秒かけて滑らかにする（マウスを乗せたとき） */
+  writing-mode: horizontal-tb; /* 文字を横書き（左→右、上→下）にする */
+  white-space: nowrap; /* ボタン内の文字を折り返さない */
+  width: auto; /* 幅は文字の長さに合わせる */
+  max-width: 100%; /* 親要素の幅を超えない */
 }
+/* 青ボタンにマウスを乗せたとき */
 .blue_button:hover {
-  background-color: #0056b3;
-  text-decoration: none; 
+  background-color: #0056b3; /* 背景色: 濃い青 */
+  text-decoration: none; /* リンク（a タグ）をボタンとして使った場合も下線を出さない */
 }
 
+/* 黄ボタン: 人員系画面（人員一覧・登録・編集・削除）で使用 */
 .yellow_button {
-  background-color: #ffd700;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  writing-mode: horizontal-tb;
-  white-space: nowrap;
-  width: auto;
-  max-width: 100%;
+  background-color: #ffd700; /* 背景色: 黄（ゴールド） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り（白文字を読みやすくする） */
+  padding: 10px; /* ボタン内側の余白 */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease; /* 背景色の変化を0.3秒かけて滑らかにする */
+  writing-mode: horizontal-tb; /* 文字を横書きにする */
+  white-space: nowrap; /* ボタン内の文字を折り返さない */
+  width: auto; /* 幅は文字の長さに合わせる */
+  max-width: 100%; /* 親要素の幅を超えない */
 }
+/* 黄ボタンにマウスを乗せたとき */
 .yellow_button:hover {
-  background-color: #ffa500;
-  text-decoration: none; 
+  background-color: #ffa500; /* 背景色: オレンジ寄りの黄 */
+  text-decoration: none; /* リンクをボタンとして使った場合も下線を出さない */
 }
 
+/* 緑ボタン: 工数区分定義系画面・工数入力画面で使用 */
 .green_button {
-  background-color: #0f0;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  writing-mode: horizontal-tb;
-  white-space: nowrap;
-  width: auto;
-  max-width: 100%;
+  background-color: #0f0; /* 背景色: 明るい緑 */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り（白文字を読みやすくする） */
+  padding: 10px; /* ボタン内側の余白 */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease; /* 背景色の変化を0.3秒かけて滑らかにする */
+  writing-mode: horizontal-tb; /* 文字を横書きにする */
+  white-space: nowrap; /* ボタン内の文字を折り返さない */
+  width: auto; /* 幅は文字の長さに合わせる */
+  max-width: 100%; /* 親要素の幅を超えない */
 }
+/* 緑ボタンにマウスを乗せたとき */
 .green_button:hover {
-  background-color: #32cd32;
-  text-decoration: none; 
+  background-color: #32cd32; /* 背景色: 少し濃い緑（ライムグリーン） */
+  text-decoration: none; /* リンクをボタンとして使った場合も下線を出さない */
 }
 
+/* 水色ボタン: 工数系画面（工数入力・工数編集・工数履歴・工数データ削除・勤務入力・休憩時間変更）で使用 */
 .light_blue_button {
-  background-color: #0ff;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  writing-mode: horizontal-tb;
-  white-space: nowrap;
-  width: auto;
-  max-width: 100%;
+  background-color: #0ff; /* 背景色: 水色（シアン） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り（白文字を読みやすくする） */
+  padding: 10px; /* ボタン内側の余白 */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease; /* 背景色の変化を0.3秒かけて滑らかにする */
+  writing-mode: horizontal-tb; /* 文字を横書きにする */
+  white-space: nowrap; /* ボタン内の文字を折り返さない */
+  width: auto; /* 幅は文字の長さに合わせる */
+  max-width: 100%; /* 親要素の幅を超えない */
 }
+/* 水色ボタンにマウスを乗せたとき */
 .light_blue_button:hover {
-  background-color: #0af;
-  text-decoration: none; 
+  background-color: #0af; /* 背景色: 少し濃い青 */
+  text-decoration: none; /* リンクをボタンとして使った場合も下線を出さない */
 }
 
+/* オレンジボタン: 班員系画面（班員登録・班員工数履歴・班員工数入力状況・工数入力状況(全体)）で使用 */
 .orange_button {
-  background-color: #f50;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  writing-mode: horizontal-tb;
-  white-space: nowrap;
-  width: auto;
-  max-width: 100%;
-  margin-left: 10px;
-  margin-right: 10px;
+  background-color: #f50; /* 背景色: オレンジ */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り（白文字を読みやすくする） */
+  padding: 10px; /* ボタン内側の余白 */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease; /* 背景色の変化を0.3秒かけて滑らかにする */
+  writing-mode: horizontal-tb; /* 文字を横書きにする */
+  white-space: nowrap; /* ボタン内の文字を折り返さない */
+  width: auto; /* 幅は文字の長さに合わせる */
+  max-width: 100%; /* 親要素の幅を超えない */
+  margin-left: 10px; /* 左に10pxの余白（並んだボタン同士の間隔） */
+  margin-right: 10px; /* 右に10pxの余白 */
 }
+/* オレンジボタンにマウスを乗せたとき */
 .orange_button:hover {
-  background-color: #f10;
-  text-decoration: none; 
+  background-color: #f10; /* 背景色: 赤寄りのオレンジ */
+  text-decoration: none; /* リンクをボタンとして使った場合も下線を出さない */
 }
 
+/* ピンクボタン: 問い合わせ系画面（問い合わせ登録・一覧・詳細・編集）で使用 */
 .pink_button {
-  background-color: #ff8bc5;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  writing-mode: horizontal-tb;
-  white-space: nowrap;
-  width: auto;
-  max-width: 100%;
-  margin-left: 10px;
-  margin-right: 10px;
+  background-color: #ff8bc5; /* 背景色: ピンク */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り（白文字を読みやすくする） */
+  padding: 10px; /* ボタン内側の余白 */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease; /* 背景色の変化を0.3秒かけて滑らかにする */
+  writing-mode: horizontal-tb; /* 文字を横書きにする */
+  white-space: nowrap; /* ボタン内の文字を折り返さない */
+  width: auto; /* 幅は文字の長さに合わせる */
+  max-width: 100%; /* 親要素の幅を超えない */
+  margin-left: 10px; /* 左に10pxの余白（並んだボタン同士の間隔） */
+  margin-right: 10px; /* 右に10pxの余白 */
 }
+/* ピンクボタンにマウスを乗せたとき */
 .pink_button:hover {
-  background-color: #ff1493;
-  text-decoration: none; 
+  background-color: #ff1493; /* 背景色: 濃いピンク（ディープピンク） */
+  text-decoration: none; /* リンクをボタンとして使った場合も下線を出さない */
 }
 
+/* 灰色ボタン: 管理者系画面・ヘルプ画面で使用 */
 .gray_button {
-  background-color: #656565;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  writing-mode: horizontal-tb;
-  white-space: nowrap;
-  width: auto;
-  max-width: 100%;
-  margin-left: 10px;
-  margin-right: 10px;
+  background-color: #656565; /* 背景色: 灰色 */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り（白文字を読みやすくする） */
+  padding: 10px; /* ボタン内側の余白 */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease; /* 背景色の変化を0.3秒かけて滑らかにする */
+  writing-mode: horizontal-tb; /* 文字を横書きにする */
+  white-space: nowrap; /* ボタン内の文字を折り返さない */
+  width: auto; /* 幅は文字の長さに合わせる */
+  max-width: 100%; /* 親要素の幅を超えない */
+  margin-left: 10px; /* 左に10pxの余白（並んだボタン同士の間隔） */
+  margin-right: 10px; /* 右に10pxの余白 */
 }
+/* 灰色ボタンにマウスを乗せたとき */
 .gray_button:hover {
-  background-color: #3a3a3a;
-  text-decoration: none; 
+  background-color: #3a3a3a; /* 背景色: 濃い灰色 */
+  text-decoration: none; /* リンクをボタンとして使った場合も下線を出さない */
 }
 
+/* ------------------------------------------------------------
+ * エラー・警告メッセージ
+ * ------------------------------------------------------------ */
+
+/* エラー・警告メッセージの枠（TSX 側の <div role="alert">）: 薄い赤の背景と枠線で目立たせる
+ *   role="alert" は読み上げソフトに「重要なお知らせ」と伝えるための属性。
+ *   各画面の入力エラー表示などで使われている（TSX 側の style 指定がある場合はそちらが優先される） */
 div[role="alert"] {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
-  padding: 10px;
-  margin: 0 auto 16px auto; 
-  font-size: 0.9rem;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-  word-break: break-all;
-  max-width: 90vw;
-  box-sizing: border-box;
+  background-color: #f8d7da; /* 背景色: 薄い赤 */
+  color: #721c24; /* 文字色: 濃い赤茶 */
+  border: 1px solid #f5c6cb; /* 薄い赤の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  padding: 10px; /* 内側の余白 */
+  margin: 0 auto 16px auto; /* 上0・左右自動（中央配置）・下16px の余白 */
+  font-size: 0.9rem; /* 文字サイズ: ルート要素の0.9倍（少し小さめ） */
+  white-space: pre-wrap; /* メッセージ中の改行をそのまま表示し、長い行は折り返す（body の nowrap を打ち消す） */
+  overflow-wrap: break-word; /* 枠に収まらない長い単語は途中で折り返す */
+  word-break: break-all; /* 英数字の連続でも任意の位置で折り返す（枠からはみ出さないように） */
+  max-width: 90vw; /* 最大幅: 画面幅の90% */
+  box-sizing: border-box; /* 幅に枠線と内側余白を含める */
 }
 
+/* エラー・警告メッセージの先頭: 警告マークの絵文字を自動で付け足す */
 div[role="alert"]::before {
-  content: "⚠️ ";
-  font-size: 1.1rem;
+  content: "⚠️ "; /* メッセージの前に警告マーク（絵文字）と空白を表示する */
+  font-size: 1.1rem; /* 警告マークを少し大きめにする */
 }
 
+/* ------------------------------------------------------------
+ * ナビゲーション（画面上部のリンク群）
+ * ------------------------------------------------------------ */
+
+/* ナビゲーション（TSX 側の <nav>。「〇〇MENU」へ戻るリンク等）: リンクを横並び・中央寄せにする */
 nav {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 20px;
+  display: flex; /* リンクをフレックスレイアウトで横に並べる */
+  justify-content: center; /* 横方向の中央に寄せる */
+  gap: 15px; /* リンク同士の間隔 */
+  margin-bottom: 20px; /* ナビゲーションの下に20pxの余白 */
 }
 
+/* ナビゲーション内のリンク: ボタン風の装飾を消し、常に下線付きの文字リンクとして表示する */
 nav a {
-  background: none;
-  padding: 0;
-  border-radius: 0;
-  text-decoration: underline;
-  font-weight: normal;
-  transition: color 0.3s ease;
+  background: none; /* 背景なし */
+  padding: 0; /* 内側の余白なし */
+  border-radius: 0; /* 角丸なし */
+  text-decoration: underline; /* 常に下線を表示する（リンクであることを分かりやすくする） */
+  font-weight: normal; /* 太字にしない */
+  transition: color 0.3s ease; /* 文字色の変化（マウスを乗せたとき等）を0.3秒かけて滑らかにする */
 }
 
+/* ------------------------------------------------------------
+ * 日付・時刻入力欄の調整
+ *   入力欄のどこを押してもカレンダー/時刻選択が開くようにするための指定
+ *   （-webkit- は Chrome / Edge / Safari 向けの指定に付ける接頭辞）
+ * ------------------------------------------------------------ */
+
+/* 日付入力欄（<input type="date">）のカレンダーアイコン: 透明にして入力欄全体に広げる
+ *   → 入力欄のどこをクリックしてもカレンダーが開くようになる
+ *   （位置の基準は下の input[type="date"] の position: relative） */
 input[type=date]::-webkit-calendar-picker-indicator {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
+  position: absolute; /* 入力欄を基準に自由な位置へ重ねて配置する */
+  width: 100%; /* 入力欄の横幅いっぱいに広げる */
+  height: 100%; /* 入力欄の高さいっぱいに広げる */
+  opacity: 0; /* 完全に透明にする（見えないがクリックは受け付ける） */
 }
 
 
+/* 日付入力欄の上下の増減ボタン（スピンボタン）: 表示しない */
 input[type="date"]::-webkit-inner-spin-button{
-  -webkit-appearance: none;
+  -webkit-appearance: none; /* ブラウザ標準の部品の見た目を消して非表示にする */
 }
 
+/* 日付入力欄のクリア（×）ボタン: 表示しない */
 input[type="date"]::-webkit-clear-button{
-  -webkit-appearance: none;
+  -webkit-appearance: none; /* ブラウザ標準の部品の見た目を消して非表示にする */
 }
 
+/* 日付入力欄本体: 上のカレンダーアイコンを重ねるときの位置の基準にする */
 input[type="date"]{
-  position: relative;
+  position: relative; /* 子の position: absolute の基準点にする */
 }
 
+/* MUI の時刻ピッカー（MobileTimePicker。工数入力・工数編集・休憩時間変更画面で使用）の入力欄内部の要素:
+ *   透明にして入力欄全体に重ね、入力欄のどこを押してもピッカーが開くようにする
+ *   （コミット「日時入力フォーム全面タッチ可能」で追加された指定）
+ *   ※ css-15ni0jc は MUI（emotion）が自動生成するクラス名のため、どの内部要素かはコードからは特定できない。
+ *     MUI のバージョンアップ等で名前が変わると、この指定は効かなくなる */
 .MuiPickersInputBase-root .css-15ni0jc {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  z-index: 1;
-  cursor: pointer;
+  position: absolute; /* 入力欄を基準に重ねて配置する */
+  top: 0; /* 入力欄の上端に合わせる */
+  left: 0; /* 入力欄の左端に合わせる */
+  width: 100%; /* 入力欄の横幅いっぱいに広げる */
+  height: 100%; /* 入力欄の高さいっぱいに広げる */
+  opacity: 0; /* 完全に透明にする（見えないがクリックは受け付ける） */
+  z-index: 1; /* 重なり順を手前にして、クリックを確実に受け取る */
+  cursor: pointer; /* マウスカーソルを指の形にして押せることを示す */
 }

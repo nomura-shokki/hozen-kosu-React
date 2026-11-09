@@ -1,151 +1,214 @@
+/* ============================================================
+ * ファイル名 : AdministratorKosuList.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 全工数管理画面（管理者用の工数データ一覧。AdministratorPage/AdministratorKosuList.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・検索欄（就業日・人員・ショップ・
+ *              直・勤務形態・整合性）・一覧表・整合性（OK/NG）表示の見た目を定義する。
+ *              管理者系画面の共通色（灰色）を使う。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 子要素を縦に並べて中央寄せし、表示時にフェードインさせる */
 .admin-kosu-wrapper {
-  animation: fadeInUp 1s ease-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: top;
-  align-items: center;
-  min-height: 100vh;
-  width: 100%;
-  margin: 0 auto;
-  -webkit-overflow-scrolling: touch;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: top; /* ※ top は有効な値ではないためブラウザに無視される（初期値の上詰めと同じ表示） */
+  align-items: center; /* 子要素を横方向の中央に揃える */
+  min-height: 100vh; /* 高さを最低でも画面（ビューポート）の高さいっぱいにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「全工数管理」: 管理者系画面の共通色（灰色）に濃い灰色の縁取りを付ける */
 .h1-collar {
-  color: #656565;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #656565; /* 文字色: 灰色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて濃い灰色の縁取りに見せる */
 }
 
+/* 「管理者MENU」リンク */
 .admin-nav a {
-  color: #656565;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #656565; /* 文字色: 灰色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 濃い灰色の縁取り */
 }
 
+/* 「管理者MENU」リンクにマウスを乗せたとき */
 .admin-nav a:hover {
-  color: #3a3a3a;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #3a3a3a; /* 文字色: さらに濃い灰色に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 濃い灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 検索欄
+ * ------------------------------------------------------------ */
+
+/* 検索欄全体: 検索条件の行（row-group）を縦に並べ、左揃えにする */
 .search-bar {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 10px;
-    margin: 20px auto;
-    padding: 0 10px;
-    width: 90%;
+    display: flex; /* 子要素をフレックスレイアウトで配置する */
+    flex-direction: column; /* 検索条件の行を縦方向に並べる */
+    justify-content: center; /* 縦方向の中央に寄せる */
+    align-items: flex-start; /* 各行を左端に揃える */
+    gap: 10px; /* 行同士の間隔 */
+    margin: 20px auto; /* 上下20pxの余白・左右は自動で中央に配置する */
+    padding: 0 10px; /* 左右に10pxの内側余白 */
+    width: 90%; /* 横幅を親要素の90%にする */
   }
 
+/* 検索条件の1行（例: 就業日＋指定月/指定日ボタン、人員＋ショップ）: 項目を横に並べる */
 .row-group {
-  display: flex;
-  gap: 20px;
-  width: 100%;
+  display: flex; /* 項目をフレックスレイアウトで横に並べる */
+  gap: 20px; /* 項目同士の間隔 */
+  width: 100%; /* 横幅を親要素（検索欄）いっぱいにする */
 }
 
+/* 検索条件の1項目（ラベル＋入力欄/選択欄）: ラベルの下に入力欄を置く */
 .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  flex: 1;
-  min-width: 150px;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* ラベルと入力欄を縦方向に並べる */
+  gap: 5px; /* ラベルと入力欄の間隔 */
+  flex: 1; /* 同じ行の項目どうしで残りの横幅を均等に分け合う */
+  min-width: 150px; /* 狭くなりすぎて入力欄が潰れないよう最低幅を確保する */
 }
 
+/* 検索欄のラベル・選択欄・日付入力欄: 項目の横幅いっぱいに広げる */
 .search-bar label,
 .search-bar select,
 .search-bar input[type="date"] {
-  width: 100%;
-  box-sizing: border-box;
+  width: 100%; /* 横幅を親要素（項目）いっぱいにする */
+  box-sizing: border-box; /* 内側余白・枠線を含めた大きさで幅を計算し、はみ出しを防ぐ */
 }
 
+/* 就業日の日付入力欄: 下の .search-bar input の最低幅180pxを打ち消す */
 .search-bar input[type="date"] {
-  min-width: unset;
+  min-width: unset; /* 最低幅の指定を解除する（こちらの方がセレクタの優先度が高いため勝つ） */
 }
 
+/* 日付入力欄と選択欄（人員・ショップ・直・勤務形態・整合性）の見た目 */
 .search-bar input[type="date"],
 .search-bar select {
-  padding: 8px 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  width: 100%;
-  box-sizing: border-box;
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  width: 100%; /* 横幅を親要素（項目）いっぱいにする */
+  box-sizing: border-box; /* 内側余白・枠線を含めた大きさで幅を計算する */
 }
 
+/* 検索欄のラベル（就業日・人員・ショップ・直・勤務形態・整合性） */
 .search-bar label {
-  width: 100%;
+  width: 100%; /* 横幅を親要素（項目）いっぱいにする */
 }
 
+/* 検索欄の直下に置かれた人員選択欄・選択欄を横幅いっぱいにする
+ * ※現在の TSX では選択欄はすべて .form-group の中にあり、.search-bar の直下には無いため適用されない */
 .search-bar > div[id^="team-member-select"],
 .search-bar > select {
-  width: 100%;
+  width: 100%; /* 横幅を親要素いっぱいにする */
 }
 
+/* 検索欄の入力欄全般 */
 .search-bar input {
-  padding: 8px 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  min-width: 180px;
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  min-width: 180px; /* 最低幅（日付入力欄は上の min-width: unset で解除される） */
 }
 
+/* 入力欄にフォーカス（選択中）したとき */
 .search-bar input:focus {
-  border-color: #3a3a3a;
-  outline: none;
-  box-shadow: 0 0 3px #555;
+  border-color: #3a3a3a; /* 枠線を濃い灰色にして選択中であることを示す */
+  outline: none; /* ブラウザ標準のフォーカス枠を消す（代わりに上の枠線色と影で示す） */
+  box-shadow: 0 0 3px #555; /* 周囲にうっすら影を付ける */
 }
 
+/* ------------------------------------------------------------
+ * 一覧表
+ * ------------------------------------------------------------ */
+
+/* 表の見出しセル（氏名・就業日・直・勤務形態・整合性・編集） */
 .th-collar {
-  background-color: #656565;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  background-color: #656565; /* 背景色: 灰色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 濃い灰色の縁取り */
 }
 
+/* 整合性列の「OK」表示（工数入力OK/NG判定が OK の工数データ） */
 .status-ok {
-  color: blue;
-  font-weight: bold;
+  color: blue; /* 文字色: 青 */
+  font-weight: bold; /* 太字 */
 }
 
+/* 整合性列の「NG」表示（入力内容に不整合がある工数データ） */
 .status-ng {
-  color: red;
-  font-weight: bold;
+  color: red; /* 文字色: 赤（注意を引くため） */
+  font-weight: bold; /* 太字 */
 }
 
 
+/* 表内の「編集」リンク（全工数データ編集画面へ移動） */
 .a-collar {
-  color: #656565;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #656565; /* 文字色: 灰色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 濃い灰色の縁取り */
 }
 
+/* 「編集」リンクにマウスを乗せたとき */
 .a-collar:hover {
-  color: #3a3a3a;
+  color: #3a3a3a; /* 文字色: さらに濃い灰色 */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: 検索条件の項目を1列の縦並びにし、リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 検索欄全体: 行を縦に並べる */
   .search-bar {
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: column; /* 子要素を縦方向に並べる */
+    gap: 10px; /* 行同士の間隔 */
   }
 
+  /* 検索条件の1行: 項目を横並びから縦並びに変える */
   .row-group {
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: column; /* 項目を縦方向に並べる */
+    gap: 10px; /* 項目同士の間隔を詰める */
   }
 
+  /* 検索条件の1項目: 縦並びでは不要になる最低幅を解除する */
   .form-group {
-    min-width: unset;
+    min-width: unset; /* 最低幅150pxの指定を解除する */
   }
 
+  /* 「管理者MENU」リンク: 文字を小さくする */
   .admin-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }

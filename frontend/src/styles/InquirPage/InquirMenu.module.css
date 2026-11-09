@@ -1,87 +1,131 @@
+/* ============================================================
+ * ファイル名 : InquirMenu.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 問い合わせMENU画面（InquirPage/InquirMenu.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・各画面へ移動する
+ *              大きなメニューボタン2種類（問い合わせ・問い合わせ履歴）の見た目を定義する。
+ *              問い合わせ系の画面共通色（ピンク）を使う。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 見出し・リンク・メニューボタンを縦に並べて中央寄せし、表示時にフェードインさせる */
 .menu-wrapper {
-  animation: fadeInUp 1s ease-out;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
   display: flex; /* 子要素をフレックスレイアウトにする */
   flex-direction: column; /* 縦方向に要素を並べる */
-  justify-content: top;
+  justify-content: top; /* ※ top は有効な値ではないためブラウザに無視される（初期値の上詰めと同じ表示） */
   align-items: center; /* 横方向の中央に配置 */
   height: 100vh; /* 画面の高さいっぱいにする */
-  width: 100%;
+  width: 100%; /* 横幅を親要素いっぱいにする */
   margin: 0 auto; /* 横方向の中央寄せ */
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「問い合わせMENU」: 問い合わせ系画面の共通色（ピンク）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #ff69b4;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff69b4; /* 文字色: ピンク（ホットピンク） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「メインMENU」へ戻るリンク */
 .inquir-nav a {
-  color: #ff69b4;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff69b4; /* 文字色: ピンク */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「メインMENU」リンクにマウスを乗せたとき */
 .inquir-nav a:hover {
-  color: #ff1493;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff1493; /* 文字色: 濃いピンクに変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * メニューボタン（2種類）
+ *   2つとも形は同じで、背景色だけを変えている
+ * ------------------------------------------------------------ */
+
+/* メニューボタン1「問い合わせ」（問い合わせ登録画面へ移動するボタン型リンク） */
 .inquir-button1 {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #ff8bc5;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 2rem;
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
+  width: 100%; /* 親要素いっぱいの横幅に広げる */
+  max-width: 400px; /* 最大幅（広い画面で横に伸びすぎないように） */
+  background-color: #ff8bc5; /* 背景色: 薄めのピンク */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り（白文字を読みやすくする） */
+  padding: 10px; /* ボタン内側の余白を上下左右に10pxずつ確保 */
+  font-size: 2rem; /* 文字サイズ: ルート要素の文字サイズ（通常16px）の2倍＝通常32px */
+  text-align: center; /* 文字を中央に配置 */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にして押せることを示す */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけて滑らかにする */
+  margin-bottom: 15px; /* 下に15pxの余白をつけて、次のボタンと間隔をあける */
+  text-decoration: none; /* リンクの下線を消し、ボタンらしく見せる */
 }
 
+/* メニューボタン2「問い合わせ履歴」（問い合わせ履歴画面へ移動するボタン型リンク） */
 .inquir-button2 {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #ff6db6;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 2rem;
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
+  width: 100%; /* 親要素いっぱいの横幅に広げる */
+  max-width: 400px; /* 最大幅（広い画面で横に伸びすぎないように） */
+  background-color: #ff6db6; /* 背景色: ボタン1より少し濃いピンク */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り（白文字を読みやすくする） */
+  padding: 10px; /* ボタン内側の余白を上下左右に10pxずつ確保 */
+  font-size: 2rem; /* 文字サイズ: ルート要素の文字サイズ（通常16px）の2倍＝通常32px */
+  text-align: center; /* 文字を中央に配置 */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にして押せることを示す */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけて滑らかにする */
+  margin-bottom: 15px; /* 下に15pxの余白をつけて、次の要素と間隔をあける */
+  text-decoration: none; /* リンクの下線を消し、ボタンらしく見せる */
 }
 
+/* メニューボタン1・2にマウスを乗せたとき: 背景色を濃いピンクにし、影を付けて浮き上がらせる */
 .inquir-button1:hover,
 .inquir-button2:hover {
-  background-color: #ff0289;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #ff0289; /* 背景色: 濃いピンク */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下方向に軽い影を付けて立体的に見せる */
+  text-decoration: underline; /* 下線を表示（※直後の text-decoration: none で上書きされるため、実際には下線は表示されない） */
+  text-decoration: none; /* 下線を消す（後に書いたこちらが有効。global.css の a:hover の下線も打ち消す） */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 「メインMENU」リンク: 文字を小さくする */
   .inquir-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }

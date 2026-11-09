@@ -1,159 +1,223 @@
+/* ============================================================
+ * ファイル名 : KosuTotal.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 工数集計画面（KosuPage/KosuTotal.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・集計条件フォーム（日付/期間/並び順）・
+ *              棒グラフの枠・工数区分ごとの集計値リストの見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する（グラフ枠・集計値リストで使用） */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「工数集計」: 工数系画面の共通色（水色）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0ff; /* 文字色: 水色（シアン） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「工数MENU」リンク */
 .kosu-nav a {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0ff; /* 文字色: 水色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「工数MENU」リンクにマウスを乗せたとき */
 .kosu-nav a:hover {
-  color: #0af;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0af; /* 文字色: 少し濃い青に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 子要素を縦に並べて横方向の中央に揃える */
 .kosu-total-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  animation: fadeIn 1s ease-in-out;
-  padding: 1rem;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  align-items: center; /* 子要素を横方向の中央に揃える */
+  min-height: 100vh; /* 最低でも画面（ビューポート）の高さいっぱいの高さを確保する */
+  animation: fadeIn 1s ease-in-out; /* ※このファイルには fadeIn の @keyframes 定義が無いため、アニメーションは実行されない */
+  padding: 1rem; /* 内側の余白（ルート要素の文字サイズ1文字分） */
 }
 
+/* ------------------------------------------------------------
+ * 集計条件フォーム（日付・期間・並び順）
+ * ------------------------------------------------------------ */
+
+/* 集計条件フォーム全体: 「日付」「期間」「並び順」の入力グループを横に並べる */
 .kosu-total-form {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center; /* フォーム全体を水平方向の中央に配置 */
-  align-items: flex-start; /* 縦並びの際に上から配置を開始 */
-  gap: 1.5rem; /* アイテム間の間隔 */
-  margin-bottom: 2.5rem;
+  display: flex; /* 入力グループをフレックスレイアウトで横に並べる */
+  flex-wrap: wrap; /* 横幅が足りないときは折り返す */
+  justify-content: center; /* フォーム全体を水平方向の中央に配置する */
+  align-items: flex-start; /* 各グループを上端に揃える */
+  gap: 1.5rem; /* 入力グループ同士の間隔 */
+  margin-bottom: 2.5rem; /* 下に余白を取り、グラフとの間隔をあける */
 }
 
+/* 画面幅が768px以下のとき: 集計条件フォームを縦並びにし、リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 集計条件フォーム: 入力グループを縦に積み重ねる */
   .kosu-total-form {
-    flex-direction: column; /* アイテムを縦に積み重ねる */
-    align-items: center; /* フォーム全体を中央に配置 */
+    flex-direction: column; /* 入力グループを縦に積み重ねる */
+    align-items: center; /* 入力グループを横方向の中央に揃える */
   }
 
+  /* 「工数MENU」リンク: 文字を小さくする */
   .kosu-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }
 
+/* 入力グループ（ラベル＋入力欄1組）: ラベルの下に入力欄を置く */
 .form-group {
-  display: flex;
+  display: flex; /* ラベルと入力欄をフレックスレイアウトで配置する */
   flex-direction: column; /* ラベルと入力欄を縦に並べる */
-  align-items: flex-start; /* グループ内のアイテムを左揃えにする */
-  width: 100%; /* 親コンテナの幅いっぱいに広げる */
-  max-width: 300px;
+  align-items: flex-start; /* グループ内の要素を左揃えにする */
+  width: 100%; /* 親要素の幅いっぱいに広げる */
+  max-width: 300px; /* ただし広がりすぎないよう最大300pxにする */
 }
 
+/* 入力欄のラベル（「日付:」「期間:」「並び順:」） */
 .kosu-total-form label {
-  color: #555;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  white-space: nowrap;
-  width: 100%;
-  text-align: left;
+  color: #555; /* 文字色: 濃い灰色 */
+  font-weight: 600; /* やや太字 */
+  margin-bottom: 0.5rem; /* 入力欄との間隔 */
+  white-space: nowrap; /* ラベルを折り返さず1行で表示する */
+  width: 100%; /* グループの幅いっぱいにする */
+  text-align: left; /* 文字を左揃えにする */
 }
 
+/* 日付入力欄と、期間・並び順のプルダウン */
 .kosu-total-form input,
 .kosu-total-form select {
-  background-color: #fff;
-  padding: 8px 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  text-align: center;
-  width: 100%;
+  background-color: #fff; /* 背景色: 白 */
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  text-align: center; /* 入力・選択中の文字を中央揃えにする */
+  width: 100%; /* グループの幅いっぱいにする */
 }
 
+/* ------------------------------------------------------------
+ * 棒グラフの枠
+ * ------------------------------------------------------------ */
+
+/* 棒グラフ（Chart.js の Bar）を入れる白いカード: 角丸と影を付けてフェードイン表示する */
 .chart-container {
-  width: 100%;
-  max-width: 1200px;
-  min-width: 750px;
-  height: 50vh;
-  padding: 10px;
-  background-color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  animation: fadeInUp 0.8s ease-in-out;
-  overflow-x: auto;
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 1200px; /* 横幅の上限 */
+  min-width: 750px; /* グラフが潰れて読めなくならないよう最低幅を確保する */
+  height: 50vh; /* 高さ: 画面（ビューポート）の高さの半分 */
+  padding: 10px; /* 内側の余白 */
+  background-color: #ffffff; /* 背景色: 白 */
+  border-radius: 16px; /* 角を大きめに丸める */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下方向に薄い影を付けて浮き上がって見せる */
+  animation: fadeInUp 0.8s ease-in-out; /* fadeInUp を0.8秒かけて実行（始めと終わりがゆっくり） */
+  overflow-x: auto; /* 横にはみ出したら横スクロールバーを出す */
 }
 
+/* ------------------------------------------------------------
+ * 集計値リスト（工数区分ごとの合計時間）
+ * ------------------------------------------------------------ */
+
+/* 集計値リスト全体の白いカード: 項目を1列のグリッドで縦に並べる */
 .chartDataList {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-gap: 1rem;
-  margin: 10px;
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 600px;
-  background-color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: grid; /* 子要素をグリッドレイアウトで配置する */
+  grid-template-columns: 1fr; /* 列は1列のみ（各項目が横幅いっぱいになる） */
+  grid-gap: 1rem; /* 項目同士の間隔（gap の旧名称） */
+  margin: 10px; /* 外側の余白 */
+  padding: 1.5rem; /* 内側の余白 */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 600px; /* 横幅の上限 */
+  background-color: #ffffff; /* 背景色: 白 */
+  border-radius: 16px; /* 角を大きめに丸める */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下方向に薄い影を付ける */
+  /* fadeInUp を0.8秒かけて実行。0.2秒遅らせてグラフの後に表示し、
+     backwards で待ち時間中も開始時点（透明）の状態にしておく */
   animation: fadeInUp 0.8s ease-in-out 0.2s backwards;
 }
 
+/* 集計値リストの1項目（色見本・工数区分名・合計分数の1行） */
 .dataListItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* ラベルと値を左右に配置 */
-  padding: 1rem;
-  background-color: #f7fcff; /* 明るい背景色 */
-  border: 1px solid #c0e6ff; /* 明るい水色のボーダー */
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  display: flex; /* 色見本・名前・値をフレックスレイアウトで横に並べる */
+  align-items: center; /* 縦方向の中央に揃える */
+  justify-content: space-between; /* ラベルと値を左右の端に振り分ける */
+  padding: 1rem; /* 内側の余白 */
+  background-color: #f7fcff; /* 背景色: ごく薄い水色 */
+  border: 1px solid #c0e6ff; /* 明るい水色の枠線 */
+  border-radius: 10px; /* 角を丸める */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下方向に薄い影を付ける */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* 位置と影の変化を0.2秒かけて滑らかにする */
 }
 
+/* 集計値リストの1項目にマウスを乗せたとき: 少し上に浮かせる */
 .dataListItem:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px); /* 5px上に移動させる */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 影（通常時と同じ値のため見た目は変わらない） */
 }
 
+/* 項目先頭の色見本（丸）: 背景色は TSX 側でグラフの棒と同じ色を style 属性で指定する */
 .colorBox {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  margin-right: 1rem;
+  width: 20px; /* 幅20px */
+  height: 20px; /* 高さ20px */
+  border-radius: 50%; /* 角を半径50%で丸めて円にする */
+  margin-right: 1rem; /* 右側の工数区分名との間隔 */
 }
 
+/* 項目の工数区分名 */
 .itemLabel {
-  font-weight: 600;
-  color: #333;
-  flex-grow: 1;
+  font-weight: 600; /* やや太字 */
+  color: #333; /* 文字色: 濃い灰色 */
+  flex-grow: 1; /* 余ったスペースを埋めるように広がり、値を右端に押しやる */
 }
 
+/* 項目の合計時間（「〇〇分」） */
 .itemValue {
-  font-weight: 600;
-  white-space: nowrap;
+  font-weight: 600; /* やや太字 */
+  white-space: nowrap; /* 数値と「分」が改行で分かれないよう1行で表示する */
 }
 
-/* 画面幅が768px以下の場合に適用されるスタイル */
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: グラフの最低幅を下げ、リストの文字と色見本を小さくする */
 @media (max-width: 768px) {
+  /* 棒グラフの枠: 最低幅を下げて狭い画面にも収める */
   .chart-container {
-    min-width: 250px;
+    min-width: 250px; /* 最低幅を750px→250pxに下げる */
   }
+  /* 集計値リストの工数区分名と合計時間: 文字を小さくする */
   .itemLabel,
   .itemValue {
-    font-size: 0.8rem; /* リスト内のテキストを小さくする */
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
+  /* 項目先頭の色見本: 少し小さくする */
   .colorBox {
-    width: 15px;
-    height: 15px;
+    width: 15px; /* 幅15px */
+    height: 15px; /* 高さ15px */
   }
 }

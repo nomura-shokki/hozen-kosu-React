@@ -1,76 +1,123 @@
+/* ============================================================
+ * ファイル名 : KosuDelete.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 工数データ削除画面（KosuPage/KosuDelete.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・
+ *              削除対象の工数データ（就業日・整合性・直・勤務・残業時間）を表示する表と、
+ *              その下のグラフ・工数区分定義表をまとめる枠の見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「工数データ削除」: 工数系画面の共通色（水色）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0ff; /* 文字色: 水色（シアン） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「工数履歴」リンク（工数履歴一覧画面へ戻る） */
 .kosu-nav a {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0ff; /* 文字色: 水色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「工数履歴」リンクにマウスを乗せたとき */
 .kosu-nav a:hover {
-  color: #0af;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0af; /* 文字色: 少し濃い青に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 子要素（見出し・削除ボタン・表・グラフ）を縦に並べて中央寄せし、表示時にフェードインさせる */
 .kosu-delete-wrapper {
-  animation: fadeInUp 1s ease-out;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  gap: 15px;
-  margin: 0 auto;
-  -webkit-overflow-scrolling: touch;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  align-items: center; /* 子要素を横方向の中央に揃える */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  gap: 15px; /* 子要素同士の間隔 */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
 }
 
+/* 画面幅が768px以下のとき: 外枠の余白をなくす */
 @media (max-width: 768px) {
+  /* 画面全体の外枠: 余白をなくし、子要素を上詰めにする */
   .kosu-delete-wrapper {
-    margin: 0;
-    justify-content: flex-start;
+    margin: 0; /* 外側の余白をなくす */
+    justify-content: flex-start; /* 子要素を上（縦並びの先頭）に詰める */
   }
 }
 
+/* ------------------------------------------------------------
+ * グラフ・定義表の枠
+ * ------------------------------------------------------------ */
+
+/* 工数表示（KosuDisplay）・工数グラフ（KosuBarChart）・工数区分定義表（DefTable）をまとめる枠: 縦に並べて中央寄せする */
 .centeredContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  align-items: center; /* 子要素を横方向の中央に揃える */
 }
 
+/* ------------------------------------------------------------
+ * 削除対象データの表
+ * ------------------------------------------------------------ */
+
+/* 削除対象の工数データを表示する表の外枠: はみ出した分は枠内でスクロールさせる
+   （※TSX側の style 属性で maxHeight・width・overflowY を画面サイズに合わせて上書きしている） */
 .table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: auto;
-  border: 1px solid #999;
-  box-sizing: border-box;
-  -webkit-overflow-scrolling: touch;
-  margin: 10px auto;
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  overflow-x: auto; /* 横にはみ出した場合は横スクロールバーを出す */
+  overflow-y: auto; /* 縦にはみ出した場合は縦スクロールバーを出す */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  box-sizing: border-box; /* 枠線・内側余白を幅に含めて計算する */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
+  margin: 10px auto; /* 上下10px・左右自動（中央配置）の余白 */
 }
 
+/* 画面幅が768px以下のとき: 表の外枠の余白を詰め、リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 表の外枠: 外側の余白をなくし、左側にだけ内側の余白を付ける */
   .table-wrapper {
-    margin: 0;
-    justify-content: flex-start;
-    padding-left: 10px;
+    margin: 0; /* 外側の余白をなくす */
+    justify-content: flex-start; /* 子要素を先頭に詰める（※この要素はフレックスレイアウトではないため効かない） */
+    padding-left: 10px; /* 左に10pxの内側余白 */
   }
 
+  /* 「工数履歴」リンク: 文字を小さくする */
   .kosu-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }
 
+/* 表の見出しセル（就業日・整合性・直・勤務・残業時間） */
 .th-collar{
-  background-color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  background-color: #0ff; /* 背景色: 水色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }

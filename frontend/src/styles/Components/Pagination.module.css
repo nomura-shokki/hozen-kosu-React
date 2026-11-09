@@ -1,79 +1,113 @@
+/* ============================================================
+ * ファイル名 : Pagination.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 共通部品「ページ切り替え」（Components/Pagination.tsx）
+ *              ※工数履歴・人員一覧・班員工数履歴・工数区分定義一覧・問い合わせ履歴・管理者の各一覧画面などで使用
+ * 概要       : 一覧表の下に表示する「最初」「前」「現在ページ / 総ページ数」「次」「最後」の
+ *              三角形ボタンとページ表示の見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ *              ボタンの色は画面ごとに変えられるよう、TSX側の style 属性で CSS変数
+ *              --btn-bg-color（通常時の色）・--btn-hover-color（マウスを乗せたときの色）を渡している。
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * ページ切り替え全体
+ * ------------------------------------------------------------ */
+
+/* ページ切り替え全体の枠: ボタンとページ表示を横一列に中央寄せで並べる */
 .pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin-top: 20px;
-  white-space: nowrap;
+  display: flex; /* 子要素をフレックスレイアウトで横に並べる */
+  justify-content: center; /* 横方向の中央に寄せる */
+  align-items: center; /* 縦方向の中央に揃える */
+  gap: 15px; /* ボタン同士の間隔 */
+  margin-top: 20px; /* 上（一覧表）との間隔 */
+  white-space: nowrap; /* 文字を折り返さない */
 }
 
+/* ------------------------------------------------------------
+ * 三角形のボタン
+ * ------------------------------------------------------------ */
+
+/* 「次」「最後」ボタン: 右向きの三角形に切り抜き、文字を左寄せで表示する */
 .pagination .next-button {
-  position: relative;
-  width: 70px;
-  height: 50px;
-  background-color: var(--btn-bg-color, #fff);
-  border: none;
-  clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding-left: 10px;
-  color: #FFF;
-  font-weight: bold;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  position: relative; /* 位置指定の基準にする（※現在のTSXでは子要素に位置指定は無い） */
+  width: 70px; /* ボタンの横幅 */
+  height: 50px; /* ボタンの高さ */
+  background-color: var(--btn-bg-color, #fff); /* 背景色: TSXから渡された CSS変数の色（未指定なら白） */
+  border: none; /* 枠線なし */
+  clip-path: polygon(0% 0%, 100% 50%, 0% 100%); /* 左上・右中央・左下の3点を結ぶ右向き三角形の形に切り抜く */
+  cursor: pointer; /* マウスを乗せたときに指の形のカーソルにする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけて滑らかにする */
+  display: flex; /* ボタン内の文字をフレックスレイアウトで配置する */
+  align-items: center; /* 文字を縦方向の中央に揃える */
+  justify-content: flex-start; /* 文字を左寄せにする（三角形の幅が広い側に置く） */
+  padding-left: 10px; /* 左に10pxの内側余白 */
+  color: #FFF; /* 文字色: 白 */
+  font-weight: bold; /* 太字 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「最初」「前」ボタン: 左向きの三角形に切り抜き、文字を右寄せで表示する */
 .pagination .prev-button {
-  position: relative;
-  width: 70px;
-  height: 50px;
-  background-color: var(--btn-bg-color, #fff);
-  border: none;
-  clip-path: polygon(100% 0%, 100% 100%, 0% 50%);
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: 10px;
-  color: #FFF;
-  font-weight: bold;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  position: relative; /* 位置指定の基準にする（※現在のTSXでは子要素に位置指定は無い） */
+  width: 70px; /* ボタンの横幅 */
+  height: 50px; /* ボタンの高さ */
+  background-color: var(--btn-bg-color, #fff); /* 背景色: TSXから渡された CSS変数の色（未指定なら白） */
+  border: none; /* 枠線なし */
+  clip-path: polygon(100% 0%, 100% 100%, 0% 50%); /* 右上・右下・左中央の3点を結ぶ左向き三角形の形に切り抜く */
+  cursor: pointer; /* 指の形のカーソルにする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけて滑らかにする */
+  display: flex; /* ボタン内の文字をフレックスレイアウトで配置する */
+  align-items: center; /* 文字を縦方向の中央に揃える */
+  justify-content: flex-end; /* 文字を右寄せにする（三角形の幅が広い側に置く） */
+  padding-right: 10px; /* 右に10pxの内側余白 */
+  color: #FFF; /* 文字色: 白 */
+  font-weight: bold; /* 太字 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ボタンにマウスを乗せたとき: 背景をホバー用の色にして影を付ける */
 .pagination button:hover {
-  background-color: var(--btn-hover-color, #fff);
-  box-shadow: 0 0 5px #555;
-  color: #FFF;
-  font-weight: bold;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  background-color: var(--btn-hover-color, #fff); /* 背景色: TSXから渡されたホバー用の CSS変数の色（未指定なら白） */
+  box-shadow: 0 0 5px #555; /* 周囲に影を付ける */
+  color: #FFF; /* 文字色: 白 */
+  font-weight: bold; /* 太字 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 押せない状態のボタン（1ページ目での「最初」「前」、最終ページでの「次」「最後」）: 灰色にする */
 .pagination button:disabled {
-  background-color: #999;
-  color: #666;
-  cursor: not-allowed;
+  background-color: #999; /* 背景色: 灰色（ホバーより後に書いてあるため、マウスを乗せても灰色のまま） */
+  color: #666; /* 文字色: 濃い灰色 */
+  cursor: not-allowed; /* マウスを乗せたときに禁止マークのカーソルにする */
 }
 
+/* 「現在ページ / 総ページ数」の表示 */
 .pagination span {
-  font-size: 1rem;
-  color: #555;
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  color: #555; /* 文字色: 灰色 */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: 間隔と文字・ボタンを小さくする */
 @media (max-width: 768px) {
+  /* ページ切り替え全体: ボタン同士の間隔を詰める */
   .pagination {
-    gap: 10px;
+    gap: 10px; /* 間隔を少し詰める */
   }
 
+  /* 「現在ページ / 総ページ数」: 文字を少し小さくする */
   .pagination span {
-    font-size: 0.9rem;
+    font-size: 0.9rem; /* 文字サイズ: ルート要素の0.9倍 */
   }
 
+  /* ボタン: 小さくする（※上の .pagination .prev-button / .next-button の方が詳細度＝優先度が高いため、実際には上書きされず効かない） */
   .pagination button {
-    width: 50px;
-    height: 40px;
+    width: 50px; /* ボタンの横幅 */
+    height: 40px; /* ボタンの高さ */
   }
 }
-

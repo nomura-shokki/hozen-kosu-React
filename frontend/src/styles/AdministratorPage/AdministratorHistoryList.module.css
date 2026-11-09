@@ -1,139 +1,195 @@
+/* ============================================================
+ * ファイル名 : AdministratorHistoryList.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : データ操作履歴一覧画面（AdministratorPage/AdministratorHistoryList.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・検索欄（就業日検索 / レコードID・
+ *              操作テーブル・操作者検索）・一覧表の見た目を定義する。管理者系画面の共通色（灰色）を使う。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 子要素を縦に並べて中央寄せし、表示時にフェードインさせる */
 .admin-history-wrapper {
-  animation: fadeInUp 1s ease-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: top;
-  align-items: center;
-  min-height: 100vh;
-  width: 100%;
-  margin: 0 auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 20px;
-  box-sizing: border-box;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: top; /* ※ top は有効な値ではないためブラウザに無視される（初期値の上詰めと同じ表示） */
+  align-items: center; /* 子要素を横方向の中央に揃える */
+  min-height: 100vh; /* 高さを最低でも画面（ビューポート）の高さいっぱいにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
+  padding: 20px; /* 内側の余白（上下左右20px） */
+  box-sizing: border-box; /* 内側余白を含めた大きさで幅を計算し、width: 100% から はみ出さないようにする */
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「データ操作履歴一覧」: 管理者系画面の共通色（灰色）に濃い灰色の縁取りを付ける */
 .h1-collar {
-  color: #656565;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #656565; /* 文字色: 灰色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて濃い灰色の縁取りに見せる */
 }
 
+/* 「管理者MENU」リンク */
 .admin-nav a {
-  color: #656565;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  margin-bottom: 10px;
-  display: block;
+  color: #656565; /* 文字色: 灰色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 濃い灰色の縁取り */
+  margin-bottom: 10px; /* 下の検索欄との間に10pxの余白 */
+  display: block; /* ブロック要素にして下余白（margin-bottom）を効かせる */
 }
 
+/* 「管理者MENU」リンクにマウスを乗せたとき */
 .admin-nav a:hover {
-  color: #3a3a3a;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #3a3a3a; /* 文字色: さらに濃い灰色に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 濃い灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 検索欄
+ * ------------------------------------------------------------ */
+
+/* 検索欄全体: 2つの検索グループ（就業日検索 / ID・テーブル・操作者検索）を縦に並べる */
 .search-bar {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 10px 0;
-  width: 100%;
-  max-width: 800px;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 検索グループを縦方向に並べる */
+  justify-content: center; /* 縦方向の中央に寄せる */
+  align-items: center; /* 横方向の中央に揃える */
+  gap: 15px; /* 検索グループ同士の間隔 */
+  margin: 10px 0; /* 上下に10pxの余白 */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 800px; /* 広い画面でも横に広がりすぎないよう最大幅を800pxにする */
 }
 
+/* 検索グループ（入力欄＋検索ボタンの1組）: 横一列に中央寄せで並べる */
 .search-group {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
-  justify-content: center;
-  width: 100%;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: row; /* 子要素を横方向に並べる */
+  align-items: center; /* 縦方向の中央に揃える */
+  gap: 15px; /* 子要素同士の間隔 */
+  flex-wrap: wrap; /* 横幅が足りないときは折り返す */
+  justify-content: center; /* 横方向の中央に寄せる */
+  width: 100%; /* 横幅を親要素（検索欄）いっぱいにする */
 }
 
+/* 検索欄のラベル「就業日:」 */
 .search-bar label {
-  white-space: nowrap;
+  white-space: nowrap; /* ラベル文字を途中で改行させない */
 }
 
+/* 検索欄の入力欄（就業日・レコードID・操作者従業員番号）と選択欄（操作テーブル） */
 .search-bar input,
 .search-bar select {
-  padding: 8px 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  max-width: 25%;
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  max-width: 25%; /* 1つのグループに入力欄・ボタンが並ぶため、1つあたり親の25%までに抑える */
 }
 
+/* 検索ボタン（指定月検索・指定日検索・検索）にフォーカスしたとき */
 .search-bar button:focus {
-  outline: none;
-  box-shadow: 0 0 3px #555;
+  outline: none; /* ブラウザ標準のフォーカス枠を消す */
+  box-shadow: 0 0 3px #555; /* 代わりに周囲へうっすら影を付ける */
 }
 
+/* ------------------------------------------------------------
+ * 一覧表
+ * ------------------------------------------------------------ */
+
+/* 表の見出しセル（データ操作日時・操作者No・操作者・操作テーブル・レコードID・操作種類・詳細） */
 .th-collar {
-  background-color: #656565;
-  color: #FFF;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  background-color: #656565; /* 背景色: 灰色 */
+  color: #FFF; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 濃い灰色の縁取り */
 }
 
+/* 表内の「詳細」リンク（データ操作履歴詳細画面へ移動） */
 .a-collar {
-  color: #656565;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #656565; /* 文字色: 灰色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 濃い灰色の縁取り */
 }
 
+/* 「詳細」リンクにマウスを乗せたとき */
 .a-collar:hover {
-  color: #3a3a3a;
+  color: #3a3a3a; /* 文字色: さらに濃い灰色 */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
 
+/* 画面幅が768px以下のとき: 検索グループ内を縦並びにし、入力欄を横幅いっぱいに広げる */
 @media (max-width: 768px) {
+  /* 検索欄全体: 間隔を詰めて内側に余白を付ける */
   .search-bar {
-    flex-direction: column;
-    gap: 10px;
-    padding: 10px;
-    box-sizing: border-box;
+    flex-direction: column; /* 検索グループを縦方向に並べる */
+    gap: 10px; /* 間隔を少し詰める */
+    padding: 10px; /* 内側の余白（上下左右10px） */
+    box-sizing: border-box; /* 内側余白を含めた大きさで幅を計算する */
   }
 
+  /* 検索グループ: 入力欄とボタンを縦に並べ、薄い枠で1組ずつ囲む */
   .search-group {
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-    gap: 5px;
-    padding: 5px;
-    border: 1px solid #eee;
-    border-radius: 4px;
+    flex-direction: column; /* 子要素を縦方向に並べる */
+    align-items: flex-start; /* 子要素を左端に揃える */
+    width: 100%; /* 横幅を親要素いっぱいにする */
+    gap: 5px; /* 子要素同士の間隔を詰める */
+    padding: 5px; /* 内側の余白（上下左右5px） */
+    border: 1px solid #eee; /* ごく薄い灰色の枠線でグループの範囲を示す */
+    border-radius: 4px; /* 角を少し丸める */
   }
 
+  /* 検索グループ内のラベル「就業日:」: 入力欄との間に下余白を付ける */
   .search-group label {
-    margin-right: 0;
-    margin-bottom: 5px;
+    margin-right: 0; /* 右側の余白をなくす */
+    margin-bottom: 5px; /* 下に5pxの余白 */
   }
 
+  /* 文字入力欄（レコードID・操作者従業員番号） */
   .search-group input[type="text"] {
-    box-sizing: border-box;
-    margin-bottom: 5px;
+    box-sizing: border-box; /* 内側余白・枠線を含めた大きさで幅を計算する */
+    margin-bottom: 5px; /* 下に5pxの余白 */
   }
 
+  /* 入力欄と選択欄: 横幅を親要素いっぱいに広げる（PC用の max-width: 25% を打ち消す） */
   .search-bar input,
   .search-bar select {
-    max-width: 100%;
-    min-width: 100%;
+    max-width: 100%; /* 最大幅を親要素いっぱいまで許可する */
+    min-width: 100%; /* 最低幅も親要素いっぱいにして横幅を揃える */
   }
 
+  /* 検索ボタン（指定月検索・指定日検索・検索） */
   .search-group button {
-    box-sizing: border-box;
+    box-sizing: border-box; /* 内側余白・枠線を含めた大きさで幅を計算する */
   }
 
+  /* 「管理者MENU」リンク: 文字を小さくする */
   .admin-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }

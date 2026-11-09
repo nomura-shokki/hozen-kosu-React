@@ -1,303 +1,342 @@
+/* ============================================================
+ * ファイル名 : KosuEdit.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 工数データ編集画面（KosuPage/KosuEdit.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・編集フォーム
+ *              （就業日/勤務・直・残業時間/作業時間・作業内容・作業詳細の各行）・
+ *              行ごとのオン/オフ切り替えスイッチ・下部の表示エリアの見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 見出し・フォームと入力欄の幅
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「工数データ編集」: 工数系画面の共通色（水色）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0ff; /* 文字色: 水色（シアン） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 編集フォーム（form 要素）全体の大きさと余白 */
 .form-edit {
-  max-width: 1000px;
-  padding: 10px;
-  margin: 10px;
+  max-width: 1000px; /* 横幅の上限 */
+  padding: 10px; /* 内側の余白 */
+  margin: 10px; /* 外側の余白 */
 }
 
+/* 幅の広い入力欄（就業日・作業内容のプルダウン・作業詳細の入力欄/プルダウン）の幅の範囲 */
 .form-width {
-  max-width: 800px;
-  min-width: 200px;
+  max-width: 800px; /* 横幅の上限 */
+  min-width: 200px; /* 狭い画面でも内容が読めるよう最低幅を確保する */
 }
 
+/* 幅の狭い入力欄（残業時間の数値入力欄）の幅の範囲 */
 .form-width2 {
-  max-width: 100px;
-  min-width: 80px;
+  max-width: 100px; /* 横幅の上限（数値だけなので狭くする） */
+  min-width: 80px; /* 最低幅 */
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 表示時にフェードインし、はみ出した分は枠内でスクロールさせる */
 .kosu-edit-wrapper {
-  animation: fadeInUp 1s ease-out;
-  width: 100%;
-  max-height: 100%;
-  max-width: 100vw;
-  overflow-x: auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  margin: 0 auto;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-height: 100%; /* 高さの上限を親要素の高さまでにする */
+  max-width: 100vw; /* 横幅の上限を画面幅までにする（画面からはみ出さないようにする） */
+  overflow-x: auto; /* 横にはみ出したら横スクロールバーを出す */
+  overflow-y: auto; /* 縦にはみ出したら縦スクロールバーを出す */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
 }
 
+/* 画面幅が768px以下のとき: 外枠の中央寄せをやめ、リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 画面全体の外枠: 余白を0にする */
   .kosu-edit-wrapper {
-    margin: 0;
-    justify-content: flex-start;
+    margin: 0; /* 中央寄せを解除し、余白を0にする */
+    justify-content: flex-start; /* ※ .kosu-edit-wrapper はフレックスレイアウトではないため、この指定は効果がない */
   }
 
+  /* 「工数履歴」「工数入力」リンク: 文字を小さくする */
   .kosu-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }
 
+/* ------------------------------------------------------------
+ * 編集フォーム（全項目の共通部分）
+ * ------------------------------------------------------------ */
+
+/* 編集フォーム本体（就業日〜「更新」ボタンまでの全項目）: 縦一列に中央寄せで並べる
+   ※クラス名は search-bar だが、検索欄ではなく工数の編集項目の並び */
 .search-bar {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 20px 0;
-  flex-wrap: wrap;
-  overflow-x: auto;
-  overflow-y: auto;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: center; /* 縦方向の中央に寄せる */
+  align-items: center; /* 横方向の中央に揃える */
+  gap: 15px; /* 項目同士の間隔 */
+  margin: 20px 0; /* 上下に20pxの余白 */
+  flex-wrap: wrap; /* 収まらないときは折り返す */
+  overflow-x: auto; /* 横にはみ出したら横スクロールバーを出す（作業時間の行が長いため） */
+  overflow-y: auto; /* 縦にはみ出したら縦スクロールバーを出す */
 }
 
+/* フォーム内のラベル（「就業日:」「勤務・直・残業時間:」など）: 左端に寄せる
+   ※セレクタが label 全般のため、スイッチ（.toggle-switch の label 要素）にも適用される */
 .search-bar label {
-  align-self: flex-start;
-  margin-left: 20px;
+  align-self: flex-start; /* 親の中央揃えを打ち消し、このラベルだけ左端に寄せる */
+  margin-left: 20px; /* 左に20pxの余白 */
 }
 
+/* フォーム内の入力欄・プルダウン（就業日・勤務/直・残業時間・作業内容・作業詳細など） */
 .search-bar input,
 .search-bar select {
-  padding: 8px 10px;
-  margin: 0 auto;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  width: calc(100% - 40px);
-  box-sizing: border-box;
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  width: calc(100% - 40px); /* 横幅: 親要素の幅から左右20pxずつ（計40px）引いた幅 */
+  box-sizing: border-box; /* 幅に内側余白と枠線を含めて計算する */
 }
 
+/* ------------------------------------------------------------
+ * 就業日・勤務/直の行
+ * ------------------------------------------------------------ */
+
+/* 就業日の行: 日付入力欄と「就業日更新」ボタンを横に並べる */
 .day-wrapper {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  width: calc(100% - 40px);
-  box-sizing: border-box;
+  display: flex; /* 子要素をフレックスレイアウトで横に並べる */
+  justify-content: space-between; /* 左右の端に振り分ける */
+  gap: 10px; /* 要素同士の間隔 */
+  width: calc(100% - 40px); /* 横幅: 親要素の幅から左右20pxずつ引いた幅 */
+  box-sizing: border-box; /* 幅に内側余白と枠線を含めて計算する */
 }
 
+/* 「勤務・直・残業時間」の行: スイッチ・就業形態・直・残業時間を横に並べる */
 .work-tyoku-wrapper {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  width: calc(100% - 40px);
-  box-sizing: border-box;
+  display: flex; /* 子要素をフレックスレイアウトで横に並べる */
+  justify-content: space-between; /* 左右の端に振り分ける */
+  gap: 10px; /* 要素同士の間隔 */
+  width: calc(100% - 40px); /* 横幅: 親要素の幅から左右20pxずつ引いた幅 */
+  box-sizing: border-box; /* 幅に内側余白と枠線を含めて計算する */
 }
 
+/* 就業形態（WorkSelect）・直（TyokuSelect）のプルダウン */
 .work-tyoku-wrapper select {
-  flex: 1;
-  padding: 8px 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
+  flex: 1; /* 残りの幅を均等に分け合う */
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
 }
 
+/* 「作業時間・作業内容・作業詳細:」の見出し行: ラベルと「行追加」「行削除」ボタンを左詰めで横に並べる
+   ※ lavel は label の綴り違いだが、TSX側も同じ名前で参照しているためそのまま */
 .lavel-wrapper {
-  display: flex;
-  justify-content: start;
-  gap: 10px;
-  width: 100%;
-  box-sizing: border-box;
+  display: flex; /* 子要素をフレックスレイアウトで横に並べる */
+  justify-content: start; /* 左端（行の始まり側）に詰めて並べる */
+  gap: 10px; /* 要素同士の間隔 */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  box-sizing: border-box; /* 幅に内側余白と枠線を含めて計算する */
 }
 
+/* ------------------------------------------------------------
+ * 残業時間の入力欄
+ * ------------------------------------------------------------ */
+
+/* 残業時間の欄（「−」入力欄「＋」）: 横一列に並べる */
 .over-time-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: calc(100% - 40px);
-  max-width: 200px;
-  box-sizing: border-box;
+  display: flex; /* ボタンと入力欄をフレックスレイアウトで横に並べる */
+  align-items: center; /* 縦方向の中央に揃える */
+  gap: 8px; /* 要素同士の間隔 */
+  width: calc(100% - 40px); /* 横幅: 親要素の幅から40px引いた幅 */
+  max-width: 200px; /* 横幅の上限 */
+  box-sizing: border-box; /* 幅に内側余白と枠線を含めて計算する */
 }
 
+/* 残業時間の数値入力欄 */
 .over-time-wrapper input {
-  flex: 1;
-  padding: 8px 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  text-align: center;
+  flex: 1; /* ボタンを除いた残りの幅いっぱいに広がる */
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  text-align: center; /* 数値を中央揃えにする */
 }
 
+/* 残業時間の「−」「＋」丸ボタン: 押すと残業時間を15分ずつ増減する */
 .custom-button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0;
-  border: none;
-  background-color: #00aeff;
-  color: white;
-  font-size: 1.2em;
-  cursor: pointer;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  margin: 0 5px;
-  text-shadow:
+  display: flex; /* 中の記号をフレックスレイアウトで配置する */
+  justify-content: center; /* 記号を横方向の中央に置く */
+  align-items: center; /* 記号を縦方向の中央に置く */
+  padding: 0; /* ブラウザ標準の内側余白を消す（記号を真ん中に置くため） */
+  border: none; /* 枠線を消す */
+  background-color: #00aeff; /* 背景色: 青 */
+  color: white; /* 文字色: 白 */
+  font-size: 1.2em; /* 文字サイズ: 親要素の1.2倍 */
+  cursor: pointer; /* マウスカーソルを指の形にして押せることを示す */
+  width: 30px; /* 幅30px */
+  height: 30px; /* 高さ30px（幅と同じにして正方形にする） */
+  border-radius: 50%; /* 角を半径50%で丸めて円にする */
+  margin: 0 5px; /* 左右に5pxの余白 */
+  text-shadow: /* 上下左右に0.5pxずつずらした黒い影を重ね、記号に黒い縁取りを付ける */
     -0.5px -0.5px 0 #000,
     0.5px -0.5px 0 #000,
     -0.5px  0.5px 0 #000,
     0.5px  0.5px 0 #000;
 }
 
+/* 「−」「＋」ボタンにマウスを乗せたとき */
 .custom-button:hover {
-  background-color: #009eb3;
+  background-color: #009eb3; /* 背景色を青緑に変えて押せることを示す */
 }
 
+/* ------------------------------------------------------------
+ * 作業時間・作業内容・作業詳細の行（1行＝1作業）
+ * ------------------------------------------------------------ */
+
+/* 作業1件分の行: スイッチ・開始時刻・「〜」・終了時刻・作業内容・作業詳細・「削除」を横一列に並べる */
 .time-picker-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: calc(100% - 40px);
-  flex-wrap: nowrap;
+  display: flex; /* 子要素をフレックスレイアウトで横に並べる */
+  align-items: center; /* 縦方向の中央に揃える */
+  gap: 10px; /* 要素同士の間隔 */
+  width: calc(100% - 40px); /* 横幅: 親要素の幅から左右20pxずつ引いた幅 */
+  flex-wrap: nowrap; /* 折り返さず必ず1行に並べる（はみ出した分は .search-bar のスクロールで見る） */
 }
 
+/* 作業行の中のラベル（行頭と作業詳細前の .toggle-switch の label 要素） */
 .time-picker-wrapper label {
-  font-size: 1rem;
-  margin-left: 5px;
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  margin-left: 5px; /* 左に5pxの余白 */
 }
 
+/* 開始時刻・終了時刻の入力部品（MUI の MobileTimePicker の外枠に付く） */
 .time-picker {
-  flex: 1 0 auto;
-  font-size: 1rem;
-  padding: 8px 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
-  background-color: #fff;
-  max-width: 80px !important;
+  flex: 1 0 auto; /* 余った幅があれば広がる（1）・縮まない（0）・基準幅は中身に合わせる（auto） */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  background-color: #fff; /* 背景色: 白 */
+  max-width: 80px !important; /* 最大幅80px。!important で MUI 側のスタイルより優先させ、時刻欄が広がりすぎないようにする */
 }
 
+/* ------------------------------------------------------------
+ * ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 「工数履歴」「工数入力」リンク */
 .kosu-nav a {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0ff; /* 文字色: 水色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ナビゲーションのリンクにマウスを乗せたとき */
 .kosu-nav a:hover {
-  color: #0af;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0af; /* 文字色: 少し濃い青に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 下部の表示エリア
+ * ------------------------------------------------------------ */
+
+/* 登録済みの作業内容があるときに下部へ表示するエリア（棒グラフ・工数区分定義表）: 縦に中央寄せ */
 .centeredContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  align-items: center; /* 子要素を横方向の中央に揃える */
 }
 
-/*
-.toggle-switch クラス:
-- `position: relative;` 親要素に対して子要素（スライダー）を配置するための基準点を設定します。
-- `display: inline-block;` インライン要素のように振る舞いつつ、幅や高さを設定できるようにします。
-- `width: 75px;` スイッチ全体の幅を75ピクセルに設定します。
-- `height: 39px;` スイッチ全体の高さを39ピクセルに設定します。
-- `margin: 0 auto;` 左右のマージンを自動調整し、コンテナ内で水平方向の中央に配置します。
-*/
+/* ------------------------------------------------------------
+ * オン/オフ切り替えスイッチ
+ *   使用箇所: 「勤務・直・残業時間」行の先頭（オンで編集可）、
+ *             各作業行の先頭（オンでその行を編集可）、
+ *             各作業行の作業詳細の前（オンで手入力 / オフで選択式）
+ * ------------------------------------------------------------ */
+
+/* スイッチの外枠（label 要素。クリックすると中のチェックボックスが切り替わる） */
 .toggle-switch { 
-  position: relative; 
-  display: inline-block; 
-  min-width: 45px; 
-  height: 29px; 
-  margin: auto; 
+  position: relative; /* 中のスライダー（絶対配置）の基準位置にする */
+  display: inline-block; /* 幅・高さを指定できる行内要素にする */
+  min-width: 45px; /* スイッチの幅（最低45px） */
+  height: 29px; /* スイッチの高さ */
+  margin: auto; /* 上下左右の余白を自動にする（フレックスレイアウト内では余った空間を周囲に配分する） */
 } 
 
-/*
-.toggle-switch input クラス:
-- `opacity: 0;` チェックボックス自体を完全に透明にして非表示にします。
-- `width: 0;` 幅をゼロに設定します。
-- `height: 0;` 高さをゼロに設定します。
-これにより、チェックボックスは画面上から見えなくなりますが、機能は保持されます。
-*/
+/* スイッチ内の本物のチェックボックス: 透明・大きさ0にして見えなくする（クリックによる切り替え機能は残る） */
 .toggle-switch input { 
-  opacity: 0; 
-  width: 0; 
-  height: 0; 
+  opacity: 0; /* 完全に透明にする */
+  width: 0; /* 幅0 */
+  height: 0; /* 高さ0 */
 } 
 
-/*
-.toggle-slider クラス:
-- `position: absolute;` 親要素（.toggle-switch）を基準にして絶対位置で配置します。
-- `cursor: pointer;` マウスカーソルをポインターに変え、クリック可能であることを示します。
-- `top: 0; left: 0; right: 0; bottom: 0;` 親要素全体に広がるように配置します。
-- `background-color: #999;` チェックされていない時の背景色を灰色に設定します。
-- `border-radius: 30px;` 角を丸くして、カプセル型にします。
-- `transition: 0.3s;` 背景色の変化を0.3秒かけて滑らかにします。
-*/
+/* スイッチの土台（細長い角丸の背景）: オフのときは灰色 */
 .toggle-slider { 
-  position: absolute; 
-  cursor: pointer; 
-  top: 0; 
-  left: 0; 
-  right: 0; 
-  bottom: 0; 
-  background-color: #999; 
-  border-radius: 30px; 
-  transition: 0.3s; 
+  position: absolute; /* 外枠（.toggle-switch）を基準に絶対配置する */
+  cursor: pointer; /* マウスカーソルを指の形にして押せることを示す */
+  top: 0; /* 上端を外枠の上端に合わせる */
+  left: 0; /* 左端を外枠の左端に合わせる */
+  right: 0; /* 右端を外枠の右端に合わせる */
+  bottom: 0; /* 下端を外枠の下端に合わせる（上下左右0で外枠全体を覆う） */
+  background-color: #999; /* 背景色: 灰色（オフの状態） */
+  border-radius: 30px; /* 角を大きく丸めてカプセル型にする */
+  transition: 0.3s; /* 背景色などの変化を0.3秒かけて滑らかにする */
 } 
 
-/*
-.toggle-slider::before 疑似要素:
-- `position: absolute;` 親要素（.toggle-slider）を基準に絶対位置で配置します。
-- `content: "";` 空のコンテンツを生成し、表示可能にします。
-- `height: 30px;` スイッチの丸いボタンの高さを30ピクセルに設定します。
-- `width: 30px;` スイッチの丸いボタンの幅を30ピクセルに設定します。
-- `left: 4.5px; bottom: 4.5px;` スライダー内の位置を調整します。
-- `background-color: white;` ボタンの色を白に設定します。
-- `border-radius: 50%;` 円形にします。
-- `transition: 0.3s;` 移動を0.3秒かけて滑らかにします。
-*/
+/* スイッチのつまみ（白い丸）: 擬似要素 ::before で描画し、オフのときは左端に置く */
 .toggle-slider::before { 
-  position: absolute; 
-  content: ""; 
-  height: 20px; 
-  width: 20px; 
-  left: 4.5px; 
-  bottom: 4.5px; 
-  background-color: white; 
-  border-radius: 50%; 
-  transition: 0.3s; 
+  position: absolute; /* 土台を基準に絶対配置する */
+  content: ""; /* 擬似要素を表示させるための空の内容（これが無いと描画されない） */
+  height: 20px; /* つまみの高さ */
+  width: 20px; /* つまみの幅 */
+  left: 4.5px; /* 左から4.5px（(スイッチの高さ29px − つまみ20px) ÷ 2 で上下左右の隙間を揃える） */
+  bottom: 4.5px; /* 下から4.5px（上下中央に置く） */
+  background-color: white; /* つまみの色: 白 */
+  border-radius: 50%; /* 角を半径50%で丸めて円にする */
+  transition: 0.3s; /* 移動を0.3秒かけて滑らかにする */
 } 
 
-/*
-.toggle-switch input:checked + .toggle-slider クラス:
-- `input:checked` チェックボックスがチェックされた状態を指します。
-- `+ .toggle-slider` チェックされたチェックボックスの直後にある.toggle-sliderにスタイルを適用します。
-- `background-color: #ffd700;` チェックされた時の背景色を金色（#ffd700）に設定します。
-*/
+/* チェックボックスがオンのときの土台（input の直後にある .toggle-slider）: 青にする */
 .toggle-switch input:checked + .toggle-slider { 
-  background-color: #0066ff; 
+  background-color: #0066ff; /* 背景色: 青（オンの状態） */
 } 
 
-/*
-.toggle-switch input:checked + .toggle-slider::before 疑似要素:
-- `transform: translateX(36px);` チェックされた時に、丸いボタンをX軸（横方向）に36ピクセル移動させます。
-*/
+/* チェックボックスがオンのときのつまみ: 右端へ移動させる */
 .toggle-switch input:checked + .toggle-slider::before { 
-  transform: translateX(16px); 
+  transform: translateX(16px); /* 右へ16px移動（幅45px − つまみ20px − 隙間4.5px×2 = 16px で右端に着く） */
 } 
 
-/*
-.switch-wrapper クラス:
-- `display: flex;` 子要素をフレックスボックスとして配置します。
-- `flex-direction: column;` 子要素を縦に並べます。
-- `gap: 4px;` 子要素間の隙間を4ピクセルに設定します。
-- `align-items: flex-start;` 子要素を左揃えにします。
-- `text-align: left;` テキストを左揃えにします。
-- `width: 100%;` 幅を親要素の100%に設定します。
-*/
+/* スイッチとラベルを縦に並べる枠
+   ※TSX側では現在使用されていない */
 .switch-wrapper { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 4px; 
-  align-items: flex-start; 
-  text-align: left; 
-  width: 100%; 
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  gap: 4px; /* 子要素同士の間隔 */
+  align-items: flex-start; /* 子要素を左端に揃える */
+  text-align: left; /* 文字を左揃えにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
 }

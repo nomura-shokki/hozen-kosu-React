@@ -1,46 +1,62 @@
+/* ============================================================
+ * ファイル名 : DefTable.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 共通部品「工数区分の凡例一覧」（Components/DefTable.tsx）
+ *              ※工数入力・工数編集・工数削除・班員工数履歴詳細の各画面で使用
+ * 概要       : 工数区分名と、グラフ上の色を示す丸印を1行ずつ並べたカード型一覧の見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] / styles.クラス名 として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* 工数区分の色を示す丸印（大きさ・色・丸い形は TSX 側の style 属性で指定） */
 .color-dot {
-  vertical-align: middle;
+  vertical-align: middle; /* 文字の高さの中央に揃える（※親要素 dataListItem がフレックスレイアウトのため実際には効かず、縦位置は親の align-items で中央になる） */
 }
 
+/* 凡例一覧全体の外枠: 白いカードの中に工数区分を1列で縦に並べる */
 .chartDataList {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-gap: 1rem;
-  margin: 10px;
-  padding: 1.5rem;
-  width:  calc(100% - 20px);
-  max-width: 450px;
-  background-color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  animation: fadeInUp 0.8s ease-in-out 0.2s backwards;
+  display: grid; /* 子要素をグリッドレイアウト（行と列のマス目）で配置する */
+  grid-template-columns: 1fr; /* 列は1列だけ（横幅いっぱい）にする */
+  grid-gap: 1rem; /* 行同士の間隔（gap の旧名称） */
+  margin: 10px; /* 外側の余白 */
+  padding: 1.5rem; /* 内側の余白 */
+  width:  calc(100% - 20px); /* 親要素の幅から左右の外側余白10pxずつ（計20px）を引いた幅にする */
+  max-width: 450px; /* 広い画面でも横幅は450pxまでにする */
+  background-color: #ffffff; /* 背景色: 白 */
+  border-radius: 16px; /* 角を大きく丸めてカード状に見せる */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側にうっすら影を付けて浮き上がって見せる */
+  animation: fadeInUp 0.8s ease-in-out 0.2s backwards; /* 0.2秒待ってから0.8秒かけて表示する指定（※このファイルに @keyframes fadeInUp が無く、CSS Modules では別ファイルの同名アニメーションを参照できないため実際には動かない） */
 }
 
+/* 工数区分1件分の行: 工数区分名を左、色の丸印を右に配置したカード */
 .dataListItem {
-  display: flex;
-  align-items: center;
+  display: flex; /* 子要素をフレックスレイアウトで横に並べる */
+  align-items: center; /* 縦方向の中央に揃える */
   justify-content: space-between; /* ラベルと値を左右に配置 */
-  padding: 1rem;
+  padding: 1rem; /* 内側の余白 */
   background-color: #f7fcff; /* 明るい背景色 */
   border: 1px solid #c0e6ff; /* 明るい水色のボーダー */
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border-radius: 10px; /* 角を丸める */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側にうっすら影を付ける */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* 位置と影の変化を0.2秒かけて滑らかにする */
 }
 
+/* 工数区分の行にマウスを乗せたとき: 少し上に浮き上がらせる */
 .dataListItem:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px); /* 5px上に移動させる */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 影（通常時と同じ値のため見た目は変わらない） */
 }
 
+/* 工数区分名の文字 */
 .itemLabel {
-  font-weight: 600;
-  color: #333;
-  flex-grow: 1;
+  font-weight: 600; /* やや太字 */
+  color: #333; /* 文字色: 濃い灰色 */
+  flex-grow: 1; /* 余った横幅をすべて使い、色の丸印を右端へ押しやる */
 }
 
-/* 画面幅が768px以下の場合に適用されるスタイル */
+/* 画面幅が768px以下の場合に適用されるスタイル: 工数区分名の文字を小さくする */
 @media (max-width: 768px) {
+  /* 工数区分名の文字: 小さくする */
   .itemLabel {
     font-size: 0.8rem; /* リスト内のテキストを小さくする */
   }

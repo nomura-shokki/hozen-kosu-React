@@ -1,12 +1,23 @@
+/* ============================================================
+ * ファイル名 : KosuBarChart.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 共通部品「工数グラフ」（Components/KosuBarChart.tsx）
+ *              ※工数入力・工数編集・工数削除・班員工数履歴詳細の各画面で使用
+ * 概要       : 1日分の作業内容（時刻ごとの工数区分）を色分けした棒グラフ（Chart.js）を囲む枠の見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* 棒グラフを囲む白いカード型の枠: 高さを固定し、横にはみ出す場合は横スクロールさせる */
 .chart-container {
-  width:  calc(100% - 20px);
-  max-width: 1200px;
-  margin: 10px;
-  padding: 10px;
-  background-color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  animation: fadeInUp 0.8s ease-in-out;
-  overflow-x: auto;
-  height: 250px;
+  width:  calc(100% - 20px); /* 親要素の幅から左右の外側余白10pxずつ（計20px）を引いた幅にする */
+  max-width: 1200px; /* 広い画面でも横幅は1200pxまでにする */
+  margin: 10px; /* 外側の余白 */
+  padding: 10px; /* 内側の余白 */
+  background-color: #ffffff; /* 背景色: 白 */
+  border-radius: 16px; /* 角を大きく丸めてカード状に見せる */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側にうっすら影を付けて浮き上がって見せる */
+  animation: fadeInUp 0.8s ease-in-out; /* 0.8秒かけて表示する指定（※このファイルに @keyframes fadeInUp が無く、CSS Modules では別ファイルの同名アニメーションを参照できないため実際には動かない） */
+  overflow-x: auto; /* 横にはみ出した場合は横スクロールバーを出す */
+  height: 250px; /* グラフ領域の高さを250pxに固定する（TSX側で maintainAspectRatio: false のため、グラフはこの高さに合わせて描画される） */
 }

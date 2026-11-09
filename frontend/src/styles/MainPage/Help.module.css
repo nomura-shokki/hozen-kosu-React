@@ -1,124 +1,184 @@
+/* ============================================================
+ * ファイル名 : Help.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : ヘルプ画面（MainPage/Help.tsx）
+ * 概要       : パスワード認証欄と、データリセット用のトグルスイッチ
+ *              （人員・工数区分定義・設定データ）の見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 見出し
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「認証」「ヘルプ」: 灰色の文字に灰色の縁取りを付ける */
 .h1-collar {
-  color: #656565;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #656565; /* 文字色: 灰色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠（認証前・認証後とも共通）: はみ出した分はスクロールさせ、表示時にフェードインさせる */
 .help-wrapper {
-  animation: fadeInUp 1s ease-out;
-  width: 100%;
-  max-height: 100%;
-  max-width: 100vw;
-  overflow-x: auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  margin: 0 auto;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-height: 100%; /* 高さは親要素の高さまでに制限する */
+  max-width: 100vw; /* 横幅は画面（ビューポート）の幅を超えないようにする */
+  overflow-x: auto; /* 横にはみ出した場合は横スクロールバーを出す */
+  overflow-y: auto; /* 縦にはみ出した場合は縦スクロールバーを出す */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
 }
 
+/* ------------------------------------------------------------
+ * 入力欄（パスワード認証欄・リセット選択欄）
+ * ------------------------------------------------------------ */
+
+/* 入力欄の枠（認証前: パスワード入力＋「認証」ボタン / 認証後: トグル群＋「書き込み」ボタン）: 縦一列に中央寄せで並べる */
 .search-bar {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 20px 0;
-  flex-wrap: wrap;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: center; /* 縦方向（並びの方向）の中央に寄せる */
+  align-items: center; /* 横方向の中央に揃える */
+  gap: 15px; /* 子要素同士の間隔 */
+  margin: 20px 0; /* 上下に20pxの余白 */
+  flex-wrap: wrap; /* 収まりきらないときは折り返す */
 }
 
+/* パスワード入力欄（認証前の画面）。※トグル内のチェックボックスにも当たるが、後述の .toggle-switch input で幅・高さは打ち消される */
 .search-bar input {
-  padding: 8px 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  width: calc(100% - 60px);
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  width: calc(100% - 60px); /* 横幅: 親要素の幅から60pxを引いた幅（左右に30pxずつ余白を残す） */
 }
 
+/* ------------------------------------------------------------
+ * ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 「ログイン」リンク */
 .help-nav a {
-  color: #656565;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #656565; /* 文字色: 灰色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「ログイン」リンクにマウスを乗せたとき */
 .help-nav a:hover {
-  color: #3a3a3a;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #3a3a3a; /* 文字色: より濃い灰色に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * トグルスイッチ（データリセットのON/OFF）
+ * チェックボックス本体は透明にして隠し、代わりに .toggle-slider の
+ * 丸いつまみ付きのバーをスイッチとして見せる仕組み。
+ * ------------------------------------------------------------ */
+
+/* トグルスイッチ全体（<label> 要素）: 中の .toggle-slider を重ねる基準位置にする */
 .toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 75px;
-  height: 39px;
-  margin: 0 auto;
+  position: relative; /* 子要素の absolute 配置の基準にする */
+  display: inline-block; /* 横幅・高さを指定できるインライン要素にする */
+  width: 75px; /* スイッチの横幅 */
+  height: 39px; /* スイッチの高さ */
+  margin: 0 auto; /* 左右の余白を自動にする */
 }
 
+/* スイッチ内のチェックボックス本体: 見えなくする（クリックは親の <label> 経由で効く） */
 .toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
+  opacity: 0; /* 完全に透明にして見えなくする */
+  width: 0; /* 幅を0にして場所を取らないようにする */
+  height: 0; /* 高さを0にして場所を取らないようにする */
 }
 
+/* スイッチのバー部分（OFF時の見た目）: スイッチ全体いっぱいに広がる角丸の灰色バー */
 .toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #999;
-  border-radius: 30px;
-  transition: 0.3s;
+  position: absolute; /* 親（.toggle-switch）を基準に重ねて配置する */
+  cursor: pointer; /* マウスカーソルを指の形にして押せることを示す */
+  top: 0; /* 親の上端に合わせる */
+  left: 0; /* 親の左端に合わせる */
+  right: 0; /* 親の右端に合わせる */
+  bottom: 0; /* 親の下端に合わせる（上下左右0で親いっぱいに広がる） */
+  background-color: #999; /* 背景色: 灰色（OFFの状態） */
+  border-radius: 30px; /* 角を大きく丸めてカプセル形にする */
+  transition: 0.3s; /* 色などの変化を0.3秒かけてなめらかに切り替える */
 }
 
+/* スイッチの丸いつまみ: バーの左端に白い円を表示する */
 .toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 30px;
-  width: 30px;
-  left: 4.5px;
-  bottom: 4.5px;
-  background-color: white;
-  border-radius: 50%;
-  transition: 0.3s;
+  position: absolute; /* バーを基準に重ねて配置する */
+  content: ""; /* 擬似要素を表示するために空の内容を指定する（中身は不要） */
+  height: 30px; /* つまみの高さ */
+  width: 30px; /* つまみの幅 */
+  left: 4.5px; /* バーの左端から4.5px内側に置く */
+  bottom: 4.5px; /* バーの下端から4.5px内側に置く（高さ39pxの中央付近） */
+  background-color: white; /* つまみの色: 白 */
+  border-radius: 50%; /* 正円にする */
+  transition: 0.3s; /* つまみの移動を0.3秒かけてなめらかにする */
 }
 
+/* チェックが入ったとき（ON）のバー: 紺色にする */
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #000066;
+  background-color: #000066; /* 背景色: 紺色（ONの状態） */
 }
 
+/* チェックが入ったとき（ON）のつまみ: 右端へ移動させる */
 .toggle-switch input:checked + .toggle-slider::before {
-  transform: translateX(36px);
+  transform: translateX(36px); /* 右へ36px移動（75px幅 − つまみ30px − 左右の余白4.5px×2 ≒ 36px） */
 }
 
+/* トグル群全体の枠: 項目名ラベルとスイッチを縦に並べて左寄せにする */
 .switch-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-start;
-  text-align: left;
-  width: 100%;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  gap: 4px; /* 子要素同士の間隔 */
+  align-items: flex-start; /* 子要素を左端に揃える */
+  text-align: left; /* 文字を左寄せにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
 }
 
+/* 項目名ラベル（「人員データリセット:」等）とスイッチの <label>: 左に字下げする */
 .switch-wrapper label {
-  margin-left: 20px;
+  margin-left: 20px; /* 左に20pxの余白を空ける */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: 外枠の左右余白をなくし、リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 画面全体の外枠 */
   .help-wrapper {
-    margin: 0;
-    justify-content: flex-start;
+    margin: 0; /* 外側の余白をなくす */
+    justify-content: flex-start; /* ※ .help-wrapper はフレックスコンテナではないため、この指定は効果がない */
   }
 
+  /* 「ログイン」リンク: 文字を小さくする */
   .help-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }

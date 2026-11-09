@@ -1,30 +1,61 @@
+/* ============================================================
+ * ファイル名 : DefEdit.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 工数区分定義編集画面（DefinitionPage/DefEdit.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・編集フォーム（定義Ver名の入力欄、
+ *              工数区分ごとの入力ブロック、変動/固定のトグルスイッチ）の見た目を定義する。
+ *              工数区分定義系の画面共通色（緑）を使う。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ *              工数区分定義新規登録画面（DefNew.module.css）とほぼ同じ内容。
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 見出し・画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「工数区分定義編集」: 工数区分定義系画面の共通色（緑）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #0f0;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0f0; /* 文字色: 明るい緑 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 画面全体を包む外枠: 中身が収まらないときはスクロールさせ、表示時にフェードインさせる */
 .def-edit-wrapper {
-  animation: fadeInUp 1s ease-out;
-  width: 100%;
-  max-height: 100%;
-  max-width: 100vw;
-  overflow-x: auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  margin: 0 auto;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-height: 100%; /* 高さは親要素の高さまで */
+  max-width: 100vw; /* 最大幅: 画面幅まで（はみ出さない） */
+  overflow-x: auto; /* はみ出した分は横スクロールできるようにする */
+  overflow-y: auto; /* はみ出した分は縦スクロールできるようにする */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
 }
 
+/* ------------------------------------------------------------
+ * 編集フォーム
+ * ------------------------------------------------------------ */
+
+/* 編集フォームの中身全体（更新ボタン・定義Ver名・工数区分の入力ブロック群）: 縦一列に中央寄せで並べる
+ *   ※クラス名は search-bar だが、この画面では検索ではなく編集フォームに使われている */
 .search-bar {
   display: flex; /* Flexboxで子要素を柔軟に配置 */
   flex-direction: column; /* 子要素を縦方向に並べる */
@@ -35,6 +66,7 @@
   flex-wrap: wrap; /* 幅が足りない場合に子要素を折り返し */
 }
 
+/* 編集フォームの中身全体（※直前の .search-bar と全く同じ指定が重複している。後に書いたこちらが有効） */
 .search-bar {
   display: flex; /* Flexboxで子要素を柔軟に配置 */
   flex-direction: column; /* 子要素を縦方向に並べる */
@@ -45,11 +77,13 @@
   flex-wrap: wrap; /* 幅が足りない場合に子要素を折り返し */
 }
 
+/* フォーム内のすべてのラベル（「工数区分定義Ver名:」「工数区分名N:」「定義N:」など）: ラベルだけ左端に寄せる */
 .search-bar label {
-  align-self: flex-start;
-  margin-left: 20px;
+  align-self: flex-start; /* この要素だけ横方向の左端に配置する（親の中央揃えを上書き） */
+  margin-left: 20px; /* 左に20pxの余白 */
 }
 
+/* フォーム内の入力欄（定義Ver名・工数区分名）と複数行入力欄（定義・作業内容） */
 .search-bar input,
 .search-bar textarea {
   padding: 8px 10px; /* 内部の余白を設定 */
@@ -57,121 +91,158 @@
   border: 1px solid #999; /* 枠線の設定 */
   border-radius: 4px; /* 角を丸くする */
   font-size: 1rem; /* フォントサイズ */
-  width: calc(100% - 20px); /* フォーム幅に応じて調整し、左右に隙間を持たせる */
+  width: calc(100% - 20px); /* フォーム幅に応じて調整し、左右に隙間を持たせる（親の幅から計20px引く） */
   max-width: 400px; /* 最大幅を設定（必要に応じて調整） */
   box-sizing: border-box; /* パディングを含めて幅を計算 */
-  background-color: #fff; 
+  background-color: #fff; /* 背景色: 白（色付きの入力ブロックの上でも入力欄が分かるように） */
 }
 
+/* 入力欄・複数行入力欄にフォーカス（選択中）したとき */
 .search-bar input:focus,
 .search-bar textarea:focus {
-  border-color: #0f0;
-  outline: none;
-  box-shadow: 0 0 3px #555;
+  border-color: #0f0; /* 枠線を緑にして選択中であることを示す */
+  outline: none; /* ブラウザ標準のフォーカス枠を消す（代わりに上の枠線色と影で示す） */
+  box-shadow: 0 0 3px #555; /* 周囲にうっすら影を付ける */
 }
 
+/* ------------------------------------------------------------
+ * ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 「工数区分定義一覧」へ戻るリンク */
 .def-nav a {
-  color: #0f0;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0f0; /* 文字色: 明るい緑 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「工数区分定義一覧」リンクにマウスを乗せたとき */
 .def-nav a:hover {
-  color: #32cd32;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #32cd32; /* 文字色: 少し濃い緑に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 工数区分ごとの入力ブロック
+ * ------------------------------------------------------------ */
+
+/* 工数区分1件分の入力ブロック（工数区分名・定義・作業内容・変動/固定）: 枠線付きのカードにして縦に並べる */
 .definition-block {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  border: 1px solid #999;
-  width: 95%;
-  border-radius: 8px;
-  padding: 10px 0;
-  margin: 12px 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素（ラベルと入力欄）を縦方向に並べる */
+  gap: 10px; /* 子要素同士の間隔 */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  width: 95%; /* 横幅: 親要素の95% */
+  border-radius: 8px; /* 角を丸める */
+  padding: 10px 0; /* 上下に10pxの内側余白 */
+  margin: 12px 0; /* 上下に12pxの余白 */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* うっすら影を付けてカードが浮いて見えるようにする */
 }
 
+/* 奇数番目の入力ブロック（工数区分1, 3, 5…）: 背景色で交互に色分けして区切りを分かりやすくする
+ *   nth-of-type は同じ親の中の同じタグ（div）だけを数えるため、入力ブロックの順番と一致する */
 .definition-block:nth-of-type(odd) {
-  background-color: #f6ffe0;
+  background-color: #f6ffe0; /* 背景色: ごく薄い黄緑 */
 }
 
+/* 偶数番目の入力ブロック（工数区分2, 4, 6…） */
 .definition-block:nth-of-type(even) {
-  background-color: #efe;
+  background-color: #efe; /* 背景色: ごく薄い緑 */
 }
 
+/* ------------------------------------------------------------
+ * 変動/固定のトグルスイッチ
+ *   チェックボックスを透明にして隠し、代わりに span.toggle-slider で
+ *   「背景（レール）」と「白い丸（つまみ）」を描いてスイッチに見せる
+ * ------------------------------------------------------------ */
+
+/* トグルスイッチの外枠（label 要素）: 幅75px・高さ39pxの領域を作り、中のつまみの位置の基準にする */
 .toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 75px;
-  height: 39px;
-  margin: 0 auto;
+  position: relative; /* 子の position: absolute の基準点にする */
+  display: inline-block; /* 幅・高さを指定できる行内要素にする */
+  width: 75px; /* スイッチの幅 */
+  height: 39px; /* スイッチの高さ */
+  margin: 0 auto; /* 左右中央に配置（※ .search-bar label / .switch-wrapper label の margin-left: 20px の方が優先されるため、左余白は20pxになる） */
 }
 
+/* トグルスイッチ内のチェックボックス本体: 見えなくする（クリックは外枠の label 経由で切り替わる） */
 .toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
+  opacity: 0; /* 完全に透明にする */
+  width: 0; /* 幅0 */
+  height: 0; /* 高さ0 */
 }
 
+/* スイッチの背景（レール部分）: 外枠いっぱいに広げた灰色の角丸の帯（OFF＝固定の状態） */
 .toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #999;
-  border-radius: 30px;
-  transition: 0.3s;
+  position: absolute; /* 外枠（.toggle-switch）を基準に配置する */
+  cursor: pointer; /* マウスカーソルを指の形にして押せることを示す */
+  top: 0; /* 上端を外枠に合わせる */
+  left: 0; /* 左端を外枠に合わせる */
+  right: 0; /* 右端を外枠に合わせる */
+  bottom: 0; /* 下端を外枠に合わせる（上下左右0で外枠いっぱいに広がる） */
+  background-color: #999; /* 背景色: 灰色（OFFの状態） */
+  border-radius: 30px; /* 角を大きく丸めて両端を半円にする */
+  transition: 0.3s; /* 色などの変化を0.3秒かけて滑らかにする */
 }
 
+/* スイッチのつまみ（白い丸）: ::before で中身の無い要素を作って描く */
 .toggle-slider::before {
-  position: absolute;
-  content: "";
-  height: 30px;
-  width: 30px;
-  left: 4.5px;
-  bottom: 4.5px;
-  background-color: white;
-  border-radius: 50%;
-  transition: 0.3s;
+  position: absolute; /* レールを基準に配置する */
+  content: ""; /* 中身は空（::before を表示させるために必要） */
+  height: 30px; /* つまみの高さ */
+  width: 30px; /* つまみの幅 */
+  left: 4.5px; /* 左端から4.5px（OFFの位置） */
+  bottom: 4.5px; /* 下端から4.5px（(高さ39px - つまみ30px) ÷ 2 = 4.5px で上下中央になる） */
+  background-color: white; /* つまみの色: 白 */
+  border-radius: 50%; /* 正円にする */
+  transition: 0.3s; /* 移動を0.3秒かけて滑らかにする */
 }
 
+/* チェックが入っているとき（ON＝変動）のレール: 緑にする（「+」は直後の兄弟要素を指す） */
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #0f0;
+  background-color: #0f0; /* 背景色: 明るい緑（ONの状態） */
 }
 
+/* チェックが入っているとき（ON＝変動）のつまみ: 右端へ移動する */
 .toggle-switch input:checked + .toggle-slider::before {
-  transform: translateX(36px);
+  transform: translateX(36px); /* 右へ36px移動（幅75px - つまみ30px - 左右の余白4.5px×2 = 36px で右端に着く） */
 }
 
+/* 「変動/固定N:」ラベルとトグルスイッチをまとめる枠: 縦に並べて左寄せにする */
 .switch-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-start;
-  text-align: left;
-  width: 100%;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* ラベルとスイッチを縦方向に並べる */
+  gap: 4px; /* ラベルとスイッチの間隔 */
+  align-items: flex-start; /* 横方向は左端に揃える */
+  text-align: left; /* 文字を左揃え */
+  width: 100%; /* 横幅を親要素（入力ブロック）いっぱいにする */
 }
 
+/* 「変動/固定N:」ラベルとトグルスイッチの外枠（どちらも label 要素） */
 .switch-wrapper label {
-  margin-left: 20px;
+  margin-left: 20px; /* 左に20pxの余白（他のラベルと左端の位置を揃える） */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: 入力欄の最大幅を狭め、外枠の中央寄せを解除し、リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 入力欄: 最大幅を250pxに狭める（select はこの画面には無い。textarea はこの指定に含まれていない） */
   .search-bar input,
   .search-bar select {
-    width: calc(100% - 20px);
-    max-width: 250px;
+    width: calc(100% - 20px); /* 幅: 親要素の幅から20px引いた幅（通常時と同じ） */
+    max-width: 250px; /* 最大幅を狭い画面向けに小さくする */
   }
 
+  /* 画面全体の外枠: 中央寄せをやめる */
   .def-edit-wrapper {
     margin: 0; /* 左揃えにするため中央配置を解除 */
-    justify-content: flex-start; /* コンテンツを左寄せに */
+    justify-content: flex-start; /* コンテンツを左寄せに（※この要素はフレックスレイアウトではないため実際には効かない） */
   }
 
+  /* 「工数区分定義一覧」リンク: 文字を小さくする */
   .def-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }

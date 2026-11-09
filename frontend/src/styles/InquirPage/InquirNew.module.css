@@ -1,70 +1,110 @@
+/* ============================================================
+ * ファイル名 : InquirNew.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 問い合わせ登録画面（InquirPage/InquirNew.tsx。画面タイトルは「問い合わせ」）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・入力フォーム（内容の選択欄・
+ *              問い合わせ本文の入力欄・登録ボタン）の見た目を定義する。
+ *              問い合わせ系の画面共通色（ピンク）を使う。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 子要素を縦に並べて中央寄せし、表示時にフェードインさせる */
 .inquir-new-wrapper {
-  animation: fadeInUp 1s ease-out;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
   display: flex; /* 子要素をフレックスレイアウトにする */
   flex-direction: column; /* 縦方向に要素を並べる */
-  justify-content: top;
+  justify-content: top; /* ※ top は有効な値ではないためブラウザに無視される（初期値の上詰めと同じ表示） */
   align-items: center; /* 横方向の中央に配置 */
   height: 100vh; /* 画面の高さいっぱいにする */
-  width: 100%;
+  width: 100%; /* 横幅を親要素いっぱいにする */
   margin: 0 auto; /* 横方向の中央寄せ */
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「問い合わせ」: 問い合わせ系画面の共通色（ピンク）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #ff69b4;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff69b4; /* 文字色: ピンク（ホットピンク） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「問い合わせMENU」へ戻るリンク */
 .inquir-nav a {
-  color: #ff69b4;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff69b4; /* 文字色: ピンク */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「問い合わせMENU」リンクにマウスを乗せたとき */
 .inquir-nav a:hover {
-  color: #ff1493;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff1493; /* 文字色: 濃いピンクに変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 入力フォーム
+ * ------------------------------------------------------------ */
+
+/* 入力欄のまとまり（内容の選択欄・問い合わせ本文の入力欄・登録ボタン）: 縦一列に中央寄せで並べる
+ *   ※クラス名は search-bar だが、この画面では検索ではなく登録フォームの入力欄に使われている */
 .search-bar {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 20px 0;
-  min-width: 250px;
-  flex-wrap: wrap;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: center; /* 縦方向（並べる方向）の中央に寄せる */
+  align-items: center; /* 横方向の中央に揃える */
+  gap: 15px; /* 子要素同士の間隔 */
+  margin: 20px 0; /* 上下に20pxの余白 */
+  min-width: 250px; /* 最低幅（狭い画面でも入力欄が細くなりすぎないように） */
+  flex-wrap: wrap; /* 収まらないときは折り返す */
 }
 
+/* 項目名のラベル（「内容選択:」「問い合わせ：」）: 中央寄せの中で、ラベルだけ左端に寄せる */
 .search-bar label {
-  align-self: flex-start;
-  margin-left: 20px;
+  align-self: flex-start; /* この要素だけ横方向の左端に配置する（親の中央揃えを上書き） */
+  margin-left: 20px; /* 左に20pxの余白（入力欄の左端と位置を合わせる） */
 }
 
+/* 内容の選択欄（Components/ItemSelect.tsx が描画する select 要素）と問い合わせ本文の入力欄（textarea）
+ *   ※ input はこの画面のフォームには無い */
 .search-bar input,
 .search-bar select,
 .search-bar textarea {
-  padding: 8px 10px;
-  margin: 0 auto;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  width: calc(100% - 40px);
-  max-width: 400px;
-  box-sizing: border-box;
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  width: calc(100% - 40px); /* 幅: 親要素の幅から左右20pxずつ（計40px）引いた幅 */
+  max-width: 400px; /* 最大幅（広い画面で横に伸びすぎないように） */
+  box-sizing: border-box; /* 幅に枠線と内側余白を含めて計算する */
 }
 
+/* 問い合わせ本文の入力欄（複数行） */
 .search-bar textarea { 
-  min-height: 100px; /* <- 複数行表示のための最小高さを設定 */
+  min-height: 100px; /* 複数行表示のための最小高さを設定（本文を書きやすいよう最低100pxを確保） */
 }

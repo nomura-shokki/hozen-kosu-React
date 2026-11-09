@@ -1,109 +1,158 @@
+/* ============================================================
+ * ファイル名 : BreakTime.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 休憩時間変更画面（KosuPage/BreakTime.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・
+ *              直（1直/2直/3直/常昼/連1直/連2直）ごとの休憩時間入力ブロックと
+ *              時刻選択欄の見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「休憩時間変更」: 工数系画面の共通色（水色）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0ff; /* 文字色: 水色（シアン） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「工数MENU」リンク */
 .kosu-nav a {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0ff; /* 文字色: 水色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「工数MENU」リンクにマウスを乗せたとき */
 .kosu-nav a:hover {
-  color: #0af;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0af; /* 文字色: 少し濃い青に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 内容が画面からはみ出す場合は枠内でスクロールさせ、表示時にフェードインさせる */
 .brea-time-wrapper {
-  animation: fadeInUp 1s ease-out;
-  width: 100%;
-  max-height: 100%;
-  max-width: 100vw;
-  overflow-x: auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  margin: 0 auto;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-height: 100%; /* 高さは親要素の高さまでに制限する */
+  max-width: 100vw; /* 横幅は画面（ビューポート）の幅までに制限する */
+  overflow-x: auto; /* 横にはみ出した場合は横スクロールバーを出す */
+  overflow-y: auto; /* 縦にはみ出した場合は縦スクロールバーを出す */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: 外枠の余白をなくし、リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 外枠の余白調整（※TSX側では現在使用されていない。本画面の外枠は brea-time-wrapper） */
   .kosu-new-wrapper {
-    margin: 0;
-    justify-content: flex-start;
+    margin: 0; /* 外側の余白をなくす */
+    justify-content: flex-start; /* 子要素を先頭（上または左）に詰める */
   }
 
+  /* 「工数MENU」リンク: 文字を小さくする */
   .kosu-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }
 
+/* ------------------------------------------------------------
+ * 休憩時間入力フォーム
+ * ------------------------------------------------------------ */
+
+/* 直ごとの入力ブロックと「登録」ボタンを包む枠: 縦一列に中央寄せで並べる */
 .search-bar {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 20px 0;
-  flex-wrap: wrap;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: center; /* 縦方向の中央に寄せる */
+  align-items: center; /* 横方向の中央に揃える */
+  gap: 15px; /* 子要素同士の間隔 */
+  margin: 20px 0; /* 上下に20pxの余白 */
+  flex-wrap: wrap; /* 入りきらないときは折り返す */
 }
 
+/* 直（1直・2直など）1つ分の入力ブロック: 見出しと4種類の休憩（昼休憩・残業休憩1〜3）を縦に並べたカード */
 .breakinition-block {
-  display: flex;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
   flex-direction: column; /* 子要素を縦方向に揃える */
   justify-content: center; /* フレックスアイテムの上下中央揃え */
   align-items: center; /* フレックスアイテムの左右中央揃え */
-  gap: 10px;
-  border: 1px solid #999;
-  width: 95%;
-  border-radius: 8px;
-  padding: 10px 0;
-  margin: 12px 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  gap: 10px; /* 子要素同士の間隔 */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  width: 95%; /* 横幅を親要素の95%にする（左右に少し余白を残す） */
+  border-radius: 8px; /* 角を丸める */
+  padding: 10px 0; /* 内側の余白（上下10px・左右0） */
+  margin: 12px 0; /* 上下に12pxの余白 */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* 下側にうっすら影を付けてカード状に見せる */
 }
 
+/* 奇数番目の入力ブロック（1直・3直・連1直）: 背景を水色系にする */
 .breakinition-block:nth-of-type(odd) {
-  background-color: #e0ffff;
+  background-color: #e0ffff; /* 背景色: 薄い水色 */
 }
 
+/* 偶数番目の入力ブロック（2直・常昼・連2直）: 背景を別の水色系にして交互に色分けする */
 .breakinition-block:nth-of-type(even) {
-  background-color: #eefcff;
+  background-color: #eefcff; /* 背景色: さらに薄い水色 */
 }
 
+/* 休憩の種類名ラベル（「昼休憩:」「残業休憩1:」など） */
 .breakinition-block label {
-  align-self: flex-start;
-  margin-left: 20px;
+  align-self: flex-start; /* フレックス配置の中で自分だけ先頭（左）に寄せる（※TSX上ではラベルの親要素は通常の div のため、この指定は効かない） */
+  margin-left: 20px; /* 左に20pxの余白 */
 }
 
+/* 開始時刻・「〜」・終了時刻を横に並べる枠 */
 .time-picker-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: calc(100% - 40px);
-  max-width: 400px;
-  box-sizing: border-box;
-  flex-wrap: wrap;
-  margin: auto;
+  display: flex; /* 子要素をフレックスレイアウトで横に並べる */
+  align-items: center; /* 縦方向の中央に揃える */
+  gap: 10px; /* 子要素同士の間隔 */
+  width: calc(100% - 40px); /* 親要素の幅から左右20pxずつ（計40px）を引いた幅にする */
+  max-width: 400px; /* 広い画面でも横幅は400pxまでにする */
+  box-sizing: border-box; /* 枠線・内側余白を幅に含めて計算する */
+  flex-wrap: wrap; /* 横幅が足りないときは折り返す */
+  margin: auto; /* 余白を自動にして中央に配置する */
 }
 
+/* 時刻選択枠の中のラベル（※TSX上ではこの枠内に label 要素は記述されていない） */
 .time-picker-wrapper label {
-  font-size: 1rem;
-  margin-left: 5px;
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  margin-left: 5px; /* 左に5pxの余白 */
 }
 
+/* 休憩の開始時刻・終了時刻を選ぶ欄（MUI の MobileTimePicker＝タップで時計型の時刻選択画面を開く部品） */
 .time-picker {
-  flex: 1;
-  font-size: 1rem;
-  padding: 8px 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
-  background-color: #fff; 
+  flex: 1; /* 横並びの中で残りの幅を均等に分け合う */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  background-color: #fff; /* 背景色: 白 */
 }

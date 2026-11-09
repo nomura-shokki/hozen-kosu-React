@@ -1,126 +1,176 @@
+/* ============================================================
+ * ファイル名 : AdministratorUpdate.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 設定編集画面（管理者設定の編集。AdministratorPage/AdministratorUpdate.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・入力フォーム（一覧表示項目数・
+ *              問い合わせ担当者従業員番号1〜3）・バックエンドログ表示の切り替えスイッチの
+ *              見た目を定義する。管理者系画面の共通色（灰色）を使う。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* ページ全体の入れ物（設定フォームと、ON時に表示されるバックエンドログ表示欄を含む）: 高さを確保する */
 .page-container {
-  min-height: 100vh;
+  min-height: 100vh; /* 高さを最低でも画面（ビューポート）の高さいっぱいにする */
 }
 
+/* 設定フォーム部分の外枠: 見出し・リンク・フォームを縦に並べて中央寄せし、表示時にフェードインさせる */
 .admin-update-wrapper {
-  animation: fadeInUp 1s ease-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: top;
-  align-items: center;
-  width: 100%;
-  margin: 0 auto;
-  -webkit-overflow-scrolling: touch;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: top; /* ※ top は有効な値ではないためブラウザに無視される（初期値の上詰めと同じ表示） */
+  align-items: center; /* 子要素を横方向の中央に揃える */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「設定編集」: 管理者系画面の共通色（灰色）に濃い灰色の縁取りを付ける */
 .h1-collar {
-  color: #656565;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #656565; /* 文字色: 灰色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて濃い灰色の縁取りに見せる */
 }
 
+/* 「管理者MENU」リンク */
 .admin-nav a {
-  color: #656565;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #656565; /* 文字色: 灰色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 濃い灰色の縁取り */
 }
 
+/* 「管理者MENU」リンクにマウスを乗せたとき */
 .admin-nav a:hover {
-  color: #3a3a3a;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #3a3a3a; /* 文字色: さらに濃い灰色に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 濃い灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 入力フォーム
+ * ------------------------------------------------------------ */
+
+/* 入力フォーム全体（一覧表示項目数〜「編集」ボタンまで）: ラベルと入力欄を縦1列に中央寄せで並べる */
 .search-bar {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 20px 0;
-  min-width: 250px;
-  flex-wrap: wrap;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* ラベルと入力欄を縦方向に並べる */
+  justify-content: center; /* 縦方向の中央に寄せる */
+  align-items: center; /* 横方向の中央に揃える */
+  gap: 15px; /* 子要素同士の間隔 */
+  margin: 20px 0; /* 上下に20pxの余白 */
+  min-width: 250px; /* 狭い画面でも入力欄が潰れないよう最低幅を確保する */
+  flex-wrap: wrap; /* 入りきらないときは折り返す */
 }
 
+/* フォーム内のラベル（「一覧表示項目数：」「問い合わせ担当者従業員番号1：」など）: 左端に寄せる */
 .search-bar label {
-  align-self: flex-start;
-  margin-left: 20px;
+  align-self: flex-start; /* このラベルだけ中央寄せをやめて左端に配置する */
+  margin-left: 20px; /* 左に20pxの余白（入力欄の左端と位置を揃えるため） */
 }
 
+/* フォーム内の入力欄（一覧表示項目数・問い合わせ担当者従業員番号1〜3） */
 .search-bar input {
-  padding: 8px 10px;
-  margin: 0 auto;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  width: calc(100% - 40px);
-  max-width: 400px;
-  box-sizing: border-box;
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  width: calc(100% - 40px); /* 横幅: 親要素の幅から左右20pxずつ（計40px）を引いた幅 */
+  max-width: 400px; /* 広い画面でも400pxより広げない */
+  box-sizing: border-box; /* 内側余白・枠線を含めた大きさで幅を計算する */
 }
 
+/* ------------------------------------------------------------
+ * 切り替えスイッチ（バックエンドログ表示）
+ * ------------------------------------------------------------ */
+
+/* 切り替えスイッチの外枠（label 要素）: 中の丸つまみの位置の基準にする */
 .toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 75px;
-  height: 39px;
-  margin: 0 auto;
+  position: relative; /* 中の .toggle-slider（position: absolute）の位置の基準にする */
+  display: inline-block; /* 幅・高さを指定できるようにする */
+  width: 75px; /* スイッチの横幅 */
+  height: 39px; /* スイッチの高さ（つまみ30px＋上下の余白4.5pxずつ） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
 }
 
+/* スイッチ内の本物のチェックボックス: 見えなくして、代わりに .toggle-slider をスイッチとして見せる */
 .toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
+  opacity: 0; /* 完全に透明にする（クリック自体は外枠の label 経由で効く） */
+  width: 0; /* 幅0にして場所を取らないようにする */
+  height: 0; /* 高さ0にして場所を取らないようにする */
 }
 
+/* スイッチの土台（OFF時は灰色の角丸の帯） */
 .toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #999;
-  border-radius: 30px;
-  transition: 0.3s;
+  position: absolute; /* 外枠（.toggle-switch）を基準に配置する */
+  cursor: pointer; /* マウスを乗せると指の形のカーソルにして押せることを示す */
+  top: 0; /* 外枠の上端に合わせる */
+  left: 0; /* 外枠の左端に合わせる */
+  right: 0; /* 外枠の右端に合わせる */
+  bottom: 0; /* 外枠の下端に合わせる（上下左右0で外枠いっぱいに広がる） */
+  background-color: #999; /* 背景色: 灰色（OFFの状態） */
+  border-radius: 30px; /* 両端を大きく丸めて角丸の帯にする */
+  transition: 0.3s; /* ON/OFF切り替え時に0.3秒かけて色を変化させる */
 }
 
+/* スイッチの丸いつまみ（::before 疑似要素で土台の上に白い円を描く） */
 .toggle-slider::before {
-  position: absolute;
-  content: "";
-  height: 30px;
-  width: 30px;
-  left: 4.5px;
-  bottom: 4.5px;
-  background-color: white;
-  border-radius: 50%;
-  transition: 0.3s;
+  position: absolute; /* 土台（.toggle-slider）を基準に配置する */
+  content: ""; /* 疑似要素を表示するために必要な空の内容 */
+  height: 30px; /* つまみの高さ */
+  width: 30px; /* つまみの幅（高さと同じにして正円にする） */
+  left: 4.5px; /* 土台の左端から4.5px内側に置く（OFFの位置） */
+  bottom: 4.5px; /* 土台の下端から4.5px内側に置く（上下中央になる） */
+  background-color: white; /* つまみの色: 白 */
+  border-radius: 50%; /* 正円にする */
+  transition: 0.3s; /* ON/OFF切り替え時に0.3秒かけて滑らかに移動させる */
 }
 
+/* スイッチがON（チェックあり）のときの土台: 紺色にする */
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #000066;
+  background-color: #000066; /* 背景色: 紺色（ONの状態） */
 }
 
+/* スイッチがON（チェックあり）のときのつまみ: 右端へ移動させる */
 .toggle-switch input:checked + .toggle-slider::before {
-  transform: translateX(36px);
+  transform: translateX(36px); /* 右へ36px移動（外枠75px − つまみ30px − 左右の余白4.5px×2 = 36px） */
 }
 
+/* 切り替えスイッチ1組（「バックエンドログ表示:」ラベル＋スイッチ）: 縦に並べて左揃えにする */
 .switch-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-start;
-  text-align: left;
-  width: 100%;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* ラベルとスイッチを縦方向に並べる */
+  gap: 4px; /* ラベルとスイッチの間隔 */
+  align-items: flex-start; /* 子要素を左端に揃える */
+  text-align: left; /* 文字を左揃えにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
 }
 
+/* 切り替えスイッチ1組の中のラベル */
 .switch-wrapper label {
-  margin-left: 20px;
+  margin-left: 20px; /* 左に20pxの余白（他のラベルと位置を揃える） */
 }

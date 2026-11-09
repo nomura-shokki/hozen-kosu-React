@@ -1,262 +1,322 @@
+/* ============================================================
+ * ファイル名 : MainMenu.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : メインメニュー画面（MainPage/MainMenu.tsx）
+ * 概要       : 画面全体の外枠・メニューロゴ・問い合わせのお知らせ欄と、
+ *              各MENUボタン（工数・工数区分定義・人員・班員・問い合わせ・管理者）の見た目を定義する。
+ *              ボタンの色は遷移先の画面群ごとに分けている（工数=水色、工数区分定義=緑 など）。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面の一番外側の枠（メニュー本体と、条件付きで表示されるログコンソールを含む） */
 .page-container {
-  min-height: 100vh;
+  min-height: 100vh; /* 最低でも画面（ビューポート）の高さいっぱいにする */
 }
 
+/* メニュー本体の枠: ロゴ・あいさつ・お知らせ・各ボタンを縦に並べて中央寄せし、表示時にフェードインさせる */
 .menu-wrapper {
-  animation: fadeInUp 1s ease-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: top;
-  align-items: center;
-  width: 85%;
-  margin: 0 auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 20px;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: top; /* ※ top は有効な値ではないためブラウザに無視される（初期値の上詰めと同じ表示） */
+  align-items: center; /* 子要素を横方向の中央に揃える */
+  width: 85%; /* 横幅を親要素の85%にする */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
+  padding-bottom: 20px; /* 下に20pxの内側余白（ログアウトボタンの下に空きを作る） */
 }
 
+/* ------------------------------------------------------------
+ * MENUボタン
+ * 6種類とも形・大きさは同じで、背景色とマウスを乗せたときの色だけが異なる。
+ * ボタン内は「左: アイコン / 中央: 文字 / 右: 見えない余白（::after）」の3つを
+ * 両端揃えで並べ、文字がボタンの中央に来るようにしている。
+ * ------------------------------------------------------------ */
+
+/* 各MENUボタンの左端に表示するアイコン画像 */
 .icon {
-  height: 1em;
-  width: auto;
-  position: static;
-  object-fit: contain;
+  height: 1em; /* 高さ: ボタンの文字1文字分 */
+  width: auto; /* 横幅は高さに合わせて自動計算し、縦横比を保つ */
+  position: static; /* 通常の配置（特別な位置指定をしない初期値） */
+  object-fit: contain; /* 画像全体が枠に収まるよう縦横比を保つ */
 }
 
+/* 「工数MENU」ボタン（工数メニュー画面へ移動）: 水色 */
 .kosu-menu-button {
-  width: 100%;
-  max-width: 400px;
-  background-color: #0ff;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  font-size: clamp(1rem, 1rem + 3vw, 2rem);
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 15px;
-  position: relative;
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* ただし最大400pxまで */
+  background-color: #0ff; /* 背景色: 水色（工数系画面の共通色） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem); /* 文字サイズ: 画面幅に応じて 1rem〜2rem の範囲で変化させる */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にして押せることを示す */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけてなめらかにする */
+  margin-bottom: 15px; /* 下のボタンとの間に15pxの余白 */
+  text-decoration: none; /* リンクの下線を消す */
+  display: flex; /* アイコン・文字・右側の余白をフレックスレイアウトで配置する */
+  align-items: center; /* 縦方向の中央に揃える */
+  justify-content: space-between; /* 左端・中央・右端に均等に振り分ける（文字を中央に置くため） */
+  padding: 10px 15px; /* 内側の余白（上下10px・左右15px） */
+  position: relative; /* 子要素の位置指定の基準にする */
 }
 
+/* 「工数MENU」ボタンにマウスを乗せたとき */
 .kosu-menu-button:hover {
-  background-color: #0af;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #0af; /* 背景色: 少し濃い青 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: underline; /* 下線を付ける（※直後の none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を消す（global.css の a:hover の下線を打ち消す） */
 }
 
+/* 「工数定義区分MENU」ボタン（工数区分定義メニュー画面へ移動）: 緑 */
 .def-menu-button {
-  width: 100%;
-  max-width: 400px;
-  background-color: #0f0;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  font-size: clamp(1rem, 1rem + 3vw, 2rem);
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 15px;
-  position: relative;
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* ただし最大400pxまで */
+  background-color: #0f0; /* 背景色: 緑（工数区分定義系画面の共通色） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem); /* 文字サイズ: 画面幅に応じて 1rem〜2rem の範囲で変化させる */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけてなめらかにする */
+  margin-bottom: 15px; /* 下のボタンとの間に15pxの余白 */
+  text-decoration: none; /* リンクの下線を消す */
+  display: flex; /* アイコン・文字・右側の余白をフレックスレイアウトで配置する */
+  align-items: center; /* 縦方向の中央に揃える */
+  justify-content: space-between; /* 左端・中央・右端に均等に振り分ける */
+  padding: 10px 15px; /* 内側の余白（上下10px・左右15px） */
+  position: relative; /* 子要素の位置指定の基準にする */
 }
 
+/* 「工数定義区分MENU」ボタンにマウスを乗せたとき */
 .def-menu-button:hover {
-  background-color: #32cd32;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #32cd32; /* 背景色: 少し濃い緑（ライムグリーン） */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: underline; /* 下線を付ける（※直後の none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を消す（global.css の a:hover の下線を打ち消す） */
 }
 
+/* 「人員MENU」ボタン（人員メニュー画面へ移動。権限ありの人員のみ表示）: 黄色 */
 .member-menu-button {
-  width: 100%;
-  max-width: 400px;
-  background-color: #ffd700;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  font-size: clamp(1rem, 1rem + 3vw, 2rem);
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 15px;
-  position: relative;
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* ただし最大400pxまで */
+  background-color: #ffd700; /* 背景色: 黄色（ゴールド。人員系画面の共通色） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem); /* 文字サイズ: 画面幅に応じて 1rem〜2rem の範囲で変化させる */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけてなめらかにする */
+  margin-bottom: 15px; /* 下のボタンとの間に15pxの余白 */
+  text-decoration: none; /* リンクの下線を消す */
+  display: flex; /* アイコン・文字・右側の余白をフレックスレイアウトで配置する */
+  align-items: center; /* 縦方向の中央に揃える */
+  justify-content: space-between; /* 左端・中央・右端に均等に振り分ける */
+  padding: 10px 15px; /* 内側の余白（上下10px・左右15px） */
+  position: relative; /* 子要素の位置指定の基準にする */
 }
 
+/* 「人員MENU」ボタンにマウスを乗せたとき */
 .member-menu-button:hover {
-  background-color: #ffa500;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #ffa500; /* 背景色: オレンジ */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: underline; /* 下線を付ける（※直後の none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を消す（global.css の a:hover の下線を打ち消す） */
 }
 
+/* 「班員MENU」ボタン（班員メニュー画面へ移動。権限ありの人員のみ表示）: 濃いオレンジ */
 .team-menu-button {
-  width: 100%;
-  max-width: 400px;
-  background-color: #ff7700;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  font-size: clamp(1rem, 1rem + 3vw, 2rem);
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 15px;
-  position: relative;
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* ただし最大400pxまで */
+  background-color: #ff7700; /* 背景色: 濃いオレンジ（班員系画面の見出し色 #f50 に近い色） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem); /* 文字サイズ: 画面幅に応じて 1rem〜2rem の範囲で変化させる */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけてなめらかにする */
+  margin-bottom: 15px; /* 下のボタンとの間に15pxの余白 */
+  text-decoration: none; /* リンクの下線を消す */
+  display: flex; /* アイコン・文字・右側の余白をフレックスレイアウトで配置する */
+  align-items: center; /* 縦方向の中央に揃える */
+  justify-content: space-between; /* 左端・中央・右端に均等に振り分ける */
+  padding: 10px 15px; /* 内側の余白（上下10px・左右15px） */
+  position: relative; /* 子要素の位置指定の基準にする */
 }
 
+/* 「班員MENU」ボタンにマウスを乗せたとき */
 .team-menu-button:hover {
-  background-color: #ff1100;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #ff1100; /* 背景色: 赤 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: underline; /* 下線を付ける（※直後の none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を消す（global.css の a:hover の下線を打ち消す） */
 }
 
+/* 「問い合わせMENU」ボタン（問い合わせメニュー画面へ移動）: ピンク */
 .inquir-menu-button {
-  width: 100%;
-  max-width: 400px;
-  background-color: #ff69b4;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  font-size: clamp(1rem, 1rem + 3vw, 2rem);
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 15px;
-  position: relative;
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* ただし最大400pxまで */
+  background-color: #ff69b4; /* 背景色: ピンク（問い合わせ系画面の共通色） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem); /* 文字サイズ: 画面幅に応じて 1rem〜2rem の範囲で変化させる */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけてなめらかにする */
+  margin-bottom: 15px; /* 下のボタンとの間に15pxの余白 */
+  text-decoration: none; /* リンクの下線を消す */
+  display: flex; /* アイコン・文字・右側の余白をフレックスレイアウトで配置する */
+  align-items: center; /* 縦方向の中央に揃える */
+  justify-content: space-between; /* 左端・中央・右端に均等に振り分ける */
+  padding: 10px 15px; /* 内側の余白（上下10px・左右15px） */
+  position: relative; /* 子要素の位置指定の基準にする */
 }
 
+/* 「問い合わせMENU」ボタンにマウスを乗せたとき */
 .inquir-menu-button:hover {
-  background-color: #ff1493;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #ff1493; /* 背景色: 濃いピンク */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: underline; /* 下線を付ける（※直後の none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を消す（global.css の a:hover の下線を打ち消す） */
 }
 
+/* 「管理者MENU」ボタン（管理者メニュー画面へ移動。管理者のみ表示）: 灰色 */
 .admin-menu-button {
-  width: 100%;
-  max-width: 400px;
-  background-color: #656565;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  font-size: clamp(1rem, 1rem + 3vw, 2rem);
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 15px;
-  position: relative;
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* ただし最大400pxまで */
+  background-color: #656565; /* 背景色: 灰色（管理者系画面の共通色） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  font-size: clamp(1rem, 1rem + 3vw, 2rem); /* 文字サイズ: 画面幅に応じて 1rem〜2rem の範囲で変化させる */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけてなめらかにする */
+  margin-bottom: 15px; /* 下のボタンとの間に15pxの余白 */
+  text-decoration: none; /* リンクの下線を消す */
+  display: flex; /* アイコン・文字・右側の余白をフレックスレイアウトで配置する */
+  align-items: center; /* 縦方向の中央に揃える */
+  justify-content: space-between; /* 左端・中央・右端に均等に振り分ける */
+  padding: 10px 15px; /* 内側の余白（上下10px・左右15px） */
+  position: relative; /* 子要素の位置指定の基準にする */
 }
 
+/* 「管理者MENU」ボタンにマウスを乗せたとき */
 .admin-menu-button:hover {
-  background-color: #3a3a3a;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #3a3a3a; /* 背景色: 濃い灰色 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: underline; /* 下線を付ける（※直後の none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を消す（global.css の a:hover の下線を打ち消す） */
 }
 
+/* 全MENUボタンの右端に置く見えない余白: 左のアイコンと同じ幅を確保し、中央の文字が真ん中に来るようにする */
 .kosu-menu-button::after,
 .def-menu-button::after,
 .member-menu-button::after,
 .team-menu-button::after,
 .inquir-menu-button::after,
 .admin-menu-button::after {
-  content: "";
-  height: 1em;
-  flex: 0 0 auto; 
-  width: var(--icon-width, 1em);
+  content: ""; /* 擬似要素を表示するために空の内容を指定する（中身は不要） */
+  height: 1em; /* 高さ: アイコンと同じ1文字分 */
+  flex: 0 0 auto; /* 伸び縮みさせず、指定した幅のまま保つ */
+  width: var(--icon-width, 1em); /* 幅: 変数 --icon-width の値。未定義なら1em（※現在どこでも定義されていないため常に1em） */
 }
 
+/* ------------------------------------------------------------
+ * ロゴ・問い合わせのお知らせ欄
+ * ------------------------------------------------------------ */
+
+/* 画面上部のメニューロゴ画像 */
 .Menu-logo {
-  max-width: min(400px, 80%);
-  width: auto;
-  height: auto;
-  margin-bottom: 40px;
-  object-fit: contain;
+  max-width: min(400px, 80%); /* 最大幅: 400px と親要素の80% のうち小さい方（スマホでもはみ出さない） */
+  width: auto; /* 横幅は画像本来の大きさに合わせる（上の最大幅を超える場合は縮む） */
+  height: auto; /* 高さは横幅に合わせて自動計算し、縦横比を保つ */
+  margin-bottom: 40px; /* ロゴと下のあいさつ文の間に40pxの余白 */
+  object-fit: contain; /* 枠に合わせて縮める場合も、画像全体が収まるよう縦横比を保つ */
 }
 
+/* 問い合わせのお知らせリンク（クリックで問い合わせ詳細画面へ）: 目立つよう赤の太字にする */
 .a-collar{
-  color: rgb(255, 0, 0);
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  font-weight: bold;
+  color: rgb(255, 0, 0); /* 文字色: 赤 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  font-weight: bold; /* 太字 */
 }
 
+/* 問い合わせのお知らせ欄（管理者向け・本人向けのお知らせリンクを最大5件ずつ並べる枠） */
 .alert-area {
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-  text-align: center;
-  padding: 10px 0;
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* ただし最大400px（MENUボタンと同じ幅）まで */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  text-align: center; /* 文字を中央揃えにする */
+  padding: 10px 0; /* 上下に10pxの内側余白 */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: お知らせ欄を左寄せにし、管理者MENUボタンを隠し、ボタン右側の余白をなくす */
 @media (max-width: 768px) {
+  /* 問い合わせのお知らせ欄: 横幅いっぱい・左寄せにする */
   .alert-area {
-    max-width: 100%;
-    margin: 0;
-    align-self: flex-start;
-    text-align: left;
-    padding-left: 0; 
-    padding-right: 0;
+    max-width: 100%; /* 最大幅の制限をなくして親要素いっぱいにする */
+    margin: 0; /* 外側の余白をなくす */
+    align-self: flex-start; /* 親（.menu-wrapper）の中でこの要素だけ左端に寄せる */
+    text-align: left; /* 文字を左寄せにする */
+    padding-left: 0; /* 左の内側余白をなくす */
+    padding-right: 0; /* 右の内側余白をなくす */
   }
 
+  /* 「管理者MENU」ボタン: スマートフォンでは表示しない */
   .admin-menu-button {
-    display: none !important;
+    display: none !important; /* 非表示にする（!important で他の display 指定より必ず優先させる） */
   }
 
+  /* 全MENUボタン右端の見えない余白: 幅を0にして、狭い画面で文字の場所を広く取る */
   .kosu-menu-button::after,
   .def-menu-button::after,
   .member-menu-button::after,
   .team-menu-button::after,
   .inquir-menu-button::after,
   .admin-menu-button::after {
-    content: "";
-    height: 1em;
-    flex: 0 0 auto; 
-    width: 0;
+    content: ""; /* 擬似要素を表示するために空の内容を指定する */
+    height: 1em; /* 高さ: 1文字分 */
+    flex: 0 0 auto; /* 伸び縮みさせず、指定した幅のまま保つ */
+    width: 0; /* 幅を0にする（余白をなくす） */
   }
 }

@@ -1,100 +1,138 @@
+/* ============================================================
+ * ファイル名 : Login.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : ログイン画面（MainPage/Login.tsx）
+ * 概要       : 画面全体の外枠・タイトルロゴ・従業員番号の入力欄と、
+ *              右下に遅れて表示されるヘルプ画面へのリンク（「?」ボタン）の見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: はみ出した分はスクロールさせ、表示時にフェードインさせる */
 .login-wrapper {
-  animation: fadeInUp 1s ease-out;
-  width: 100%;
-  max-height: 100%;
-  max-width: 100vw;
-  overflow-x: auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  margin: 0 auto;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-height: 100%; /* 高さは親要素の高さまでに制限する */
+  max-width: 100vw; /* 横幅は画面（ビューポート）の幅を超えないようにする */
+  overflow-x: auto; /* 横にはみ出した場合は横スクロールバーを出す */
+  overflow-y: auto; /* 縦にはみ出した場合は縦スクロールバーを出す */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
 }
 
+/* ------------------------------------------------------------
+ * ログインフォーム（ロゴ・従業員番号入力欄）
+ * ------------------------------------------------------------ */
+
+/* 入力欄の枠（「従業員番号」ラベル・入力欄・エラー表示・「ログイン」ボタン）: 縦一列に中央寄せで並べる */
 .search-bar {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 20px 0;
-  flex-wrap: wrap;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: center; /* 縦方向（並びの方向）の中央に寄せる */
+  align-items: center; /* 横方向の中央に揃える */
+  gap: 15px; /* 子要素同士の間隔 */
+  margin: 20px 0; /* 上下に20pxの余白 */
+  flex-wrap: wrap; /* 収まりきらないときは折り返す */
 }
 
+/* 画面上部のシステムタイトルロゴ画像 */
 .login-logo {
-  max-width: min(400px, 90%);
-  width: auto;
-  height: auto;
-  margin: 0 auto; 
-  margin-bottom: 40px;
-  object-fit: contain;
+  max-width: min(400px, 90%); /* 最大幅: 400px と親要素の90% のうち小さい方（スマホでもはみ出さない） */
+  width: auto; /* 横幅は画像本来の大きさに合わせる（上の最大幅を超える場合は縮む） */
+  height: auto; /* 高さは横幅に合わせて自動計算し、縦横比を保つ */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する（img は global.css で block 要素になっている） */
+  margin-bottom: 40px; /* ロゴとログインフォームの間に40pxの余白を空ける */
+  object-fit: contain; /* 枠に合わせて縮める場合も、画像全体が収まるよう縦横比を保つ */
 }
 
+/* 従業員番号の入力欄 */
 .search-bar input {
-  padding: 8px 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  width: calc(100% - 60px);
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  width: calc(100% - 60px); /* 横幅: 親要素の幅から60pxを引いた幅（左右に30pxずつ余白を残す） */
 }
 
+/* 従業員番号の入力欄にフォーカス（選択中）したとき */
 .search-bar input:focus {
-  border-color: #08f;
-  outline: none;
-  box-shadow: 0 0 3px #555;
+  border-color: #08f; /* 枠線を青にして選択中であることを示す */
+  outline: none; /* ブラウザ標準のフォーカス枠を消す（代わりに上の枠線色と影で示す） */
+  box-shadow: 0 0 3px #555; /* 周囲にうっすら影を付ける */
 }
 
-/* styles/MainPage/Login.module.css */
+/* ------------------------------------------------------------
+ * ヘルプ画面へのリンク（右下の「?」ボタン）
+ * 画面を開いてから30秒後に現れる、ひし形の小さなボタン。
+ * データリセット等を行うヘルプ画面（/help）へ移動する。
+ * ------------------------------------------------------------ */
 
+/* 「?」ボタン本体: 正方形を45度回転させたひし形を画面右下に固定し、最初は透明にしておく */
 .help-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  background-color: #ffffff;
-  border: 2px solid #007bff;
-  transform: rotate(45deg);
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  text-decoration: none;
-  cursor: pointer;
-  opacity: 0;
-  animation: fadeIn 0s linear 30.0s forwards;
+  display: flex; /* 中の「?」をフレックスレイアウトで配置する */
+  align-items: center; /* 「?」を縦方向の中央に置く */
+  justify-content: center; /* 「?」を横方向の中央に置く */
+  width: 20px; /* ボタンの横幅 */
+  height: 20px; /* ボタンの高さ */
+  background-color: #ffffff; /* 背景色: 白 */
+  border: 2px solid #007bff; /* 青い枠線 */
+  transform: rotate(45deg); /* 45度回転させてひし形に見せる */
+  position: fixed; /* スクロールしても画面上の同じ位置に固定する */
+  bottom: 30px; /* 画面の下端から30pxの位置 */
+  right: 30px; /* 画面の右端から30pxの位置 */
+  text-decoration: none; /* リンクの下線を消す */
+  cursor: pointer; /* マウスカーソルを指の形にして押せることを示す */
+  opacity: 0; /* 最初は完全に透明にして見えなくしておく */
+  animation: fadeIn 0s linear 30.0s forwards; /* 30秒待ってから下の fadeIn を一瞬（0秒）で実行し、終了後の状態（不透明）を保つ */
 }
 
+/* 「?」ボタンを出現させるアニメーション: 不透明にする（開始時は上の opacity: 0 の状態） */
 @keyframes fadeIn {
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
+    opacity: 1; /* 完全に不透明 */
   }
 }
 
-/* ホバー時は色のみ変更（動きはなし） */
+/* 「?」ボタンにマウスを乗せたとき: 背景を青にする（色だけを変え、拡大などの動きは付けない） */
 .help-button:hover {
-  background-color: #007bff;
-  /* scale(1.1) などを削除して拡大しないように設定 */
+  background-color: #007bff; /* 背景色: 青 */
+  /* ※拡大表示（scale(1.1) など）はあえて指定していない */
 }
 
+/* ボタンの中に表示する「?」の文字 */
 .help-button::after {
-  content: "?";
-  /* 文字の向きを正位置に戻す */
-  transform: rotate(-45deg);
-  color: #007bff;
-  font-weight: bold;
-  font-size: 20px;
+  content: "?"; /* 表示する文字 */
+  /* ボタン本体を45度回転させているため、文字だけ逆に回転させて正しい向きに戻す */
+  transform: rotate(-45deg); /* 逆方向に45度回転 */
+  color: #007bff; /* 文字色: 青 */
+  font-weight: bold; /* 太字 */
+  font-size: 20px; /* 文字サイズ: 20px */
 }
 
-/* ホバー時の中の文字色 */
+/* 「?」ボタンにマウスを乗せたときの中の文字: 青い背景の上で見えるよう白にする */
 .help-button:hover::after {
-  color: #ffffff;
+  color: #ffffff; /* 文字色: 白 */
 }

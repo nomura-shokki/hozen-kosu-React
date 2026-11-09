@@ -1,9 +1,34 @@
+/**
+ * ============================================================
+ * ファイル名 : TeamMenu.test.tsx
+ * 種別       : テストコード（Vitest + React Testing Library）
+ * テスト対象 : TeamPage/TeamMenu.tsx（班員メニュー画面）
+ * 概要       : 見出しと各班員画面へのボタンの表示・工数未入力のお知らせの表示・
+ *              未ログイン（401）時のログイン画面への遷移を確認する。
+ *
+ * モック方針 :
+ *   - api（../../api/axios）      : 実際のサーバー通信をさせず、返す値をテストごとに指定するため
+ *   - axios.isAxiosError           : 「response を持つエラー」を通信エラーとして扱わせるため
+ *   - react-router-dom の useNavigate / useLocation : 画面遷移先の確認と URL の固定のため
+ *     （useLocation の state を null にして、他画面から渡されるエラーメッセージがない状態にする）
+ *   （Loading はモックせず本物を使う）
+ * ============================================================
+ */
+
+// ============================================================
+// インポート
+// ============================================================
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import "@testing-library/jest-dom/vitest";
+import "@testing-library/jest-dom/vitest"; // toBeInTheDocument などの追加の検証関数を使えるようにする
 import TeamMenu from "../../TeamPage/TeamMenu";
 
+// ============================================================
+// モック定義
+// ============================================================
+
+// api（共通axiosインスタンス）のモック: get/post/put/delete をすべて「何もしない偽の関数」に置き換える
 vi.mock("../../api/axios", () => ({
   default: {
     get: vi.fn(),
@@ -13,73 +38,107 @@ vi.mock("../../api/axios", () => ({
   },
 }));
 import api from "../../api/axios";
+// モック関数のメソッド（mockResolvedValue など）を型エラーなしで呼ぶため any として扱う
 const mockedApi = api as any;
 
+// axios.isAxiosError のモック: response プロパティを持つエラーなら true（通信エラー扱い）を返す
 vi.mock("axios", () => ({
   default: {
     isAxiosError: vi.fn((err) => !!err.response),
   },
 }));
 
+// useNavigate のモック: 呼び出された遷移先を mockedNavigate で記録・確認できるようにする
 const mockedNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
+  // Link や MemoryRouter など、それ以外の機能は本物をそのまま使う
   const actual = await vi.importActual("react-router-dom");
   return {
     ...actual,
     useNavigate: () => mockedNavigate,
+    // 現在のURLを班員メニュー画面（/team-menu）に固定し、遷移元から渡された state はなしにする
     useLocation: () => ({ pathname: "/team-menu", state: null }),
   };
 });
 
+// ============================================================
+// テスト本体
+// ============================================================
+
+// TeamMenu 画面の表示・お知らせ・エラー処理を確認するテストグループ
 describe("TeamMenu Component", () => {
+  // 各テストの前に: モックの呼び出し履歴と設定を消す（APIの返す値は各テストで個別に設定する）
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
+  // 【テスト】見出しと各班員画面へのボタンが表示されること
+  //   前提: APIはお知らせ0件のデータを返す
+  //   操作: 画面を表示する
+  //   期待: 見出し「班員MENU」と「班員登録」「班員工数履歴」「班員工数入力状況」「班員残業」のボタンが表示される
   it("班員MENUの見出しとメニューリンクが表示されること", async () => {
+    // 準備: 1回目のAPI（GET /api/team_menu/）でお知らせなしのデータを返す
     mockedApi.get.mockResolvedValueOnce({
       data: { follow_message_list: [], member_data: {} },
     });
 
+    // 操作: 画面を表示（useNavigate や Link を使うため MemoryRouter で包む）
     render(
       <MemoryRouter>
         <TeamMenu />
       </MemoryRouter>
     );
 
+    // 検証: 読み込み完了後に見出しが表示される
     expect(await screen.findByText("班員MENU")).toBeInTheDocument();
+    // 検証: 各班員画面へのボタンが表示される
     expect(screen.getByText("班員登録")).toBeInTheDocument();
     expect(screen.getByText("班員工数履歴")).toBeInTheDocument();
     expect(screen.getByText("班員工数入力状況")).toBeInTheDocument();
     expect(screen.getByText("班員残業")).toBeInTheDocument();
   });
 
+  // 【テスト】工数未入力のお知らせがあれば、お知らせ欄に表示されること
+  //   前提: APIはお知らせ「お知らせテスト」1件を返す
+  //   操作: 画面を表示する
+  //   期待: 見出し「お知らせ」とお知らせ文「お知らせテスト」が表示される
   it("お知らせメッセージが表示されること", async () => {
+    // 準備: 1回目のAPIでお知らせ1件のデータを返す
     mockedApi.get.mockResolvedValueOnce({
       data: { follow_message_list: ["お知らせテスト"], member_data: {} },
     });
 
+    // 操作: 画面を表示
     render(
       <MemoryRouter>
         <TeamMenu />
       </MemoryRouter>
     );
 
+    // 検証: お知らせが1件以上あるので、お知らせ欄の見出しが表示される
     expect(await screen.findByText("お知らせ")).toBeInTheDocument();
+    // 検証: お知らせ文が表示される
     expect(screen.getByText("お知らせテスト")).toBeInTheDocument();
   });
 
+  // 【テスト】メニュー用データ取得APIが401（未ログイン）を返したらログイン画面へ遷移すること
+  //   前提: APIは1回目の呼び出しで status 401 のエラーを返す
+  //   操作: 画面を表示する
+  //   期待: navigate("/login") が呼ばれる
   it("401エラー時に/loginへリダイレクトすること", async () => {
+    // 準備: 1回目のAPI呼び出しを 401 エラーにする
     mockedApi.get.mockRejectedValueOnce({
       response: { status: 401 },
     });
 
+    // 操作: 画面を表示
     render(
       <MemoryRouter>
         <TeamMenu />
       </MemoryRouter>
     );
 
+    // 検証: ログイン画面（/login）への遷移が呼ばれる
     await waitFor(() => {
       expect(mockedNavigate).toHaveBeenCalledWith("/login");
     });

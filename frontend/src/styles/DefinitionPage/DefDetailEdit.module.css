@@ -1,88 +1,135 @@
+/* ============================================================
+ * ファイル名 : DefDetailEdit.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 作業詳細選択肢編集画面（DefinitionPage/DefDetailEdit.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・入力フォーム（定義記号の選択欄・
+ *              作業詳細の入力欄・更新ボタン）の見た目を定義する。
+ *              工数区分定義系の画面共通色（緑）を使う。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「作業詳細選択肢編集」: 工数区分定義系画面の共通色（緑）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #0f0;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0f0; /* 文字色: 明るい緑 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「工数区分定義MENU」へ戻るリンク */
 .def-nav a {
-  color: #0f0;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0f0; /* 文字色: 明るい緑 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「工数区分定義MENU」リンクにマウスを乗せたとき */
 .def-nav a:hover {
-  color: #32cd32;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #32cd32; /* 文字色: 少し濃い緑に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 中身が収まらないときはスクロールさせ、表示時にフェードインさせる */
 .choice-edit-wrapper {
-  animation: fadeInUp 1s ease-out;
-  width: 100%;
-  max-height: 100%;
-  max-width: 100vw;
-  overflow-x: auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  margin: 0 auto;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-height: 100%; /* 高さは親要素の高さまで */
+  max-width: 100vw; /* 最大幅: 画面幅まで（はみ出さない） */
+  overflow-x: auto; /* はみ出した分は横スクロールできるようにする */
+  overflow-y: auto; /* はみ出した分は縦スクロールできるようにする */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
 }
 
+/* ------------------------------------------------------------
+ * 入力フォーム
+ * ------------------------------------------------------------ */
+
+/* 入力欄のまとまり（定義記号の選択欄・作業詳細の入力欄・更新ボタン）: 縦一列に中央寄せで並べる
+ *   ※クラス名は search-bar だが、この画面では検索ではなく編集フォームの入力欄に使われている */
 .search-bar {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin: 20px 0;
-  flex-wrap: wrap;
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: center; /* 縦方向（並べる方向）の中央に寄せる */
+  align-items: center; /* 横方向の中央に揃える */
+  gap: 15px; /* 子要素同士の間隔 */
+  margin: 20px 0; /* 上下に20pxの余白 */
+  flex-wrap: wrap; /* 収まらないときは折り返す */
 }
 
+/* 項目名のラベル（「定義記号:」「作業詳細:」）: 中央寄せの中で、ラベルだけ左端に寄せる */
 .search-bar label {
-  align-self: flex-start;
-  margin-left: 20px;
+  align-self: flex-start; /* この要素だけ横方向の左端に配置する（親の中央揃えを上書き） */
+  margin-left: 20px; /* 左に20pxの余白（入力欄の左端と位置を合わせる） */
 }
 
+/* 作業詳細の入力欄・定義記号の選択欄 */
 .search-bar input,
 .search-bar select {
-  padding: 8px 10px;
-  margin: 0 auto;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 1rem;
-  width: calc(100% - 40px);
-  max-width: 400px;
-  box-sizing: border-box;
+  padding: 8px 10px; /* 内側の余白（上下8px・左右10px） */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  border-radius: 4px; /* 角を少し丸める */
+  font-size: 1rem; /* 文字サイズ: ルート要素の文字サイズと同じ */
+  width: calc(100% - 40px); /* 幅: 親要素の幅から左右20pxずつ（計40px）引いた幅 */
+  max-width: 400px; /* 最大幅（広い画面で横に伸びすぎないように） */
+  box-sizing: border-box; /* 幅に枠線と内側余白を含めて計算する */
 }
 
+/* 入力欄・選択欄にフォーカス（選択中）したとき */
 .search-bar input:focus,
 .search-bar select:focus {
-  border-color: #32cd32;
-  outline: none;
-  box-shadow: 0 0 3px #555;
+  border-color: #32cd32; /* 枠線を緑にして選択中であることを示す */
+  outline: none; /* ブラウザ標準のフォーカス枠を消す（代わりに上の枠線色と影で示す） */
+  box-shadow: 0 0 3px #555; /* 周囲にうっすら影を付ける */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: 入力欄の最大幅を狭め、外枠を左寄せにし、リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 入力欄・選択欄: 最大幅を250pxに狭める */
   .search-bar input,
   .search-bar select {
-    width: calc(100% - 40px);
-    max-width: 250px;
+    width: calc(100% - 40px); /* 幅: 親要素の幅から40px引いた幅（通常時と同じ） */
+    max-width: 250px; /* 最大幅を狭い画面向けに小さくする */
   }
 
+  /* 画面全体の外枠: 中央寄せをやめて左端から表示する */
   .choice-edit-wrapper {
-    margin: 0;
-    justify-content: flex-start;
-    padding-left: 10px;
+    margin: 0; /* 中央配置を解除する */
+    justify-content: flex-start; /* 左寄せ（※この要素はフレックスレイアウトではないため実際には効かない） */
+    padding-left: 10px; /* 左側に少し余白を追加する */
   }
 
+  /* 「工数区分定義MENU」リンク: 文字を小さくする */
   .def-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }

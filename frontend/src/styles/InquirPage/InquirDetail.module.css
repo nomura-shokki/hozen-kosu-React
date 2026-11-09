@@ -1,75 +1,121 @@
+/* ============================================================
+ * ファイル名 : InquirDetail.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 問い合わせ詳細画面（InquirPage/InquirDetail.tsx）
+ * 概要       : 見出し・ナビゲーション・「前へ」「次へ」ボタンの並び・
+ *              問い合わせ内容（問い合わせ者・内容・問い合わせ・回答）の表示欄の見た目を定義する。
+ *              問い合わせ系の画面共通色（ピンク）を使う。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ *              ※ TSX 側の外枠は styles["inquir-detail-wrapper"] を参照しているが、このファイルには
+ *                その定義が無く、代わりに inquir-new-wrapper が定義されている（外枠の指定は現在効いていない）。
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する
+ *   （※これを使う .inquir-new-wrapper が TSX 側で使われていないため、現在この画面では動かない） */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 子要素を縦に並べて中央寄せし、表示時にフェードインさせる
+ *   ※TSX側では現在使用されていない（TSX 側は inquir-detail-wrapper を参照している） */
 .inquir-new-wrapper {
-  animation: fadeInUp 1s ease-out;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
   display: flex; /* 子要素をフレックスレイアウトにする */
   flex-direction: column; /* 縦方向に要素を並べる */
-  justify-content: top;
+  justify-content: top; /* ※ top は有効な値ではないためブラウザに無視される（初期値の上詰めと同じ表示） */
   align-items: center; /* 横方向の中央に配置 */
   height: 100vh; /* 画面の高さいっぱいにする */
-  width: 100%;
+  width: 100%; /* 横幅を親要素いっぱいにする */
   margin: 0 auto; /* 横方向の中央寄せ */
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「問い合わせ詳細」: 問い合わせ系画面の共通色（ピンク）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #ff69b4;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff69b4; /* 文字色: ピンク（ホットピンク） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「問い合わせ履歴」へ戻るリンク */
 .inquir-nav a {
-  color: #ff69b4;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff69b4; /* 文字色: ピンク */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「問い合わせ履歴」リンクにマウスを乗せたとき */
 .inquir-nav a:hover {
-  color: #ff1493;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff1493; /* 文字色: 濃いピンクに変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * 問い合わせ内容の表示欄
+ * ------------------------------------------------------------ */
+
+/* 問い合わせ内容の表示欄（問い合わせ者・内容・問い合わせ・回答と「編集」ボタン）: 白い枠に左揃えで縦に並べる */
 .inquir-content {
   display: flex; /* フレックスボックスを有効化 */
   flex-direction: column; /* 縦並びにする */
-  justify-content: flex-start;
+  justify-content: flex-start; /* 子要素を上端から詰めて並べる（初期値と同じ指定） */
   align-items: flex-start; /* 左揃えにする */
-  max-width: calc(100vw - 30px);
-  padding: 10px;
-  overflow-y: auto;
-  border: 1px solid #999;
-  margin: 15px;
+  max-width: calc(100vw - 30px); /* 最大幅: 画面幅から30px引いた幅（左右の余白分。はみ出し防止） */
+  padding: 10px; /* 内側の余白 */
+  overflow-y: auto; /* 内容が縦に長いときは縦スクロールできるようにする */
+  border: 1px solid #999; /* 灰色の細い枠線 */
+  margin: 15px; /* 周囲に15pxの余白 */
   box-sizing: border-box; /* パディングやボーダーを含めたサイズを計算 */
   -webkit-overflow-scrolling: touch; /* モバイル向けスムーズスクロール */
-  scroll-behavior: auto; /* スクロール位置のアニメーションを無効化（必要に応じて） */
-  background-color: #fff;
-  border-radius: 4px;
+  scroll-behavior: auto; /* スクロール位置の移動をアニメーションさせず一瞬で行う（初期値と同じ） */
+  background-color: #fff; /* 背景色: 白 */
+  border-radius: 4px; /* 角を少し丸める */
 }
 
+/* 表示欄の小見出し（「問い合わせ者:」「内容:」「問い合わせ:」「回答:」） */
 .inquir-content h2 {
-  white-space: normal;
-  overflow-wrap: break-word;
-  text-align: left;
-  margin: 0;
+  white-space: normal; /* 通常どおり折り返す（global.css の body の nowrap を打ち消す） */
+  overflow-wrap: break-word; /* 収まらない長い単語は途中で折り返す */
+  text-align: left; /* 左揃え（global.css の h2 の中央揃えを上書き） */
+  margin: 0; /* 余白なし（global.css の h2 の下余白を打ち消す） */
 }
 
+/* 表示欄の本文（各項目の値。問い合わせ・回答は登録時の改行をそのまま表示する） */
 .inquir-content p {
-  white-space: pre-wrap; /* pre から pre-wrap に変更 */
-  overflow-wrap: break-word; /* normal から break-word に変更 */
+  white-space: pre-wrap; /* 改行や空白をそのまま表示しつつ、枠の幅で自動的に折り返す */
+  overflow-wrap: break-word; /* 収まらない長い単語は途中で折り返す（枠からはみ出さないように） */
   text-align: left; /* 左揃え */
-  margin: 0 0 20px 0; /* 左右のmarginを0にする */
-  padding: 0 10px; /* 左右に10pxのパディングを追加 */
-  width: 100%; 
-  box-sizing: border-box;
+  margin: 0 0 20px 0; /* 下にだけ20pxの余白（次の小見出しとの間を空ける）。左右の余白は0 */
+  padding: 0 10px; /* 左右に10pxの内側余白（小見出しより少し字下げして見せる） */
+  width: 100%; /* 横幅を表示欄いっぱいにする */
+  box-sizing: border-box; /* 幅に内側余白を含めて計算する（はみ出し防止） */
 }
 
+/* ------------------------------------------------------------
+ * 前へ・次へボタン
+ * ------------------------------------------------------------ */
+
+/* 「◀ 前へ」「次へ ▶」ボタン（前後の問い合わせへ移動。前後が無い側は表示されない）の並び: 横一列で中央に置く */
 .pagination-buttons {
   display: flex; /* Flexboxを有効にする */
   justify-content: center; /* 子要素を主軸（横方向）の中央に配置 */

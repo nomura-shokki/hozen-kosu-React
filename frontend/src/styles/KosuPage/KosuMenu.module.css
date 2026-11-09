@@ -1,144 +1,191 @@
+/* ============================================================
+ * ファイル名 : KosuMenu.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 工数MENU画面（KosuPage/KosuMenu.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーションと、
+ *              各工数画面（工数入力・工数履歴・休憩変更・勤務入力・工数集計）へ移動する
+ *              大きなボタン型リンクの見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 見出し・リンク・メニューボタンを縦に並べて中央寄せし、表示時にフェードインさせる */
 .menu-wrapper {
-  animation: fadeInUp 1s ease-out;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
   display: flex; /* 子要素をフレックスレイアウトにする */
   flex-direction: column; /* 縦方向に要素を並べる */
-  justify-content: top;
+  justify-content: top; /* ※ top は有効な値ではないためブラウザに無視される（初期値の上詰めと同じ表示） */
   align-items: center; /* 横方向の中央に配置 */
   height: 100vh; /* 画面の高さいっぱいにする */
-  width: 100%;
+  width: 100%; /* 横幅を親要素いっぱいにする */
   margin: 0 auto; /* 横方向の中央寄せ */
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「工数MENU」: 工数系画面の共通色（水色）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0ff; /* 文字色: 水色（シアン） */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「メインMENU」リンク（トップ画面へ戻る） */
 .kosu-nav a {
-  color: #0ff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0ff; /* 文字色: 水色 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「メインMENU」リンクにマウスを乗せたとき */
 .kosu-nav a:hover {
-  color: #0af;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #0af; /* 文字色: 少し濃い青に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* ------------------------------------------------------------
+ * メニューボタン（ボタン型のリンク）
+ *   1〜5 は背景色だけが異なり、下のボタンほど少しずつ濃い青になる
+ * ------------------------------------------------------------ */
+
+/* 「工数入力」ボタン（工数入力画面へ移動） */
 .kosu-button1 {
   display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
   width: 100%; /* 親要素いっぱいの横幅に広げる */
-  max-width: 400px;
-  background-color: #0ff;
+  max-width: 400px; /* 広い画面でも横幅は400pxまでにする */
+  background-color: #0ff; /* 背景色: 水色（5つの中で最も明るい） */
   color: #fff; /* ボタンの文字色を白に設定（背景とのコントラストを確保） */
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 白文字に灰色の縁取りを付けて読みやすくする */
   padding: 10px; /* ボタン内側の余白を上下左右に10pxずつ確保。クリックしやすいサイズ感に */
-  font-size: 2rem; /* フォントサイズをブラウザの基準サイズ（通常16px）に設定 */
+  font-size: 2rem; /* 文字サイズ: ルート要素の2倍（ブラウザ標準設定なら32px）。大きく押しやすくする */
   text-align: center; /* 文字を中央に配置 */
   border: none; /* デフォルトのボーダーをなくし、フラットデザインに */
   border-radius: 4px; /* 角をほんの少し丸めて、柔らかい印象に */
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  cursor: pointer; /* マウスを乗せたときに指の形のカーソルにする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけて滑らかにする */
+  margin-bottom: 15px; /* 下のボタンとの間隔 */
+  text-decoration: none; /* リンクの下線を消す */
 }
 
+/* 「工数履歴」ボタン（工数履歴一覧画面へ移動） */
 .kosu-button2 {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #0ef;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 2rem;
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
+  width: 100%; /* 親要素いっぱいの横幅に広げる */
+  max-width: 400px; /* 広い画面でも横幅は400pxまでにする */
+  background-color: #0ef; /* 背景色: 水色（1つ上のボタンより少し青寄り） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: 2rem; /* 文字サイズ: ルート要素の2倍 */
+  text-align: center; /* 文字を中央に配置 */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* 指の形のカーソルにする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけて滑らかにする */
+  margin-bottom: 15px; /* 下のボタンとの間隔 */
+  text-decoration: none; /* リンクの下線を消す */
 }
 
+/* 「休憩変更」ボタン（休憩時間変更画面へ移動） */
 .kosu-button3 {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #0df;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 2rem;
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
+  width: 100%; /* 親要素いっぱいの横幅に広げる */
+  max-width: 400px; /* 広い画面でも横幅は400pxまでにする */
+  background-color: #0df; /* 背景色: 水色（1つ上のボタンより少し青寄り） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: 2rem; /* 文字サイズ: ルート要素の2倍 */
+  text-align: center; /* 文字を中央に配置 */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* 指の形のカーソルにする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけて滑らかにする */
+  margin-bottom: 15px; /* 下のボタンとの間隔 */
+  text-decoration: none; /* リンクの下線を消す */
 }
 
+/* 「勤務入力」ボタン（勤務入力カレンダー画面へ移動） */
 .kosu-button4 {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #0cf;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 2rem;
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
+  width: 100%; /* 親要素いっぱいの横幅に広げる */
+  max-width: 400px; /* 広い画面でも横幅は400pxまでにする */
+  background-color: #0cf; /* 背景色: 水色（1つ上のボタンより少し青寄り） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: 2rem; /* 文字サイズ: ルート要素の2倍 */
+  text-align: center; /* 文字を中央に配置 */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* 指の形のカーソルにする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけて滑らかにする */
+  margin-bottom: 15px; /* 下のボタンとの間隔 */
+  text-decoration: none; /* リンクの下線を消す */
 }
 
+/* 「工数集計」ボタン（工数集計画面へ移動） */
 .kosu-button5 {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #0bf;
-  color: #fff;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 2rem;
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* インライン要素として表示しつつ、幅や高さの指定を可能にする */
+  width: 100%; /* 親要素いっぱいの横幅に広げる */
+  max-width: 400px; /* 広い画面でも横幅は400pxまでにする */
+  background-color: #0bf; /* 背景色: 水色（5つの中で最も青寄り） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: 2rem; /* 文字サイズ: ルート要素の2倍 */
+  text-align: center; /* 文字を中央に配置 */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* 指の形のカーソルにする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけて滑らかにする */
+  margin-bottom: 15px; /* 下のボタンとの間隔 */
+  text-decoration: none; /* リンクの下線を消す */
 }
 
+/* メニューボタン（1〜5共通）にマウスを乗せたとき: 背景を濃い青にし、影を付けて浮き上がって見せる */
 .kosu-button1:hover, 
 .kosu-button2:hover,
 .kosu-button3:hover, 
 .kosu-button4:hover,
 .kosu-button5:hover {
-  background-color: #07f;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #07f; /* 背景色: 濃い青 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側にうっすら影を付ける */
+  text-decoration: underline; /* 下線を付ける（※直後の none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を消す（後に書いたこちらが優先される） */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 「メインMENU」リンク: 文字を小さくする */
   .kosu-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }

@@ -1,148 +1,196 @@
+/* ============================================================
+ * ファイル名 : TeamMenu.module.css
+ * 種別       : スタイルシート（CSS Modules）
+ * 対象画面   : 班員メニュー画面（TeamPage/TeamMenu.tsx）
+ * 概要       : 画面全体の外枠・見出し・ナビゲーション・お知らせ欄と、
+ *              各班員画面へのメニューボタン5種類の見た目を定義する。
+ * 補足       : CSS Modules のため、クラス名は TSX 側で styles["クラス名"] として参照される。
+ *              （他の画面に同じ名前のクラスがあっても衝突しない）
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * アニメーション
+ * ------------------------------------------------------------ */
+
+/* 画面表示時のアニメーション: 下から50px浮き上がりながら透明→不透明に変化する */
 @keyframes fadeInUp {
+  /* 開始時点の状態 */
   from {
-    opacity: 0;
-    transform: translateY(50px);
+    opacity: 0; /* 完全に透明 */
+    transform: translateY(50px); /* 本来の位置より50px下にずらす */
   }
+  /* 終了時点の状態 */
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1; /* 完全に不透明 */
+    transform: translateY(0); /* 本来の位置に戻す */
   }
 }
 
+/* ------------------------------------------------------------
+ * 画面全体の外枠
+ * ------------------------------------------------------------ */
+
+/* 画面全体を包む外枠: 見出し・リンク・お知らせ・メニューボタンを縦に並べて中央寄せし、表示時にフェードインさせる */
 .menu-wrapper {
-  animation: fadeInUp 1s ease-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: top;
-  align-items: center;
-  height: 100vh;
-  width: 100%;
-  margin: 0 auto;
-  -webkit-overflow-scrolling: touch;
+  animation: fadeInUp 1s ease-out; /* 上の fadeInUp を1秒かけて実行（終盤ほどゆっくり） */
+  display: flex; /* 子要素をフレックスレイアウトで配置する */
+  flex-direction: column; /* 子要素を縦方向に並べる */
+  justify-content: top; /* ※ top は有効な値ではないためブラウザに無視される（初期値の上詰めと同じ表示） */
+  align-items: center; /* 子要素を横方向の中央に揃える */
+  height: 100vh; /* 高さを画面（ビューポート）の高さいっぱいにする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  margin: 0 auto; /* 左右の余白を自動にして中央に配置する */
+  -webkit-overflow-scrolling: touch; /* iOS Safari でスクロールを滑らかにする（旧ブラウザ向け指定） */
 }
 
+/* ------------------------------------------------------------
+ * 見出し・ナビゲーション・お知らせ欄
+ * ------------------------------------------------------------ */
+
+/* 画面タイトル「班員MENU」: 班員系画面の共通色（オレンジ）に灰色の縁取りを付ける */
 .h1-collar {
-  color: #ff5500;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff5500; /* 文字色: オレンジ */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 上下左右に影を重ねて灰色の縁取りに見せる */
 }
 
+/* 「メインMENU」リンク */
 .team-nav a {
-  color: #ff5500;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff5500; /* 文字色: オレンジ */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* 「メインMENU」リンクにマウスを乗せたとき */
 .team-nav a:hover {
-  color: #ff1100;
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
+  color: #ff1100; /* 文字色: 赤に変えて、押せることを示す */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
 }
 
+/* お知らせ欄（工数未入力のお知らせがあるときだけ表示される枠） */
 .follow-messages {
-  margin-bottom: 15px;
+  margin-bottom: 15px; /* 下のメニューボタンとの間に15pxの余白 */
 }
 
+/* ------------------------------------------------------------
+ * メニューボタン
+ * 5種類とも形・大きさは同じで、背景色だけが異なる。
+ * 上のボタンから順に 黄色寄り → 赤寄り へ少しずつ色を変えている。
+ * ------------------------------------------------------------ */
+
+/* 「班員登録」ボタン（班員登録画面へ移動）: 山吹色 */
 .team-button1 {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #ffbb00;
-  color: #fff; 
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 2rem;
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* 横幅・高さを指定できるインライン要素にする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* ただし最大400pxまで */
+  background-color: #ffbb00; /* 背景色: 山吹色 */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: 2rem; /* 文字サイズ: ルート要素の2倍（押しやすい大きなボタンにする） */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にして押せることを示す */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけてなめらかにする */
+  margin-bottom: 15px; /* 下のボタンとの間に15pxの余白 */
+  text-decoration: none; /* リンクの下線を消す */
 }
 
+/* 「班員工数履歴」ボタン（班員工数履歴画面へ移動）: 明るいオレンジ */
 .team-button2 {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #ff9900;
-  color: #fff; 
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 2rem;
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* 横幅・高さを指定できるインライン要素にする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* ただし最大400pxまで */
+  background-color: #ff9900; /* 背景色: 明るいオレンジ */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: 2rem; /* 文字サイズ: ルート要素の2倍 */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけてなめらかにする */
+  margin-bottom: 15px; /* 下のボタンとの間に15pxの余白 */
+  text-decoration: none; /* リンクの下線を消す */
 }
 
+/* 「班員工数入力状況」ボタン（班員工数入力状況画面へ移動）: オレンジ */
 .team-button3 {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #ff7700;
-  color: #fff; 
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 2rem;
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* 横幅・高さを指定できるインライン要素にする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* ただし最大400pxまで */
+  background-color: #ff7700; /* 背景色: オレンジ */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: 2rem; /* 文字サイズ: ルート要素の2倍 */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけてなめらかにする */
+  margin-bottom: 15px; /* 下のボタンとの間に15pxの余白 */
+  text-decoration: none; /* リンクの下線を消す */
 }
 
+/* 「班員残業」ボタン（班員残業画面へ移動）: 濃いオレンジ */
 .team-button4 {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #ff5500;
-  color: #fff; 
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 2rem;
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* 横幅・高さを指定できるインライン要素にする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* ただし最大400pxまで */
+  background-color: #ff5500; /* 背景色: 濃いオレンジ（班員系画面の共通色） */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: 2rem; /* 文字サイズ: ルート要素の2倍 */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけてなめらかにする */
+  margin-bottom: 15px; /* 下のボタンとの間に15pxの余白 */
+  text-decoration: none; /* リンクの下線を消す */
 }
 
+/* 「工数入力状況(全体)」ボタン（ショップ単位工数入力状況画面へ移動）: 赤みの強いオレンジ */
 .team-button5 {
-  display: inline-block;
-  width: 100%;
-  max-width: 400px;
-  background-color: #ff3300;
-  color: #fff; 
-  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555;
-  padding: 10px;
-  font-size: 2rem;
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-bottom: 15px;
-  text-decoration: none;
+  display: inline-block; /* 横幅・高さを指定できるインライン要素にする */
+  width: 100%; /* 横幅を親要素いっぱいにする */
+  max-width: 400px; /* ただし最大400pxまで */
+  background-color: #ff3300; /* 背景色: 赤みの強いオレンジ */
+  color: #fff; /* 文字色: 白 */
+  text-shadow: -0.5px -0.5px 0 #555, 0.5px -0.5px 0 #555, -0.5px 0.5px 0 #555, 0.5px 0.5px 0 #555; /* 灰色の縁取り */
+  padding: 10px; /* 内側の余白（上下左右10px） */
+  font-size: 2rem; /* 文字サイズ: ルート要素の2倍 */
+  text-align: center; /* 文字を中央揃えにする */
+  border: none; /* 枠線なし */
+  border-radius: 4px; /* 角を少し丸める */
+  cursor: pointer; /* マウスカーソルを指の形にする */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* 背景色と影の変化を0.3秒かけてなめらかにする */
+  margin-bottom: 15px; /* 下のボタンとの間に15pxの余白 */
+  text-decoration: none; /* リンクの下線を消す */
 }
 
+/* 各メニューボタンにマウスを乗せたとき: 赤にして影を付ける */
 .team-button1:hover,
 .team-button2:hover,
 .team-button3:hover,
 .team-button4:hover,
 .team-button5:hover {
-  background-color: #ff1100;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: underline;
-  text-decoration: none;
+  background-color: #ff1100; /* 背景色: 赤 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 下側に薄い影を付けて浮き上がって見せる */
+  text-decoration: underline; /* 下線を付ける（※直後の none で上書きされるため実際には効かない） */
+  text-decoration: none; /* 下線を消す（global.css の a:hover の下線を打ち消す） */
 }
 
+/* ------------------------------------------------------------
+ * レスポンシブ対応（スマートフォン等）
+ * ------------------------------------------------------------ */
+
+/* 画面幅が768px以下のとき: リンク文字を小さくする */
 @media (max-width: 768px) {
+  /* 「メインMENU」リンク: 文字を小さくする */
   .team-nav a {
-    font-size: 0.8rem;
+    font-size: 0.8rem; /* 文字サイズ: ルート要素の0.8倍 */
   }
 }
