@@ -19,7 +19,7 @@
 # 該当データが無ければ 404 エラーにする Django のショートカット関数
 from django.shortcuts import get_object_or_404
 # 人員・工数データ・工数区分定義のモデル（Business_Time_graph はこのファイル内では未使用）
-from ..models import member, Business_Time_graph, kosu_division
+from ..models import member, Business_Time_graph, kosu_division, team_member
 # 工数データを直の開始時刻から並べ替える関数
 from .kosu_utils import kosu_sort
 # 「作業時間帯・作業内容・作業詳細」の表示用リストを作る関数
@@ -181,3 +181,20 @@ def excel_function(employee_no_data, wb, year, month, request, member_kosu_data)
 
   # シートを追加したブックを呼び出し元へ返す
   return wb
+
+
+
+
+# 班を管理する人の、班員の従業員番号を返す（TeamDetail で「自分の班員の工数データか」を確かめるのに使う）。
+#
+# 引数:
+#   leader_no: 班を管理する人（班員登録をした人）の従業員番号
+# 戻り値:
+#   set[int]: 班員1〜15 の従業員番号（空欄は除く。班員データが無ければ空）
+def team_member_numbers(leader_no):
+  team = team_member.objects.filter(employee_no5=leader_no).first()
+  if team is None:
+    return set()
+  # member1〜member15 は文字列の項目なので、数字だけのものを数値にしてから集める
+  numbers = [getattr(team, f'member{i}') for i in range(1, 16)]
+  return {int(n) for n in numbers if n and str(n).strip().isdigit()}

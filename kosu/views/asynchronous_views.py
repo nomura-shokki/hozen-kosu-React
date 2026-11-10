@@ -129,7 +129,10 @@ def backup(request):
     # パスから urls.py のURLパターン情報を逆引きする
     match = resolve(current_path)  
     # URLパターンに付けた名前（path(..., name='kosu_backup') の name）を取得する
-    url_name = match.url_name  
+    url_name = match.url_name
+    # ロード（*_load）なのにファイルが添付されていない場合は 400
+    if url_name.endswith('_load') and not request.FILES.get('file'):
+        return JsonResponse({'status': 'error', 'message': 'ファイルを選択してください。'}, status=status.HTTP_400_BAD_REQUEST)  
     # URL名に応じて、実行するタスク関数（task_function）と渡す引数（args）を決める
     # 工数データバックアップ: 期間をチェックしてから generate_kosu_backup(開始日, 終了日)
     if url_name == 'kosu_backup':  

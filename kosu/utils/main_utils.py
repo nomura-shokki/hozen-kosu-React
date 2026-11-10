@@ -20,6 +20,7 @@
 # ============================================================
 # inspect: モジュール内のクラスなどを調べるための Python 標準ライブラリ
 import inspect
+import datetime
 # DRF 標準のページ番号方式ページネーション（?page=2 のようにページを指定する方式）
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -167,3 +168,59 @@ def get_all_model_names_in_myapp():
       model_names.append(name)
 
   return model_names
+
+
+
+
+
+# 管理者設定（administrator_data）を1件返す。
+#
+# 設定は1件だけを使う決まり。最新（IDが最大）の1件を返し、1件も無ければ初期値（一覧表示項目数 20）で作ってから返す。
+#   ※ .last() は「無い」時に例外ではなく None を返すので、try / except administrator_data.DoesNotExist では防げない
+#
+# 戻り値:
+#   administrator_data: 管理者設定
+def get_settings():
+  admin_data = administrator_data.objects.order_by("id").last()
+  if admin_data is None:
+    admin_data = administrator_data.objects.create(menu_row='20')
+  return admin_data
+
+
+
+
+
+# 画面から届いた UTC の日時の文字列（例: "2026-11-08T23:30:00.000Z"）を、日本時間の "HH:MM" にする。
+#
+# 引数:
+#   value: 日時の文字列（届いていない場合は None）
+# 戻り値:
+#   str: 日本時間の "HH:MM"（例: "08:30"）
+# 例外:
+#   ValueError: 届いていない・形が違う場合（呼ぶ側で捕まえて 400 を返す）
+def utc_to_jst_hhmm(value):
+  if not isinstance(value, str):
+    raise ValueError('時刻がありません')
+  utc_time = datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=datetime.timezone.utc)
+  return utc_time.astimezone(datetime.timezone(datetime.timedelta(hours=9))).strftime("%H:%M")
+
+
+
+
+
+# 画面から届いた年・月を確かめて、数値の (年, 月) にする。
+#
+# 引数:
+#   data: request.data（year・month を持つ）
+# 戻り値:
+#   (int, int): (年, 月)
+# 例外:
+#   ValueError: 数字でない・月が 1〜12 でない場合（呼ぶ側で捕まえて 400 を返す）
+def parse_year_month(data):
+  try:
+    year, month = int(data.get('year')), int(data.get('month'))
+  except (TypeError, ValueError):
+    raise ValueError('年・月が数字ではありません')
+  if not (2000 <= year <= 2100 and 1 <= month <= 12):
+    raise ValueError('年・月の範囲が正しくありません')
+  return year, month

@@ -54,7 +54,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import MemberSerializer, DefSerializer, KosuSerializer, DefChoiceSerializer
-from ..utils.main_utils import CustomPagination
+from ..utils.main_utils import CustomPagination, utc_to_jst_hhmm, parse_year_month
 # 工数関連の計算・変換・判定の関数（中身は utils/kosu_utils.py を参照）
 from ..utils.kosu_utils import time_index, break_get, break_time_process, break_time_delete, \
                                 break_time_write, detail_list_summarize, judgement_check, parse_break_time, \
@@ -285,13 +285,12 @@ class KosuNew(APIView):
     # 作業時間から時間のみ抽出
     #   画面からは UTC の ISO形式（例: "2026-11-08T23:30:00.000Z"）で届くため、
     #   日本時間（UTC+9時間）に変換してから "HH:MM" を取り出す（例: → "08:30"）
-    jst = datetime.timezone(datetime.timedelta(hours=9))
-    start_time = datetime.datetime.strptime(post_data.get('time1'), "%Y-%m-%dT%H:%M:%S.%fZ")
-    end_time = datetime.datetime.strptime(post_data.get('time2'), "%Y-%m-%dT%H:%M:%S.%fZ")
-    start_time = start_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
-    end_time = end_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
-    start_time = start_time.strftime("%H:%M")
-    end_time = end_time.strftime("%H:%M")
+    #   届いていない・形が違う場合は 500 にせず 400 を返す
+    try:
+      start_time = utc_to_jst_hhmm(post_data.get('time1'))
+      end_time = utc_to_jst_hhmm(post_data.get('time2'))
+    except ValueError:
+      return Response({'status': 'error', 'message': '作業時間を入力してください。'}, status=status.HTTP_400_BAD_REQUEST)
     # "HH:MM" を時と分に分け、インデックス（時×12 + 分÷5）に変換する
     #   例: "08:30" → 8×12 + 30÷5 = 102
     start_time_hour, start_time_min = time_index(start_time)
@@ -897,8 +896,8 @@ class KosuUpdate(APIView):
     # 工数データ取得
     kosu_instance = self.get_object(pk)
 
-    # 該当する工数データがない場合は 404 を返す
-    if not kosu_instance:
+    # 該当する工数データがない場合、または他人の工数データの場合は 404 を返す
+    if not kosu_instance or kosu_instance.employee_no3 != request.user.employee_no:
       return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # セッション値、日付取得
@@ -1020,18 +1019,15 @@ class KosuUpdate(APIView):
     work_list = list(itertools.repeat('#', 288))
     detail_list = list(itertools.repeat('', 288))
 
-    # 工数書き込み
-    #   JST（日本時間 = UTC+9時間）のタイムゾーンを用意し、1行ずつ書き込む
-    jst = datetime.timezone(datetime.timedelta(hours=9))
+    # 工数書き込み（1行ずつ書き込む）
     if max_num:
       for n in range(max_num):
-        # n+1 行目の開始・終了日時（UTC の ISO形式）を日本時間の "HH:MM" に変換する
-        start_time = datetime.datetime.strptime(request.data.get(f'time1_{n + 1}'), "%Y-%m-%dT%H:%M:%S.%fZ")
-        end_time = datetime.datetime.strptime(request.data.get(f'time2_{n + 1}'), "%Y-%m-%dT%H:%M:%S.%fZ")
-        start_time = start_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
-        end_time = end_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
-        start_time = start_time.strftime("%H:%M")
-        end_time = end_time.strftime("%H:%M")
+        # n+1 行目の開始・終了日時（UTC の ISO形式）を日本時間の "HH:MM" に変換する。形が違えば 400
+        try:
+          start_time = utc_to_jst_hhmm(request.data.get(f'time1_{n + 1}'))
+          end_time = utc_to_jst_hhmm(request.data.get(f'time2_{n + 1}'))
+        except ValueError:
+          return Response({'status': 'error', 'message': f'{n + 1}行目の作業時間が正しくありません。'}, status=status.HTTP_400_BAD_REQUEST)
         # "HH:MM" をインデックス（時×12 + 分÷5）に変換する
         start_time_hour, start_time_min = time_index(start_time)
         end_time_hour, end_time_min = time_index(end_time)
@@ -1111,13 +1107,23 @@ class DayUpdate(APIView):
     # ログイン者の人員データ
     member_data = request.user
 
-    # 就業日が空なら、セッションの就業日も空にして 400 を返す
-    if not day:
+    # 就業日が空、または日付として読めない場合は、セッションの就業日も空にして 400 を返す
+    try:
+      datetime.date.fromisoformat(str(day))
+    except ValueError:
       request.session['day'] = ""
       return Response({'status': 'error', 'message': '就業日が未指定です。'},status=status.HTTP_400_BAD_REQUEST)
     # 変更後の就業日をセッションに保存する（以降の画面表示をその日付にするため）
-    else:
-      request.session['day'] = str(day)
+    request.session['day'] = str(day)
+
+    # 就業日を変える工数データを取得する（ログイン者本人の工数データだけが対象）
+    # 他人の工数データ・無いIDの場合は 404
+    try:
+      target = Business_Time_graph.objects.filter(id=int(request.data.get('id')), employee_no3=member_data.employee_no).first()
+    except (TypeError, ValueError):
+      target = None
+    if target is None:
+      return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # 工数データ確認（変更先の日付に、ログイン者の工数データがあるか）
     obj_filter = Business_Time_graph.objects.filter(employee_no3=member_data.employee_no, work_day2=day)
@@ -1125,13 +1131,9 @@ class DayUpdate(APIView):
     if obj_filter.exists():
       return Response({'status': 'error', 'message': '変更日に既に工数データがあります。変更先の工数データを削除してから実行してください。'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # 工数データ日付更新
-    #   送信された ID の工数データの就業日だけを変更する
-    #   （update_or_create は該当IDが無い場合は新規作成しようとする）
-    Business_Time_graph.objects.update_or_create(
-      id=request.data.get('id'), 
-      defaults = {'work_day2': day}
-      )
+    # 工数データ日付更新（見つけた工数データの就業日だけを変更する）
+    target.work_day2 = day
+    target.save()
     return Response({'status': 'success', 'message': '日付が変更されました。'})
 
 
@@ -1180,15 +1182,12 @@ class ItemDlete(APIView):
       return Response({'status': 'error', 'message': '工数データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 項目番号から削除時間取得
-    #   削除する時間帯の開始・終了日時（UTC の ISO形式）を日本時間の "HH:MM" にし、
-    #   インデックス（時×12 + 分÷5）に変換する
-    jst = datetime.timezone(datetime.timedelta(hours=9))
-    start_time = datetime.datetime.strptime(request.data.get(f'time1'), "%Y-%m-%dT%H:%M:%S.%fZ")
-    end_time = datetime.datetime.strptime(request.data.get(f'time2'), "%Y-%m-%dT%H:%M:%S.%fZ")
-    start_time = start_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
-    end_time = end_time.replace(tzinfo=datetime.timezone.utc).astimezone(jst)
-    start_time = start_time.strftime("%H:%M")
-    end_time = end_time.strftime("%H:%M")
+    #   削除する時間帯の開始・終了日時（UTC の ISO形式）を日本時間の "HH:MM" にする。形が違えば 400
+    try:
+      start_time = utc_to_jst_hhmm(request.data.get('time1'))
+      end_time = utc_to_jst_hhmm(request.data.get('time2'))
+    except ValueError:
+      return Response({'status': 'error', 'message': '削除する時間が正しくありません。'}, status=status.HTTP_400_BAD_REQUEST)
     start_time_hour, start_time_min = time_index(start_time)
     end_time_hour, end_time_min = time_index(end_time)
     start_time_ind = int(int(start_time_hour)*12 + int(start_time_min)/5)
@@ -1332,9 +1331,13 @@ class KosuCalendarChange(APIView):
   # 戻り値:
   #   Response: 200 とメッセージ（入力チェックは行わない）
   def post(self, request):
-    # セッション値取得（送信された年・月をそのままセッションに保存する）
-    request.session['year'] = request.data.get('year')
-    request.session['month'] = request.data.get('month')
+    # 送信された年・月を確かめてからセッションに保存する（数字でない値を入れると、次の GET が 500 になるため）
+    try:
+      year, month = parse_year_month(request.data)
+    except ValueError:
+      return Response({'status': 'error', 'message': '年・月が正しくありません。'}, status=status.HTTP_400_BAD_REQUEST)
+    request.session['year'] = year
+    request.session['month'] = month
     return Response({'status': 'success', 'message': 'カレンダーが更新されました。'})
 
 
@@ -1709,7 +1712,13 @@ class KosuTotal(APIView):
     if not day:
       day = str(datetime.date.today())
       request.session['day'] = day
-    day_object = datetime.datetime.strptime(day, '%Y-%m-%d')
+    # 集計期間が「日間・月間・年間」のどれでもない、または日付が読めない場合は 400 を返す
+    if request.data.get('period') not in ['日間', '月間', '年間']:
+      return Response({'status': 'error', 'message': '集計期間を選んでください。'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+      day_object = datetime.datetime.strptime(day, '%Y-%m-%d')
+    except (TypeError, ValueError):
+      return Response({'status': 'error', 'message': '日付が正しくありません。'}, status=status.HTTP_400_BAD_REQUEST)
 
     # ログイン者の人員データ
     member_data = request.user

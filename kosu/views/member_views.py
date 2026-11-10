@@ -18,16 +18,15 @@
 # ============================================================
 # インポート
 # ============================================================
-from django.db.models import Case, When, Value, IntegerField  
-from ..models import member
+from django.db import transaction
+from django.db.models import Case, When, Value, IntegerField
+from ..models import member, Business_Time_graph, inquiry_data, team_member
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import MemberSerializer
 from ..utils.main_utils import CustomPagination
 from ..permissions import HasAuthority, IsAdministrator
-
-
 
 
 # ------------------------------------------------------------
@@ -139,6 +138,10 @@ class MemberNew(APIView):
     # 同じ従業員番号の人員がすでに存在する場合は登録不可
     if member.objects.filter(employee_no=data.get('employee_no')).exists():
       return Response({'status': 'error', 'message': '入力した従業員番号はすでに登録されています。'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 「管理者」を付けて登録できるのは管理者だけ（「権限」だけの人が管理者を作れないようにする）
+    if data.get('administrator') and not request.user.administrator:
+      return Response({'status': 'error', 'message': '管理者は、管理者だけが登録できます。'}, status=status.HTTP_403_FORBIDDEN)
 
     # 休憩時間の初期値を設定する
     #   キー名  : break_time{直の番号}（昼休憩） / break_time{直の番号}_over{1〜3}（残業休憩1〜3）
@@ -276,16 +279,34 @@ class MemberUpdate(APIView):
     if member_instance is None:
       return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
+    # 管理者の人員データを直せるのは管理者だけ
+    if member_instance.administrator and not request.user.administrator:
+      return Response({'status': 'error', 'message': '管理者の人員データは、管理者だけが直せます。'}, status=status.HTTP_403_FORBIDDEN)
+
     # 既存データと送信データをシリアライザに渡し、入力チェックの準備をする
     data = request.data
     serializer = MemberSerializer(member_instance, data=data)
     if serializer.is_valid():
+      # 「管理者」を付けられるのは管理者だけ（自分を管理者にする、などを防ぐ）
+      if serializer.validated_data.get('administrator') and not request.user.administrator:
+        return Response({'status': 'error', 'message': '管理者は、管理者だけが付けられます。'}, status=status.HTTP_403_FORBIDDEN)
       # 従業員番号の一意性確認:
       #   送信された従業員番号が変更前（pk）と異なり、かつ他の人員がその番号を使っている場合は更新不可
       if data.get('employee_no') != pk and member.objects.filter(employee_no=data.get('employee_no')).exists():
         return Response({'status': 'error', 'message': '入力した従業員番号はすでに登録されています。'},status=status.HTTP_400_BAD_REQUEST)
-      # 問題なければデータベースに保存し、更新後の内容を 200（成功）で返す
-      serializer.save()
+      # データベースに保存する。従業員番号を変えた時は、その番号で持っている工数・問い合わせ・班のデータも
+      # 新しい番号にそろえる（そろえないと、その人の工数などが見えなくなる）。途中で失敗したら全部元に戻す
+      old_no = member_instance.employee_no
+      with transaction.atomic():
+        serializer.save()
+        new_no = member_instance.employee_no
+        if new_no != old_no:
+          Business_Time_graph.objects.filter(employee_no3=old_no).update(employee_no3=new_no)
+          inquiry_data.objects.filter(employee_no2=old_no).update(employee_no2=new_no)
+          team_member.objects.filter(employee_no5=old_no).update(employee_no5=new_no)
+          # 班員1〜15 は文字列の項目なので、文字列で探して文字列で書き換える
+          for i in range(1, 16):
+            team_member.objects.filter(**{f'member{i}': str(old_no)}).update(**{f'member{i}': str(new_no)})
       return Response(serializer.data, status=status.HTTP_200_OK)
     # 入力チェックNGの場合は 400 を返す
     return Response({'status': 'error', 'message': 'バリテーションエラー'}, status=status.HTTP_400_BAD_REQUEST)
@@ -328,6 +349,10 @@ class MemberDelete(APIView):
     # 該当する人員がいない場合は 404 を返す
     if member_instance is None:
       return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
+
+    # 管理者の人員データを消せるのは管理者だけ
+    if member_instance.administrator and not request.user.administrator:
+      return Response({'status': 'error', 'message': '管理者の人員データは、管理者だけが消せます。'}, status=status.HTTP_403_FORBIDDEN)
 
     # データベースから削除し、204（成功・返すデータなし）を返す
     #   ※工数データ・問い合わせ・操作履歴の氏名(name)は on_delete=SET_NULL のため、

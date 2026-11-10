@@ -36,7 +36,26 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import MemberSerializer, InquirSerializer
-from ..utils.main_utils import CustomPagination
+from ..utils.main_utils import CustomPagination, get_settings
+
+
+
+# 問い合わせを見たり直したり消したりしてよい人かを判定する（InquirUpdate の GET / PUT / DELETE で使う）。
+#
+# 引数:
+#   member_data    : ログイン者の人員データ
+#   inquir_instance: 問い合わせデータ
+#   admin_data     : 管理者設定（問い合わせ担当者の従業員番号1〜3を持つ）
+# 戻り値:
+#   (bool, bool): (使ってよいか＝本人か担当者, 問い合わせ担当者か)
+def inquiry_permission(member_data, inquir_instance, admin_data):
+  staff = set()
+  for a in [admin_data.administrator_employee_no1, admin_data.administrator_employee_no2, admin_data.administrator_employee_no3]:
+    if a and str(a).strip().isdigit():
+      staff.add(int(a))
+  is_staff = int(member_data.employee_no) in staff
+  is_owner = int(member_data.employee_no) == int(inquir_instance.employee_no2)
+  return (is_owner or is_staff), is_staff
 
 
 
@@ -396,28 +415,12 @@ class InquirUpdate(APIView):
     # ログイン者の人員データ（LoginNoAuthentication がセットしたもの）
     member_data = request.user
 
-    # 最新（IDが最大）の管理者設定を取得（問い合わせ担当者の判定に使う）
-    #   ※ last() はデータが無いとき例外ではなく None を返すため、この except に入ることはない
-    try:
-      admin_data = administrator_data.objects.order_by("id").last()
-    except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # 問い合わせ担当者の従業員番号1〜3（文字列項目。空欄の場合もある）
-    admin_list_raw = [
-      admin_data.administrator_employee_no1,
-      admin_data.administrator_employee_no2,
-      admin_data.administrator_employee_no3
-    ]
-    # 空欄や数字以外を除き、数値に変換した担当者従業員番号のリストを作る
-    #   例: ["123", "", None] → [123]
-    admin_list = []
-    for a in admin_list_raw:
-      if a and str(a).strip().isdigit():
-        admin_list.append(int(a))
+    # 最新（IDが最大）の管理者設定を取得（問い合わせ担当者の判定に使う。無ければ初期値で作る）
+    admin_data = get_settings()
 
     # ログイン者が問い合わせ者本人でも問い合わせ担当者でもない場合は 403（権限なし）を返す
-    if int(member_data.employee_no) != int(inquir_instance.employee_no2) and int(member_data.employee_no) not in admin_list:
+    allowed, is_staff = inquiry_permission(member_data, inquir_instance, admin_data)
+    if not allowed:
       return Response({'status': 'error', 'message': '権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
     # 問い合わせ・ログイン者をJSONに変換できる形にする
@@ -447,7 +450,7 @@ class InquirUpdate(APIView):
   #   Response: 成功時は更新後の問い合わせ（200）
   #             該当なしの場合は 404、問い合わせ者の人員データがない場合は 401、入力チェックNGの場合は 400 エラー
   def put(self, request, pk):
-    # ログイン者の人員データ（この処理内では未使用）
+    # ログイン者の人員データ
     member_data = request.user
 
     # 更新対象の問い合わせを取得し、なければ 404 を返す
@@ -455,24 +458,26 @@ class InquirUpdate(APIView):
     if not inquir_instance:
       return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
+    # 最新（IDが最大）の管理者設定を取得（担当者の判定と、担当者向けお知らせの書き込み先。無ければ初期値で作る）
+    admin_data = get_settings()
+
+    # 問い合わせ者本人と問い合わせ担当者だけが直せる（GET と同じ確かめ）
+    allowed, is_staff = inquiry_permission(member_data, inquir_instance, admin_data)
+    if not allowed:
+      return Response({'status': 'error', 'message': '権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
+
     # 既存データと送信データをシリアライザに渡し、入力チェックの準備をする
     data = request.data
     serializer = InquirSerializer(inquir_instance, data=data)
 
-    # 最新（IDが最大）の管理者設定を取得（担当者向けお知らせの書き込み先）
-    #   ※ last() はデータが無いとき例外ではなく None を返すため、この except に入ることはない
-    try:
-      admin_data = administrator_data.objects.order_by("id").last()
-    except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # 問い合わせ者の人員データを取得（本人向けお知らせの書き込み先）。なければ 401 を返す
-    try:
-      inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '質問者の人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 問い合わせ者の人員データを取得（本人向けお知らせの書き込み先）。人員から消されていれば None
+    inquir_member = member.objects.filter(employee_no=inquir_instance.employee_no2).first()
 
     if serializer.is_valid():
+      # 回答を書けるのは問い合わせ担当者だけ（画面でも回答欄は担当者にだけ出している）
+      new_answer = serializer.validated_data.get('answer', inquir_instance.answer)
+      if not is_staff and (new_answer or '') != (inquir_instance.answer or ''):
+        return Response({'status': 'error', 'message': '回答は問い合わせ担当者だけが書けます。'}, status=status.HTTP_403_FORBIDDEN)
       # 値が変わった項目名を集める入れ物（set: 重複しない集合）
       changed_fields = set() 
       # 入力チェック済みの各項目について、保存前の値と比べて変わったものを記録する
@@ -497,7 +502,7 @@ class InquirUpdate(APIView):
 
       # 回答が変わった場合: 問い合わせ者に回答が来たことを知らせる
       #   （編集画面の回答欄は管理者にのみ表示される）
-      if 'answer' in changed_fields:
+      if 'answer' in changed_fields and inquir_member is not None:
         # 本人向けお知らせ: 問い合わせ者の空いている最初の枠に回答通知を書き込んで保存し、終了する
         for i in range(1, 6):
           pop_up_attr = f'pop_up{i}'
@@ -532,43 +537,40 @@ class InquirUpdate(APIView):
     if inquir_instance is None:
       return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
-    # 問い合わせ者の人員データを取得（本人向けお知らせの削除先）。なければ 401 を返す
-    try:
-      inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '質問者の人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 最新（IDが最大）の管理者設定を取得（担当者の判定と、担当者向けお知らせの削除先。無ければ初期値で作る）
+    admin_data = get_settings()
 
-    # 最新（IDが最大）の管理者設定を取得（担当者向けお知らせの削除先）
-    #   ※ last() はデータが無いとき例外ではなく None を返すため、この except に入ることはない
-    try:
-      admin_data = administrator_data.objects.order_by("id").last()
-    except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 問い合わせ者本人と問い合わせ担当者だけが消せる（GET と同じ確かめ）
+    allowed, is_staff = inquiry_permission(request.user, inquir_instance, admin_data)
+    if not allowed:
+      return Response({'status': 'error', 'message': '権限がありません。'}, status=status.HTTP_403_FORBIDDEN)
 
+    # 問い合わせ者の人員データを取得（本人向けお知らせの削除先）。人員から消されていれば、本人向けの片付けは飛ばす
+    inquir_member = member.objects.filter(employee_no=inquir_instance.employee_no2).first()
+    if inquir_member is not None:
+      # 本人向けお知らせの削除: この問い合わせID と一致する枠をすべて空にする（まだ保存しない）
+      for i in range(1, 6):
+        pop_up_id_attr = f'pop_up_id{i}'
+        pop_up_attr = f'pop_up{i}'
+        if getattr(inquir_member, pop_up_id_attr) == str(pk):
+          setattr(inquir_member, pop_up_id_attr, '')
+          setattr(inquir_member, pop_up_attr, '')
 
-    # 本人向けお知らせの削除: この問い合わせID と一致する枠をすべて空にする（まだ保存しない）
-    for i in range(1, 6):
-      pop_up_id_attr = f'pop_up_id{i}'
-      pop_up_attr = f'pop_up{i}'
-      if getattr(inquir_member, pop_up_id_attr) == str(pk):
-        setattr(inquir_member, pop_up_id_attr, '')
-        setattr(inquir_member, pop_up_attr, '')
+      # 本人向けお知らせの前詰め: 文言が空の枠があれば次の枠の内容を移し、次の枠を空にする（まだ保存しない）
+      for i in range(1, 5):
+        pop_up_attr = f'pop_up{i}'
+        pop_up_id_attr = f'pop_up_id{i}'
+        next_pop_up_attr = f'pop_up{i + 1}'
+        next_pop_up_id_attr = f'pop_up_id{i + 1}'
 
-    # 本人向けお知らせの前詰め: 文言が空の枠があれば次の枠の内容を移し、次の枠を空にする（まだ保存しない）
-    for i in range(1, 5):
-      pop_up_attr = f'pop_up{i}'
-      pop_up_id_attr = f'pop_up_id{i}'
-      next_pop_up_attr = f'pop_up{i + 1}'
-      next_pop_up_id_attr = f'pop_up_id{i + 1}'
+        if getattr(inquir_member, pop_up_attr) in ['', None]:
+          setattr(inquir_member, pop_up_attr, getattr(inquir_member, next_pop_up_attr))
+          setattr(inquir_member, pop_up_id_attr, getattr(inquir_member, next_pop_up_id_attr))
+          setattr(inquir_member, next_pop_up_attr, '')
+          setattr(inquir_member, next_pop_up_id_attr, '')
 
-      if getattr(inquir_member, pop_up_attr) in ['', None]:
-        setattr(inquir_member, pop_up_attr, getattr(inquir_member, next_pop_up_attr))
-        setattr(inquir_member, pop_up_id_attr, getattr(inquir_member, next_pop_up_id_attr))
-        setattr(inquir_member, next_pop_up_attr, '')
-        setattr(inquir_member, next_pop_up_id_attr, '')
-    
-    # 本人向けお知らせの変更を最後に一度だけ保存
-    inquir_member.save()
+      # 本人向けお知らせの変更を最後に一度だけ保存
+      inquir_member.save()
 
     # 担当者向けお知らせの削除: この問い合わせID と一致する枠をすべて空にする（まだ保存しない）
     for i in range(1, 6):

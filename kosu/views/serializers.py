@@ -119,7 +119,8 @@ class InquirSerializer(serializers.ModelSerializer):
   class Meta:
     model = inquiry_data  # 対象モデル: 問い合わせ
     fields = '__all__'  # 全項目を対象にする
-
+    # 問い合わせた人（従業員番号・氏名）は、編集の時に書き換えさせない（返すだけ）
+    read_only_fields = ['employee_no2', 'name']
 
 
 # ------------------------------------------------------------

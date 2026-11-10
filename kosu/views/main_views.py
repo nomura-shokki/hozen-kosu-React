@@ -61,7 +61,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework import status
 from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, AsyncTask, History
 from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer, DefSerializer, TaskSerializer, HistorySerializer
-from ..utils.main_utils import CustomPagination, get_all_model_names_in_myapp
+from ..utils.main_utils import CustomPagination, get_all_model_names_in_myapp, get_settings
 from ..permissions import HasAuthority, IsAdministrator
 
 
@@ -431,12 +431,8 @@ class Menu(APIView):
     # ログイン者の人員データ（LoginNoAuthentication がセットしたもの）
     member_data = request.user
 
-    # 最新（IDが最大）の管理者設定を取得
-    #   ※ last() はデータが無いとき例外ではなく None を返すため、この except に入ることはない
-    try:
-      admin_data = administrator_data.objects.order_by("id").last()
-    except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 最新（IDが最大）の管理者設定を取得（無ければ初期値で作る。utils/main_utils.py の get_settings）
+    admin_data = get_settings()
 
     # ログイン者・管理者設定をJSONに変換できる形にする
     login_serializer = MemberSerializer(member_data, many=False)
@@ -667,12 +663,8 @@ class AdministratorMenu(APIView):
     # ログイン者の人員データ（LoginNoAuthentication がセットしたもの）
     member_data = request.user
 
-    # 最新（IDが最大）の管理者設定を取得
-    #   ※ last() はデータが無いとき例外ではなく None を返すため、この except に入ることはない
-    try:
-      admin_data = administrator_data.objects.order_by("id").last()
-    except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 最新（IDが最大）の管理者設定を取得（無ければ初期値で作る。utils/main_utils.py の get_settings）
+    admin_data = get_settings()
 
     # ログイン者・管理者設定をJSONに変換できる形にする
     login_serializer = MemberSerializer(member_data, many=False)
@@ -707,12 +699,8 @@ class AdministratorUpdate(APIView):
     # ログイン者の人員データ（LoginNoAuthentication がセットしたもの）
     member_data = request.user
 
-    # 最新（IDが最大）の管理者設定を取得
-    #   ※ last() はデータが無いとき例外ではなく None を返すため、この except に入ることはない
-    try:
-      admin_data = administrator_data.objects.order_by("id").last()
-    except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 最新（IDが最大）の管理者設定を取得（無ければ初期値で作る。utils/main_utils.py の get_settings）
+    admin_data = get_settings()
 
     # ログイン者・管理者設定をJSONに変換できる形にする
     login_serializer = MemberSerializer(member_data, many=False)
@@ -737,12 +725,8 @@ class AdministratorUpdate(APIView):
   #   Response: 成功時は更新後の管理者設定（200）
   #             担当者の従業員番号が人員データに無い場合は 406、入力チェックNGの場合は 400 エラー
   def put(self, request):
-    # 最新（IDが最大）の管理者設定を取得（更新対象）
-    #   ※ last() はデータが無いとき例外ではなく None を返すため、この except に入ることはない
-    try:
-      admin_data = administrator_data.objects.order_by("id").last()
-    except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 最新（IDが最大）の管理者設定を取得（無ければ初期値で作る。utils/main_utils.py の get_settings）
+    admin_data = get_settings()
 
     # データ更新&変換: 既存の設定と送信データをシリアライザに渡し、入力チェックの準備をする
     serializer = AdministratorSerializer(admin_data, data=request.data)

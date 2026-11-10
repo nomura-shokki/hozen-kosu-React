@@ -41,8 +41,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import TeamSerializer, MemberSerializer, KosuSerializer, DefSerializer
-from ..utils.team_utils import excel_function
-from ..utils.main_utils import CustomPagination
+from ..utils.team_utils import excel_function, team_member_numbers
+from ..utils.main_utils import CustomPagination, get_settings, parse_year_month
 from ..permissions import HasAuthority
 # BytesIO: ファイルをディスクに保存せず、メモリ上で作成するための入れ物
 from io import BytesIO
@@ -300,8 +300,9 @@ class TeamDetail(APIView):
   def get(self, request, pk):
     # URLで指定されたIDの工数データを取得
     kosu_instance = self.get_object(pk)
-    # 該当するデータがない場合は 404（見つからない）を返す
-    if not kosu_instance:
+
+    # 該当するデータがない場合、またはログイン者の班員の工数データでない場合は 404（見つからない）を返す
+    if not kosu_instance or (not request.user.administrator and kosu_instance.employee_no3 not in team_member_numbers(request.user.employee_no)):
       return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # セッションから、現在使用中の工数区分定義Ver名を取得
@@ -484,6 +485,9 @@ class TeamCalendarWeekJump(APIView):
     # "A"（After）: 1週間後へ
     elif request.data.get('week') == 'A':
       date_object = datetime_object.date() + datetime.timedelta(days=7)
+    # "A" / "B" 以外は 400（前は date_object が無いまま進んで 500 になった）
+    else:
+      return Response({'status': 'error', 'message': 'week は A か B を指定してください。'}, status=status.HTTP_400_BAD_REQUEST)
     # ずらした日付を "YYYY-MM-DD" 文字列にしてセッションの表示日に保存する
     request.session['day'] = str(date_object)
 
@@ -512,10 +516,12 @@ class TeamExport(APIView):
   #   HttpResponse: Excelファイル（.xlsx）のダウンロード用レスポンス
   #                 ファイル名は「{年}年{月}月度_工数入力状況_{ショップ}.xlsx」
   def post(self, request):
-    # 送信された対象年・月・ショップを取得
+    # 送信された対象年・月・ショップを取得（年・月は数字か確かめる。数字でなければ 400）
     post_data = request.data
-    year = post_data.get('year')
-    month = post_data.get('month')
+    try:
+      year, month = parse_year_month(post_data)
+    except ValueError:
+      return Response({'status': 'error', 'message': '年・月が正しくありません。'}, status=status.HTTP_400_BAD_REQUEST)
     shop = post_data.get('shop2')
 
     # 新しいExcelブックを作成（最初から "Sheet" という名前の空シートが1枚入っている）
@@ -659,9 +665,13 @@ class TeamOverTime(APIView):
   # 戻り値:
   #   Response: 成功メッセージ（200）
   def post(self, request):
-    # 送信された年・月をセッションに保存する（次回の GET でその月が表示される）
-    request.session['year'] = request.data.get('year')
-    request.session['month'] = request.data.get('month')
+    # 送信された年・月を確かめてからセッションに保存する（次回の GET でその月が表示される）
+    try:
+      year, month = parse_year_month(request.data)
+    except ValueError:
+      return Response({'status': 'error', 'message': '年・月が正しくありません。'}, status=status.HTTP_400_BAD_REQUEST)
+    request.session['year'] = year
+    request.session['month'] = month
     return Response({'status': 'success', 'message': 'カレンダーが更新されました。'})
 
 
@@ -694,12 +704,8 @@ class TeamView(APIView):
     # ログイン者の人員データ（LoginNoAuthentication がセットしたもの）
     member_data = request.user
 
-    # 最新（IDが最大）の管理者設定を取得（問い合わせ担当者の従業員番号を知るため）
-    #   ※ last() はデータが無いとき例外ではなく None を返すため、この except に入ることはない
-    try:
-      admin_data = administrator_data.objects.order_by("id").last()
-    except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 最新（IDが最大）の管理者設定を取得（問い合わせ担当者の従業員番号を知るため。無ければ初期値で作る）
+    admin_data = get_settings()
 
     # 問い合わせ担当者の従業員番号1〜3（文字列項目。空欄の場合もある）
     admin_list_raw = [
@@ -753,9 +759,13 @@ class TeamView(APIView):
   # 戻り値:
   #   Response: 成功メッセージ（200）
   def post(self, request):
-    # 送信された年・月をセッションに保存する（TeamOverTime と同じキーのため表示年月は共通になる）
-    request.session['year'] = request.data.get('year')
-    request.session['month'] = request.data.get('month')
+    # 送信された年・月を確かめてからセッションに保存する（TeamOverTime と同じキーのため表示年月は共通になる）
+    try:
+      year, month = parse_year_month(request.data)
+    except ValueError:
+      return Response({'status': 'error', 'message': '年・月が正しくありません。'}, status=status.HTTP_400_BAD_REQUEST)
+    request.session['year'] = year
+    request.session['month'] = month
     return Response({'status': 'success', 'message': 'カレンダーが更新されました。'}, status=status.HTTP_200_OK)
 
 
@@ -767,6 +777,8 @@ class TeamView(APIView):
 #   POST : 工数入力状況(全体)画面で表示するショップ（セッションの shop）を変更する
 # ------------------------------------------------------------
 class TeamShopSelect(APIView):
+  # このAPIを利用できるのは「権限」ありのログイン者のみ
+  permission_classes = [HasAuthority]
   # 表示ショップを変更する（POST）。
   #
   # 引数:
