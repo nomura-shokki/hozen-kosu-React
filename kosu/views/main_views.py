@@ -45,6 +45,7 @@
 # インポート
 # ============================================================
 import datetime
+import hmac  # 2つの文字列を「かかる時間が中身で変わらない」方法で比べる（ヘルプ用パスワード）
 import os
 import sys
 import logging
@@ -52,12 +53,17 @@ import logging
 import environ
 import json
 from pathlib import Path
+from django.db import transaction  # 複数の書き込みを「全部する / 全部しない」にまとめる
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.conf import settings
+from django.middleware.csrf import rotate_token  # CSRF トークンを新しくする（ログインの時）
+from django.utils.decorators import method_decorator  # 関数用のデコレーターを、クラスのビューに付ける
+from django.views.decorators.csrf import ensure_csrf_cookie  # 返事に csrftoken の Cookie を必ず付ける
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from rest_framework.throttling import ScopedRateThrottle  # 同じ所からの呼び出し回数を制限する
 from rest_framework import status
 from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, AsyncTask, History
 from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer, DefSerializer, TaskSerializer, HistorySerializer
@@ -140,11 +146,16 @@ def get_logs(request):
 # React をビルドした index.html（settings.py の TEMPLATES で frontend/build を参照）を返す。
 # hozen_another/urls.py で /api/ などに当てはまらなかった全URLがここに来るため、
 # ブラウザで /kosu-list などを直接開いても React の画面が表示され、React Router が画面を切り替える。
+# あわせて、返事に CSRF トークンの Cookie（csrftoken）を必ず付ける（@ensure_csrf_cookie）。
+# 画面（frontend/src/api/axios.ts）は、書き込み（POST・PUT・DELETE）の時にこの Cookie の値を
+# X-CSRFToken の見出しに写して送り、permissions.py の LoginNoAuthentication がそれを確かめる
+# （Cookie が無いと、ログインした後の書き込みとログアウトが全部 403 になる）。
 #
 # 引数:
 #   request: HTTPリクエスト
 # 戻り値:
-#   HttpResponse: index.html の内容
+#   HttpResponse: index.html の内容（csrftoken の Cookie 付き）
+@ensure_csrf_cookie  # 画面を開いた時に、CSRF トークンの Cookie（csrftoken）を渡しておく
 def react_view(request):
   return render(request, 'index.html')
 
@@ -177,49 +188,56 @@ def manifest(request):
 #   URL  : /api/login/
 #   権限 : AllowAny（ログイン前に呼ぶためログイン不要）
 #   POST : 従業員番号が人員データに登録されていればログインさせる。
-#          セッションに従業員番号と最新の工数区分定義Ver名を保存する。
+#          セッションIDと CSRF トークンを新しくしてから、セッションに従業員番号と最新の工数区分定義Ver名を保存する。
+#          返事には csrftoken の Cookie を必ず付ける（画面を開いたまま新しい版が本番に出た時でも、書き込みができるように）。
 # ------------------------------------------------------------
+@method_decorator(ensure_csrf_cookie, name='dispatch')  # ログインの返事にも csrftoken の Cookie を付ける
 class Login(APIView):
   # ログインしていなくても呼び出せるようにする
   permission_classes = [AllowAny]
   # ログインする（POST）。
   #
+  # ログインの前に、セッションID（Cookie の sessionid）と CSRF トークンを新しくする
+  # （ログイン前のセッションIDやトークンを他人に知られていても、ログイン後には使えないようにする）。
+  # 工数区分定義が1件も無い場合は、セッションに何も保存せずに（ログインさせずに）エラーを返す。
+  #
   # セッションに保存する値:
-  #   login_No  : ログイン者の従業員番号（以降の全APIでログイン者の特定に使われる）
+  #   login_No  : ログイン者の従業員番号（数値。以降の全APIでログイン者の特定に使われる）
   #   input_def : 使用する工数区分定義Ver名（ID が最大＝最後に登録された工数区分定義）
   #
   # 引数:
   #   request: HTTPリクエスト。本文（JSON）の employee_no に従業員番号
   # 戻り値:
   #   JsonResponse: 成功時は {'status': 'success'}（200）
-  #                 JSONの形式不正・未登録の従業員番号・工数区分定義が1件も無い場合は 400 エラー
+  #                 JSONの形式不正・従業員番号が数字でない・未登録の従業員番号・工数区分定義が1件も無い場合は 400 エラー
   def post(self, request):
     try:
-      # 送られてきたデータ確認（リクエスト本文のJSONを辞書に変換し、従業員番号を取り出す）
+      # 送られてきたデータ確認（リクエスト本文のJSONを辞書に変換し、従業員番号を数値で取り出す）
       data = json.loads(request.body)
-      input_number = data.get('employee_no')
-    # 本文がJSONとして読めない場合は 400 を返す
-    except json.JSONDecodeError:
-      return JsonResponse({'status': 'error', 'message': 'JSON形式が正しくありません。'}, status=status.HTTP_400_BAD_REQUEST)
-
-    # POSTされた従番が人員データにある場合、セッションに保存&最新工数区分定義取得
-    if member.objects.filter(employee_no=input_number).exists():
-      request.session['login_No'] = input_number
-      # ID が最大（最後に登録された）工数区分定義を「最新」として取得
-      def_Ver = kosu_division.objects.order_by("id").last()
-
-      # 工数区分定義が1件も無い場合は工数入力ができないため 400 を返す
-      #   ※login_No はすでにセッションに保存された状態のまま返る
-      if not def_Ver:
-        return JsonResponse({'status': 'error', 'message': '利用可能な工数区分がありません。ERROR052'}, status=status.HTTP_400_BAD_REQUEST)
-      # 取得した工数区分定義のVer名をセッションに保存し、ログイン成功を返す
-      else:
-        request.session['input_def'] = def_Ver.kosu_name
-        return JsonResponse({'status': 'success'})
+      input_number = int(data.get('employee_no'))
+    # 本文がJSONとして読めない・従業員番号が数字でない場合は 400 を返す（500 にしない）
+    except (json.JSONDecodeError, TypeError, ValueError, AttributeError):
+      return JsonResponse({'status': 'error', 'message': '従業員番号を数字で入力してください。'}, status=status.HTTP_400_BAD_REQUEST)
 
     # 従業員番号が人員データに無い場合は 400 を返す
-    else:
+    if not member.objects.filter(employee_no=input_number).exists():
       return JsonResponse({'status': 'error', 'message': '入力された従業員番号は登録がありません。ERROR048'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # ID が最大（最後に登録された）工数区分定義を「最新」として取得
+    def_Ver = kosu_division.objects.order_by("id").last()
+    # 工数区分定義が1件も無い場合は工数入力ができないため、ログインさせずに 400 を返す
+    if not def_Ver:
+      return JsonResponse({'status': 'error', 'message': '利用可能な工数区分がありません。ERROR052'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # ログインの前に、セッションIDと CSRF トークンを新しくする
+    #   （ログイン前のセッションIDやトークンを他人に知られていても、ログイン後には使えないようにする。
+    #     Django 標準の login() も同じことをしている）
+    request.session.cycle_key()
+    rotate_token(request)
+    # セッションに従業員番号と工数区分定義Ver名を保存し、ログイン成功を返す
+    request.session['login_No'] = input_number
+    request.session['input_def'] = def_Ver.kosu_name
+    return JsonResponse({'status': 'success'})
 
 
 

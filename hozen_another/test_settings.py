@@ -12,6 +12,7 @@
 #   - DATABASES         : PostgreSQL の代わりにメモリ上の SQLite を使う（毎回まっさらで高速）
 #   - Q_CLUSTER         : Django-Q をテスト向け（同期実行）に設定
 #   - MIGRATION_MODULES : マイグレーションを使わず、モデル定義から直接テーブルを作る
+#   - MEDIA_ROOT        : テストで作るバックアップの Excel の置き場所を、毎回新しい一時フォルダにする
 #
 # 補足       : settings.py を読み込むため、テスト時も .env の SECRET_KEY・DEBUG は必要。
 # 関連ファイル: settings.py, kosu/tests/test_backend.py, kosu/views/asynchronous_views.py
@@ -57,3 +58,7 @@ class DisableMigrations:
         return None  
 # 全アプリについて「マイグレーションなし」として扱わせる
 MIGRATION_MODULES = DisableMigrations()  
+# テストで作るバックアップの Excel は、毎回新しい一時フォルダに置く
+#   （media/ に置くと、テストのたびに Excel が増え、リポジトリに入ってしまう）
+import tempfile
+MEDIA_ROOT = tempfile.mkdtemp(prefix='kosu-test-media-')

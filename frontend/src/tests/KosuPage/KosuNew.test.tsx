@@ -442,24 +442,7 @@ describe("KosuNew", () => {
     expect(breakCheckbox).toBeChecked();
   });
 
-  // 【テスト】「翌日」チェックボックス（id="tomorrow_check"）をクリックするとONになること
-  //   前提: 初期状態はチェックなし
-  //   操作: チェックボックスをクリック
-  //   期待: チェックが入る
-  //   ※現在の KosuNew.tsx には id="tomorrow_check" の要素が存在しない（送信データに
-  //     tomorrow_check: false を固定で入れているだけ）ため、要素は見つからない
-  it("toggles tomorrow checkbox", async () => {
-    // 準備: 画面を表示し、読み込み完了を待つ
-    render(<MemoryRouter><KosuNew /></MemoryRouter>);
-    await screen.findByText("テスト太郎の工数入力");
-    // 準備: id="tomorrow_check" の要素を取得し、初期状態でチェックが外れていることを確認する
-    const tomorrowCheckbox = document.getElementById("tomorrow_check") as HTMLInputElement;
-    expect(tomorrowCheckbox).not.toBeChecked();
-    // 操作: チェックボックスをクリック
-    fireEvent.click(tomorrowCheckbox);
-    // 検証: チェックが入る
-    expect(tomorrowCheckbox).toBeChecked();
-  });
+  // （「翌日」チェックボックス id="tomorrow_check" のテストは消した。KosuNew.tsx にその欄が無いため）
 
   // 【テスト】「更新」ボタンを押すと、登録APIが呼ばれるか入力エラーが表示されること
   //   前提: APIは作業内容 "A"・作業詳細 "test detail" を持つ工数データを返す

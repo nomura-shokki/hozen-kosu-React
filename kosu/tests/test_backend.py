@@ -42,9 +42,9 @@
 #     別スレッドではなくその場で同期実行されるため、結果をそのまま確認できる。
 #
 # 実行方法   : python manage.py test kosu --settings=hozen_another.test_settings
-# 注意       : TestAsyncViews のバックアップ系テストは保存先（MEDIA_ROOT）を差し替えないため、
-#              実行するとリポジトリ直下の media/ フォルダにバックアップExcelが作成（上書き）される。
-#              （TestTasks は一時フォルダに差し替えてから実行するので media/ には書き込まない）
+# 注意       : バックアップExcelの保存先（MEDIA_ROOT）は、test_settings.py で毎回新しい一時フォルダに
+#              差し替えているため、テストを実行してもリポジトリ直下の media/ フォルダには書き込まない。
+#              （TestTasks はさらに、テストごとに別の一時フォルダへ差し替えてから実行する）
 # 関連ファイル: hozen_another/test_settings.py, kosu/urls.py, kosu/permissions.py, kosu/signals.py
 # ============================================================
 
@@ -3681,7 +3681,7 @@ class TestDayUpdateItemDelete(BaseTestCase):
     # 【テスト】指定日に工数データが無いと時間帯削除ができないこと
     #   前提: 2026-05-01 の工数データは無い
     #   操作: POST /api/item_delete/ に就業日 2026-05-01 を送る
-    #   期待: 401（このAPIは「工数データが見つかりません」の場合も 401 を返す）
+    #   期待: 404（工数データが見つかりません。ログインが切れた時の 401 とは分ける）
     def test_item_delete_no_kosu(self):
         # 準備: 管理者ユーザーでログイン
         self.login_as_admin()
@@ -3693,17 +3693,17 @@ class TestDayUpdateItemDelete(BaseTestCase):
         }
         # 操作: 時間帯削除APIを呼ぶ
         response = self.client.post('/api/item_delete/', data, format='json')
-        # 検証: 401（工数データなし）
-        self.assertEqual(response.status_code, 401)
+        # 検証: 404（工数データなし）
+        self.assertEqual(response.status_code, 404)
 
     # 【テスト】作業内容が未登録（None）の工数データでは時間帯削除ができないこと
     #   前提: 2026-04-08 に作業内容 None の工数データがある
     #   操作: POST /api/item_delete/ に就業日 2026-04-08 を送る
-    #   期待: 401（「工数データが見つかりません」）
+    #   期待: 404（「工数データが見つかりません」）
     def test_item_delete_no_time_work(self):
-        # 準備: 管理者ユーザーでログインし、作業内容が None の工数データを作成（変数 kosu_empty は以降未使用）
+        # 準備: 管理者ユーザーでログインし、作業内容が None の工数データを作成
         self.login_as_admin()
-        kosu_empty = Business_Time_graph.objects.create(
+        Business_Time_graph.objects.create(
             employee_no3=12345, name=self.member,
             work_day2=date(2026, 4, 8), def_ver2='TestVer',
             tyoku2='1', over_time=0, time_work=None
@@ -3716,8 +3716,8 @@ class TestDayUpdateItemDelete(BaseTestCase):
         }
         # 操作: 時間帯削除APIを呼ぶ
         response = self.client.post('/api/item_delete/', data, format='json')
-        # 検証: 401（作業内容なし）
-        self.assertEqual(response.status_code, 401)
+        # 検証: 404（作業内容なし）
+        self.assertEqual(response.status_code, 404)
 
 
 # ---------------------------------------------------------------------------
@@ -4800,21 +4800,21 @@ class TestAsyncViews(BaseTestCase):
         session['login_No'] = '11111'  
         session.save()
 
-    # 【テスト】成功したタスクの状況確認で、結果ファイルのパスが返ること
+    # 【テスト】成功したタスクの状況確認で、結果ファイルの名前（フォルダの場所は除く）が返ること
     #   前提: タスクID「test-check-1」・状態 success・結果 "/path/to/file.xlsx" のタスク記録がある
     #   操作: GET /api/check_backup_status?task_id=test-check-1
-    #   期待: 200 が返り、本文の status が "success"、file_path が "/path/to/file.xlsx"
+    #   期待: 200 が返り、本文の status が "success"、file_path が "file.xlsx"
     def test_check_task_status_success(self):
         # 準備: 成功済みのタスク記録を作成（result には作成したファイルのパスが入る）
-        task = AsyncTask.objects.create(
+        AsyncTask.objects.create(
             task_id='test-check-1', status='success', result='/path/to/file.xlsx')
         # 操作: タスク状況確認APIを呼ぶ
         response = self.client.get('/api/check_backup_status', {'task_id': 'test-check-1'})
-        # 検証: 200 で、本文（JSON）の状態とファイルパスが正しい
+        # 検証: 200 で、本文（JSON）の状態とファイル名が正しい
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data['status'], 'success')
-        self.assertEqual(data['file_path'], '/path/to/file.xlsx')
+        self.assertEqual(data['file_path'], 'file.xlsx')
 
     # 【テスト】失敗したタスクの状況確認で、状態 "error" が返ること
     #   前提: 状態 error のタスク記録がある
@@ -4865,22 +4865,23 @@ class TestAsyncViews(BaseTestCase):
         # 検証: 400（無効なタスクID）
         self.assertEqual(response.status_code, 400)
 
-    # 【テスト】指定したパスのファイルをダウンロードできること
-    #   前提: 一時フォルダに .xlsx ファイルがある
-    #   操作: GET /api/download_backup?file_path=<一時ファイルのパス>
-    #   期待: 200
+    # 【テスト】media フォルダの中のファイルを、ファイル名でダウンロードでき、送った後に消えること
+    #   前提: media フォルダ（テストでは一時フォルダ。test_settings.py の MEDIA_ROOT）に .xlsx ファイルがある
+    #   操作: GET /api/download_backup?file_path=<ファイル名>
+    #   期待: 200 で中身が返り、読み終わるとファイルが消える
     def test_download_file(self):
-        # 準備: 中身 "test content" の一時ファイルを作成し、そのパスを控える
-        #   delete=False: with ブロックを抜けてもファイルを自動削除しない
-        with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as f:
+        # 準備: media フォルダに中身 "test content" のファイルを作る
+        from django.conf import settings
+        os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+        file_path = os.path.join(settings.MEDIA_ROOT, 'test_download.xlsx')
+        with open(file_path, 'wb') as f:
             f.write(b'test content')
-            temp_path = f.name
-        # 操作: ファイルダウンロードAPIを呼ぶ
-        response = self.client.get('/api/download_backup', {'file_path': temp_path})
-        # 検証: 200（成功）
+        # 操作: ファイルダウンロードAPIを呼ぶ（ファイル名だけを渡す）
+        response = self.client.get('/api/download_backup', {'file_path': 'test_download.xlsx'})
+        # 検証: 200（成功）で中身が返り、読み終わるとファイルが消える
         self.assertEqual(response.status_code, 200)
-        # ※一時ファイルはテスト側では削除していない
-        #   （元のコメント: Windows のファイルロックのため後片付けを省略し、OS に任せる）
+        self.assertEqual(b''.join(response.streaming_content), b'test content')
+        self.assertFalse(os.path.exists(file_path))
 
     # 【テスト】工数区分定義のバックアップを受け付け、タスクIDが返ること
     #   前提: 管理者 11111 としてログイン済み（setUp のセッション）
