@@ -35,6 +35,7 @@ import uuid  # 重複しないタスクIDの生成
 import datetime  # 日付の入力チェック
 import time  # ファイル削除前の待機
 import tempfile  # アップロードファイルを一時保存する一時ファイルの作成
+from pathlib import Path
 # Django / Django REST Framework
 from django.conf import settings  # settings.TESTING（テスト実行中かどうか）の参照
 from django.urls import resolve  # アクセスされたURLから urls.py のURL名を調べる
@@ -186,7 +187,7 @@ def backup(request):
     # 工数区分定義データバックアップ: generate_def_backup()（引数なし・全件）
     elif url_name == 'def_backup':  
         task_function = generate_def_backup  
-        args = ()  
+        args = ()
     # 工数区分定義データロード: 一時ファイルに保存して load_def_file(一時ファイルのパス)
     elif url_name == 'def_load':  
         # アップロードファイルを取得し、一時ファイルのパスを初期化
@@ -420,7 +421,7 @@ def backup(request):
             *args,  
         )  
     # 本番環境では、別スレッドで実行する（タスクの完了を待たずに画面へ応答を返すため）
-    else:  
+    else:
         # handle_task を別スレッドで動かす準備（target: 実行する関数 / args: その関数に渡す引数）
         thread = threading.Thread(  
             target=handle_task,  
@@ -539,14 +540,15 @@ def check_task_status(request):
     try:  
         # タスクIDが一致する非同期タスクのレコードを取得する（無ければ DoesNotExist 例外）
         task = AsyncTask.objects.get(task_id=task_id)  
-        # タスクが正常終了している場合: 結果（ファイルパス等）を file_path として返す
-        if task.status == 'success':  
-            return JsonResponse(  
-                {  
-                    'status': 'success',  
-                    'file_path': task.result,  
-                }  
-            )  
+        # タスクが正常終了している場合: 結果のファイル名だけを file_path として返す
+        # （サーバーの中のフォルダの場所は画面に知らせない。ダウンロードAPIもファイル名だけで探す）
+        if task.status == 'success':
+            return JsonResponse(
+                {
+                    'status': 'success',
+                    'file_path': os.path.basename(task.result) if task.result else None,
+                }
+            )
         # タスクがエラー終了している場合: 保存されたエラー内容を message として返す
         elif task.status == 'error':  
             return JsonResponse(  
@@ -591,61 +593,42 @@ def check_task_status(request):
 # ------------------------------------------------------------
 @api_view(['GET'])  # GET のみ受け付ける DRF のAPIにする
 @permission_classes([IsAdministrator])  # 管理者のみ利用可能
-def download_file(request):  
-    # ダウンロード対象のファイルパスをクエリパラメータから取得する
-    file_path = request.GET.get('file_path')  
-    # ファイルをバイナリの読み込み専用モード（'rb'）で開く（パスの妥当性チェックは行わずにそのまま開く）
-    file_handle = open(file_path, 'rb')  
+def download_file(request):
+    # バックアップの保存先（media フォルダ）の絶対パス
+    backup_dir = Path(settings.MEDIA_ROOT).resolve()
+
+    # 受け取るのはファイル名だけにする（フォルダの部分は捨てる。例: "../../.env" → ".env"）
+    file_name = os.path.basename(request.GET.get('file_path') or '')
+    file_path = (backup_dir / file_name).resolve()
+    # 名前が空・media フォルダの直下でない・ファイルが無い場合は 404（ほかの場所のファイルは決して開かない）
+    if not file_name or file_path.parent != backup_dir or not file_path.is_file():
+        return JsonResponse(
+            {
+                'status': 'error',
+                'message': 'ファイルが見つかりません。',
+            },
+            status=status.HTTP_404_NOT_FOUND,
+        )
     # ファイルをダウンロードさせるレスポンスを作成する
     #   as_attachment=True: ブラウザで表示せず、ファイルとして保存させる
-    #   filename          : 保存時のファイル名（パスからファイル名の部分だけを取り出す）
-    response = FileResponse(  
-        file_handle,  
-        as_attachment=True,  
-        filename=os.path.basename(file_path),  
-    )  
-    # ダウンロード後にサーバー上のファイルを削除する（下の cleanup_on_close から別スレッドで呼ばれる）。
-    #
-    # 引数:
-    #   なし（外側の file_path を使う）
-    # 戻り値:
-    #   なし
-    def delayed_file_cleanup():  
-        # ファイルがまだ送信中・使用中の可能性があるため、3秒待ってから削除する
-        time.sleep(3)  
-        # ファイルが存在する場合だけ削除する
-        if os.path.exists(file_path):  
-            try:  
-                os.remove(file_path)  
-            # 削除に失敗してもダウンロード自体には影響しないため、標準出力にログを出すだけにする
-            except Exception as e:  
-                print(  
-                    f'Cleanup failed after delay for '  
-                    f'{file_path}: {e}'  
-                )  
-    # レスポンスの送信が終わったとき（close() 呼び出し時）に実行する処理。
-    #
-    # 3秒の待機中にサーバーの処理を止めないよう、削除処理を別スレッドで開始する。
-    #
-    # 引数:
-    #   なし
-    # 戻り値:
-    #   なし
-    def cleanup_on_close():  
-        # ファイル削除処理を別スレッドで実行する準備
-        thread = threading.Thread(  
-            target=delayed_file_cleanup,  
-        )  
-        # デーモンスレッドにする（サーバー終了時にスレッドが残り続けないようにする）
-        thread.daemon = True  
-        # ファイル削除処理を開始する
-        thread.start()  
-    # レスポンスの close() を上の cleanup_on_close に差し替える
-    #   Django はレスポンスの送信完了後に close() を呼ぶため、そのタイミングで削除処理が始まる
-    #   ※差し替えにより、元の close() の処理（開いたファイルを閉じる等）は実行されない
-    response.close = cleanup_on_close  
-    # ファイルのダウンロードレスポンスを返す
-    return response  
+    response = FileResponse(
+        open(file_path, 'rb'),
+        as_attachment=True,
+        filename=file_name,
+    )
+    # 送り終わった時（Django が close() を呼ぶ時）に、まず元の close()（開いたファイルを閉じる）を呼び、
+    # そのあとファイルを消す（閉じてから消すので、Windows でも消せる。待つための別スレッドも要らない）
+    original_close = response.close
+
+    def close_then_delete():
+        original_close()
+        try:
+            file_path.unlink()
+        except OSError:
+            pass  # 消せなくてもダウンロードには影響しない
+
+    response.close = close_then_delete
+    return response 
 
 # ============================================================
 # ヘルパー関数: タスクの実行と結果の保存

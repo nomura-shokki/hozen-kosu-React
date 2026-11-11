@@ -115,8 +115,9 @@ const useTaskMonitor = (
     // バックアップ: ファイルパスが返ってきた場合はダウンロードを開始する
     if (data.file_path) {
       // GET /api/download_backup?file_path=... : バックアップファイルをダウンロード
-      //   （axios を使わず、ブラウザ標準のリンク遷移でダウンロードさせるため、APIのURLを直接組み立てる）
-      const endpoint = `${process.env.REACT_APP_API_BASE_URL}/api/download_backup`;
+      //   画面と同じサーバーへの相対URLにする（Vite のビルドでは process.env が {} に置き換わり、
+      //   process.env.REACT_APP_API_BASE_URL は undefined になるため、使わない）
+      const endpoint = "/api/download_backup";
       const filePath = data.file_path;
       // 画面には表示しない <a> 要素を作り、クリックしたことにしてダウンロードを始める
       //   encodeURIComponent: ファイルパス中の日本語や記号をURLで使える形に変換する
