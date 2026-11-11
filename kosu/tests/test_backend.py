@@ -68,7 +68,7 @@ from kosu.views.serializers import (
     InquirSerializer, AdministratorSerializer, TaskSerializer, HistorySerializer
 )
 # TestUtils で使う共通ユーティリティ関数
-from kosu.utils.main_utils import validate_employee_no_logic, get_all_model_names_in_myapp
+from kosu.utils.main_utils import get_all_model_names_in_myapp
 # TestKosuUtils で使う工数計算用の関数（create_kosu_basic は import のみで未使用）
 from kosu.utils.kosu_utils import (
     time_index, break_time_process, kosu_write, break_time_delete,
@@ -1718,66 +1718,10 @@ class TestSerializers(BaseTestCase):
 # ---------------------------------------------------------------------------
 # 11. TestUtils: 共通ユーティリティ関数のテスト
 #   対象 : utils/main_utils.py
-#            validate_employee_no_logic : 従業員番号の入力チェック（空欄OK・自然数・存在確認）
 #            get_all_model_names_in_myapp: kosu アプリの全モデル名の一覧取得
-#   内容 : 関数を直接呼び出し、戻り値 (OK/NG, 値またはエラーメッセージ) を確認する。
+#   内容 : 関数を直接呼び出し、戻り値を確認する。
 # ---------------------------------------------------------------------------
 class TestUtils(BaseTestCase):
-    # 【テスト】登録済みの従業員番号は入力チェックOKになり、整数の番号が返ること
-    #   前提: 人員 12345 が存在する
-    #   操作: validate_employee_no_logic(12345, member)
-    #   期待: (True, 12345)
-    def test_validate_employee_no_valid(self):
-        # 操作: 第2引数には人員モデル（存在確認に使う）を渡す
-        ok, result = validate_employee_no_logic(12345, member)
-        # 検証: OK で、番号が整数で返る
-        self.assertTrue(ok)
-        self.assertEqual(result, 12345)
-
-    # 【テスト】数字でない文字列は入力チェックNGになること
-    #   前提: なし
-    #   操作: validate_employee_no_logic('abc', member)
-    #   期待: (False, 'は自然数で入力して下さい')
-    def test_validate_employee_no_invalid_string(self):
-        # 操作: 整数に変換できない文字列を渡す
-        ok, msg = validate_employee_no_logic('abc', member)
-        # 検証: NG で、メッセージに「自然数」が含まれる
-        self.assertFalse(ok)
-        self.assertIn('自然数', msg)
-
-    # 【テスト】未登録の従業員番号は入力チェックNGになること
-    #   前提: 人員 88888 は存在しない
-    #   操作: validate_employee_no_logic(88888, member)
-    #   期待: (False, '…人員は存在しません')
-    def test_validate_employee_no_nonexistent(self):
-        # 操作: 存在しない従業員番号を渡す
-        ok, msg = validate_employee_no_logic(88888, member)
-        # 検証: NG で、メッセージに「存在しません」が含まれる
-        self.assertFalse(ok)
-        self.assertIn('存在しません', msg)
-
-    # 【テスト】空欄は入力チェックOK（未入力を許可）になること
-    #   前提: なし
-    #   操作: validate_employee_no_logic('', member)
-    #   期待: (True, None)
-    def test_validate_employee_no_empty(self):
-        # 操作: 空文字を渡す
-        ok, result = validate_employee_no_logic('', member)
-        # 検証: OK で、値は None
-        self.assertTrue(ok)
-        self.assertIsNone(result)
-
-    # 【テスト】0 は空欄と同じ扱いになり、入力チェックOKになること
-    #   前提: なし
-    #   操作: validate_employee_no_logic(0, member)
-    #   期待: ok が True（2つ目の戻り値は None。変数名は msg だが中身はメッセージではない）
-    def test_validate_employee_no_zero(self):
-        # 操作: 0 を渡す
-        ok, msg = validate_employee_no_logic(0, member)
-        # 検証: 0 は Python では偽（False と同じ扱い）のため、関数冒頭の空欄チェック
-        #       「if not value」に当てはまり、自然数チェックより先に OK が返る
-        self.assertTrue(ok)
-
     # 【テスト】kosu アプリのモデル名一覧に主要なモデルが含まれること
     #   前提: なし
     #   操作: get_all_model_names_in_myapp()

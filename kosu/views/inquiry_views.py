@@ -250,7 +250,8 @@ class InquirDetail(APIView):
   # 戻り値:
   #   Response: inquir_data（問い合わせ）/ login_data（ログイン者）/ inquir_member_data（問い合わせ者）/
   #             next_id（次の問い合わせID。なければ None）/ before_id（前の問い合わせID。なければ None）
-  #             該当なしの場合は 404、問い合わせ者の人員データがない場合は 401 エラー
+  #             該当なしの場合は 404 エラー
+  #             （問い合わせ者が人員から消されていても開ける。その時の inquir_member_data は空で返す）
   def get(self, request, pk):
     # URLで指定されたIDの問い合わせを取得
     inquir_instance = self.get_object(pk)
@@ -262,21 +263,14 @@ class InquirDetail(APIView):
     member_data = request.user
 
     # 問い合わせ者（従業員番号 employee_no2）の人員データを取得
-    #   問い合わせ者の人員データが削除されている場合は 401 を返す
-    try:
-      inquir_member = member.objects.get(employee_no=inquir_instance.employee_no2)
-    except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '質問者の人員情報が見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    #   人員から消された人の問い合わせも開けるよう、見つからなければ None のまま続ける
+    inquir_member = member.objects.filter(employee_no=inquir_instance.employee_no2).first()
 
-    # 最新（IDが最大）の管理者設定を取得（問い合わせ担当者の判定とお知らせ削除に使う）
-    #   ※ last() はデータが無いとき例外ではなく None を返すため、この except に入ることはない
-    try:
-      admin_data = administrator_data.objects.order_by("id").last()
-    except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 最新（IDが最大）の管理者設定を取得（問い合わせ担当者の判定とお知らせ削除に使う。無ければ初期値で作る）
+    admin_data = get_settings()
 
     # ログイン者が問い合わせ者本人の場合: 本人向けお知らせ（回答通知）を既読にする
-    if inquir_member.employee_no == member_data.employee_no:
+    if inquir_member is not None and inquir_member.employee_no == member_data.employee_no:
       # 本人向けお知らせの削除:
       #   pop_up_id1〜5 のうち、この問い合わせID と一致する最初の枠を空にする
       #   （DBの値は文字列、pk は数値のため、両方 str() にそろえて比較する）

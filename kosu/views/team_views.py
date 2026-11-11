@@ -416,11 +416,12 @@ class TeamCalendar(APIView):
       num for num in member_numbers if num is not None and num != ''
     ]
     # 画面の行見出し用に [従業員番号, 氏名] のリストを班員の登録順に作る
-    #   ※班員に登録された従業員番号の人員が削除されていると member.DoesNotExist が発生する
+    #   人員から消された人は飛ばす（get だと「無い」時に例外で 500 になるので filter().first() にする）
     member_name_list = []
     for m in valid_member_numbers:
-      member_obj = member.objects.get(employee_no=m)
-      member_name_list.append([m, member_obj.name])
+      member_obj = member.objects.filter(employee_no=m).first()
+      if member_obj is not None:
+        member_name_list.append([m, member_obj.name])
 
     # 週の最終日（日曜日の6日後＝土曜日）
     end_day = day_sunday + datetime.timedelta(days=6)
@@ -633,11 +634,12 @@ class TeamOverTime(APIView):
       num for num in member_numbers if num is not None and num != ''
     ]
     # 画面の行見出し用に [従業員番号, 氏名] のリストを班員の登録順に作る
-    #   ※班員に登録された従業員番号の人員が削除されていると member.DoesNotExist が発生する
+    #   人員から消された人は飛ばす（get だと「無い」時に例外で 500 になるので filter().first() にする）
     member_name_list = []
     for m in valid_member_numbers:
-      member_obj = member.objects.get(employee_no=m)
-      member_name_list.append([m, member_obj.name])
+      member_obj = member.objects.filter(employee_no=m).first()
+      if member_obj is not None:
+        member_name_list.append([m, member_obj.name])
 
     # 表示月の工数データを取得
     #   Search_month: 表示月の1日 "YYYY-MM-01"。先頭7文字 "YYYY-MM" で始まる就業日＝その月の全日
@@ -727,9 +729,10 @@ class TeamView(APIView):
     team_shop = [x for x in team_shop if x not in admin_list]
 
     # 画面の行見出し用に [従業員番号, 氏名] のリストを作る
+    #   （同じ従業員番号が2人いても 500 にならないよう、get ではなく filter().first() にする）
     member_name_list = []
     for m in team_shop:
-      member_obj = member.objects.get(employee_no=m)
+      member_obj = member.objects.filter(employee_no=m).first()
       member_name_list.append([m, member_obj.name])
 
     # 表示月の工数データを取得

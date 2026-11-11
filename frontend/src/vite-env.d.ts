@@ -10,7 +10,7 @@
  * 補足       : 下の「/// <reference types="..." />」は三連スラッシュ指示子と呼ばれる特別な書き方で、
  *              指定したパッケージ（vite/client）の型定義を読み込ませる命令（ファイルの先頭に置く必要がある）。
  *              通常のコメントではないため変更しないこと。
- * 関連ファイル: react-app-env.d.ts, frontend/vite.config.mts, frontend/tsconfig.json
+ * 関連ファイル: frontend/vite.config.mts, frontend/tsconfig.json
  * ============================================================
  */
 /// <reference types="vite/client" />

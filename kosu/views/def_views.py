@@ -28,8 +28,9 @@
 # ============================================================
 # インポート
 # ============================================================
+from django.db import transaction  # 複数の書き込みを「全部する / 全部しない」にまとめる
 from django.db.models import Case, When, Value, IntegerField
-from ..models import kosu_division, member, def_choice
+from ..models import kosu_division, member, def_choice, Business_Time_graph
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -283,6 +284,7 @@ class DefUpdate(APIView):
   # 指定した工数区分定義を更新する（PUT）。
   #
   # Ver名を変更する場合は、変更後のVer名が他の工数区分定義と重複していないかを確認する。
+  # Ver名を変えた時は、そのVerで入力した工数データの def_ver2 も、同じトランザクションの中で新しい名前にそろえる。
   #
   # 引数:
   #   request: HTTPリクエスト。request.data に更新後の工数区分定義（全項目）
@@ -301,15 +303,21 @@ class DefUpdate(APIView):
     data = request.data
     serializer = DefSerializer(def_instance, data=data)
     if serializer.is_valid():
+      old_name = def_instance.kosu_name
+      new_name = serializer.validated_data.get('kosu_name')
       # Ver名の一意性確認:
       #   送信されたVer名が変更前と異なり、かつ他の工数区分定義がそのVer名を使っている場合は更新不可
-      if data.get('kosu_name') != def_instance.kosu_name and kosu_division.objects.filter(kosu_name=data.get('kosu_name')).exists():
+      if new_name != old_name and kosu_division.objects.filter(kosu_name=new_name).exists():
         return Response(
           {'status': 'error', 'message': '入力した工数区分定義Ver名はすでに登録されています。'},
           status=status.HTTP_400_BAD_REQUEST
         )
-      # 問題なければデータベースに保存し、更新後の内容を 200（成功）で返す
-      serializer.save()
+      # 保存する。Ver名を変えた時は、そのVerで入力した工数データ（def_ver2）も新しい名前にそろえる
+      #   （そろえないと、その工数データの編集・集計の画面が「工数区分データが存在しません」になる）
+      with transaction.atomic():
+        serializer.save()
+        if new_name != old_name:
+          Business_Time_graph.objects.filter(def_ver2=old_name).update(def_ver2=new_name)
       return Response(serializer.data, status=status.HTTP_200_OK)
     # 入力チェックNGの場合は 400 を返す
     return Response({'status': 'error', 'message': 'バリテーションエラー'}, status=status.HTTP_400_BAD_REQUEST)
@@ -320,7 +328,7 @@ class DefUpdate(APIView):
 # DefDelete: 工数区分定義削除API
 #   URL    : /api/def_delete/<ID>/
 #   権限   : IsAdministrator（管理者のみ）
-#   DELETE : 指定したIDの工数区分定義を削除する
+#   DELETE : 指定したIDの工数区分定義を削除する（そのVerで入力した工数データが残っている間は削除しない）
 # ------------------------------------------------------------
 class DefDelete(APIView):
   # このAPIを利用できるのは「管理者」のログイン者のみ
@@ -341,11 +349,15 @@ class DefDelete(APIView):
 
   # 指定した工数区分定義を削除する（DELETE）。
   #
+  # 工数データは Ver名を文字列（def_ver2）で持っているだけなので、そのVerで入力した工数データが
+  # 残っている間は削除しない（削除すると、その工数データが開けなくなるため）。
+  #
   # 引数:
   #   request: HTTPリクエスト
   #   pk     : 削除対象の工数区分定義のID（URLから取得）
   # 戻り値:
-  #   Response: 成功時は 204（削除成功）。該当なしの場合は 404 エラー
+  #   Response: 成功時は 204（削除成功）。該当なしの場合は 404 エラー、
+  #             そのVerで入力した工数データが残っている場合は 409 エラー
   def delete(self, request, pk):
     # ログイン者の人員データ（この処理内では未使用）
     member_data = request.user
@@ -355,8 +367,12 @@ class DefDelete(APIView):
     # 該当するデータがない場合は 404 を返す
     if def_instance is None:
       return Response({'status': 'error', 'message': 'レコードが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
+    # このVerで入力した工数データが残っている間は消さない
+    #   （工数データは Ver名を文字列（def_ver2）で持っているだけなので、消すとその工数データが開けなくなる）
+    used = Business_Time_graph.objects.filter(def_ver2=def_instance.kosu_name).count()
+    if used:
+      return Response({'status': 'error', 'message': f'この工数区分定義で入力した工数データが {used} 件あるため、削除できません。'}, status=status.HTTP_409_CONFLICT)
     # データベースから削除し、204（成功・返すデータなし）を返す
-    #   ※工数データ側は Ver名を文字列（def_ver2）で持っているだけなので、工数データは削除されずに残る
     def_instance.delete()
     return Response({'status': 'success', 'message': 'レコードを削除しました。'}, status=status.HTTP_204_NO_CONTENT)
 

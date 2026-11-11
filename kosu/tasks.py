@@ -8,7 +8,6 @@
 #
 # 主な関数（データ種別ごと）:
 #   - 工数データ          : generate_kosu_backup / delete_kosu_data / load_kosu_file
-#                           generate_prediction（工数区分定義予測データ出力。現在どこからも呼ばれていない）
 #   - 人員データ          : generate_member_backup / load_member_file
 #   - 班員データ          : generate_team_backup / load_team_file
 #   - 工数区分定義データ  : generate_def_backup / load_def_file
@@ -19,14 +18,15 @@
 #   - 操作履歴データ      : generate_History_backup / delete_History_data
 #
 # 戻り値の約束（asynchronous_views.handle_task が受け取り、AsyncTask に保存する）:
-#   - generate_〇〇 : 作成したExcelファイルのパス（文字列）。画面はこのパスでファイルをダウンロードする
+#   - generate_〇〇 : 作成したExcelファイルのパス（文字列）。画面は、このパスのファイル名（check_task_status がファイル名だけを返す）でファイルをダウンロードする
 #   - load_〇〇     : 成功時 ({'status': 'success'}, None)
 #                     失敗時 ({'status': 'error', 'message': エラー内容}, None)
 #   - delete_〇〇   : None
 #
 # 保存先     : バックアップファイルは settings.MEDIA_ROOT（プロジェクト直下の media フォルダ）に保存する。
-# 補足       : - ロードはトランザクション（全件まとめて確定/取り消しする仕組み）を使っていないため、
-#                途中でエラーになっても、それまでに登録・削除した行はそのまま残る。
+# 補足       : - ロード関数は atomic_load（トランザクション: 全件まとめて確定/取り消しする仕組み）の中で動くため、
+#                途中でエラーになった時は、それまでに登録・削除した行もすべて取り消す。
+#                整合性エラーの行だけを飛ばす所は、セーブポイントでその行の分だけを取り消して次の行へ進む。
 #              - ロード・削除で変更したデータも signals.py により操作履歴（History）に記録される。
 #                本番では別スレッドで動くためログイン者を取得できず、履歴の login_No は空（None）になる。
 # 関連ファイル: views/asynchronous_views.py（呼び出し元）, models.py, utils/kosu_utils.py, signals.py,
@@ -38,17 +38,37 @@
 # ============================================================
 import os  # 保存先フォルダの作成・一時ファイルの削除
 from django.conf import settings  # MEDIA_ROOT（保存先フォルダ）・TIME_ZONE（タイムゾーン）の参照
-from django.utils import timezone  # （このファイル内では未使用）
 import openpyxl  # Excelファイル（.xlsx）の作成・読み込み
-import pandas as pd  # 表形式データの加工とExcel出力（generate_prediction で使用）
 import pytz  # タイムゾーン変換（DBに保存された日時 → 日本時間）
 import datetime  # 日付の取得・文字列からの変換
 # 各データのモデル（models.py）
 from .models import Business_Time_graph, kosu_division, def_choice, member, team_member, \
                     inquiry_data, administrator_data, AsyncTask, History
-from .utils.kosu_utils import kosu_division_dictionary  # 工数区分の [記号, 工数区分名] 一覧を作る関数
-from django.db import IntegrityError  # DBの整合性エラー（NOT NULL 制約違反など）
+from django.db import IntegrityError, transaction  # DBの整合性エラー / 複数の書き込みを「全部する・全部しない」にまとめる
 from django.core.exceptions import ObjectDoesNotExist  # 該当するレコードが無いときの例外
+import functools  # デコレーターを作る時に、元の関数の名前などを引き継ぐ
+
+
+
+# ロード関数を「全部入れるか、何も変えないか」にするデコレーター。
+#
+# ロード関数の中身をデータベースのトランザクション（まとめて確定・まとめて取り消し）の中で動かし、
+# 途中で失敗して {'status': 'error'} を返した時は、それまでの削除・登録を全部取り消す。
+# （前は 1 行ずつ確定していたので、途中で失敗すると「古いデータは消えたのに新しいデータは半分」になった）
+#
+# 引数:
+#   func: ロード関数（load_kosu_file など）
+# 戻り値:
+#   トランザクションの中で func を呼ぶ関数
+def atomic_load(func):
+  @functools.wraps(func)
+  def wrapper(*args, **kwargs):
+    with transaction.atomic():
+      result = func(*args, **kwargs)
+      if isinstance(result, tuple) and result and isinstance(result[0], dict) and result[0].get('status') == 'error':
+        transaction.set_rollback(True)
+      return result
+  return wrapper
 
 
 
@@ -128,99 +148,6 @@ def generate_kosu_backup(start_day, end_day):
 
 
 
-# 指定期間の工数データから「工数区分名」と「作業詳細」の組み合わせを抜き出し、Excelファイルに出力する。
-#
-# 工数区分定義予測データとして、重複を除いた組み合わせの一覧を作る。
-# ※現在、この関数を呼び出している箇所は無い（asynchronous_views.py のURL振り分けにも含まれていない）
-#
-# 引数:
-#   data_day : 開始日（"YYYY-MM-DD"）
-#   data_day2: 終了日（"YYYY-MM-DD"）
-# 戻り値:
-#   str: 作成したExcelファイルのパス（例: .../media/工数予測データバックアップ_開始日_終了日.xlsx）
-def generate_prediction(data_day, data_day2):
-  # 就業日が期間内の工数データを取得
-  kosu_filter = Business_Time_graph.objects.filter(
-    work_day2__gte=data_day, work_day2__lte=data_day2
-    )
-
-  # Excelに書き出す行（[工数区分名, 作業詳細]）をためるリスト
-  data = []
-  # 工数データを1件ずつ処理する
-  for kosu in kosu_filter:
-    # 作業内容を1文字ずつのリストにする
-    #   作業内容は1日を5分刻みにした288文字の文字列で、1文字が5分ぶんの工数区分の記号（A〜x）。
-    #   '#' は未入力、'$' は休憩。例: index 0 → 0:00〜0:05、index 102 → 8:30〜8:35
-    kosu_list = list(kosu.time_work)
-    # 作業詳細を '$' 区切りで分割してリストにする（作業内容と同じく5分ごとの要素）
-    detail_list = kosu.detail_work.split('$')
-    # この工数データで使われている工数区分定義Verのデータを検索
-    def_filter = kosu_division.objects.filter(kosu_name=kosu.def_ver2)
-
-    # 作業内容・作業詳細のうち、要素数が多い方の数を取得
-    max_length = max(len(kosu_list), len(detail_list))
-    # 5分ごとの要素を1つずつ処理する
-    for i in range(max_length):
-      # 工数区分定義が存在する場合のみ処理する（存在しないVerの工数データは対象外）
-      if def_filter.exists():
-        # 工数区分定義から [記号, 工数区分名] のリストを作成（例: [['A', 工数区分名1], ['B', 工数区分名2], ...]）
-        #   def_n: 登録されている工数区分の数（ここでは未使用）
-        choices_list, def_n = kosu_division_dictionary(kosu.def_ver2)
-
-        # 作業内容の記号を工数区分名に変換する
-        for k in choices_list:
-          # 工数区分の記号（k[0]）と作業内容の記号が一致した場合
-          if k[0] == kosu_list[i]:
-            # 作業詳細が空欄でない場合のみ記録する
-            if detail_list[i] != '':
-              # [工数区分名, 作業詳細] の1行を作成（index が範囲外の場合は空文字）
-              row = [
-                  k[1] if i < len(kosu_list) else '',
-                  detail_list[i] if i < len(detail_list) else '',
-              ]
-              # 出力用リストに追加
-              data.append(row)
-              # 該当する工数区分が見つかったので、記号の検索ループを抜ける
-              break
-
-  # 集めたデータを pandas の DataFrame（表形式のデータ）に変換し、列名を付ける
-  df = pd.DataFrame(data, columns=['工数定義区分', '作業詳細'])
-
-  # 不要な行を除外する
-  #   工数定義区分が 空 / '#'（未入力）/ '$'（休憩）の行を除く（~ は「条件に当てはまらない」の意味）
-  df = df[~df['工数定義区分'].isin(['', '#', '$'])]
-  #   作業詳細が空の行を除く
-  df = df[df['作業詳細'] != '']
-
-  # 工数定義区分と作業詳細の組み合わせが重複する行を削除する（最初に出てきた行を残す）
-  df = df.drop_duplicates(subset=['工数定義区分', '作業詳細'], keep='first')
-
-  # 保存先のフォルダ（media）が無ければ作成する
-  media_dir = settings.MEDIA_ROOT
-  if not os.path.exists(media_dir):
-    os.makedirs(media_dir)
-
-  # ファイル名に期間を含めて、保存先のパスを作る
-  filename = f'工数予測データバックアップ_{data_day}_{data_day2}.xlsx'
-  filepath = os.path.join(media_dir, filename)
-  
-  # DataFrame をExcelファイルに書き出す（engine='openpyxl': openpyxl で書き込む / index=False: 行番号の列は出力しない）
-  with pd.ExcelWriter(filepath, engine='openpyxl') as writer:
-      df.to_excel(writer, index=False)
-
-  # 作成したファイルのパスを返す
-  return filepath
-
-
-
-
-
-#--------------------------------------------------------------------------------------------------------
-
-
-
-
-
 # 期間内の工数データを一括削除する。
 #
 # 就業日が開始日〜終了日の工数データをすべて削除する（元に戻すにはバックアップファイルのロードが必要）。
@@ -265,6 +192,7 @@ def delete_kosu_data(start_day, end_day):
 #          その他のエラー時 ({'status': 'error', 'message': エラー内容}, None)
 # 例外:
 #   処理中の例外はすべて捕まえ、一時ファイルを削除したうえでエラーのタプルとして返す
+@atomic_load  # 途中で失敗したら全部取り消す
 def load_kosu_file(file_path):
   try:
     # 1. 渡されたファイルパスを一時ファイルパスとして保持（エラー時の削除にも使う）
@@ -316,6 +244,7 @@ def load_kosu_file(file_path):
       #           10〜12=残業休憩時間1〜3, 13=就業形態, 14=工数入力OK/NG判定, 15=休憩変更チェック
       #   （2列目の氏名は使わず、従業員番号から取得した人員データを設定する）
       try:
+        sid = transaction.savepoint()  # この行だけを取り消せるよう、印を付けておく
         Business_Time_graph.objects.create(
           employee_no3=employee_no,
           name=member_instance, 
@@ -335,6 +264,7 @@ def load_kosu_file(file_path):
         )
       # 整合性エラー（NOT NULL 制約違反など）になった行は、エラー内容を標準出力に出してスキップする
       except IntegrityError as create_err:
+        transaction.savepoint_rollback(sid)  # この行の分だけ取り消して、次の行へ進む
         print(f"エラー: 行 {i} のデータ作成中に整合性エラーが発生しました: {create_err}。スキップします。")
         continue # 次のループへ進む
 
@@ -456,6 +386,7 @@ def generate_member_backup():
 #          その他のエラー時 ({'status': 'error', 'message': エラー内容}, None)
 # 例外:
 #   処理中の例外はすべて捕まえ、一時ファイルを削除したうえでエラーのタプルとして返す
+@atomic_load  # 途中で失敗したら全部取り消す
 def load_member_file(file_path):
   try:
     # 1. 渡されたファイルパスを一時ファイルパスとして保持（エラー時の削除にも使う）
@@ -502,6 +433,7 @@ def load_member_file(file_path):
       #           6〜29=休憩時間（直ごとに 昼休憩・残業休憩1〜3 の4列ずつ。6〜9列目が1直、…、26〜29列目が連2直）,
       #           30〜39=ポップアップ1〜5 とそのID（交互）, 40=休憩エラー有効チェック
       try:
+        sid = transaction.savepoint()  # この行だけを取り消せるよう、印を付けておく
         member.objects.create(
           employee_no=employee_no_value,
           name=ws.cell(row=i, column=2).value,
@@ -546,6 +478,7 @@ def load_member_file(file_path):
         )
       # 整合性エラー（NOT NULL 制約違反など）になった行は、エラー内容を標準出力に出してスキップする
       except IntegrityError as create_e:
+        transaction.savepoint_rollback(sid)  # この行の分だけ取り消して、次の行へ進む
         print(f"従業員番号 {employee_no_value} の書き込み中にIntegrityErrorが発生しました: {create_e}")
         continue
 
@@ -653,6 +586,7 @@ def generate_team_backup():
 #          その他のエラー時 ({'status': 'error', 'message': エラー内容}, None)
 # 例外:
 #   処理中の例外はすべて捕まえ、一時ファイルを削除したうえでエラーのタプルとして返す
+@atomic_load  # 途中で失敗したら全部取り消す
 def load_team_file(file_path):
   try:
     # 1. 渡されたファイルパスを一時ファイルパスとして保持（エラー時の削除にも使う）
@@ -691,6 +625,7 @@ def load_team_file(file_path):
       # 存在しない場合のみ、ファイルの1行分の値で班員データを新規作成する
       #   列番号: 1=班を管理する人の従業員番号, 2〜16=班員1〜15の従業員番号, 17=フォローON/OFF
       try:
+        sid = transaction.savepoint()  # この行だけを取り消せるよう、印を付けておく
         team_member.objects.create(
           employee_no5=ws.cell(row=i, column=1).value,
           member1=ws.cell(row=i, column=2).value,
@@ -712,6 +647,7 @@ def load_team_file(file_path):
         )
       # 整合性エラーになった行は、エラー内容を標準出力に出してスキップする
       except IntegrityError as create_e:
+        transaction.savepoint_rollback(sid)  # この行の分だけ取り消して、次の行へ進む
         print(f"従業員番号 {employee_no_value} の書き込み中にIntegrityErrorが発生しました: {create_e}")
         continue
 
@@ -814,6 +750,7 @@ def generate_def_backup():
 #          その他のエラー時 ({'status': 'error', 'message': エラー内容}, None)
 # 例外:
 #   処理中の例外はすべて捕まえ、一時ファイルを削除したうえでエラーのタプルとして返す
+@atomic_load  # 途中で失敗したら全部取り消す
 def load_def_file(file_path):
   try:
     # 1. 渡されたファイルパスを一時ファイルパスとして保持（エラー時の削除にも使う）
@@ -949,6 +886,7 @@ def generate_choice_backup():
 #          その他のエラー時 ({'status': 'error', 'message': エラー内容}, None)
 # 例外:
 #   処理中の例外はすべて捕まえ、一時ファイルを削除したうえでエラーのタプルとして返す
+@atomic_load  # 途中で失敗したら全部取り消す
 def load_choice_file(file_path):
   try:
     # 1. 渡されたファイルパスを一時ファイルパスとして保持（エラー時の削除にも使う）
@@ -1082,6 +1020,7 @@ def generate_inquiry_backup():
 #          その他のエラー時 ({'status': 'error', 'message': エラー内容}, None)
 # 例外:
 #   処理中の例外はすべて捕まえ、一時ファイルを削除したうえでエラーのタプルとして返す
+@atomic_load  # 途中で失敗したら全部取り消す
 def load_inquiry_file(file_path):
   try:
     # 1. 渡されたファイルパスを一時ファイルパスとして保持（エラー時の削除にも使う）
@@ -1108,6 +1047,7 @@ def load_inquiry_file(file_path):
     for i in range(2, ws.max_row + 1):
       # 1行ずつ新規登録する（整合性エラーの行だけはスキップする）
       try:
+        sid = transaction.savepoint()  # この行だけを取り消せるよう、印を付けておく
         # 従業員番号（1列目）を取得
         employee_no = ws.cell(row=i, column=1).value
 
@@ -1125,6 +1065,7 @@ def load_inquiry_file(file_path):
         )
       # 整合性エラー（NOT NULL 制約違反など）になった行は、エラー内容を標準出力に出してスキップする
       except IntegrityError as create_e:
+        transaction.savepoint_rollback(sid)  # この行の分だけ取り消して、次の行へ進む
         print(f"書き込み中にIntegrityErrorが発生しました: {create_e}")
         continue
 
@@ -1250,6 +1191,7 @@ def generate_setting_backup():
 #          その他のエラー時 ({'status': 'error', 'message': エラー内容}, None)
 # 例外:
 #   処理中の例外はすべて捕まえ、一時ファイルを削除したうえでエラーのタプルとして返す
+@atomic_load  # 途中で失敗したら全部取り消す
 def load_setting_file(file_path):
   try:
     # 1. 渡されたファイルパスを一時ファイルパスとして保持（エラー時の削除にも使う）
@@ -1291,6 +1233,7 @@ def load_setting_file(file_path):
     # 4. データを読み込んでDBに保存する（2行目から最終行まで）
     for i in range(2, ws.max_row + 1):
       try:
+        sid = transaction.savepoint()  # この行だけを取り消せるよう、印を付けておく
         # ファイルの1行分の値で管理者設定データを新規作成してDBに保存する
         #   列番号: 1=一覧表示項目数, 2〜4=問い合わせ担当者の従業員番号1〜3,
         #           5〜14=ポップアップ1〜5 とそのID（交互）
@@ -1312,6 +1255,7 @@ def load_setting_file(file_path):
         )
       # 整合性エラー（NOT NULL 制約違反など）になった行は、エラー内容を標準出力に出してスキップする
       except IntegrityError as create_e:
+        transaction.savepoint_rollback(sid)  # この行の分だけ取り消して、次の行へ進む
         print(f"書き込み中にIntegrityErrorが発生しました: {create_e}")
         continue
 

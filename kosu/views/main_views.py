@@ -32,6 +32,7 @@
 #   - WebConsoleLogView          : ログファイルの内容取得             GET            /api/web_console_log/
 #
 # 権限       : Login / Help / HelpPass / Logout は AllowAny（ログイン不要。Help は代わりにヘルプ用パスワードを毎回確認する）
+#              Help / HelpPass は、パスワードの総当たりを防ぐため、同じ所からの呼び出しを1時間に5回までに制限する
 #              MemberMenu / TeamMenu は HasAuthority（ログイン済みかつ「権限」ありの人員のみ）
 #              Administrator〇〇 / WebConsoleLogView は IsAdministrator（ログイン済みかつ「管理者」の人員のみ）
 #              それ以外は IsLoggedIn（ログイン済みなら誰でも。settings.py の既定値）
@@ -49,10 +50,7 @@ import hmac  # 2つの文字列を「かかる時間が中身で変わらない�
 import os
 import sys
 import logging
-# environ: .env ファイル（環境変数の設定ファイル）を読み込むライブラリ（django-environ）
-import environ
 import json
-from pathlib import Path
 from django.db import transaction  # 複数の書き込みを「全部する / 全部しない」にまとめる
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -113,23 +111,6 @@ class PrintToLogger:
 # 標準出力をロガーへリダイレクト(sys.stdoutをPrintToLoggerのインスタンスに設定)
 #   このファイルが読み込まれた時点で実行され、以降はサーバープロセス全体の print 出力が対象になる
 sys.stdout = PrintToLogger()
-
-# 記録されたログを JSON で返す（関数ビュー）。
-#
-# ※現在 urls.py には登録されておらず、どこからも呼ばれていない。
-#   管理者画面のログ表示には WebConsoleLogView（/api/web_console_log/）が使われている。
-#
-# 引数:
-#   request: HTTPリクエスト
-# 戻り値:
-#   JsonResponse: {'logs': ログファイルの各行を要素とするリスト}
-def get_logs(request):
-  # 'web_console.log' ファイルを読み込み専用モードで開く（サーバー起動時のカレントフォルダからの相対パス）
-  with open('web_console.log', 'r') as log_file:
-    # ファイルの内容を行ごとにリストとして格納
-    logs = log_file.readlines()
-  # JSONレスポンスとして、ログを返す
-  return JsonResponse({'logs': logs})
 
 
 
@@ -246,21 +227,21 @@ class Login(APIView):
 # ------------------------------------------------------------
 # 入力されたパスワードがヘルプ用パスワード（環境変数 HELP_PATH）と一致するかを判定する。
 #
+# 比べるのにかかる時間から中身を推測されないよう、hmac.compare_digest で比べる。
+#
 # 引数:
 #   password: 画面から送信されたパスワード（送信されていない場合は None）
 # 戻り値:
-#   bool: 一致すれば True、一致しない・未送信なら False
+#   bool: 一致すれば True。一致しない・未送信・文字列でない・HELP_PATH が未設定または空なら False
 def is_valid_help_password(password):
-  # このファイルの2つ上のフォルダを取得
-  #   __file__ = kosu/views/main_views.py → parent = kosu/views → parent.parent = kosu/
-  #   ※プロジェクトのルートではなく kosu/ フォルダを指す
-  BASE_DIR = Path(__file__).resolve().parent.parent
-  # 環境変数ファイルを読み込む（kosu/.env が対象）
-  #   kosu/.env が無い場合も、settings.py がルートの .env から読み込んだ環境変数を env() で参照できる
-  env = environ.Env()
-  env.read_env(os.path.join(BASE_DIR, '.env'))
-  # 入力値と環境変数 HELP_PATH を比較する（未送信の None は必ず不一致になる）
-  return password == env('HELP_PATH')
+  # ヘルプ用パスワード（.env または Azure の構成の HELP_PATH。settings.py が起動時に読み込み済み）
+  expected = os.environ.get('HELP_PATH', '')
+  # パスワードが設定されていない・文字列が送られていない場合は、必ず不一致にする（500 にしない）
+  if not expected or not isinstance(password, str):
+    return False
+  # 比べるのにかかる時間が中身によって変わらない比べ方（hmac.compare_digest）を使う。
+  # 日本語のパスワードも比べられるよう、両方をバイト列（UTF-8）にしてから比べる
+  return hmac.compare_digest(password.encode('utf-8'), expected.encode('utf-8'))
 
 
 
@@ -269,12 +250,17 @@ def is_valid_help_password(password):
 #   URL  : /api/help/
 #   権限 : AllowAny（ログインできなくなった場合に使うためログイン不要）
 #          ※ログイン不要の代わりに、送信されたヘルプ用パスワードを毎回確認する
+#   回数 : 同じ所から1時間に5回まで（HelpPass と同じ枠。settings.py の DEFAULT_THROTTLE_RATES の 'help'。超えると 429）
 #   POST : ヘルプ用パスワードが正しい場合だけ、指定された種類のデータ
 #          （人員 / 工数区分定義 / 管理者設定）を全削除し、初期データ1件だけにする。
+#          途中で失敗した場合は、それまでの削除・作成をすべて取り消す（全部する / 全部しない）。
 # ------------------------------------------------------------
 class Help(APIView):
   # ログインしていなくても呼び出せるようにする
   permission_classes = [AllowAny]
+  # パスワードの総当たりを防ぐため、同じ所からの呼び出し回数を制限する（settings.py の DEFAULT_THROTTLE_RATES の 'help'）
+  throttle_classes = [ScopedRateThrottle]
+  throttle_scope = 'help'
   # データを初期化する（POST）。
   #
   # 画面の HelpPass による認証を通さずにこのAPIを直接呼ばれても初期化されないよう、
@@ -288,7 +274,9 @@ class Help(APIView):
   #     settingReset : 管理者設定を初期化（一覧表示項目数 20 のみの設定になる）
   # 戻り値:
   #   Response: 成功時は 200。パスワードが違う・未送信の場合は 403、
-  #             処理中に例外が発生した場合は 400 エラー
+  #             処理中に例外が発生した場合は 400 エラー（それまでの削除・作成はすべて取り消す）、
+  #             同じ所からの呼び出し回数の上限を超えた場合は 429 エラー
+  @transaction.atomic  # 途中で失敗したら、それまでに消したデータも元に戻す
   def post(self, request):
     # パスワード確認: ヘルプ用パスワードが正しくない（または送られていない）場合は何も削除せず 403 を返す
     if not is_valid_help_password(request.data.get('password')):
@@ -371,6 +359,8 @@ class Help(APIView):
       return Response({'status': 'success', 'message': 'OK'}, status=status.HTTP_200_OK)
     # 削除・作成中に何らかの例外が発生した場合は内容を返さず 400 を返す
     except Exception as e:
+      # 例外をここで捕まえて普通に返すので、transaction.atomic は自動では取り消さない。取り消しを明示する
+      transaction.set_rollback(True)
       return Response({'status': 'error', 'message': 'データの初期化中にエラーが発生しました。'}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -379,17 +369,22 @@ class Help(APIView):
 # HelpPass: ヘルプ画面パスワード判定API
 #   URL  : /api/help_pass/
 #   権限 : AllowAny（ログイン不要）
+#   回数 : 同じ所から1時間に5回まで（Help と同じ枠。超えると 429）
 #   POST : 入力されたパスワードが環境変数 HELP_PATH の値と一致するかを返す
 # ------------------------------------------------------------
 class HelpPass(APIView):
   # ログインしていなくても呼び出せるようにする
   permission_classes = [AllowAny]
+  # パスワードの総当たりを防ぐため、Help と同じ枠（'help'）で呼び出し回数を制限する
+  throttle_classes = [ScopedRateThrottle]
+  throttle_scope = 'help'
   # ヘルプ画面のパスワードを判定する（POST）。
   #
   # 引数:
   #   request: HTTPリクエスト。request.data の password に入力されたパスワード
   # 戻り値:
-  #   Response: 一致すれば True（200）、一致しなければ False（403）
+  #   Response: 一致すれば True（200）、一致しなければ False（403）。
+  #             呼び出し回数の上限を超えた場合は 429 エラー
   def post(self, request):
     # パスワード判定: 入力値と環境変数 HELP_PATH を比較し（is_valid_help_password）、結果を True / False で返す
     if is_valid_help_password(request.data.get('password')):
@@ -1076,13 +1071,15 @@ class AdministratorTaskList(APIView):
     tasks = AsyncTask.objects.all().order_by('-created_at')
 
     # 作成日での絞り込み（検索日がある場合のみ）
-    #   月単位: 作成日時が検索日の先頭7文字（"YYYY-MM"）で始まるもの → その月の全件
+    #   月単位: 作成日時を日本時間（settings.TIME_ZONE）で見て、検索日と同じ年・月のもの
+    #           （__year / __month は TIME_ZONE で判定する。__startswith は UTC の文字で比べるので、
+    #             月初めの 0〜9 時の記録が前の月に入ってしまう）
     #   日単位: 作成日時の日付部分（created_at__date）が検索日と一致するもの
     if search_day:
       if mode == 'month':
-        tasks = tasks.filter(created_at__startswith=search_day[:7])
+        tasks = tasks.filter(created_at__year=int(search_day[:4]), created_at__month=int(search_day[5:7]))
       else:
-        tasks = tasks = tasks.filter(created_at__date=search_day)
+        tasks = tasks.filter(created_at__date=search_day)
 
     # ページネーション処理: 管理者設定の「一覧表示項目数」ごとに区切り、要求されたページ分だけ取り出す
     paginator = CustomPagination()
@@ -1213,10 +1210,11 @@ class AdministratorHistoryList(APIView):
     historys = History.objects.all().order_by('-timestamp')
 
     # 操作日での絞り込み（検索日がある場合のみ）
-    #   月単位: 記録日時が検索日の先頭7文字（"YYYY-MM"）で始まるもの / 日単位: 記録日時の日付部分が一致するもの
+    #   月単位: 記録日時を日本時間で見て、検索日と同じ年・月のもの（__year / __month は TIME_ZONE で判定する）
+    #   日単位: 記録日時の日付部分が一致するもの
     if search_day:
       if mode == 'month':
-        historys = historys.filter(timestamp__startswith=search_day[:7])
+        historys = historys.filter(timestamp__year=int(search_day[:4]), timestamp__month=int(search_day[5:7]))
       else:
         historys = historys.filter(timestamp__date=search_day)
     # レコードIDの部分一致で絞り込み（例: "12" → 12, 120, 312 などが該当）

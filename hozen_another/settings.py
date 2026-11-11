@@ -23,7 +23,6 @@
 from pathlib import Path
 import os
 import environ  # django-environ: .env ファイルの値を読み込むためのライブラリ
-from logging.handlers import RotatingFileHandler  # ※このファイル内では未使用（LOGGING では文字列でクラスを指定している）
 
 
 
@@ -148,6 +147,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ['kosu.permissions.LoginNoAuthentication'],  # だれがログインしているか
     'DEFAULT_PERMISSION_CLASSES': ['kosu.permissions.IsLoggedIn'],                 # 最初から全部の API でログインが要る
     'UNAUTHENTICATED_USER': None,                                                 # ログインしていない時の request.user は None
+    # 呼び出し回数の上限（throttle_scope を付けた API だけにかかる。1 時間に 5 回まで）
+    'DEFAULT_THROTTLE_RATES': {
+        'help': '5/hour',
+    },
 }
 
 # ============================================================
@@ -161,9 +164,11 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 #   315,360,000秒 = 3,650日（約10年）。実質的に「ログアウトするまでログイン状態を保つ」設定
 SESSION_COOKIE_AGE = 315360000
 
-# 別サイト（別オリジン）からのリクエストでもセッションCookieを送らせる設定
-#   SameSite=None にする場合、ブラウザの仕様上 Secure（HTTPS 通信のときだけ送る）が必須
-SESSION_COOKIE_SAMESITE = 'None'
+# セッションCookieは、別のサイトからのリクエストには付けさせない（Lax）
+#   画面と API は同じサーバー（同じオリジン）から出しているので、Lax にしても困ることはない。
+#   別のサイトに置いた罠のページから、ログイン中の人として操作されるのを防ぐ
+SESSION_COOKIE_SAMESITE = 'Lax'
+# HTTPS 通信のときだけセッションCookieを送る（手元の http://localhost でも、ブラウザは送る）
 SESSION_COOKIE_SECURE = True
 
 # ============================================================

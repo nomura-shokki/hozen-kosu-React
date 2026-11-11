@@ -1,14 +1,13 @@
 # ============================================================
 # ファイル名 : main_utils.py
 # 種別       : ユーティリティ（複数の画面で共通に使う部品）
-# 概要       : 一覧APIのページネーション（ページ分け）、従業員番号の入力チェック、
+# 概要       : 一覧APIのページネーション（ページ分け）、
 #              アプリ内のモデル名一覧の取得をまとめたファイル。
 #
 # 主なクラス / 関数:
 #   - CustomPagination             : 管理者設定の「一覧表示項目数」でページ分けするクラス
 #                                    （kosu_views / member_views / team_views / def_views /
 #                                      inquiry_views / main_views の一覧APIで使用）
-#   - validate_employee_no_logic   : 従業員番号の入力チェック（現在は tests/test_backend.py からのみ使用）
 #   - get_all_model_names_in_myapp : kosu アプリのモデル名一覧を返す
 #                                    （main_views.py の操作履歴一覧で、テーブル名の絞り込み候補に使用）
 #
@@ -82,54 +81,6 @@ class CustomPagination(PageNumberPagination):
       'page_size': self.page_size,  # ページサイズをレスポンスに含める（フロント側で総ページ数の計算に使う。管理者設定から読んだ場合は文字列）
       'results': data,  # 現在のページのデータ
     })
-
-
-
-# ============================================================
-# 入力チェック
-# ============================================================
-
-# 従業員番号として入力された値が正しいかをチェックする。
-#
-# 空欄は許可し、入力がある場合は「自然数（1以上の整数）であること」と
-# 「その従業員番号の人員が登録済みであること」を順に確認する。
-# エラーメッセージは「は自然数で入力して下さい」のように助詞から始まる形で返すため、
-# 呼び出し側で項目名（例: "班員1"）の後ろにつなげて使う想定。
-#
-# 引数:
-#   value       : チェックする値（文字列または数値。空欄の場合は None や ''）
-#   member_model: 人員モデル（member）。存在確認の検索に使う
-# 戻り値:
-#   (True, None)         : 空欄（チェック不要としてOK）
-#   (True, 従業員番号int): チェックOK。整数に変換した従業員番号を返す
-#   (False, メッセージ)  : チェックNG。項目名の後ろにつなげるエラーメッセージ
-def validate_employee_no_logic(value, member_model):
-  # 1. 空欄チェック: 値が存在しない、または空文字列の場合は空欄を許可する
-  if not value:
-    return True, None
-  
-  # 2. 整数変換チェック
-  try:
-    value_int = int(value)
-  except ValueError:
-    # intに変換できなかった場合 (例: 'abc'などの文字列)
-    return False, 'は自然数で入力して下さい'
-
-  # 3. 自然数チェック (1以上の整数)
-  #    0 やマイナスの値は従業員番号として不正なのでNGにする
-  if value_int <= 0:
-    return False, 'は自然数で入力して下さい'
-  
-  # 4. 従業員番号の存在チェック
-  #    人員データに同じ従業員番号の人がいればOK、いなければ DoesNotExist 例外でNG
-  try:
-    member_model.objects.get(employee_no=value_int)
-    return True, value_int # バリデーション成功
-  # 該当する人員がいない場合は例外を握りつぶし、エラーメッセージを返す
-  except member_model.DoesNotExist:
-    return False, 'に入力された従業員番号の人員は存在しません'
-
-
 
 
 

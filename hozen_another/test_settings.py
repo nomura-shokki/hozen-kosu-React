@@ -12,6 +12,7 @@
 #   - DATABASES         : PostgreSQL の代わりにメモリ上の SQLite を使う（毎回まっさらで高速）
 #   - Q_CLUSTER         : Django-Q をテスト向け（同期実行）に設定
 #   - MIGRATION_MODULES : マイグレーションを使わず、モデル定義から直接テーブルを作る
+#   - REST_FRAMEWORK    : 呼び出し回数の制限（ヘルプの1時間5回）をかけない（同じテストの中で何度もヘルプを呼ぶため）
 #   - MEDIA_ROOT        : テストで作るバックアップの Excel の置き場所を、毎回新しい一時フォルダにする
 #
 # 補足       : settings.py を読み込むため、テスト時も .env の SECRET_KEY・DEBUG は必要。
@@ -57,7 +58,10 @@ class DisableMigrations:
     def __getitem__(self, item):  
         return None  
 # 全アプリについて「マイグレーションなし」として扱わせる
-MIGRATION_MODULES = DisableMigrations()  
+MIGRATION_MODULES = DisableMigrations()
+# テストでは呼び出し回数の制限をかけない（同じテストの中で何度もヘルプを呼ぶため）
+#   制限そのもののテストは、test_security.py で上限を書き換えて確かめる
+REST_FRAMEWORK = {**REST_FRAMEWORK, 'DEFAULT_THROTTLE_RATES': {'help': None}}
 # テストで作るバックアップの Excel は、毎回新しい一時フォルダに置く
 #   （media/ に置くと、テストのたびに Excel が増え、リポジトリに入ってしまう）
 import tempfile

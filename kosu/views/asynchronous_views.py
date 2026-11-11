@@ -14,9 +14,10 @@
 #   - handle_task       : タスク関数の実行と結果の保存（内部用）
 #
 # 処理の流れ:
-#   1. 画面 → backup            : AsyncTask（非同期タスク）を status='pending' で作成し task_id を返す
+#   1. 画面 → backup            : 入力チェックが通ったら、AsyncTask（非同期タスク）を status='pending' で作成し task_id を返す
 #   2. 別スレッドで handle_task : tasks.py のタスク関数を実行し、結果を AsyncTask に保存
 #   3. 画面 → check_task_status : status が 'success' / 'error' になるまで1秒ごとに確認
+#                                 （30分を過ぎても pending の物は、サーバーの再起動などで止まったとみなして error にする）
 #   4. 画面 → download_file     : バックアップの場合のみ、作成されたExcelファイルを取得（取得後に自動削除）
 #
 # 権限       : すべて IsAdministrator（ログイン済みかつ「管理者」の人員のみ利用可能）
@@ -30,15 +31,15 @@
 # ============================================================
 # 標準ライブラリ
 import os  # 一時ファイル・作成ファイルの存在確認と削除
-import threading  # タスクやファイル削除を別スレッドで実行する
+import threading  # タスクを別スレッドで実行する
 import uuid  # 重複しないタスクIDの生成
 import datetime  # 日付の入力チェック
-import time  # ファイル削除前の待機
 import tempfile  # アップロードファイルを一時保存する一時ファイルの作成
-from pathlib import Path
+from pathlib import Path  # ファイルの場所を、フォルダの外に出ていないか確かめられる形で扱う
 # Django / Django REST Framework
 from django.conf import settings  # settings.TESTING（テスト実行中かどうか）の参照
 from django.urls import resolve  # アクセスされたURLから urls.py のURL名を調べる
+from django.utils import timezone  # 今の日時（タイムゾーン付き）
 from django.http import JsonResponse, FileResponse  # JSON応答 / ファイルダウンロード応答
 from rest_framework import status  # HTTPステータスコードの定数（400, 500 など）
 from rest_framework.decorators import (  
@@ -98,7 +99,8 @@ from ..permissions import IsAdministrator  # 管理者のみ許可する権限�
 #              /api/kosu_load/  /api/def_load/     /api/choice_load/  /api/member_load/
 #              /api/team_load/  /api/inquiry_load/ /api/setting_load/
 #   権限 : IsAdministrator（管理者のみ）
-#   POST : AsyncTask を作成してタスクを開始し、すぐに task_id を返す（完了は待たない）。
+#   POST : 入力チェックが通ったら AsyncTask を作成してタスクを開始し、すぐに task_id を返す（完了は待たない）。
+#          入力エラーで返す時は AsyncTask を作らない（pending のレコードが残らないようにするため）。
 #
 # 引数:
 #   request: HTTPリクエスト。request.data / request.FILES で以下を受け付ける
@@ -115,13 +117,8 @@ from ..permissions import IsAdministrator  # 管理者のみ許可する権限�
 def backup(request):  
     # タスクIDを生成する
     #   uuid4: 重複しないランダムなID（例: "3f2b9c1e-..."）。画面はこのIDで進み具合を問い合わせる
-    task_id = str(uuid.uuid4())  
-    # 非同期タスクの状態を管理するレコードを「処理中（pending）」で作成する
-    #   ※この時点で作成するため、以下の入力チェックでエラーを返した場合も pending のレコードが残る
-    AsyncTask.objects.create(  
-        task_id=task_id,  
-        status='pending',  
-    )  
+    #   （AsyncTask のレコードは、入力チェックがすべて通った後に作る。下の「タスクを開始する」の所）
+    task_id = str(uuid.uuid4())
     # リクエスト本文から開始日と終了日を取得する（期間指定のタスクでのみ使用）
     start_day = request.data.get('start_day')  
     end_day = request.data.get('end_day')  
@@ -413,7 +410,13 @@ def backup(request):
     # テスト用データベースとしてSQLiteの':memory:'を使用している場合、  
     # 別スレッドからデータベースへアクセスすると、  
     # database table is locked が発生しやすくなるため。
-    if getattr(settings, 'TESTING', False):  
+    # 入力チェックがすべて通ったので、非同期タスクの状態を管理するレコードを「処理中（pending）」で作成する
+    #   （前は関数の最初で作っていたので、入力エラーで返した時も pending のレコードが残り続けた）
+    AsyncTask.objects.create(
+        task_id=task_id,
+        status='pending',
+    )
+    if getattr(settings, 'TESTING', False):
         # handle_task(タスクID, タスク関数, 引数...) を直接呼ぶ（*args で引数のタプルを展開して渡す）
         handle_task(  
             task_id,  
@@ -517,10 +520,12 @@ def validate_dates(start_day, end_day):
 # 引数:
 #   request: HTTPリクエスト。クエリパラメータ task_id にタスクIDを指定する
 # 戻り値:
-#   JsonResponse: 正常終了 → {'status': 'success', 'file_path': タスクの結果}（200）
-#                   file_path にはタスクの結果が入る（バックアップならExcelファイルのパス）
+#   JsonResponse: 正常終了 → {'status': 'success', 'file_path': タスクの結果のファイル名}（200）
+#                   file_path にはファイル名だけが入る（バックアップならExcelファイルの名前。フォルダの場所は返さない）
 #                 エラー終了 → {'status': 'error', 'message': エラー内容}（200）
 #                 処理中 → {'status': 'pending'}（202）
+#                   ただし作ってから30分を過ぎても pending の物は、止まったとみなして error にし、
+#                   {'status': 'error', 'message': 止まった旨}（200）を返す
 #                 task_id 未指定・存在しないタスクIDの場合は 400 エラー
 # ------------------------------------------------------------
 @api_view(['GET'])  # GET のみ受け付ける DRF のAPIにする
@@ -541,7 +546,7 @@ def check_task_status(request):
         # タスクIDが一致する非同期タスクのレコードを取得する（無ければ DoesNotExist 例外）
         task = AsyncTask.objects.get(task_id=task_id)  
         # タスクが正常終了している場合: 結果のファイル名だけを file_path として返す
-        # （サーバーの中のフォルダの場所は画面に知らせない。ダウンロードAPIもファイル名だけで探す）
+        #   （サーバーの中のフォルダの場所は画面に知らせない。ダウンロードAPIもファイル名だけで探す）
         if task.status == 'success':
             return JsonResponse(
                 {
@@ -557,14 +562,20 @@ def check_task_status(request):
                     'message': task.result,  
                 }  
             )  
-        # それ以外（pending）は処理中として 202（受付済み・処理中）を返す
-        else:  
-            return JsonResponse(  
-                {  
-                    'status': 'pending',  
-                },  
-                status=status.HTTP_202_ACCEPTED,  
-            )  
+        # それ以外（pending）は処理中。ただし作ってから 30 分（settings.py の Q_CLUSTER の timeout と同じ）を過ぎても
+        # pending のままなら、サーバーの再起動などで別スレッドが止まったとみなして error にする
+        else:
+            if task.created_at < timezone.now() - datetime.timedelta(minutes=30):
+                task.status = 'error'
+                task.result = '処理が途中で止まりました（サーバーの再起動など）。もう一度実行してください。'
+                task.save()
+                return JsonResponse({'status': 'error', 'message': task.result})
+            return JsonResponse(
+                {
+                    'status': 'pending',
+                },
+                status=status.HTTP_202_ACCEPTED,
+            )
     except AsyncTask.DoesNotExist:  
         # 指定されたタスクIDが存在しない場合は 400 エラー
         return JsonResponse(  
@@ -580,23 +591,24 @@ def check_task_status(request):
 # ============================================================
 # ------------------------------------------------------------
 # download_file: バックアップファイルのダウンロードAPI
-#   URL  : /api/download_backup?file_path=<ファイルパス>（末尾スラッシュなし）
+#   URL  : /api/download_backup?file_path=<ファイル名>（末尾スラッシュなし）
 #   権限 : IsAdministrator（管理者のみ）
-#   GET  : 指定されたパスのファイルを添付ファイルとして返し、
-#          レスポンス終了後に3秒待ってからサーバー上のファイルを削除する。
-#          file_path には check_backup_status が返したファイルパス（media フォルダ内）が入る。
+#   GET  : バックアップの保存先（settings.MEDIA_ROOT。media フォルダ）の直下にある、指定された名前のファイルを
+#          添付ファイルとして返し、送り終わったらファイルを閉じてからサーバー上のファイルを削除する。
+#          file_path には check_backup_status が返したファイル名が入る（フォルダの部分が付いていても捨てて、
+#          media フォルダの直下だけを探す。ほかの場所のファイルは決して開かない）。
 #
 # 引数:
-#   request: HTTPリクエスト。クエリパラメータ file_path にファイルのパスを指定する
+#   request: HTTPリクエスト。クエリパラメータ file_path にファイル名を指定する
 # 戻り値:
 #   FileResponse: ファイルをダウンロードさせるレスポンス
+#   JsonResponse: 名前が空・media フォルダの直下に無い・ファイルが無い場合は 404 エラー
 # ------------------------------------------------------------
 @api_view(['GET'])  # GET のみ受け付ける DRF のAPIにする
 @permission_classes([IsAdministrator])  # 管理者のみ利用可能
 def download_file(request):
     # バックアップの保存先（media フォルダ）の絶対パス
     backup_dir = Path(settings.MEDIA_ROOT).resolve()
-
     # 受け取るのはファイル名だけにする（フォルダの部分は捨てる。例: "../../.env" → ".env"）
     file_name = os.path.basename(request.GET.get('file_path') or '')
     file_path = (backup_dir / file_name).resolve()
@@ -628,7 +640,7 @@ def download_file(request):
             pass  # 消せなくてもダウンロードには影響しない
 
     response.close = close_then_delete
-    return response 
+    return response
 
 # ============================================================
 # ヘルパー関数: タスクの実行と結果の保存
