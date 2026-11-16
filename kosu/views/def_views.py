@@ -93,6 +93,9 @@ class DefVer(APIView):
     # 未選択（空・未送信）の場合は 400 を返す
     if not selected_version:
       return Response({'status': 'error', 'message': 'Versionchoice is required.'}, status=status.HTTP_400_BAD_REQUEST)
+    # 実際にある工数区分定義のVer名だけを受け付ける（無い名前をセッションに入れると、ほかの画面が開けなくなる）
+    if not kosu_division.objects.filter(kosu_name=selected_version).exists():
+      return Response({'status': 'error', 'message': '選んだ工数区分定義がありません。'}, status=status.HTTP_400_BAD_REQUEST)
 
     # セッションの input_def（使用中の工数区分定義Ver名）を上書きする
     request.session['input_def'] = selected_version
@@ -473,7 +476,7 @@ class DefDetailNew(APIView):
     # 該当なしの場合は 401（フロント側でログイン画面へ戻される）、
     # 同じVer名が複数ある場合はどれを使うか決められないため 400 を返す
     if not def_query_set.exists():
-      return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
     elif def_query_set.count() > 1:
       return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     # 1件だけ存在することが確定したので、その1件を取り出す
@@ -565,7 +568,7 @@ class DefDetailUpdate(APIView):
 
     # 該当なしの場合は 401、同じVer名が複数ある場合は 400 を返す
     if not def_query_set.exists():
-      return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
     elif def_query_set.count() > 1:
       return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     # 1件だけ存在することが確定したので、その1件を取り出す

@@ -370,6 +370,23 @@ class TestHelp(SecurityTestBase):
     # 検証: 403 が5回続き、6回目が 429
     self.assertEqual(codes, [403] * 5 + [429])
 
+  # 【テスト】X-Forwarded-For の前の部分を変えても、同じ送り元なら 6回目で 429 になること
+  #   前提: 呼び出し回数の上限を「1時間に5回」に差し替え、回数を覚えるキャッシュを空にする
+  #   操作: 見出しの前の部分とポート番号を毎回変えて、同じ送り元（203.0.113.7）から違うパスワードを6回送る
+  #   期待: 5回目までは 403、6回目は 429（前の部分やポート番号が違っても、別の所として数え直さない）
+  def test_forwarded_for_prefix_does_not_reset_count(self):
+    # 準備: 前のテストの呼び出し回数が残らないように、キャッシュを空にする
+    cache.clear()
+    # 操作: 上限を 5回/時 にした状態で、見出しを毎回変えて6回送り、ステータスコードを順に控える
+    with mock.patch.object(ScopedRateThrottle, 'THROTTLE_RATES', {'help': '5/hour'}):
+      c = Client()
+      codes = [c.post('/api/help_pass/', HTTP_X_FORWARDED_FOR=f'10.0.0.{i}, 203.0.113.7:5{i}000',
+                      **as_json({'password': f'x{i}'})).status_code for i in range(6)]
+    # 後片付け: 後のテストに回数を残さないように、もう一度キャッシュを空にする
+    cache.clear()
+    # 検証: 403 が5回続き、6回目が 429
+    self.assertEqual(codes, [403] * 5 + [429])
+
   # 【テスト】ヘルプ用パスワードが未設定（空）でも、500 にならず 403 になること
   #   前提: 環境変数 HELP_PATH を空にする
   #   操作: POST /api/help_pass/ に空のパスワードを送る

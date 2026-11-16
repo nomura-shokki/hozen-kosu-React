@@ -735,7 +735,7 @@ const AdministratorLoading: React.FC = () => {
                 id="kosu-file-upload"
                 name="kosu-file-upload"
                 type="file"
-                accept=".csv, .xlsx, .xls"
+                accept=".xlsx"
                 onChange={(e) => setKosuFile(e.target.files ? e.target.files[0] : null)}
                 disabled={isAnyBackupRunning}
                 className={styles["hidden-file-input"]}
@@ -781,7 +781,7 @@ const AdministratorLoading: React.FC = () => {
                 id="def-file-upload"
                 name="def-file-upload"
                 type="file"
-                accept=".csv, .xlsx, .xls"
+                accept=".xlsx"
                 onChange={(e) => setDefFile(e.target.files ? e.target.files[0] : null)}
                 disabled={isAnyBackupRunning}
                 className={styles["hidden-file-input"]}
@@ -828,7 +828,7 @@ const AdministratorLoading: React.FC = () => {
                 id="choice-file-upload"
                 name="choice-file-upload"
                 type="file"
-                accept=".csv, .xlsx, .xls"
+                accept=".xlsx"
                 onChange={(e) => setChoiceFile(e.target.files ? e.target.files[0] : null)}
                 disabled={isAnyBackupRunning}
                 className={styles["hidden-file-input"]}
@@ -841,13 +841,12 @@ const AdministratorLoading: React.FC = () => {
               >
                 {choiceFile ? choiceFile.name : "ファイルを選択 (CSV/XLSX)"}
               </label>
-              {/* ロード開始ボタン（ファイル未選択の間も押せない） */}
-              {/* ※「実行中...」表示の判定には ChoiceLoad ではなく DefLoad の実行中フラグを参照している */}
+              {/* ロード開始ボタン（ファイル未選択の間も押せない）。「実行中...」は作業詳細選択肢のロードの実行中フラグで出す */}
               <input
                 id="start-choice-load"
                 name="start-choice-load"
                 type="button"
-                value={runningStates.DefLoad ? "実行中..." : "ロード開始"}
+                value={runningStates.ChoiceLoad ? "実行中..." : "ロード開始"}
                 onClick={!isAnyBackupRunning ? startChoiceload : undefined}
                 disabled={isAnyBackupRunning || !choiceFile}
                 className={styles["def-button"]}
@@ -875,7 +874,7 @@ const AdministratorLoading: React.FC = () => {
                 id="member-file-upload"
                 name="member-file-upload"
                 type="file"
-                accept=".csv, .xlsx, .xls"
+                accept=".xlsx"
                 onChange={(e) => setMemberFile(e.target.files ? e.target.files[0] : null)}
                 disabled={isAnyBackupRunning}
                 className={styles["hidden-file-input"]}
@@ -921,7 +920,7 @@ const AdministratorLoading: React.FC = () => {
                 id="team-file-upload"
                 name="team-file-upload"
                 type="file"
-                accept=".csv, .xlsx, .xls"
+                accept=".xlsx"
                 onChange={(e) => setTeamFile(e.target.files ? e.target.files[0] : null)}
                 disabled={isAnyBackupRunning}
                 className={styles["hidden-file-input"]}
@@ -967,7 +966,7 @@ const AdministratorLoading: React.FC = () => {
                 id="inquiry-file-upload"
                 name="inquiry-file-upload"
                 type="file"
-                accept=".csv, .xlsx, .xls"
+                accept=".xlsx"
                 onChange={(e) => setInquiryFile(e.target.files ? e.target.files[0] : null)}
                 disabled={isAnyBackupRunning}
                 className={styles["hidden-file-input"]}
@@ -1013,7 +1012,7 @@ const AdministratorLoading: React.FC = () => {
                 id="setting-file-upload"
                 name="setting-file-upload"
                 type="file"
-                accept=".csv, .xlsx, .xls"
+                accept=".xlsx"
                 onChange={(e) => setSettingFile(e.target.files ? e.target.files[0] : null)}
                 disabled={isAnyBackupRunning}
                 className={styles["hidden-file-input"]}

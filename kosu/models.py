@@ -118,6 +118,12 @@ class member(models.Model):
   pop_up_id5 =  models.CharField('ポップアップID5', max_length=255, null=True, blank=True)  # お知らせ5に対応する問い合わせのID
   break_check = models.BooleanField('休憩エラー有効チェック', null=True)  # 休憩エラー有効チェック（True: 休憩時間に工数が入っていたらエラー / それ以外: 休憩時間の工数を消す）
 
+  # データベースの決まり: 同じ従業員番号の人員は1人だけ（2人いると、その人の画面がほとんど 500 になる）
+  class Meta:
+    constraints = [
+      models.UniqueConstraint(fields=['employee_no'], name='unique_member_employee_no'),
+    ]
+
   # 管理サイトなどでこのデータを文字列として表示するときの表記を返す。
   #
   # 戻り値:
@@ -165,6 +171,12 @@ class Business_Time_graph(models.Model):
   judgement = models.BooleanField('工数入力OK_NG', null=True)  # 工数入力OK/NG判定（True: 就業形態・直・残業時間と工数の合計時間に整合性がある）
   break_change = models.BooleanField('休憩変更チェック', null=True)  # 休憩変更チェック（工数入力時に「休憩変更」にチェックを入れたか。入れた場合は休憩時間を自動で書き込まない）
 
+  # データベースの決まり: 1人1日1件（2件あると、その日の工数入力の画面が開けない）
+  class Meta:
+    constraints = [
+      models.UniqueConstraint(fields=['employee_no3', 'work_day2'], name='unique_kosu_per_day'),
+    ]
+
   # 管理サイトなどでこのデータを文字列として表示するときの表記を返す。
   #
   # 戻り値:
@@ -200,6 +212,12 @@ class team_member(models.Model):
   member14 = models.CharField('メンバー従業員番号14', max_length=6, blank=True, null=True)  # メンバー14の従業員番号
   member15 = models.CharField('メンバー従業員番号15', max_length=6, blank=True, null=True)  # メンバー15の従業員番号
   follow = models.BooleanField('フォローON/OFF', null=True)  # 班員フォローON/OFF（True: 班員MENUに、過去7日間で工数未入力のある班員のお知らせを表示）
+
+  # データベースの決まり: 班員データは班を管理する人1人につき1件
+  class Meta:
+    constraints = [
+      models.UniqueConstraint(fields=['employee_no5'], name='unique_team_leader'),
+    ]
 
   # 管理サイトなどでこのデータを文字列として表示するときの表記を返す。
   #
@@ -432,6 +450,12 @@ class kosu_division(models.Model):
   kosu_division_2_50 = models.TextField('作業内容50', blank=True, null=True)  # 工数区分50の作業内容
   kosu_division_3_50 = models.BooleanField('変動/固定50', null=True)  # 工数区分50の変動/固定（True=変動）
 
+  # データベースの決まり: 工数区分定義の Ver 名は重ならない（工数データは Ver 名で定義を探すため）
+  class Meta:
+    constraints = [
+      models.UniqueConstraint(fields=['kosu_name'], name='unique_kosu_name'),
+    ]
+
   # 管理サイトなどでこのデータを文字列として表示するときの表記を返す。
   #
   # 戻り値:
@@ -592,30 +616,6 @@ class AsyncTask(models.Model):
 
 
 # ------------------------------------------------------------
-# Operation_history: 操作履歴（画面単位の記録用）
-#   だれが・どのページで・どのモデルを編集し・結果がどうだったかを記録するためのテーブル。
-#   ※現在のコード（views / signals.py / admin.py / tasks.py）からは参照されておらず、
-#     データは記録されない。データ変更の記録は下の History が担っている。
-# ------------------------------------------------------------
-class Operation_history(models.Model):
-  created_at = models.DateTimeField(auto_now_add=True)  # 記録日時（新規作成時に自動で記録）
-  employee_no4 = models.IntegerField('従業員番号')  # 操作した人の従業員番号
-  name = models.ForeignKey(member, verbose_name='氏名', null=True, on_delete=models.SET_NULL)  # 操作した人の人員データ（外部キー）。人員が削除されると NULL になる
-  post_page = models.CharField('ページ', max_length=255, null=True, blank=True)  # 操作したページ
-  operation_models = models.CharField('編集したモデル', max_length=255, null=True, blank=True)  # 編集したモデル
-  status = models.CharField('結果', max_length=255, null=True, blank=True)  # 結果
-  operation_detail = models.TextField('編集詳細', null=True, blank=True)  # 編集の詳細
-
-  # 管理サイトなどでこのデータを文字列として表示するときの表記を返す。
-  #
-  # 戻り値:
-  #   str: "ID氏名：記録日時" の形式
-  def __str__(self):
-    return str(self.id) + str(self.name) + '：' + str(self.created_at)
-
-
-
-# ------------------------------------------------------------
 # History: 操作履歴（データ変更の監査ログ）
 #   signals.py が、人員・工数データ・班員・工数区分定義・作業詳細選択肢・管理者設定・問い合わせの
 #   作成 / 更新 / 削除のたびに自動で1行記録する。管理者MENUのデータ操作履歴画面で閲覧できる。
@@ -649,6 +649,10 @@ class History(models.Model):
   def save(self, *args, **kwargs):
     # まず通常どおりデータベースに保存する（super() は親クラス models.Model を指す）
     super().save(*args, **kwargs)
+    # 全件を数えるのは 1,000 件に 1 回だけにする
+    #   （毎回数えると、記録が増えるほど、どの画面の保存も遅くなる。上限を少し超える間があっても困らない）
+    if self.pk % 1000 != 0:
+      return
     # 保存後のこのテーブルの全件数を数える
     current_count = self.__class__.objects.count()
 

@@ -31,9 +31,6 @@ from django.conf.urls.static import static
 # ============================================================
 urlpatterns = [
   path('admin/', admin.site.urls),  # Django 標準の管理サイト（/admin/）。下の React 用パターンより先に判定する
-  # 'BA' で始まるURLを kosu/urls.py へ振り分ける
-  #   'BA' の後ろに「/」が無いため、実際のURLは /BAlogin/ のように 'BA' と kosu 側のURLが直結した形になる
-  path('BA', include('kosu.urls')),  # '/BA' パターンの処理
   # '/api/' で始まるURLを kosu/urls.py へ振り分ける（例: /api/login/ → kosu/urls.py の 'login/'）
   path('api/', include('kosu.urls')),  # '/api' パターンの処理（フロントエンドの API 呼び出しはすべてこちら）
   path('manifest.json', manifest),  # manifest.jsonへの対応（アプリ名・起動URL・テーマ色などをJSONで返す）

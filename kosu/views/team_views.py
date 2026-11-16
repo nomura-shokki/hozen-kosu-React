@@ -80,7 +80,7 @@ class TeamNew(APIView):
     team_filter = team_member.objects.filter(employee_no5=member_data.employee_no)
     # 1人の班長に班員設定が複数ある場合はどれを使うか決められないためエラーにする
     if team_filter.count() > 1:
-      return Response({'status': 'error', 'message': '複数の班員データが存在します。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '複数の班員データが存在します。'}, status=status.HTTP_409_CONFLICT)
     
     # 班員設定があればそれを使い、無ければ班員が空の班員設定を新規作成する
     if team_filter.exists():
@@ -316,7 +316,7 @@ class TeamDetail(APIView):
     #   該当なしは 401、同じ従業員番号の人員が複数いる場合は 400 を返す
     member_query_set = member.objects.filter(employee_no=kosu_instance.employee_no3)
     if not member_query_set.exists():
-      return Response({'status': 'error', 'message': 'メンバーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': 'メンバーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
     elif member_query_set.count() > 1:
       return Response({'status': 'error', 'message': '複数のメンバーが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     # 1件だけ存在することが確定したので、その1件を取り出す
@@ -328,7 +328,7 @@ class TeamDetail(APIView):
       def_query_set = kosu_division.objects.filter(kosu_name=kosu_instance.def_ver2)
       # 該当なしは 401、同じVer名が複数ある場合は 400 を返す
       if not def_query_set.exists():
-        return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
       elif def_query_set.count() > 1:
         return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
       def_instance = def_query_set.first()
@@ -337,7 +337,7 @@ class TeamDetail(APIView):
       def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
       # 該当なしは 401、同じVer名が複数ある場合は 400 を返す
       if not def_query_set.exists():
-        return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
       elif def_query_set.count() > 1:
         return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
       def_instance = def_query_set.first()

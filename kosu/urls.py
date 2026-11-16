@@ -83,11 +83,9 @@ urlpatterns = [
   # POST /api/kosu_link/ : 勤務入力画面から工数入力画面へ移る前に、対象日をセッションに保存 → KosuLink
   path('kosu_link/', kosu_views.KosuLink.as_view(), name='kosu_link'),
   # PUT /api/day_update/ : 工数データの就業日を変更 → DayUpdate
-  #   ※name が 'item_delete' になっている（下の item_delete/ と名前が入れ替わっている）
-  path('day_update/', kosu_views.DayUpdate.as_view(), name='item_delete'),
+  path('day_update/', kosu_views.DayUpdate.as_view(), name='day_update'),
   # POST /api/item_delete/ : 工数編集画面で選んだ項目（時間帯）の工数を削除 → ItemDlete
-  #   ※name が 'day_update' になっている（上の day_update/ と名前が入れ替わっている）
-  path('item_delete/', kosu_views.ItemDlete.as_view(), name='day_update'),
+  path('item_delete/', kosu_views.ItemDlete.as_view(), name='item_delete'),
   # DELETE /api/kosu_delete/<工数データID>/ : 工数データ1件の削除 → KosuDelete
   path('kosu_delete/<int:pk>/', kosu_views.KosuDelete.as_view(), name='kosu_delete'),
   # GET/POST /api/today_break_time/ : 当日休憩時間変更画面の表示データ取得 / その日の休憩時間の更新 → TodayBreakTime
@@ -154,7 +152,7 @@ urlpatterns = [
   # GET/POST /api/team_view/ : ショップ単位の工数入力状況の取得 / 表示する年・月をセッションに保存 → TeamView
   path('team_view/', team_views.TeamView.as_view(), name='team_view'),
   # POST /api/team_shop_select/ : ショップ単位工数入力状況で表示するショップをセッションに保存 → TeamShopSelect
-  path('team_shop_select/', team_views.TeamShopSelect.as_view(), name='team_shop_select/'),
+  path('team_shop_select/', team_views.TeamShopSelect.as_view(), name='team_shop_select'),
 
   # ---------- 問い合わせ（inquiry_views.py） ----------
   # GET /api/inquir_menu/ : 問い合わせメニュー画面の表示データ → InquirMenu（main_views.py）

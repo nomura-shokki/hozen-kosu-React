@@ -246,6 +246,38 @@ def is_valid_help_password(password):
 
 
 # ------------------------------------------------------------
+# HelpRateThrottle: ヘルプの呼び出し回数の上限（Help・HelpPass で使う）
+#   ScopedRateThrottle（DRF の部品）は、初めの設定では、頼みに付いてくる見出し X-Forwarded-For の
+#   中身を全部つなげた文字で「同じ所か」を見分ける。見出しの前の部分は送る側が自由に書けるので、
+#   書き方が変わるたびに「別の所」として数え直しになり、上限が効かない。
+#   そこで、App Service の手前の中継が最後に足した、本当の送り元の住所（IP アドレス）だけで見分ける。
+# ------------------------------------------------------------
+class HelpRateThrottle(ScopedRateThrottle):
+  # 「同じ所か」を見分ける文字（送り元の IP アドレス）を返す。
+  #
+  # 引数:
+  #   request: HTTPリクエスト
+  # 戻り値:
+  #   str: 送り元の IP アドレス（ポート番号は付けない）
+  def get_ident(self, request):
+    xff = request.META.get('HTTP_X_FORWARDED_FOR')
+    # 中継が無い時（手元で runserver を使う時など）は、つないできた相手の住所
+    if not xff:
+      return request.META.get('REMOTE_ADDR')
+    # いちばん後ろが、App Service の中継が足した、本当の送り元
+    addr = xff.split(',')[-1].strip()
+    # "[2001:db8::1]:51234"（IPv6 とポート番号）の形なら、[ ] の中だけにする
+    if addr.startswith('['):
+      return addr[1:addr.find(']')] if ']' in addr else addr
+    # "203.0.113.7:51234"（IPv4 とポート番号）の形なら、ポート番号を外す
+    #   （ポート番号はつなぐたびに変わるので、付けたままだと毎回「別の所」になる）
+    if addr.count(':') == 1:
+      return addr.split(':')[0]
+    return addr
+
+
+
+# ------------------------------------------------------------
 # Help: データ初期化API（ヘルプ画面）
 #   URL  : /api/help/
 #   権限 : AllowAny（ログインできなくなった場合に使うためログイン不要）
@@ -259,7 +291,7 @@ class Help(APIView):
   # ログインしていなくても呼び出せるようにする
   permission_classes = [AllowAny]
   # パスワードの総当たりを防ぐため、同じ所からの呼び出し回数を制限する（settings.py の DEFAULT_THROTTLE_RATES の 'help'）
-  throttle_classes = [ScopedRateThrottle]
+  throttle_classes = [HelpRateThrottle]
   throttle_scope = 'help'
   # データを初期化する（POST）。
   #
@@ -376,7 +408,7 @@ class HelpPass(APIView):
   # ログインしていなくても呼び出せるようにする
   permission_classes = [AllowAny]
   # パスワードの総当たりを防ぐため、Help と同じ枠（'help'）で呼び出し回数を制限する
-  throttle_classes = [ScopedRateThrottle]
+  throttle_classes = [HelpRateThrottle]
   throttle_scope = 'help'
   # ヘルプ画面のパスワードを判定する（POST）。
   #
@@ -959,7 +991,7 @@ class AdministratorKosuUpdate(APIView):
     try:
       kosu_member = member.objects.get(employee_no=kosu_instance.employee_no3)
     except member.DoesNotExist:
-      return Response({'status': 'error', 'message': '工数データのユーザーが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '工数データのユーザーが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # データベースから全ての工数区分定義を取得（編集画面の「工数区分定義Ver」選択欄の選択肢になる）
     divisions = kosu_division.objects.all()

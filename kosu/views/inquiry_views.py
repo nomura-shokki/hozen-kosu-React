@@ -186,17 +186,12 @@ class InquirNew(APIView):
     # 問い合わせデータをデータベースに保存（新規登録）
     new_inquiry.save()
 
-    # 最新（IDが最大）の管理者設定を取得
-    #   ※ last() はデータが無いとき例外ではなく None を返すため、この except に入ることはない
-    try:
-      admin_data = administrator_data.objects.order_by("id").last()
-    except administrator_data.DoesNotExist:
-      return Response({'status': 'error', 'message': '設定データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+    # 最新（IDが最大）の管理者設定を取得（無ければ初期値で作る）
+    admin_data = get_settings()
 
-    # IDが最大の問い合わせ（＝直前に登録した問い合わせ）を取得し、お知らせのリンク先IDに使う
-    inquiry_data_id = inquiry_data.objects.order_by('id').last()
     # 問い合わせ担当者向けお知らせの書き込み:
-    #   pop_up1 → pop_up5 の順に確認し、最初に見つかった空き枠に文言と問い合わせIDを書き込んで終了する
+    #   pop_up1 → pop_up5 の順に確認し、最初に見つかった空き枠に、文言と「いま登録した問い合わせのID」を書き込んで終了する
+    #   （前は「IDが最大の問い合わせ」を探していたので、同時に登録した別の人の問い合わせを指すことがあった）
     for i in range(1, 6):
       pop_up_field = f'pop_up{i}'
       pop_up_id_field = f'pop_up_id{i}'
@@ -205,7 +200,7 @@ class InquirNew(APIView):
         administrator_data.objects.update_or_create(
           id=admin_data.id,
           defaults={
-            pop_up_id_field: inquiry_data_id.id,
+            pop_up_id_field: new_inquiry.id,
             pop_up_field: f'{member_data.name}さんからの新しい問い合わせがあります。'
           }
         )

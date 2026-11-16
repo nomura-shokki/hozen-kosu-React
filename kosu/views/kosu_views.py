@@ -187,7 +187,7 @@ class KosuNew(APIView):
     #   同名が2件以上あれば 400 を返す
     def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
     if not def_query_set.exists():
-      return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
     elif def_query_set.count() > 1:
       return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     def_data = def_query_set.first()
@@ -920,18 +920,18 @@ class KosuUpdate(APIView):
       def_query_set = kosu_division.objects.filter(kosu_name=kosu_instance.def_ver2)
       # 該当Verが無い・重複している場合は 401 を返す
       if not def_query_set.exists():
-        return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
       elif def_query_set.count() > 1:
-        return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_409_CONFLICT)
       def_instance = def_query_set.first()
     # def_ver2 が未設定（作業内容がまだ無いデータ）の場合は、セッションの使用中Verを使う
     else:
       def_query_set = kosu_division.objects.filter(kosu_name=def_ver)
       # 該当Verが無い・重複している場合は 401 を返す
       if not def_query_set.exists():
-        return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
       elif def_query_set.count() > 1:
-        return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_409_CONFLICT)
       def_instance = def_query_set.first()
 
     # 作業詳細取得
@@ -1176,10 +1176,10 @@ class ItemDlete(APIView):
         detail_list = obj_get.detail_work.split('$')
       # 作業内容がない場合、エラー
       else:
-        return Response({'status': 'error', 'message': '工数データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'status': 'error', 'message': '工数データが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
     # 工数データがない場合、エラー
     else:
-      return Response({'status': 'error', 'message': '工数データが見つかりません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '工数データが見つかりません。'}, status=status.HTTP_404_NOT_FOUND)
 
     # 項目番号から削除時間取得
     #   削除する時間帯の開始・終了日時（UTC の ISO形式）を日本時間の "HH:MM" にする。形が違えば 400
@@ -1668,7 +1668,7 @@ class KosuTotal(APIView):
     #   該当Verが無ければ 401、重複していれば 400 を返す
     def_query_set = kosu_division.objects.filter(kosu_name=kosu_data.def_ver2 if kosu_data.def_ver2 else def_ver_session)
     if not def_query_set.exists():
-      return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
     elif def_query_set.count() > 1:
       return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     def_data = def_query_set.first()
@@ -1770,7 +1770,7 @@ class KosuTotal(APIView):
     # 決めたVer名で工数区分定義を取得（無ければ 401、重複していれば 400）
     def_query_set = kosu_division.objects.filter(kosu_name=def_ver_to_filter)
     if not def_query_set.exists():
-      return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_401_UNAUTHORIZED)
+      return Response({'status': 'error', 'message': '工数区分データが存在しません。'}, status=status.HTTP_404_NOT_FOUND)
     elif def_query_set.count() > 1:
       return Response({'status': 'error', 'message': '複数の工数区分データが存在します。'}, status=status.HTTP_400_BAD_REQUEST)
     def_data = def_query_set.first()
