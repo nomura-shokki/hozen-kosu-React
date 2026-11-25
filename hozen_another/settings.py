@@ -316,6 +316,13 @@ CSRF_TRUSTED_ORIGINS = [
   'http://127.0.0.1:8000',
 ]
 
+# Azure App Service は、HTTPS で受けたリクエストを、中のアプリへは HTTP で渡す。
+# その時に付く X-Forwarded-Proto ヘッダーを見て「本当は HTTPS だった」と分かるようにする
+#   （request.is_secure() が正しくなり、CSRF の確かめも HTTPS として行われる）
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# CSRF トークンの Cookie も、本番（DEBUG=False）では HTTPS の時だけ送る
+CSRF_COOKIE_SECURE = not DEBUG
+
 # 静的ファイルの保存方式（WhiteNoise）
 #   collectstatic 時にファイルを圧縮し、ファイル名に内容のハッシュ値を付ける
 #   （例: main.css → main.1a2b3c.css。内容が変わるとURLも変わるので、ブラウザの古いキャッシュが使われない）

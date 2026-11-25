@@ -1,55 +1,81 @@
-name: Deploy Django + React to Azure  
-on:  
-  push:  
-    branches:  
-      - master  
-  workflow_dispatch:  
-jobs:  
-  build-and-deploy:  
-    runs-on: ubuntu-latest  
-    env:  
-      SECRET_KEY: ${{ secrets.SECRET_KEY }}  
-      DEBUG: ${{ secrets.DEBUG }}  
-      DB_NAME: ${{ secrets.DB_NAME }}  
-      DB_USER: ${{ secrets.DB_USER }}  
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}  
-      DB_HOST: ${{ secrets.DB_HOST }}  
-      HELP_PATH: ${{ secrets.HELP_PATH }}  
-    steps:  
-      - name: Checkout repository  
-        uses: actions/checkout@v4  
-      - name: Set up Python  
-        uses: actions/setup-python@v5  
-        with:  
-          python-version: "3.12"  
-      - name: Set up Node.js  
-        uses: actions/setup-node@v4  
-        with:  
-          node-version: "20"  
-      - name: Install React dependencies  
-        run: |  
-          cd frontend  
-          npm install  
-      - name: Build React  
-        run: |  
-          cd frontend  
-          npm run build  
-      - name: Install Python dependencies  
-        run: |  
-          python -m venv antenv  
-          source antenv/bin/activate  
-          pip install --upgrade pip  
-          pip install -r requirements.txt  
-      - name: Collect static files  
-        run: |  
-          source antenv/bin/activate  
-          python manage.py collectstatic --noinput  
-      - name: Create deployment zip  
-        run: |  
-          zip -r release.zip . -x ".git/*" "node_modules/*" "frontend/node_modules/*"  
-      - name: Deploy to Azure Web App  
-        uses: azure/webapps-deploy@v3  
-        with:  
-          app-name: hozen-kosu-React  
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_054C4F3FA5C14FFF913C35ACF9E2E28A }}  
-          package: release.zip  
+name: Deploy Django + React to Azure
+on:
+  push:
+    branches:
+      - master
+  pull_request:            # PR を出した時は、テストだけ流す（本番には出さない）
+    branches:
+      - master
+  workflow_dispatch:
+jobs:
+  # ---- 1. テスト（失敗したら、ここで止まり、本番には出ない）
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Backend tests
+        env:                   # テスト用の値（本物の秘密ではない）
+          SECRET_KEY: test-only-not-a-secret
+          DEBUG: "False"
+          HELP_PATH: test-only
+        run: |
+          pip install -r requirements.txt
+          python manage.py test kosu --settings=hozen_another.test_settings
+      - name: Frontend tests and build
+        run: |
+          cd frontend
+          npm ci
+          npm run test:run
+          npm run build
+  # ---- 2. 本番へ出す（テストが全部通った時だけ。PR の時は出さない）
+  build-and-deploy:
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build React
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+      - name: Install Python dependencies
+        run: |
+          python -m venv antenv
+          source antenv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Collect static files
+        env:                     # collectstatic は settings.py を読むだけなので、秘密の値は要らない
+          SECRET_KEY: build-only-not-a-secret
+          DEBUG: "False"
+        run: |
+          source antenv/bin/activate
+          python manage.py collectstatic --noinput
+      - name: Create deployment zip
+        run: |
+          zip -r release.zip . -x ".git/*" "node_modules/*" "frontend/node_modules/*"
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: hozen-kosu-React
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_054C4F3FA5C14FFF913C35ACF9E2E28A }}
+          package: release.zip
