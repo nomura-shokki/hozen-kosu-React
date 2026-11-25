@@ -72,7 +72,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',  # セッション（ログイン中ユーザーの情報をサーバー側で保持する仕組み）
     'django.contrib.messages',  # 一時メッセージ表示の仕組み（admin が依存）
     'django.contrib.staticfiles',  # 静的ファイル（CSS・JS・画像）の管理（collectstatic コマンドなど）
-    'bootstrap4',  # Django テンプレート用の Bootstrap4 部品（※kosu アプリにテンプレートファイルは無い）
     'bootstrap_datepicker_plus',  # Django フォーム用の日付選択部品（※同上）
     'kosu',  # 工数管理システム本体のアプリ（kosu/）
     'django_q',  # Django-Q（非同期タスクキュー）。下の Q_CLUSTER 参照
