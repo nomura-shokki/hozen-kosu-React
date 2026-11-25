@@ -237,7 +237,7 @@ class TestModels(TestCase):
             authority=False, administrator=False, **bt
         )
         # 検証: 文字列表現は氏名、従業員番号は作成時の値
-        self.assertEqual(str(m), '山田太郎')
+        self.assertEqual(str(m), '1_11111:山田太郎')
         self.assertEqual(m.employee_no, 11111)
 
     # 【テスト】工数データを作成でき、文字列表現が「ID__就業日:従業員番号」になること
