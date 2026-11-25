@@ -73,7 +73,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',  # 一時メッセージ表示の仕組み（admin が依存）
     'django.contrib.staticfiles',  # 静的ファイル（CSS・JS・画像）の管理（collectstatic コマンドなど）
     'kosu',  # 工数管理システム本体のアプリ（kosu/）
-    'django_q',  # Django-Q（非同期タスクキュー）。下の Q_CLUSTER 参照
     'rest_framework',  # Django REST Framework（APIを作るためのライブラリ）
     'corsheaders',  # django-cors-headers（別オリジンからのAPI呼び出しを許可するための仕組み）
 ]
@@ -239,18 +238,6 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', ''),  # データベースサーバーのホスト名
         'PORT': '5432',  # PostgreSQL の標準ポート番号
     }
-}
-
-# Django Q の設定
-#   Django-Q: 時間のかかる処理を別プロセス（python manage.py qcluster で起動）に任せる仕組み。
-#   ※現在のコードはバックアップ・復元を asynchronous_views.py で threading（別スレッド）により実行しており、
-#     Django-Q へのタスク登録（async_task など）は行っていない
-Q_CLUSTER = {
-    'orm': 'default',  # タスクの受け渡し場所として Django のデータベース（'default'）を使う
-    'workers': 4,  # 同時にタスクを処理するワーカー（作業プロセス）の数
-    'recycle': 2000,  # 1つのワーカーが2000件処理したら作り直す（メモリの肥大化を防ぐ）
-    'retry': 2000,  # 処理完了の報告が無いタスクを、2000秒後に再実行する（timeout より長くする必要がある）
-    'timeout': 1800,  # 1つのタスクの実行時間の上限（1800秒 = 30分）
 }
 
 # ============================================================
