@@ -8,7 +8,6 @@
 # 振り分け先 :
 #   - /admin/〜        : Django 標準の管理サイト（kosu/admin.py で登録したモデルを閲覧・編集）
 #   - /api/〜          : APIの本体（kosu/urls.py の対応表へ）
-#   - /BA〜            : kosu/urls.py と同じ対応表（接頭辞が 'BA' のみで「/」が無い点に注意）
 #   - /manifest.json   : Web App Manifest（ホーム画面追加用の設定）を返す
 #   - 上記以外すべて   : React の画面（index.html）を返す。画面の切り替えは React 側（index.tsx）が行う
 #

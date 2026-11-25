@@ -4,7 +4,6 @@
 # 概要       : APIのURLと、それを処理するビュー（views/ 以下のクラス・関数）の対応表。
 #              hozen_another/urls.py で path('api/', include('kosu.urls')) として読み込まれるため、
 #              ここに書いた 'login/' は実際には /api/login/ というURLになる。
-#              （'BA' という接頭辞でも同じ対応表が読み込まれている。hozen_another/urls.py 参照）
 #
 # 主な内容   : 機能ごとに以下の順で並んでいる
 #   - ログイン・ヘルプ・メニュー           : main_views.py
