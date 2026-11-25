@@ -27,11 +27,9 @@ import axios from "axios";
 
 /** API通信用の axios インスタンス（以下の設定がすべてのリクエストに自動で適用される） */
 const api = axios.create({  
-    // 接続先の基準URL。api.get("/api/〜") は「baseURL ＋ /api/〜」へ送られる
-    //   コード上は環境変数 REACT_APP_API_BASE_URL（frontend/.env.production に同名の設定あり）を読む。
-    //   ただし Vite のビルド（npm run build）では process.env が空のオブジェクト {} に置き換えられるため
-    //   この値は undefined になり、baseURL なし＝画面を表示しているのと同じサーバーへ送信される
-    baseURL: process.env.REACT_APP_API_BASE_URL,  
+    // 接続先の基準URL（baseURL）は付けない。api.get("/api/〜") は、画面を表示しているのと同じサーバーへ送られる
+    //   本番: Django が画面と API の両方を出している
+    //   手元: Vite の開発サーバー（http://localhost:5173）が /api を Django（http://localhost:8000）へ中継する（vite.config.mts）
     // Cookie（セッションID・CSRFトークン）をリクエストに付けて送る。これが無いとサーバー側でログイン者を特定できない
     withCredentials: true,  
     // CSRF（なりすまし送信）対策: Django が発行する Cookie「csrftoken」の値を読み取り、

@@ -32,6 +32,13 @@ import react from '@vitejs/plugin-react';
 // ============================================================
 export default defineConfig({
   plugins: [react()], // 使用するプラグインの一覧（React 対応）
+  // 開発サーバー（npm start）の設定: /api/ で始まるリクエストを、手元の Django（http://localhost:8000）へ中継する。
+  //   画面（http://localhost:5173）と API が同じオリジンに見えるので、本番と同じく Cookie がそのまま使える
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8000',
+    },
+  },
   // ビルド（npm run build）の設定
   //   Django は frontend/build/index.html を画面のテンプレートとして返し（settings.py の TEMPLATES）、
   //   frontend/build/static/ の中身を /static/〜 のURLで配信する（STATICFILES_DIRS・STATIC_URL）。

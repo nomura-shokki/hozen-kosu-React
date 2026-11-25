@@ -10,7 +10,7 @@ This is a work hours (kosu) management system for tracking employee work time an
 
 ### Frontend (from `frontend/` directory)
 ```bash
-npm start          # Start dev server at http://localhost:3000
+npm start          # Start Vite dev server at http://localhost:5173 (proxies /api to http://localhost:8000)
 npm run build      # Production build
 npm test           # Run tests with Vitest (watch mode)
 npm run test:run   # Run tests once
