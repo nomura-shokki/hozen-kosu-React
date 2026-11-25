@@ -192,10 +192,6 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
-            # {% load %} を書かなくても全テンプレートで使えるタグ（Bootstrap4 用のタグ）
-            'builtins':[ 
-                'bootstrap4.templatetags.bootstrap4',
-                ]
         },
     },
 ]
@@ -214,11 +210,6 @@ STATICFILES_DIRS = [
 # Reactのbuild内のindex.htmlをテンプレートとして指定
 #   main_views.py の react_view が render(request, 'index.html') でこのファイルを返す
 TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'frontend/build')]
-
-# django-bootstrap4 の設定: Bootstrap 用のタグで jQuery も読み込む
-BOOTSTRAP4 = {
-    'include_jquery': True,
-}
 
 # WSGI サーバー（runserver・gunicorn など）が呼び出すアプリケーション本体の場所（hozen_another/wsgi.py）
 WSGI_APPLICATION = 'hozen_another.wsgi.application'
