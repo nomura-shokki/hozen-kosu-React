@@ -14,7 +14,6 @@
 #   - administrator_data  : 管理者設定（一覧表示項目数・問い合わせ担当者・担当者向けお知らせ）
 #   - inquiry_data        : 問い合わせ（要望・不具合・問い合わせの内容と回答）
 #   - AsyncTask           : 非同期タスク（バックアップ/復元などのバックグラウンド処理の状態）
-#   - Operation_history   : 操作履歴（画面単位の記録用。現在のコードからは使われていない）
 #   - History             : 操作履歴（データ変更の監査ログ。signals.py が自動で記録）
 #
 # 共通の用語:
@@ -129,7 +128,7 @@ class member(models.Model):
   # 戻り値:
   #   str: 氏名
   def __str__(self):
-    return self.name
+    return str(self.id) + '_' + str(self.employee_no) + ':' + str(self.name)
 
   # ログイン済みかどうかを返す（常に True）。
   #
