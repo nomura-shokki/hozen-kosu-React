@@ -22,12 +22,11 @@ npm run test:ui    # Run tests with Vitest UI
 python manage.py runserver           # Start Django dev server at http://localhost:8000
 python manage.py migrate             # Apply database migrations
 python manage.py makemigrations      # Create new migrations
-python manage.py qcluster            # Start Django-Q task queue worker
 ```
 
 ### Environment Setup
-- Backend requires `.env` file with: `SECRET_KEY`, `DEBUG`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`
-- Frontend uses `REACT_APP_API_BASE_URL` for API endpoint configuration
+- Backend requires `.env` file with: `SECRET_KEY`, `DEBUG`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `HELP_PATH`
+- Frontend calls the API with relative URLs (`/api/...`); in development Vite proxies `/api` to Django (see `frontend/vite.config.mts`)
 
 ## Architecture
 

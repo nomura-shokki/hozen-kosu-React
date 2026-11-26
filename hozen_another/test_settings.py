@@ -66,3 +66,7 @@ REST_FRAMEWORK = {**REST_FRAMEWORK, 'DEFAULT_THROTTLE_RATES': {'help': None}}
 #   （media/ に置くと、テストのたびに Excel が増え、リポジトリに入ってしまう）
 import tempfile
 MEDIA_ROOT = tempfile.mkdtemp(prefix='kosu-test-media-')
+
+# テストでは、ログ（views_logger）を、毎回新しい一時フォルダのファイルに書く
+#   （リポジトリの直下の web_console.log に、テストの警告が書き足されて、コミットに入らないように）
+LOGGING['handlers']['web_console']['filename'] = os.path.join(tempfile.mkdtemp(prefix='kosu-test-log-'), 'web_console.log')

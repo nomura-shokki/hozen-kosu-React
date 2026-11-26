@@ -36,6 +36,7 @@ import uuid  # 重複しないタスクIDの生成
 import datetime  # 日付の入力チェック
 import tempfile  # アップロードファイルを一時保存する一時ファイルの作成
 from pathlib import Path  # ファイルの場所を、フォルダの外に出ていないか確かめられる形で扱う
+import logging # ログ（web_console.log）に書く
 # Django / Django REST Framework
 from django.conf import settings  # settings.TESTING（テスト実行中かどうか）の参照
 from django.urls import resolve  # アクセスされたURLから urls.py のURL名を調べる
@@ -707,6 +708,6 @@ def handle_task(task_id, task_function, *args, **kwargs):
             task.save()  
         except AsyncTask.DoesNotExist:  
             # 対応するタスクのレコードがすでに削除されている場合は、標準出力にログを出すだけにする
-            print(  
-                f'Error: AsyncTask with id {task_id} not found.'  
-            )  
+            logging.getLogger('views_logger').warning(
+                f'Error: AsyncTask with id {task_id} not found.'
+            ) 

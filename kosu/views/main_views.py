@@ -72,46 +72,15 @@ from ..permissions import HasAuthority, IsAdministrator
 
 
 # ============================================================
-# ログ出力の設定（print の出力を web_console.log に記録する）
+# ログ出力の設定
 # ============================================================
 # 専用ロガー取得('views_logger'という名前のカスタムロガーを使用しログメッセージ記録)
 #   views_logger の出力先は settings.py の LOGGING で設定されている
 #   （プロジェクトルートの web_console.log。1MBを超えたら1世代だけ残して新しいファイルに切り替わる）
+#   ログに残したいことは、print ではなく views_logger.info(...) で書く
+#   （前は sys.stdout を差し替えて、サーバー全体の print をログに流していた。ほかの部品の出力も混ざり、
+#     テストの出力も見えなくなるため、やめた）
 views_logger = logging.getLogger('views_logger')
-
-# ------------------------------------------------------------
-# PrintToLogger: 標準出力の代わりになるクラス
-#   print 関数は sys.stdout の write() を呼び出して文字を出力する。
-#   sys.stdout をこのクラスに差し替えることで、print の出力を views_logger に流し、
-#   管理者画面のログ表示（WebConsoleLogView）で確認できるようにする。
-# ------------------------------------------------------------
-class PrintToLogger:
-  # print から渡された文字列をログに記録する。
-  #
-  # 引数:
-  #   message: 出力しようとした文字列（print は本文と末尾の改行を別々に渡してくることがある）
-  # 戻り値:
-  #   なし
-  def write(self, message):
-    # 受け取った標準出力のメッセージ処理(空白および改行のみのメッセージは無視)
-    if message.strip():  
-      views_logger.info(message)
-
-  # バッファ（出力待ちの文字）を書き出す。
-  #
-  # sys.stdout として使うには flush() が必要なため用意しているが、
-  # ログへは write() の時点で書き込み済みなので何もしない。
-  #
-  # 戻り値:
-  #   なし
-  def flush(self):
-    # 処理不要のため空処理
-    pass
-
-# 標準出力をロガーへリダイレクト(sys.stdoutをPrintToLoggerのインスタンスに設定)
-#   このファイルが読み込まれた時点で実行され、以降はサーバープロセス全体の print 出力が対象になる
-sys.stdout = PrintToLogger()
-
 
 
 

@@ -334,7 +334,7 @@ LOGGING = {
             'level': 'INFO',  # INFO 以上の重要度のログを出力する
             'class': 'logging.handlers.RotatingFileHandler',  # 一定サイズでファイルを切り替える出力方式
             'formatter': 'simple',  # 上で定義した書式を使う
-            'filename': 'web_console.log',  # 出力先ファイル（サーバーを起動したフォルダからの相対パス）
+            'filename': os.path.join(BASE_DIR, 'web_console.log'),  # 出力先ファイル
             'maxBytes': 1024 * 1024 * 1,  # 最大ファイルサイズ (1MB)
             'backupCount': 1,  # 古いログを1世代（web_console.log.1）だけ残す
             'encoding': 'utf-8',  # 文字コード（日本語を正しく書き込むため UTF-8）

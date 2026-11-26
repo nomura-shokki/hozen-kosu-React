@@ -47,6 +47,12 @@ from .models import Business_Time_graph, kosu_division, def_choice, member, team
 from django.db import IntegrityError, transaction  # DBの整合性エラー / 複数の書き込みを「全部する・全部しない」にまとめる
 from django.core.exceptions import ObjectDoesNotExist  # 該当するレコードが無いときの例外
 import functools  # デコレーターを作る時に、元の関数の名前などを引き継ぐ
+import logging  # ログ（web_console.log）に書く
+
+
+
+# ロード中の警告などを書くロガー（出力先は settings.py の LOGGING。管理者のログ画面で見られる）
+views_logger = logging.getLogger('views_logger')
 
 
 
@@ -229,7 +235,7 @@ def load_kosu_file(file_path):
         member_instance = member.objects.get(employee_no=employee_no)
       # 人員データに存在しない従業員番号の場合は、警告を標準出力に出してこの行をスキップする
       except ObjectDoesNotExist:
-        print(f"警告: 従業員番号 {employee_no} (行 {i}) のメンバーが見つかりませんでした。スキップします。")
+        views_logger.info(f"警告: 従業員番号 {employee_no} (行 {i}) のメンバーが見つかりませんでした。スキップします。")
         continue # 次のループへ進む
 
       # 同じ従業員番号・就業日の工数データがすでにあれば削除する（ファイルの内容で置き換えるため）
@@ -265,7 +271,7 @@ def load_kosu_file(file_path):
       # 整合性エラー（NOT NULL 制約違反など）になった行は、エラー内容を標準出力に出してスキップする
       except IntegrityError as create_err:
         transaction.savepoint_rollback(sid)  # この行の分だけ取り消して、次の行へ進む
-        print(f"エラー: 行 {i} のデータ作成中に整合性エラーが発生しました: {create_err}。スキップします。")
+        views_logger.info(f"エラー: 行 {i} のデータ作成中に整合性エラーが発生しました: {create_err}。スキップします。")
         continue # 次のループへ進む
 
     # 5. 全行の処理が終わったら一時ファイルを削除し、成功を返す
@@ -425,7 +431,7 @@ def load_member_file(file_path):
 
       # すでに同じ従業員番号の人員が登録されている場合は、上書きせずにスキップする
       if member.objects.filter(employee_no=employee_no_value).exists():
-        print(f"従業員番号 {employee_no_value} は既に存在するためスキップしました。")
+        views_logger.info(f"従業員番号 {employee_no_value} は既に存在するためスキップしました。")
         continue
 
       # 登録されていない場合のみ、ファイルの1行分の値で人員データを新規作成する
@@ -479,7 +485,7 @@ def load_member_file(file_path):
       # 整合性エラー（NOT NULL 制約違反など）になった行は、エラー内容を標準出力に出してスキップする
       except IntegrityError as create_e:
         transaction.savepoint_rollback(sid)  # この行の分だけ取り消して、次の行へ進む
-        print(f"従業員番号 {employee_no_value} の書き込み中にIntegrityErrorが発生しました: {create_e}")
+        views_logger.info(f"従業員番号 {employee_no_value} の書き込み中にIntegrityErrorが発生しました: {create_e}")
         continue
 
     # 5. 全行の処理が終わったら一時ファイルを削除し、成功を返す
@@ -619,7 +625,7 @@ def load_team_file(file_path):
 
       # すでに同じ従業員番号の班員データがある場合は、上書きせずにスキップする
       if team_member.objects.filter(employee_no5=employee_no_value).exists():
-        print(f"従業員番号 {employee_no_value} は既に存在するためスキップしました。")
+        views_logger.info(f"従業員番号 {employee_no_value} は既に存在するためスキップしました。")
         continue
 
       # 存在しない場合のみ、ファイルの1行分の値で班員データを新規作成する
@@ -648,7 +654,7 @@ def load_team_file(file_path):
       # 整合性エラーになった行は、エラー内容を標準出力に出してスキップする
       except IntegrityError as create_e:
         transaction.savepoint_rollback(sid)  # この行の分だけ取り消して、次の行へ進む
-        print(f"従業員番号 {employee_no_value} の書き込み中にIntegrityErrorが発生しました: {create_e}")
+        views_logger.info(f"従業員番号 {employee_no_value} の書き込み中にIntegrityErrorが発生しました: {create_e}")
         continue
 
     # 5. 全行の処理が終わったら一時ファイルを削除し、成功を返す
@@ -1066,7 +1072,7 @@ def load_inquiry_file(file_path):
       # 整合性エラー（NOT NULL 制約違反など）になった行は、エラー内容を標準出力に出してスキップする
       except IntegrityError as create_e:
         transaction.savepoint_rollback(sid)  # この行の分だけ取り消して、次の行へ進む
-        print(f"書き込み中にIntegrityErrorが発生しました: {create_e}")
+        views_logger.info(f"書き込み中にIntegrityErrorが発生しました: {create_e}")
         continue
 
     # 5. 全行の処理が終わったら一時ファイルを削除し、成功を返す
@@ -1256,7 +1262,7 @@ def load_setting_file(file_path):
       # 整合性エラー（NOT NULL 制約違反など）になった行は、エラー内容を標準出力に出してスキップする
       except IntegrityError as create_e:
         transaction.savepoint_rollback(sid)  # この行の分だけ取り消して、次の行へ進む
-        print(f"書き込み中にIntegrityErrorが発生しました: {create_e}")
+        views_logger.info(f"書き込み中にIntegrityErrorが発生しました: {create_e}")
         continue
 
     # 5. 全行の処理が終わったら一時ファイルを削除し、成功を返す
