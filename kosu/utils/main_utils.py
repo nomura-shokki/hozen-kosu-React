@@ -124,6 +124,50 @@ def get_all_model_names_in_myapp():
 
 
 
+# ------------------------------------------------------------
+# 人員を新しく作る時の、休憩時間の初めの値（24 項目）
+#   キー名  : break_time{直の番号}（昼休憩） / break_time{直の番号}_over{1〜3}（残業休憩1〜3）
+#             直の番号 1=1直, 2=2直, 3=3直, 4=常昼, 5=連1直, 6=連2直
+#   値の形式: "#HHMMHHMM"（開始時刻と終了時刻。例: "#11401240" は 11:40〜12:40）
+#   人員の登録（member_views.py の MemberNew）と、ヘルプの初期化で作る管理者（main_views.py の Help）で使う。
+# ------------------------------------------------------------
+# 常昼・連1直・連2直（4〜6）は、どのショップも同じ
+_BREAK_TIMES_COMMON = {
+  'break_time4': '#12001300', 'break_time4_over1': '#19001915', 'break_time4_over2': '#01150215', 'break_time4_over3': '#06150630',
+  'break_time5': '#10401130', 'break_time5_over1': '#15101520', 'break_time5_over2': '#20202110', 'break_time5_over3': '#01400150',
+  'break_time6': '#21202210', 'break_time6_over1': '#01500200', 'break_time6_over2': '#07000750', 'break_time6_over3': '#12201230',
+}
+# 組立系ショップの 1直〜3直
+BREAK_TIMES_ASSEMBLY = {
+  'break_time1': '#11401240', 'break_time1_over1': '#17201735', 'break_time1_over2': '#23350035', 'break_time1_over3': '#04350450',
+  'break_time2': '#14101510', 'break_time2_over1': '#22002215', 'break_time2_over2': '#04150515', 'break_time2_over3': '#09150930',
+  'break_time3': '#23500050', 'break_time3_over1': '#06400655', 'break_time3_over2': '#12551355', 'break_time3_over3': '#17551810',
+  **_BREAK_TIMES_COMMON,
+}
+# それ以外のショップの 1直〜3直
+BREAK_TIMES_STANDARD = {
+  'break_time1': '#10401130', 'break_time1_over1': '#15101520', 'break_time1_over2': '#20202110', 'break_time1_over3': '#01400150',
+  'break_time2': '#17501840', 'break_time2_over1': '#22302240', 'break_time2_over2': '#03400430', 'break_time2_over3': '#09000910',
+  'break_time3': '#01400230', 'break_time3_over1': '#07050715', 'break_time3_over2': '#12151305', 'break_time3_over3': '#17351745',
+  **_BREAK_TIMES_COMMON,
+}
+# 組立系ショップ（1直〜3直で、専用の休憩の並びを使う）
+ASSEMBLY_SHOPS = ['W1', 'W2', 'A1', 'A2', 'J', '組長以上(W,A)']
+
+
+# ショップに合った、休憩時間の初めの値（24 項目の辞書の写し）を返す。
+#
+# 引数:
+#   shop: ショップ名
+# 戻り値:
+#   dict: break_time1〜break_time6_over3 の 24 項目
+def default_break_times(shop):
+  return dict(BREAK_TIMES_ASSEMBLY if shop in ASSEMBLY_SHOPS else BREAK_TIMES_STANDARD)
+
+
+
+
+
 # 管理者設定（administrator_data）を1件返す。
 #
 # 設定は1件だけを使う決まり。最新（IDが最大）の1件を返し、1件も無ければ初期値（一覧表示項目数 20）で作ってから返す。

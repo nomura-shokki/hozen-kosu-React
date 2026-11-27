@@ -25,7 +25,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import MemberSerializer
-from ..utils.main_utils import CustomPagination
+from ..utils.main_utils import CustomPagination, default_break_times
 from ..permissions import HasAuthority, IsAdministrator
 
 
@@ -143,66 +143,8 @@ class MemberNew(APIView):
     if data.get('administrator') and not request.user.administrator:
       return Response({'status': 'error', 'message': '管理者は、管理者だけが登録できます。'}, status=status.HTTP_403_FORBIDDEN)
 
-    # 休憩時間の初期値を設定する
-    #   キー名  : break_time{直の番号}（昼休憩） / break_time{直の番号}_over{1〜3}（残業休憩1〜3）
-    #             直の番号 1=1直, 2=2直, 3=3直, 4=常昼, 5=連1直, 6=連2直
-    #   値の形式: "#HHMMHHMM"（開始時刻と終了時刻。例: "#11401240" は 11:40〜12:40）
-    # 組立系ショップ（W1/W2/A1/A2/J/組長以上(W,A)）は、1直〜3直で専用の休憩パターンを使う
-    if data.get('shop') in ['W1', 'W2', 'A1', 'A2', 'J', '組長以上(W,A)']:
-      data.update({
-        'break_time1': '#11401240',
-        'break_time1_over1': '#17201735',
-        'break_time1_over2': '#23350035',
-        'break_time1_over3': '#04350450',
-        'break_time2': '#14101510',
-        'break_time2_over1': '#22002215',
-        'break_time2_over2': '#04150515',
-        'break_time2_over3': '#09150930',
-        'break_time3': '#23500050',
-        'break_time3_over1': '#06400655',
-        'break_time3_over2': '#12551355',
-        'break_time3_over3': '#17551810',
-        'break_time4': '#12001300',
-        'break_time4_over1': '#19001915',
-        'break_time4_over2': '#01150215',
-        'break_time4_over3': '#06150630',
-        'break_time5': '#10401130',
-        'break_time5_over1': '#15101520',
-        'break_time5_over2': '#20202110',
-        'break_time5_over3': '#01400150',
-        'break_time6': '#21202210',
-        'break_time6_over1': '#01500200',
-        'break_time6_over2': '#07000750',
-        'break_time6_over3': '#12201230',
-      })
-    # それ以外のショップは標準の休憩パターンを使う（常昼・連1直・連2直は組立系と同じ値）
-    else:
-      data.update({
-        'break_time1': '#10401130',
-        'break_time1_over1': '#15101520',
-        'break_time1_over2': '#20202110',
-        'break_time1_over3': '#01400150',
-        'break_time2': '#17501840',
-        'break_time2_over1': '#22302240',
-        'break_time2_over2': '#03400430',
-        'break_time2_over3': '#09000910',
-        'break_time3': '#01400230',
-        'break_time3_over1': '#07050715',
-        'break_time3_over2': '#12151305',
-        'break_time3_over3': '#17351745',
-        'break_time4': '#12001300',
-        'break_time4_over1': '#19001915',
-        'break_time4_over2': '#01150215',
-        'break_time4_over3': '#06150630',
-        'break_time5': '#10401130',
-        'break_time5_over1': '#15101520',
-        'break_time5_over2': '#20202110',
-        'break_time5_over3': '#01400150',
-        'break_time6': '#21202210',
-        'break_time6_over1': '#01500200',
-        'break_time6_over2': '#07000750',
-        'break_time6_over3': '#12201230',
-      })
+    # 休憩時間の初期値を設定する（組立系ショップか、それ以外かで決まる。値は main_utils.py の default_break_times）
+    data.update(default_break_times(data.get('shop')))
 
     # 送信データ＋休憩時間初期値をシリアライザに渡し、入力チェックを行う
     serializer = MemberSerializer(data=data)

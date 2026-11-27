@@ -41,7 +41,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import TeamSerializer, MemberSerializer, KosuSerializer, DefSerializer
-from ..utils.team_utils import excel_function, team_member_numbers
+from ..utils.team_utils import excel_function, member_number_list, team_member_numbers
 from ..utils.main_utils import CustomPagination, get_settings, parse_year_month
 from ..permissions import HasAuthority
 # BytesIO: ファイルをディスクに保存せず、メモリ上で作成するための入れ物
@@ -88,18 +88,8 @@ class TeamNew(APIView):
     else:
       team_data = team_member.objects.create(employee_no5=member_data.employee_no)
 
-    # 班員の従業員番号をリストにまとめる
-    member_numbers = [
-        team_data.member1, team_data.member2, team_data.member3,
-        team_data.member4, team_data.member5, team_data.member6,
-        team_data.member7, team_data.member8, team_data.member9,
-        team_data.member10, team_data.member11, team_data.member12,
-        team_data.member13, team_data.member14, team_data.member15
-    ]
-    # 未設定（None または空文字）の枠を除き、登録済みの班員の従業員番号だけにする
-    valid_member_numbers = [
-        num for num in member_numbers if num is not None and num != ''
-    ]
+    # 班員の従業員番号（班員1〜15 のうち登録済みの物。登録の順。team_utils.py の member_number_list）
+    valid_member_numbers = member_number_list(team_data)
     # 登録済みの班員の人員データを取得（画面の各選択欄の初期値表示用）
     team_member_choices = member.objects.filter(employee_no__in=valid_member_numbers)
 
@@ -208,18 +198,8 @@ class TeamList(APIView):
       # 班員設定が無い場合は、班員登録を促すメッセージで 400 を返す
       return Response({'status': 'error', 'message': '班員情報を登録してください。'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # 班員の従業員番号をリストにまとめる
-    member_numbers = [
-      team_data.member1, team_data.member2, team_data.member3,
-      team_data.member4, team_data.member5, team_data.member6,
-      team_data.member7, team_data.member8, team_data.member9,
-      team_data.member10, team_data.member11, team_data.member12,
-      team_data.member13, team_data.member14, team_data.member15
-    ]
-    # 未設定（None または空文字）の枠を除き、登録済みの班員の従業員番号だけにする
-    valid_member_numbers = [
-      num for num in member_numbers if num is not None and num != ''
-    ]
+    # 班員の従業員番号（班員1〜15 のうち登録済みの物。登録の順。team_utils.py の member_number_list）
+    valid_member_numbers = member_number_list(team_data)
     # 班員の人員データを取得（絞り込みプルダウンの選択肢用）
     team_member_choices = member.objects.filter(employee_no__in=valid_member_numbers)
 
@@ -403,18 +383,8 @@ class TeamCalendar(APIView):
       # 班員設定が無い場合は、班員登録を促すメッセージで 400 を返す
       return Response({'status': 'error', 'message': '班員情報を登録してください。'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # 班員の従業員番号をリストにまとめる
-    member_numbers = [
-      team_data.member1, team_data.member2, team_data.member3,
-      team_data.member4, team_data.member5, team_data.member6,
-      team_data.member7, team_data.member8, team_data.member9,
-      team_data.member10, team_data.member11, team_data.member12,
-      team_data.member13, team_data.member14, team_data.member15
-    ]
-    # 未設定（None または空文字）の枠を除き、登録済みの班員の従業員番号だけにする
-    valid_member_numbers = [
-      num for num in member_numbers if num is not None and num != ''
-    ]
+    # 班員の従業員番号（班員1〜15 のうち登録済みの物。登録の順。team_utils.py の member_number_list）
+    valid_member_numbers = member_number_list(team_data)
     # 画面の行見出し用に [従業員番号, 氏名] のリストを班員の登録順に作る
     #   人員から消された人は飛ばす（get だと「無い」時に例外で 500 になるので filter().first() にする）
     member_name_list = []
@@ -621,18 +591,8 @@ class TeamOverTime(APIView):
       # 班員設定が無い場合は、班員登録を促すメッセージで 400 を返す
       return Response({'status': 'error', 'message': '班員情報を登録してください。'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # 班員の従業員番号をリストにまとめる
-    member_numbers = [
-      team_data.member1, team_data.member2, team_data.member3,
-      team_data.member4, team_data.member5, team_data.member6,
-      team_data.member7, team_data.member8, team_data.member9,
-      team_data.member10, team_data.member11, team_data.member12,
-      team_data.member13, team_data.member14, team_data.member15
-    ]
-    # 未設定（None または空文字）の枠を除き、登録済みの班員の従業員番号だけにする
-    valid_member_numbers = [
-      num for num in member_numbers if num is not None and num != ''
-    ]
+    # 班員の従業員番号（班員1〜15 のうち登録済みの物。登録の順。team_utils.py の member_number_list）
+    valid_member_numbers = member_number_list(team_data)
     # 画面の行見出し用に [従業員番号, 氏名] のリストを班員の登録順に作る
     #   人員から消された人は飛ばす（get だと「無い」時に例外で 500 になるので filter().first() にする）
     member_name_list = []

@@ -185,6 +185,19 @@ def excel_function(employee_no_data, wb, year, month, request, member_kosu_data)
 
 
 
+# 班員データの班員1〜15 のうち、登録済みの従業員番号を、登録の順に返す（未設定＝None・空文字の枠は除く）。
+#   班員の番号を並べる所（team_views.py の 4 か所・main_views.py の班員MENU）は、全部これを使う。
+#
+# 引数:
+#   team: 班員データ（team_member）
+# 戻り値:
+#   list[str]: 班員の従業員番号（項目のままの文字列）
+def member_number_list(team):
+  numbers = [getattr(team, f'member{i}') for i in range(1, 16)]
+  return [num for num in numbers if num is not None and num != '']
+
+
+
 # 班を管理する人の、班員の従業員番号を返す（TeamDetail で「自分の班員の工数データか」を確かめるのに使う）。
 #
 # 引数:
@@ -196,5 +209,4 @@ def team_member_numbers(leader_no):
   if team is None:
     return set()
   # member1〜member15 は文字列の項目なので、数字だけのものを数値にしてから集める
-  numbers = [getattr(team, f'member{i}') for i in range(1, 16)]
-  return {int(n) for n in numbers if n and str(n).strip().isdigit()}
+  return {int(n) for n in member_number_list(team) if str(n).strip().isdigit()}

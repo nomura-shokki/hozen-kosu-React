@@ -61,6 +61,33 @@ def inquiry_permission(member_data, inquir_instance, admin_data):
 
 
 
+# お知らせ（ポップアップ）を片付ける。
+#   人員データ（本人向け）や管理者設定（担当者向け）のお知らせ 1〜5 から、その問い合わせを指す物を全部消し、
+#   文言の空いた枠も除いて前に詰める（例: [A, x, C, x, 空] → [A, C, 空, 空, 空]）。保存はしない。
+#
+# 引数:
+#   obj       : お知らせを持つデータ（member または administrator_data）
+#   inquiry_id: 問い合わせのID
+# 戻り値:
+#   bool: 消した物があれば True（呼んだ側が、その時だけ save() する）
+def remove_pop_up(obj, inquiry_id):
+  slots = [(getattr(obj, f'pop_up{i}'), getattr(obj, f'pop_up_id{i}')) for i in range(1, 6)]
+  # その問い合わせを指す枠を除く（ID は文字列の項目なので、文字にそろえて比べる）
+  keep = [(text, pid) for text, pid in slots if str(pid) != str(inquiry_id)]
+  if len(keep) == len(slots):
+    return False
+  # 文言の空いた枠も除いて前に詰め、後ろの空いた枠を空にする
+  keep = [(text, pid) for text, pid in keep if text not in ('', None)]
+  keep += [('', '')] * (5 - len(keep))
+  for i, (text, pid) in enumerate(keep, start=1):
+    setattr(obj, f'pop_up{i}', text)
+    setattr(obj, f'pop_up_id{i}', pid)
+  return True
+
+
+
+
+
 # ------------------------------------------------------------
 # InquirList: 問い合わせ一覧API
 #   URL  : /api/inquir_list/
@@ -264,38 +291,9 @@ class InquirDetail(APIView):
     # 最新（IDが最大）の管理者設定を取得（問い合わせ担当者の判定とお知らせ削除に使う。無ければ初期値で作る）
     admin_data = get_settings()
 
-    # ログイン者が問い合わせ者本人の場合: 本人向けお知らせ（回答通知）を既読にする
+    # ログイン者が問い合わせ者本人の場合: 本人向けお知らせ（回答通知）のうち、この問い合わせの物を片付けて保存する
     if inquir_member is not None and inquir_member.employee_no == member_data.employee_no:
-      # 本人向けお知らせの削除:
-      #   pop_up_id1〜5 のうち、この問い合わせID と一致する最初の枠を空にする
-      #   （DBの値は文字列、pk は数値のため、両方 str() にそろえて比較する）
-      inquir_member_changed = False
-      for i in range(1, 6):
-        pop_up_id_field = f'pop_up_id{i}'
-        pop_up_field = f'pop_up{i}'
-        if str(getattr(inquir_member, pop_up_id_field)) == str(pk):
-          setattr(inquir_member, pop_up_id_field, '')
-          setattr(inquir_member, pop_up_field, '')
-          inquir_member_changed = True
-          break
-
-      # 本人向けお知らせの前詰め（削除した場合のみ）:
-      #   枠1〜4 を順に見て、文言が空の枠があれば次の枠の内容を移し、次の枠を空にする
-      #   例: [A, 空, C, D, 空] → [A, C, D, 空, 空]
-      if inquir_member_changed:
-        for i in range(1, 5):
-          pop_up_id_field = f'pop_up_id{i}'
-          pop_up_field = f'pop_up{i}'
-          next_pop_up_id_field = f'pop_up_id{i+1}'
-          next_pop_up_field = f'pop_up{i+1}'
-
-          if getattr(inquir_member, pop_up_field) in ['', None]:
-            setattr(inquir_member, pop_up_id_field, getattr(inquir_member, next_pop_up_id_field))
-            setattr(inquir_member, pop_up_field, getattr(inquir_member, next_pop_up_field))
-            setattr(inquir_member, next_pop_up_id_field, '')
-            setattr(inquir_member, next_pop_up_field, '')
-        
-        # 削除・前詰めの結果をまとめて最後に一度だけ保存（途中で何度も書き込まないため）
+      if remove_pop_up(inquir_member, pk):
         inquir_member.save()
 
     # ログイン者が問い合わせ担当者（管理者設定の担当者従業員番号1〜3 のいずれか）の場合:
@@ -305,34 +303,8 @@ class InquirDetail(APIView):
       admin_data.administrator_employee_no2 == str(member_data.employee_no) or \
       admin_data.administrator_employee_no3 == str(member_data.employee_no)):
       
-      # 担当者向けお知らせの削除: この問い合わせID と一致する最初の枠を空にする
-      admin_data_changed = False
-      for i in range(1, 6):
-        pop_up_id_field = f'pop_up_id{i}'
-        pop_up_field = f'pop_up{i}'
-        if str(getattr(admin_data, pop_up_id_field)) == str(pk):
-          setattr(admin_data, pop_up_id_field, '')
-          setattr(admin_data, pop_up_field, '')
-          admin_data_changed = True
-          break
-
-      # 担当者向けお知らせの前詰め（削除した場合のみ）:
-      #   枠1〜4 を順に見て、問い合わせIDが空の枠があれば次の枠の内容を移し、次の枠を空にする
-      #   （本人向けは「文言」が空かどうか、こちらは「ID」が空かどうかで判定している）
-      if admin_data_changed:
-        for i in range(1, 5):
-          pop_up_id_field = f'pop_up_id{i}'
-          pop_up_field = f'pop_up{i}'
-          next_pop_up_id_field = f'pop_up_id{i+1}'
-          next_pop_up_field = f'pop_up{i+1}'
-
-          if getattr(admin_data, pop_up_id_field) in ['', None]:
-            setattr(admin_data, pop_up_id_field, getattr(admin_data, next_pop_up_id_field))
-            setattr(admin_data, pop_up_field, getattr(admin_data, next_pop_up_field))
-            setattr(admin_data, next_pop_up_id_field, '')
-            setattr(admin_data, next_pop_up_field, '')
-        
-        # 削除・前詰めの結果をまとめて最後に一度だけ保存
+      # 担当者向けお知らせのうち、この問い合わせの物を片付けて保存する
+      if remove_pop_up(admin_data, pk):
         admin_data.save()
 
     # 次の問い合わせ: 今のIDより大きいIDのうち最小のもの（なければ None）
@@ -537,52 +509,13 @@ class InquirUpdate(APIView):
     # 問い合わせ者の人員データを取得（本人向けお知らせの削除先）。人員から消されていれば、本人向けの片付けは飛ばす
     inquir_member = member.objects.filter(employee_no=inquir_instance.employee_no2).first()
     if inquir_member is not None:
-      # 本人向けお知らせの削除: この問い合わせID と一致する枠をすべて空にする（まだ保存しない）
-      for i in range(1, 6):
-        pop_up_id_attr = f'pop_up_id{i}'
-        pop_up_attr = f'pop_up{i}'
-        if getattr(inquir_member, pop_up_id_attr) == str(pk):
-          setattr(inquir_member, pop_up_id_attr, '')
-          setattr(inquir_member, pop_up_attr, '')
+      # 本人向けお知らせのうち、この問い合わせの物を片付けて保存する
+      if remove_pop_up(inquir_member, pk):
+        inquir_member.save()
 
-      # 本人向けお知らせの前詰め: 文言が空の枠があれば次の枠の内容を移し、次の枠を空にする（まだ保存しない）
-      for i in range(1, 5):
-        pop_up_attr = f'pop_up{i}'
-        pop_up_id_attr = f'pop_up_id{i}'
-        next_pop_up_attr = f'pop_up{i + 1}'
-        next_pop_up_id_attr = f'pop_up_id{i + 1}'
-
-        if getattr(inquir_member, pop_up_attr) in ['', None]:
-          setattr(inquir_member, pop_up_attr, getattr(inquir_member, next_pop_up_attr))
-          setattr(inquir_member, pop_up_id_attr, getattr(inquir_member, next_pop_up_id_attr))
-          setattr(inquir_member, next_pop_up_attr, '')
-          setattr(inquir_member, next_pop_up_id_attr, '')
-
-      # 本人向けお知らせの変更を最後に一度だけ保存
-      inquir_member.save()
-
-    # 担当者向けお知らせの削除: この問い合わせID と一致する枠をすべて空にする（まだ保存しない）
-    for i in range(1, 6):
-      pop_up_id_attr = f"pop_up_id{i}"
-      pop_up_attr = f"pop_up{i}"
-      if getattr(admin_data, pop_up_id_attr) == str(pk):
-        setattr(admin_data, pop_up_id_attr, '')
-        setattr(admin_data, pop_up_attr, '')
-
-    # 担当者向けお知らせの前詰め: 文言が空の枠があれば次の枠の内容を移し、次の枠を空にする（まだ保存しない）
-    for i in range(1, 5):
-      pop_up_attr = f"pop_up{i}"
-      pop_up_id_attr = f"pop_up_id{i}"
-      next_pop_up_attr = f"pop_up{i + 1}"
-      next_pop_up_id_attr = f"pop_up_id{i + 1}"
-      if getattr(admin_data, pop_up_attr) in ["", None]:
-        setattr(admin_data, pop_up_attr, getattr(admin_data, next_pop_up_attr))
-        setattr(admin_data, pop_up_id_attr, getattr(admin_data, next_pop_up_id_attr))
-        setattr(admin_data, next_pop_up_attr, '')
-        setattr(admin_data, next_pop_up_id_attr, '')
-
-    # 担当者向けお知らせの変更を最後に一度だけ保存
-    admin_data.save()
+    # 担当者向けお知らせのうち、この問い合わせの物を片付けて保存する
+    if remove_pop_up(admin_data, pk):
+      admin_data.save()
 
     # 問い合わせ本体をデータベースから削除し、204（成功・返すデータなし）を返す
     inquir_instance.delete()

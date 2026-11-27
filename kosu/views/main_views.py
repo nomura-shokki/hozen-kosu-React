@@ -65,7 +65,8 @@ from rest_framework.throttling import ScopedRateThrottle  # 同じ所からの�
 from rest_framework import status
 from ..models import member, Business_Time_graph, kosu_division, team_member, administrator_data, AsyncTask, History
 from .serializers import MemberSerializer, AdministratorSerializer, KosuSerializer, DefSerializer, TaskSerializer, HistorySerializer
-from ..utils.main_utils import CustomPagination, get_all_model_names_in_myapp, get_settings
+from ..utils.main_utils import BREAK_TIMES_ASSEMBLY, CustomPagination, get_all_model_names_in_myapp, get_settings
+from ..utils.team_utils import member_number_list
 from ..permissions import HasAuthority, IsAdministrator
 
 
@@ -297,37 +298,13 @@ class Help(APIView):
         member.objects.all().delete()
         # 初期管理者の人員データを作成
         #   従業員番号 12345 / 氏名 admin / ショップ その他 / 権限あり / 管理者あり
-        #   休憩時間は member_views.py の組立系ショップ（W1/W2/A1/A2/J/組長以上(W,A)）と同じ初期値
-        #   （値の形式は "#HHMMHHMM"＝開始時刻と終了時刻。例: "#11401240" は 11:40〜12:40）
+        #   休憩時間は、組立系ショップ（W1/W2/A1/A2/J/組長以上(W,A)）の初期値（main_utils.py の BREAK_TIMES_ASSEMBLY）
         default_member = member(employee_no=12345,
                                 name='admin',
                                 shop='その他',
                                 authority=True,
                                 administrator=True,
-                                break_time1='#11401240',
-                                break_time1_over1='#17201735',
-                                break_time1_over2='#23350035',
-                                break_time1_over3='#04350450',
-                                break_time2='#14101510',
-                                break_time2_over1='#22002215',
-                                break_time2_over2='#04150515',
-                                break_time2_over3='#09150930',
-                                break_time3='#23500050',
-                                break_time3_over1='#06400655',
-                                break_time3_over2='#12551355',
-                                break_time3_over3='#17551810',
-                                break_time4='#12001300',
-                                break_time4_over1='#19001915',
-                                break_time4_over2='#01150215',
-                                break_time4_over3='#06150630',
-                                break_time5='#10401130',
-                                break_time5_over1='#15101520',
-                                break_time5_over2='#20202110',
-                                break_time5_over3='#01400150',
-                                break_time6='#21202210',
-                                break_time6_over1='#01500200',
-                                break_time6_over2='#07000750',
-                                break_time6_over3='#12201230',
+                                **BREAK_TIMES_ASSEMBLY,
                                 )
         default_member.save()
 
@@ -585,18 +562,8 @@ class TeamMenu(APIView):
 
     # 班員設定があり、フォローが ON の場合のみ未入力チェックを行う
     if team_filter.exists() and team_get.follow:
-      # 班員1〜15 の従業員番号をリストにまとめる
-      member_numbers = [
-        team_get.member1, team_get.member2, team_get.member3,
-        team_get.member4, team_get.member5, team_get.member6,
-        team_get.member7, team_get.member8, team_get.member9,
-        team_get.member10, team_get.member11, team_get.member12,
-        team_get.member13, team_get.member14, team_get.member15
-      ]
-      # 未設定（None または空文字）の枠を除き、登録済みの班員の従業員番号だけにする
-      valid_member_numbers = [
-        num for num in member_numbers if num is not None and num != ''
-      ]
+      # 班員の従業員番号（班員1〜15 のうち登録済みの物。登録の順。team_utils.py の member_number_list）
+      valid_member_numbers = member_number_list(team_get)
 
       # 過去7日分の日付リスト作成（今日は含まず、昨日〜7日前）
       #   例: 今日が 11/9 → [11/8, 11/7, 11/6, 11/5, 11/4, 11/3, 11/2]
